@@ -1,0 +1,61 @@
+---
+- title: "SQL Performance Explained"
+  author: 'Markus Winand'
+  isbn: 3950307826
+  current: yes
+- title: "Les furtifs"
+  author: 'Alain Damasio'
+  isbn: 2370490748
+  current: yes
+- title: "L214"
+  author: "Jean-Baptiste Del Amo"
+  isbn: B07L6DWXPL
+- title: "Comment tout peut s'effondrer"
+  author: 'Pablo Servigne, Raphaël Stevens'
+  isbn: 2021223310
+- title: 'Learn C the Hard Way'
+  author: 'Zed A. Shaw'
+  isbn: 0321884922
+  current: yes
+- title: 'PostgreSQL - Architecture et notions avancées'
+  author: 'Guillaume Lelarge'
+  isbn: 2822702756
+- title: 'Guide de conversation Japonais pour les Nuls, 3e édition'
+  author: 'Eriko Sato'
+  isbn: 2412033978
+- title: 'Comment devenir un optimiste contagieux'
+  author: 'Shawn Achor'
+  isbn: 2266239023
+- title: 'Révolution végane'
+  author: 'Elodie Vieille Blanchard'
+  isbn: 2100777203
+- title: 'Famille zéro déchet, Ze guide'
+  author: 'Jeremie Pichon, Bénédicte Moret'
+  isbn: 2365491871
+- title: 'Liberté & cie : Quand la liberté des salariés fait le succès des entreprises'
+  author: 'Isaac Getz'
+  isbn: 2081379511
+- title: "Ta deuxième vie commence quand tu comprends que tu n'en as qu'une"
+  author: 'Raphaëlle Giordano'
+  isbn: 2266270028
+- title: 'Comment devenir écolo sans devenir chiant'
+  author: 'Professeur Feuillage'
+  isbn: 241203043X
+- title: 'Steak Machine'
+  author: 'Geoffrey Le Guilcher'
+  isbn: B01N5FPRG6
+- title: '3 kifs par jour'
+  author: 'Florence Servan-Schreiber'
+  isbn: 2501139615
+- title: 'La vérité sur ce qui nous motive'
+  author: 'Daniel Pink'
+  isbn: 208137952X
+- title: 'Le pouvoir des habitudes : Changer un rien pour tout changer'
+  author: 'Charles Duhigg'
+  isbn: 2081342626
+- title: 'La Zone du Dehors'
+  author: 'Alain Damasio'
+  isbn: 2070464245
+- title: 'La Horde du Contrevent'
+  author: 'Alain Damasio'
+  isbn: 2070464237

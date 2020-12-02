@@ -1,0 +1,25 @@
+// Readings
+// 
+// Row display for readings.
+
+.readings {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex-grow: 1;
+}
+
+.reading {
+  padding: 0 .5rem .5rem 0 !important;
+  flex-grow: 0;
+  flex-shrink: 0;
+  height: 12rem;
+}
+
+.reading img {
+  height: 100%;
+}
+
+.done {
+  filter: grayscale(100%);
+}

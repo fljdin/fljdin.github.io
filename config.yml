@@ -1,0 +1,9 @@
+baseURL: https://fljd.in
+title: Florent Jardin
+
+params:
+  AuthorName: Florent Jardin
+  GitHubUser: fljdin
+
+permalinks:
+  posts: /:year/:month/:day/:title/
