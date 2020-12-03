@@ -1,0 +1,28 @@
+{{ define "main" }}
+<article class="post">
+  <h1 class="post-title">
+    <a href="{{ .Permalink }}">{{ .Title }}</a>
+  </h1>
+
+  <time datetime="{{ .Date.Format "2006-01-02" }}" class="post-date">{{ .Date.Format "02 Jan 2006"}}</time>
+
+  {{ .Content }}
+</article>
+
+{{ $related := .Site.RegularPages.Related . | first 3 }}
+{{ with $related }}
+<aside class="related">
+  <h3>Suggestion d'articles</h3>
+  <ul class="related-posts">
+    {{ range . }}
+      <li>
+        <a href="{{ .Permalink }}">{{ .Title }}
+          <small><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "02 Jan 2006"}}</time></small>
+        </a>
+      </li>
+    {{ end }}
+  </ul>
+</aside>
+{{ end }}
+
+{{ end }}

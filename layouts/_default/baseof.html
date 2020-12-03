@@ -1,30 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
 {{ partial "head.html" . }}
-{{ $icons := resources.Get "img/social-icons.svg" }}
 <body>
   <div class="container content">
-    <header class="homepage">
-      <h3 class="homepage-title">
-        <a href="{{ .Site.BaseURL }}" title="{{ .Site.Title }}">{{ .Site.Title }}</a>
-        <small>
-          {{ range $.Site.Data.navigation }}
-            {{ if isset . "icon" }}
-            <a href="{{ .url }}"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#" .icon }}"></use></svg></a>
-            {{ else }}
-            &nbsp;<a href="{{ .url }}">{{ .text }}</a>
-            {{ end }}
-          {{ end }}
-        </small>
-      </h3>
-    </header>
+    {{ partial "navbar.html" . }}
   
     <main>
     {{ block "main" . }}
     {{ end }}
     </main>
-
-{{ partial "footer.html" }}
+    
+    {{ partial "copyright.html" }}
 </div>
-</body>
-</html>
+{{ partial "footer.html" }}
