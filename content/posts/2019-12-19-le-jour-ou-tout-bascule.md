@@ -232,7 +232,7 @@ Vous y conviendrez, cette étape était particulièrement coton pour l'envisager
 
 La situation reste inchangée, _i.e._ l'instance `batman` est primaire sur une ancienne _timeline_ et doit être resynchronisée avec `robin` pour obtenir toutes les modifications réalisées depuis sa promotion.
 
-Comme suggéré dans la documentation<sup>[1]</sup>, le compte de réplication `streamer` doit disposer des droits d'exécution sur certaines fontions internes pour utiliser l'outil `pg_rewind` correctement :
+Comme suggéré dans la documentation[^1], le compte de réplication `streamer` doit disposer des droits d'exécution sur certaines fontions internes pour utiliser l'outil `pg_rewind` correctement :
 
 ```sql
 \connect postgres
@@ -285,7 +285,7 @@ pg_ctl start -D batman
 # LOG: consistent recovery state reached at 0/904B5C8
 ```
 
-[1]: https://www.postgresql.org/docs/12/app-pgrewind.html#id-1.9.5.9.8
+[^1]: https://www.postgresql.org/docs/12/app-pgrewind.html#id-1.9.5.9.8
 
 ## Inversion des rôles
 
@@ -370,6 +370,6 @@ graph LR
   end
 -->
 
-La détection de panne et la bascule automatique sont des thématiques récurrentes lorsque l'on exprime un besoin de haute-disponibilité. Durant l'année 2019, une série d'outils tiers ont assis leur réputation avec notamment `patroni` de Zalando<sup>[2]</sup> qui propose intelligemment l'usage de `pg_rewind` dans son fonctionnement.
+La détection de panne et la bascule automatique sont des thématiques récurrentes lorsque l'on exprime un besoin de haute-disponibilité. Durant l'année 2019, une série d'outils tiers ont assis leur réputation avec notamment `patroni` de Zalando[^2] qui propose intelligemment l'usage de `pg_rewind` dans son fonctionnement.
 
-[2]: https://patroni.readthedocs.io/en/latest/
+[^2]: https://patroni.readthedocs.io/en/latest/

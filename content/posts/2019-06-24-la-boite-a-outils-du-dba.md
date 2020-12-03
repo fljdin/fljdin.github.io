@@ -39,7 +39,7 @@ Blogs, wiki, espaces communautaires, StackOverflow, Github... Fort d'une patienc
 
 C'est à partir de cet instant que j'essaie d'être pragmatique. Pourquoi ne pas avoir une collection commune et participative de requêtes, correctement indexée sur les moteurs de recherche, afin de faire gagner du temps au plus grand nombre ?
 
-Certains l'ont fait.<sup>[1]-[2]</sup>
+Certains l'ont fait.[^1] [^2]
 
 Bien que ce soit exemplaire, ce n'est malheuresement ni suffisant, ni efficient. Trouver les sessions bloquantes et les sessions bloquées ? Onglet Oracle, page avec le logo carré, lien du bas pour les performances, ctrl+F «&nbsp;verrou&nbsp;», quatrième bloc de code, copier/coller. 
 
@@ -59,7 +59,7 @@ Liste exhaustive pour ma part :
 - Éditeur intégré
 - Colorisation syntaxique
 
-À cette époque, et très naturellement, je me suis mis à stocker mes propres _snippets_ (le mot est lâché !) dans Github avec la très appréciable gestion des _gists_<sup>[3]</sup>. L'interface, quoique sobre et fonctionnelle, ne permet pas la recherche dans son propre inventaire. Il existe plusieurs solutions tierces, avec des usages bien différents.
+À cette époque, et très naturellement, je me suis mis à stocker mes propres _snippets_ (le mot est lâché !) dans Github avec la très appréciable gestion des _gists_[^3]. L'interface, quoique sobre et fonctionnelle, ne permet pas la recherche dans son propre inventaire. Il existe plusieurs solutions tierces, avec des usages bien différents.
 
 - client web avec offre payante : [cacher.io](https://www.cacher.io/)
 - open-source, client lourd : [Lepton](https://hackjutsu.com/Lepton/)
@@ -67,9 +67,9 @@ Liste exhaustive pour ma part :
 
 J'utile à ce jour la version gratuite de _Cacher_ pour toutes les raisons exprimées plus haut, l'expérience est très complète et les fonctionnalités de bases très suffisantes. Anciennement nommé GistBox, ce service de snippets se synchronise très rapidement avec son propre compte GitHub et me permet en quelques mots clés d'identifier les gists le plus pertinents dans une interface agréable.
 
-Cependant, l'outil n'est pas open-source et propose des limitations pour un usage gratuit (pas de label, pas de gists privés, peu d'extensions IDE et non adapté au contexte d'équipes en entreprise). J'ai donc cherché d'autres alternatives, avec notamment Lepton<sup>[4]</sup> qui propose la même navigation et les mêmes fonctionnalités, en mode client lourd basé sur le framework Node.js Electron<sup>[5]</sup>, et donc compatible avec Linux et Windows. 
+Cependant, l'outil n'est pas open-source et propose des limitations pour un usage gratuit (pas de label, pas de gists privés, peu d'extensions IDE et non adapté au contexte d'équipes en entreprise). J'ai donc cherché d'autres alternatives, avec notamment Lepton[^4] qui propose la même navigation et les mêmes fonctionnalités, en mode client lourd basé sur le framework Node.js Electron[^5], et donc compatible avec Linux et Windows. 
 
-La deuxième alternative, que je n'ai pas encore testé, repose sur le réseau décentralisé de blockchain Blockstack<sup>[6]</sup> (open-source quant à lui, je ferai volontiers un retour sur cette technologie à l'avenir).
+La deuxième alternative, que je n'ai pas encore testé, repose sur le réseau décentralisé de blockchain Blockstack[^6] (open-source quant à lui, je ferai volontiers un retour sur cette technologie à l'avenir).
 
 ---
 
@@ -77,9 +77,9 @@ A travers cet article, je voulais proposer une autre lecture du métier du DBA, 
 
 J'invite tous les DBA, notamment s'ils se sont reconnus dans la caricature que j'ai dépeint, à admettre que nos habitudes du passé peuvent nous rendre la vie dure. Nous avons la chance, aujourd'hui, de disposer de l'outil Internet à tout moment et dans toutes les situations de production alors, pourquoi s'en priver ?
 
-[1]: https://oracle-base.com/dba/scripts
-[2]: https://wiki.postgresql.org/wiki/Category:Snippets
-[3]: https://gist.github.com/fljdin
-[4]: https://github.com/hackjutsu/Lepton
-[5]: https://electronjs.org/
-[6]: https://blockstack.org/
+[^1]: https://oracle-base.com/dba/scripts
+[^2]: https://wiki.postgresql.org/wiki/Category:Snippets
+[^3]: https://gist.github.com/fljdin
+[^4]: https://github.com/hackjutsu/Lepton
+[^5]: https://electronjs.org/
+[^6]: https://blockstack.org/

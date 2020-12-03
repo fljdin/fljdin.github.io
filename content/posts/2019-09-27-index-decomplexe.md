@@ -5,9 +5,9 @@ date: 2019-09-27 16:00:00 +0200
 tags: [postgresql,performance]
 ---
 
-> <u>Index terminologique</u><sup>[1]</sup> : permet au lecteur de localiser rapidement un élément dans l'ouvrage, sans être contraint de le lire intégralement.
+> <u>Index terminologique</u>[^1] : permet au lecteur de localiser rapidement un élément dans l'ouvrage, sans être contraint de le lire intégralement.
 >
-> <u>Index de base de données</u><sup>[2]</sup> : structure de données qui permet de retrouver rapidement les données.
+> <u>Index de base de données</u>[^2] : structure de données qui permet de retrouver rapidement les données.
 
 <!--more-->
 
@@ -17,8 +17,8 @@ Ainsi, le lecteur peut démarrer sa recherche à partir de la première lettre d
 
 ![Exemple d'un index terminologique][index-terminologique-img]
 
-[1]: https://fr.wikipedia.org/wiki/Index_terminologique
-[2]: https://fr.wikipedia.org/wiki/Index_(base_de_donn%C3%A9es)
+[^1]: https://fr.wikipedia.org/wiki/Index_terminologique
+[^2]: https://fr.wikipedia.org/wiki/Index_(base_de_donn%C3%A9es)
 [index-terminologique-img]: /img/posts/2019-09-27-index-terminologique.png
 
 ---
@@ -94,7 +94,7 @@ Nous avons affaire à un autre nœud relatif à l'usage d'un index, le `Bitmap H
 
 ---
 
-Pour les opérations de comparaison simple comme l'égalité, il est recommandé d'utiliser un index _b-tree_, par défaut avec l'ordre `CREATE INDEX`. Cet index s'appuie sur un algorithme du même nom<sup>[3]</sup> qui assure le stockage des couples valeur/adresse au sein d'un arbre dit équilibré, dont la profondeur doit être la plus faible possible pour réduire les coûts de lecture.
+Pour les opérations de comparaison simple comme l'égalité, il est recommandé d'utiliser un index _b-tree_, par défaut avec l'ordre `CREATE INDEX`. Cet index s'appuie sur un algorithme du même nom[^3] qui assure le stockage des couples valeur/adresse au sein d'un arbre dit équilibré, dont la profondeur doit être la plus faible possible pour réduire les coûts de lecture.
 
 Un index _b-tree_ est composé :
 
@@ -102,7 +102,7 @@ Un index _b-tree_ est composé :
 * de blocs intermédiaires, dont le bloc racine (_root_) ;
 * de blocs feuilles.
 
-Il est possible de les consulter à l'aide des fonctions mis à disposition par les extensions `pgstattuple`<sup>[4]</sup> et `pageinspect`<sup>[5]</sup>, et de démêler le parcours d'index que réalise le moteur à chaque exécution.
+Il est possible de les consulter à l'aide des fonctions mis à disposition par les extensions `pgstattuple`[^4] et `pageinspect`[^5], et de démêler le parcours d'index que réalise le moteur à chaque exécution.
 
 ```sql
  SELECT bt_page_stats.blkno, type, live_items
@@ -118,7 +118,7 @@ LATERAL bt_page_stats('mathematicians_lastname_idx', blkno);
 --      3 | r    |          3
 --      4 | l    |         32
 ```
-_Requête issue de « PostgreSQL Architecture et notions avancées » de Guillaume Lelarge, édition D-BookeR.<sup>[6]</sup>_
+_Requête issue de « PostgreSQL Architecture et notions avancées » de Guillaume Lelarge, édition D-BookeR.[^6]_
 
 La méthode `bt_page_stats` associée au nom de l'index et le numéro du bloc, peut être couplée avec la fonction `generate_series` pour obtenir une ligne par bloc appartenant à l'index, à l'exception du bloc méta. On constate que le bloc n°3 est la racine (`type=r`) de notre _b-tree_, bloc à partir duquel le moteur pourra réaliser les comparaisons successives jusqu'à atteindre les valeurs de sa recherche.
 
@@ -162,10 +162,10 @@ SELECT blkno, min(text), max(text)
 --      4 | Zarankiewicz | Zygmund
 ```
 
-[3]: https://www.csd.uoc.gr/~hy460/pdf/p650-lehman.pdf
-[4]: https://www.postgresql.org/docs/current/pgstattuple.html
-[5]: https://www.postgresql.org/docs/current/pageinspect.html
-[6]: https://www.d-booker.fr/programmation-et-langage/511-architecture-et-notions-avancees-2ed.html
+[^3]: https://www.csd.uoc.gr/~hy460/pdf/p650-lehman.pdf
+[^4]: https://www.postgresql.org/docs/current/pgstattuple.html
+[^5]: https://www.postgresql.org/docs/current/pageinspect.html
+[^6]: https://www.d-booker.fr/programmation-et-langage/511-architecture-et-notions-avancees-2ed.html
 
 ---
 

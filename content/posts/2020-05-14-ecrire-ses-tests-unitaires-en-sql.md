@@ -5,13 +5,13 @@ date: 2020-05-14 17:30:00 +0200
 tags: [postgresql,developpement]
 ---
 
-Je ne suis qu'un piètre développeur et je n'écris pas de tests unitaires. En réalité, ce n'est ni ma spécialité ni mon cœur de métier. Et pourtant, ma curiosité m'a mené à découvrir bien tardivement la mouvance TDD<sup>[1]</sup> dans la conception logicielle et la rigueur d'écrire chaque test avant l'implémentation d'une fonctionnalité.
+Je ne suis qu'un piètre développeur et je n'écris pas de tests unitaires. En réalité, ce n'est ni ma spécialité ni mon cœur de métier. Et pourtant, ma curiosité m'a mené à découvrir bien tardivement la mouvance TDD[^1] dans la conception logicielle et la rigueur d'écrire chaque test avant l'implémentation d'une fonctionnalité.
 
-Ce fut par hasard et avec grand étonnement, que je suis tombé sur l'extension pgTAP<sup>[2]</sup> il y a plusieurs mois, et l'idée de la mettre en application sur une instance PostgreSQL me hantait. Je vous propose dans cet article d'aborder ce _framework_ de tests avec un cas d'usage amusant.
+Ce fut par hasard et avec grand étonnement, que je suis tombé sur l'extension pgTAP[^2] il y a plusieurs mois, et l'idée de la mettre en application sur une instance PostgreSQL me hantait. Je vous propose dans cet article d'aborder ce _framework_ de tests avec un cas d'usage amusant.
 <!--more-->
 
-[1]: https://fr.wikipedia.org/wiki/Test_driven_development
-[2]: https://pgtap.org/
+[^1]: https://fr.wikipedia.org/wiki/Test_driven_development
+[^2]: https://pgtap.org/
 
 ---
 
@@ -28,9 +28,9 @@ Ces questions peuvent être celles qui émergent de la tête d'un développeur o
 
 - Écrire un test qui échoue
 - Écrire l'implémentation minimale et s'assurer que le test réussisse
-- Réusiner l'ensemble du code (… oui, c'est la traduction du terme _refactorer_<sup>[4]</sup>)
+- Réusiner l'ensemble du code (… oui, c'est la traduction du terme _refactorer_[^4])
 
-[4]: https://fr.wikipedia.org/wiki/R%C3%A9usinage_de_code
+[^4]: https://fr.wikipedia.org/wiki/R%C3%A9usinage_de_code
 
 Fort de vouloir respecter cette boucle vertueuse, je rédige dans un fichier `test.sql` mon premier test unitaire. Il s'agit là d'utiliser la méthode `has_function()` fournie par pgTAP pour m'assurer qu'une fonction est présente dans la base de données.
 
@@ -265,7 +265,7 @@ END;
 
 ## Les jours incroyables de la mort du Christ
 
-Si vous avez bien suivi, il ne manque plus que l'implémentation des fameux jours du lundi de Pâques<sup>[5]</sup>, du jeudi de l'Ascension<sup>[6]</sup> et du lundi de Pentecôte<sup>[7]</sup>, voire du Vendredi Saint<sup>[8]</sup> pour mes lecteurs assidus du Grand Est. Ces jours religieux ont la grande particularité d'être différents chaque année mais relativisons rapidement, les trois derniers dépendent de la date du lundi de Pâques. Rédigeons dès à présent les tests avant d'attaquer la partie épineuse de mon aventure.
+Si vous avez bien suivi, il ne manque plus que l'implémentation des fameux jours du lundi de Pâques[^5], du jeudi de l'Ascension[^6] et du lundi de Pentecôte[^7], voire du Vendredi Saint[^8] pour mes lecteurs assidus du Grand Est. Ces jours religieux ont la grande particularité d'être différents chaque année mais relativisons rapidement, les trois derniers dépendent de la date du lundi de Pâques. Rédigeons dès à présent les tests avant d'attaquer la partie épineuse de mon aventure.
 
 Pour la rédaction de ces tests, je souhaiterais m'assurer qu'une série de lundis de Pâques piochés au cours du dernier siècle soient bien identifiés comme des jours fériés par ma fonction.
 
@@ -280,7 +280,7 @@ SELECT is(
 ]) x;
 ```
 
-Je ne vous le cache pas, j'ai découvert le calcul du jour de Pâques il y a plusieurs années, alors même que je devais écrire une fonction en _plpgsql_ selon la méthode de Gauss<sup>[9]</sup> pour un système de planification embarqué dans une base PostgreSQL. Avec cet article, c'est l'occasion de la dépoussiérer et lui donner l'occasion d'être mise en lumière. J'ajoute à mon code initial, la définition de cette nouvelle fonction qui prendra une année en paramètre, requise pour déterminer « le dimanche qui suit la première pleine lune du printemps<sup>[10]</sup> ».
+Je ne vous le cache pas, j'ai découvert le calcul du jour de Pâques il y a plusieurs années, alors même que je devais écrire une fonction en _plpgsql_ selon la méthode de Gauss[^9] pour un système de planification embarqué dans une base PostgreSQL. Avec cet article, c'est l'occasion de la dépoussiérer et lui donner l'occasion d'être mise en lumière. J'ajoute à mon code initial, la définition de cette nouvelle fonction qui prendra une année en paramètre, requise pour déterminer « le dimanche qui suit la première pleine lune du printemps[^10] ».
 
 ```sql
 CREATE OR REPLACE FUNCTION easter_date(year int)
@@ -405,12 +405,12 @@ Files=1, Tests=28,  0 wallclock secs
 Result: PASS
 ```
 
-[5]: https://fr.wikipedia.org/wiki/Lundi_de_P%C3%A2ques
-[6]: https://fr.wikipedia.org/wiki/Ascension_(f%C3%AAte)
-[7]: https://fr.wikipedia.org/wiki/Pentec%C3%B4te
-[8]: https://fr.wikipedia.org/wiki/Vendredi_saint
-[9]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques_selon_la_m%C3%A9thode_de_Gauss
-[10]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques
+[^5]: https://fr.wikipedia.org/wiki/Lundi_de_P%C3%A2ques
+[^6]: https://fr.wikipedia.org/wiki/Ascension_(f%C3%AAte)
+[^7]: https://fr.wikipedia.org/wiki/Pentec%C3%B4te
+[^8]: https://fr.wikipedia.org/wiki/Vendredi_saint
+[^9]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques_selon_la_m%C3%A9thode_de_Gauss
+[^10]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques
 
 ## La contrainte d'intégrité pour les jours fériés
 

@@ -3,12 +3,12 @@
   <h3 class="homepage-title">
     <a href="{{ .Site.BaseURL }}" title="{{ .Site.Title }}">{{ .Site.Title }}</a>
     <small>
-      {{- range $.Site.Data.navigation -}}
-        {{ if isset . "icon" }}
+      {{ range $.Site.Data.navigation }}
+        {{- if isset . "icon" -}}
         <a href="{{ .url }}"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#" .icon }}"></use></svg></a>
-        {{ else }}
-        &nbsp;<a href="{{ .url }}">{{ .text }}</a>
-        {{ end }}
+        {{- else -}}
+        &nbsp;&nbsp;<a href="{{ .url }}">{{ .text }}</a>
+        {{- end -}}
       {{ end }}
     </small>
   </h3>

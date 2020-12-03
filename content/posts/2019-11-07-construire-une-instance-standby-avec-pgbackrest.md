@@ -5,7 +5,7 @@ date: 2019-11-07 16:00:00 +0200
 tags: [postgresql, replication]
 ---
 
-Pour cette démonstration, j'utilise le système Debian et dispose de deux instances en version 12, d'un serveur de sauvegarde et du paquet `pgbackrest` pour mettre en place une réplication et observer les nouveautés concernant la disparition du fichier `recovery.conf`<sup>[1]</sup>. <!--more-->
+Pour cette démonstration, j'utilise le système Debian et dispose de deux instances en version 12, d'un serveur de sauvegarde et du paquet `pgbackrest` pour mettre en place une réplication et observer les nouveautés concernant la disparition du fichier `recovery.conf`[^1]. <!--more-->
 
 Pour faciliter le transfert des WAL et des sauvegardes PITR, j'ajoute un compte utilisateur `pgbr` sur le serveur de sauvegarde, accessible à partir des deux instances avec un partage de clé SSH. _(Conseil : toujours externaliser les sauvegardes de bases de données sur un système et un stockage indépendant de l'infrastructure de production PostgreSQL…)_
 
@@ -31,7 +31,7 @@ host    replication     streamer        10.1.0.0/28             md5
 
 _Le fichier `.pgpass` est déposé sur chaque serveur pour le compte `postgres`, afin d'assurer la connexion du compte `streamer` sans saisie de mot de passe._
 
-[1]: https://paquier.xyz/postgresql-2/postgres-12-recovery-change/
+[^1]: https://paquier.xyz/postgresql-2/postgres-12-recovery-change/
 
 ---
 

@@ -12,7 +12,7 @@ Les signaux les plus connus et les plus utilisés sont les numéros 6 `SIGABRT` 
 
 ---
 
-Commençons sobrement par une description issue de Wikipédia<sup>[1]</sup> :
+Commençons sobrement par une description issue de Wikipédia[^1] :
 
 > Un signal est une forme limitée de communication entre processus utilisée par les systèmes de type Unix et ceux respectant les standards POSIX. Il s'agit d'une notification asynchrone envoyée à un processus pour lui signaler l'apparition d'un événement. Quand un signal est envoyé à un processus, le système d'exploitation interrompt l'exécution normale de celui-ci. Si le processus possède une routine de traitement pour le signal reçu, il lance son exécution. Dans le cas contraire, il exécute la routine de traitement des signaux par défaut.
 
@@ -20,7 +20,7 @@ En somme, les signaux sont de simples événements à destination d'un processus
 
 ![Gestion des signaux en temps de guerre arthurienne](/img/posts/2020-01-17-drapeaux-kaamelott.jpg)
 
-Tout administrateur qui se respecte (ou non) connaît la commande `kill` fournie par son système pour résoudre le problème épineux des programmes qui font n'importe quoi -- d'après leurs dires -- en leur envoyant un message d'arrêt. Ces messages sont nombreux et permettent différentes réactions en s'inspirant de cette fameuse norme POSIX.1-1990 dont je vous renvoie au tableau du manuel `signal(7)`<sup>[2]</sup> ou la commande `kill -l` pour les lister.
+Tout administrateur qui se respecte (ou non) connaît la commande `kill` fournie par son système pour résoudre le problème épineux des programmes qui font n'importe quoi -- d'après leurs dires -- en leur envoyant un message d'arrêt. Ces messages sont nombreux et permettent différentes réactions en s'inspirant de cette fameuse norme POSIX.1-1990 dont je vous renvoie au tableau du manuel `signal(7)`[^2] ou la commande `kill -l` pour les lister.
 
 ```sh
 kill -l
@@ -44,8 +44,8 @@ kill -l
 
 Trop souvent, en l'absence de journaux d'activité ou de verbosité du processus, d'impatience ou d'urgence, on lui envoie un message d'auto-suicide `kill -9 pid`. Et prends ça dans tes circuits logiques.
 
-[1]: https://fr.wikipedia.org/wiki/Signal_(informatique)
-[2]: http://man7.org/linux/man-pages/man7/signal.7.html
+[^1]: https://fr.wikipedia.org/wiki/Signal_(informatique)
+[^2]: http://man7.org/linux/man-pages/man7/signal.7.html
 
 ---
 
@@ -163,10 +163,10 @@ pgarch_MainLoop(void)
 Les déclencheurs de signaux sont multiples et peuvent venir des propres enfants du `postmater` pour annoncer un événement ou un changement d'état en usant principalement du signal `SIGUSR1`. Ces événements internes sont nécessaires pour coordonner les processus comme par exemple, demander au `walwriter` de changer de journal de transactions ou à l'`autovacuum launcher` de créer un nouveau processus `autovacuum worker`. 
 Les différents événements sont référencés par l'énumération `PMSignalReason` décrite dans le fichier `src/include/storage/pmsignal.h`.
 
-L'administrateur peut également provoquer ces signaux et ses effets mais inutile de préciser qu'il est formellement déconseillé de passer par la commande `kill` ! Préférez les outils `systemctl` ou `pg_ctl` pour recharger (`reload`) la configuration ou les fonctions SQL<sup>[4]</sup> prévues pour envoyer des signaux internes.
+L'administrateur peut également provoquer ces signaux et ses effets mais inutile de préciser qu'il est formellement déconseillé de passer par la commande `kill` ! Préférez les outils `systemctl` ou `pg_ctl` pour recharger (`reload`) la configuration ou les fonctions SQL[^4] prévues pour envoyer des signaux internes.
 
-[3]: http://man7.org/linux/man-pages/man1/trap.1p.html
-[4]: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL
+[^3]: http://man7.org/linux/man-pages/man1/trap.1p.html
+[^4]: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL
 
 <div class="message">
 Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques toujours enrichissantes ! J'espère que cet article vous a plu et que vous avez pris plaisir comme moi à parcourir quelques fichiers du code source du projet libre PostgreSQL !

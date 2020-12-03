@@ -14,13 +14,13 @@ Cette semaine, passait sur [mon fil d'actualité Twitter](https://twitter.com/Co
 
 _Source : <https://pgpedia.info/p/pg_controldata.html>_
 
-Ce premier outil est un _must-have_ pour tous les administrateurs de base de données. Il permet de dresser les principales informations de l'instance, qu'elle soit en cours d'exécution ou arrêtée. Ces dernières sont en partie extraites du fichier `pg_control`<sup>[1]</sup> contenu dans le répertoire `PGDATA/global`, dont notamment, les informations sur les toutes dernières actions du processus `checkpointer`. On y retrouve aussi quelques configurations fixes et variables de l'instance.
+Ce premier outil est un _must-have_ pour tous les administrateurs de base de données. Il permet de dresser les principales informations de l'instance, qu'elle soit en cours d'exécution ou arrêtée. Ces dernières sont en partie extraites du fichier `pg_control`[^1] contenu dans le répertoire `PGDATA/global`, dont notamment, les informations sur les toutes dernières actions du processus `checkpointer`. On y retrouve aussi quelques configurations fixes et variables de l'instance.
 
-[1]: https://pgpedia.info/p/pg_control.html
+[^1]: https://pgpedia.info/p/pg_control.html
 
 Lorsque j'interviens durant un audit, plusieurs lignes m'interessent pour orienter mes analyses. En voici quelques exemples :
 
-* `Database cluster state` : pour déterminer l'état de l'instance et savoir si j'interviens sur une instance principale ou secondaire. La liste des états est précisée dans le fichier `src/include/catalog/pg_control.h`<sup>[2]</sup>.
+* `Database cluster state` : pour déterminer l'état de l'instance et savoir si j'interviens sur une instance principale ou secondaire. La liste des états est précisée dans le fichier `src/include/catalog/pg_control.h`[^2].
 
 ```c
  typedef enum DBState
@@ -35,13 +35,13 @@ Lorsque j'interviens durant un audit, plusieurs lignes m'interessent pour orient
  } DBState;
 ```
 
-[2]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/include/catalog/pg_control.h
+[^2]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/include/catalog/pg_control.h
 
 * `REDO WAL file` et `REDO location` : pour connaître le fichier WAL le plus proche du dernier _checkpoint_ requis pour la récupération des transactions suite à un _crash_, dans des situations extrêmes où l'archivage n'est pas en place. Dans le cas d'une restauration, ces éléments peuvent me permettre d'identifier le bon fichier `backup_label` à positionner dans le `PGDATA`.
 
-* `Data page checksum version` : parfaitement incontournable, cette valeur m'indique si les sommes de contrôle<sup>[3]</sup> sont actives pour l'instance. Ce mécanisme va permettre de suivre l'évolution des données d'une page en calculant une somme de contrôle (_checksum_) afin de régulièrement s'assurer qu'aucune corruption matérielle n'ait provoqué un changement de cette page. Par défaut, l'outil `initdb` ne l'active pas et c'est bien dommage !
+* `Data page checksum version` : parfaitement incontournable, cette valeur m'indique si les sommes de contrôle[^3] sont actives pour l'instance. Ce mécanisme va permettre de suivre l'évolution des données d'une page en calculant une somme de contrôle (_checksum_) afin de régulièrement s'assurer qu'aucune corruption matérielle n'ait provoqué un changement de cette page. Par défaut, l'outil `initdb` ne l'active pas et c'est bien dommage !
 
-[3]: https://pgpedia.info/d/data-page-checksums.html
+[^3]: https://pgpedia.info/d/data-page-checksums.html
 
 ## pg_waldump
 
@@ -124,12 +124,12 @@ Non-sync'ed 8kB writes:
   write                     257485,249 ops/sec       4 usecs/op
 ```
 
-J'ai ainsi appris que les méthodes variaient, selon les implémentations de chaque système<sup>[4]</sup>. Sous Linux, nous aurons par défault la méthode `fdatasync` alors qu'elle sera `open_datasync` sous Windows.
+J'ai ainsi appris que les méthodes variaient, selon les implémentations de chaque système[^4]. Sous Linux, nous aurons par défault la méthode `fdatasync` alors qu'elle sera `open_datasync` sous Windows.
 
-Dans la même veine, il existe un autre outil de _benchmark_ nommé `pg_test_timing`<sup>[5]</sup>, mais cette fois-ci, pour contrôler que l'horloge du système ne dérive pas lors d'une instruction chronométrée telle que la commande `EXPLAIN ANALYZE`.
+Dans la même veine, il existe un autre outil de _benchmark_ nommé `pg_test_timing`[^5], mais cette fois-ci, pour contrôler que l'horloge du système ne dérive pas lors d'une instruction chronométrée telle que la commande `EXPLAIN ANALYZE`.
 
-[4]: https://www.postgresql.org/docs/13/wal-reliability.html
-[5]: https://www.postgresql.org/docs/13/pgtesttiming.html
+[^4]: https://www.postgresql.org/docs/13/wal-reliability.html
+[^5]: https://www.postgresql.org/docs/13/pgtesttiming.html
 
 ## pg_verifybackup
 
@@ -177,10 +177,10 @@ Ce petit dernier est arrivé en octobre de cette année avec la sortie de Postgr
 }
 ```
 
-Alors que l'outil tier `pgbackrest`<sup>[6]</sup> proposait son propre système de contrôle, ce nouveau fichier manifeste pourrait permettre à d'autres solutions de sauvegardes comme `pitrery`<sup>[7]</sup> de bénéficier d'une vérification à moindre coût.
+Alors que l'outil tier `pgbackrest`[^6] proposait son propre système de contrôle, ce nouveau fichier manifeste pourrait permettre à d'autres solutions de sauvegardes comme `pitrery`[^7] de bénéficier d'une vérification à moindre coût.
 
-[6]: https://pgbackrest.org/
-[7]: https://github.com/dalibo/pitrery/issues/125
+[^6]: https://pgbackrest.org/
+[^7]: https://github.com/dalibo/pitrery/issues/125
 
 En effet, à l'aide de l'outil `pg_verifybackup`, il est possible de s'assurer qu'une sauvegarde physique n'a pas subi de corruption ou de transformation avant de la restaurer.
 
@@ -197,8 +197,8 @@ backup successfully verified
 
 ## Conclusion
 
-La page de documentation « _PostgreSQL Server Applications_ »<sup>[8]</sup> recense les utilitaires maintenus par la communauté. L'histoire du projet a montré que nombre d'entre eux étaient issus d'une contribution avant d'y être intégrés et démocratisés.
+La page de documentation « _PostgreSQL Server Applications_ »[^8] recense les utilitaires maintenus par la communauté. L'histoire du projet a montré que nombre d'entre eux étaient issus d'une contribution avant d'y être intégrés et démocratisés.
 
 Le site <https://pgpedia.info> est un excellent complément à la documentation car il retrace avec fidélité les changements survenus pour chaque aspect, méthode, outil présent dans le projet PostgreSQL. Ajoutez-le à vos favoris !
 
-[8]: https://www.postgresql.org/docs/13/reference-server.html
+[^8]: https://www.postgresql.org/docs/13/reference-server.html

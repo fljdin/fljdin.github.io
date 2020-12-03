@@ -5,7 +5,9 @@ date: 2019-06-20 13:00:00 +0100
 tags: postgresql
 ---
 
-À des fins de qualité ou de formation, il est très souvent nécessaire d'avoir une instance PostgreSQL d'une version particulière sur un environnement non critique, que l'on peut malmener à souhait et à l'infini. La communauté Debian propose l'outil `pg_virtualenv`<sup>[manpage](https://manpages.debian.org/testing/postgresql-common/pg_virtualenv.1.en.html)</sup> pour démarrer une instance jettable, tout à fait compatible avec des tests de régression ou l'exécution de scripts lors d'une démonstration. 
+À des fins de qualité ou de formation, il est très souvent nécessaire d'avoir une instance PostgreSQL d'une version particulière sur un environnement non critique, que l'on peut malmener à souhait et à l'infini. La communauté Debian propose l'outil `pg_virtualenv`[^1] pour démarrer une instance jettable, tout à fait compatible avec des tests de régression ou l'exécution de scripts lors d'une démonstration. 
+
+[^1]: https://manpages.debian.org/testing/postgresql-common/pg_virtualenv.1.en.html
 <!--more-->
 
 Le package `postgresql-common` est une des dépendances du package postgresql toutes versions confondues. Par exemple, sur un Ubuntu 16.04 pour la version 11, on peut lister les packages qui seront installés en plus de notre instance :
@@ -38,7 +40,9 @@ package diverts others to: /usr/bin/pg_config.libpq-dev
 ...
 ```
 
-Le script `pg_virtualenv` est la seule exception dans cette série. Il est écrit en bash et s'appuie sur la commande `mktemp`<sup>[manpage](https://manpages.debian.org/testing/coreutils/mktemp.1.en.html)</sup> pour isoler l'utilisateur afin qu'il n'interfère avec aucune instance présente sur le serveur. Pour cela, l'outil surchage plusieurs variables d'environnement (`PG_CLUSTER_CONF_ROOT`, `PGSYSCONFDIR`, `LOGDIR`, `PWFILE`, `PGUSER`, `PGPASSWORD`) avant d'initialiser une nouvelle instance via le script `pg_createcluster`.
+Le script `pg_virtualenv` est la seule exception dans cette série. Il est écrit en bash et s'appuie sur la commande `mktemp`[^2] pour isoler l'utilisateur afin qu'il n'interfère avec aucune instance présente sur le serveur. Pour cela, l'outil surchage plusieurs variables d'environnement (`PG_CLUSTER_CONF_ROOT`, `PGSYSCONFDIR`, `LOGDIR`, `PWFILE`, `PGUSER`, `PGPASSWORD`) avant d'initialiser une nouvelle instance via le script `pg_createcluster`.
+
+[^2]: https://manpages.debian.org/testing/coreutils/mktemp.1.en.html
 
 ```text
 $ bash -x /usr/bin/pg_virtualenv
@@ -111,7 +115,7 @@ $ exit
 Dropping cluster 11/regress ...
 ```
 
-N'étant pas (encore) un féru de développement et du TDD<sup>[1]</sup> pour employer l'outil dans des tests de régressions, j'utilise la commande sur un poste Debian/Ubuntu ou sur Windows WSL de la même famille pour disposer d'une instance prête en quelques secondes. Pour obtenir un tel résultat, il suffit d'ajouter le bon _repository_ officiel et de lancer l'installation dans cet ordre.
+N'étant pas (encore) un féru de développement et du TDD[^1] pour employer l'outil dans des tests de régressions, j'utilise la commande sur un poste Debian/Ubuntu ou sur Windows WSL de la même famille pour disposer d'une instance prête en quelques secondes. Pour obtenir un tel résultat, il suffit d'ajouter le bon _repository_ officiel et de lancer l'installation dans cet ordre.
 
 ```text
 sudo apt-get install -y postgresql-common
@@ -125,4 +129,4 @@ sudo systemctl disable postgresql.service
 
 De cette façon, nous disposons rapidement des packages à jour pour les versions 10 et 11 sur notre distribution. Les possibilités sont donc nombreuses, comme illustrer ses propos lors de présentations ou de formations devant un public, valider le contenu d'un script SQL livré par son client sur une version spécifique ou simplement découvrir les nouvelles fonctionnalités d'une version majeure fraîchement compilée ou disponible sur le _repository_ !
 
-[1]: https://fr.wikipedia.org/wiki/Test_driven_development
+[^1]: https://fr.wikipedia.org/wiki/Test_driven_development

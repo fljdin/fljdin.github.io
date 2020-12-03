@@ -48,7 +48,7 @@ EXPLAIN SELECT * FROM pgbench_history WHERE aid < 1000;
    Filter: (aid < 1000)
 ```
 
-Le coût de lecture complète de la table (nœud `Seq Scan`) vaut `19.50`, ce qui est supérieur au plan précédent. Lorsque l'on exécute un requête SQL, une partie du moteur, appelé le planificateur consolide en arrière plan une petite quantité de plans avant de ne retourner que le meilleur. Plusieurs paramètres<sup>[1]</sup> comme `enable_bitmapscan`, peuvent changer complètement le comportement du planificateur en réduisant le nombre de choix possibles dans l'élaboration de ses plans.
+Le coût de lecture complète de la table (nœud `Seq Scan`) vaut `19.50`, ce qui est supérieur au plan précédent. Lorsque l'on exécute un requête SQL, une partie du moteur, appelé le planificateur consolide en arrière plan une petite quantité de plans avant de ne retourner que le meilleur. Plusieurs paramètres[^1] comme `enable_bitmapscan`, peuvent changer complètement le comportement du planificateur en réduisant le nombre de choix possibles dans l'élaboration de ses plans.
 
 En complément du coût, la commande `EXPLAIN` indique également l'estimation du nombre de lignes que retourneront les nœuds. Dans le cas des deux plans, le planificateur _estime_ qu'il existe 9 lignes répondant au critère de recherche. Cette _statistique_ peut être déduite des vues système `pg_class` et `pg_stats`.
 
@@ -79,14 +79,14 @@ reltuples              | 1000
 
 Sans même consulter le contenu de la table `pgbench_history`, nous sommes en possession d'informations intéressantes. Nous apprenons que la table contient exactement 1 000 lignes (_reltuples_) et que la colonne `aid` présente un nombre de valeurs distinctes (_n\_distinct_) qui tend vers `-1`, c'est-à-dire autant de valeurs uniques que de lignes dans la table.
 
-La distribution des valeurs de la colonne `aid` est représentée par le tableau `histogram_bounds` de 100 éléments<sup>[2]</sup>. Ces bornes divisent approximativement les valeurs dans des groupes de même taille ; comprendre que 1 % des lignes ont une valeur de colonne `aid` comprise entre 75 et 972, 1 % des lignes, entre 973 et 1 754, etc. On peut dès lors supposer que les valeurs possibles de la colonne `aid` s'étendent de 75 à 99 991.
+La distribution des valeurs de la colonne `aid` est représentée par le tableau `histogram_bounds` de 100 éléments[^2]. Ces bornes divisent approximativement les valeurs dans des groupes de même taille ; comprendre que 1 % des lignes ont une valeur de colonne `aid` comprise entre 75 et 972, 1 % des lignes, entre 973 et 1 754, etc. On peut dès lors supposer que les valeurs possibles de la colonne `aid` s'étendent de 75 à 99 991.
 
 Si l'on revient à notre critère de recherche, les lignes dont la valeur `aid` est inférieure à 1 000 représenteraient un peu plus de 1 % des 1000 lignes de la table, soit environ 10 lignes si toutes les valeurs étaient distinctes. L'estimation de 9 lignes proposée par la commande `EXPLAIN` serait donc juste.
 
 <div class="message">La documentation du projet détaille en profondeur le calcul de ces estimations avec de nombreux exemples : <i><a href="https://www.postgresql.org/docs/12/row-estimation-examples.html">How the Planner Uses Statistics: Row Estimation Examples</a></i>.</div>
 
-[1]: https://www.postgresql.org/docs/12/runtime-config-query.html
-[2]: https://postgresqlco.nf/en/doc/param/default_statistics_target/
+[^1]: https://www.postgresql.org/docs/12/runtime-config-query.html
+[^2]: https://postgresqlco.nf/en/doc/param/default_statistics_target/
 
 ---
 
@@ -128,21 +128,21 @@ EXPLAIN SELECT * FROM pgbench_history WHERE aid < 1000;
          Index Cond: (aid < 1000)
 ```
 
-L'estimation de lignes retournées peut paraître surprenante ! Il s'agit d'un calcul arbitraire défini dans la classe `selfuncs.h`<sup>[3]</sup> avec notamment un facteur de sélectivité qui s'applique sur le nombre total de lignes présentes dans la table. Ainsi, pour un critère d'égalité, ce facteur vaudra 0.5 % (`DEFAULT_EQ_SEL=0.005`) alors qu'une comparaison de non-égalité comme celle de notre exemple, vaudra 33.33 % (`DEFAULT_INEQ_SEL=0.3333333333333333`).
+L'estimation de lignes retournées peut paraître surprenante ! Il s'agit d'un calcul arbitraire défini dans la classe `selfuncs.h`[^3] avec notamment un facteur de sélectivité qui s'applique sur le nombre total de lignes présentes dans la table. Ainsi, pour un critère d'égalité, ce facteur vaudra 0.5 % (`DEFAULT_EQ_SEL=0.005`) alors qu'une comparaison de non-égalité comme celle de notre exemple, vaudra 33.33 % (`DEFAULT_INEQ_SEL=0.3333333333333333`).
 
 Puisque le planificateur estime devoir parcourir 333 entrées dans l'index à défaut de meilleure estimation, le coût total de ce plan est surévalué à `22.02`, au lieu de `11.79` auparavant.
 
-[3]: https://doxygen.postgresql.org/selfuncs_8h.html#define-members
+[^3]: https://doxygen.postgresql.org/selfuncs_8h.html#define-members
 
 ---
 
 ## Collecte automatique des statistiques
 
-Bien entendu, supprimer des statistiques n'est pas une bonne pratique et ne devrait pas être envisagé pour « changer le comportement » du planificateur. Depuis la version 8.3 de PostgreSQL, il n'y a même plus trop de raison de s'inquiéter de l'absence ou de la fraîcheur des statistiques associées à chaque colonne de vos tables : le processus `autovacuum`<sup>[4]</sup> (désactivé en 8.1 et 8.2) se charge, entre autres fonctions, de parcourir régulièrement les tables de vos bases pour collecter et consolider la table `pg_statistic`. Il se porte ainsi garant de la pertinence des plans d'exécution.
+Bien entendu, supprimer des statistiques n'est pas une bonne pratique et ne devrait pas être envisagé pour « changer le comportement » du planificateur. Depuis la version 8.3 de PostgreSQL, il n'y a même plus trop de raison de s'inquiéter de l'absence ou de la fraîcheur des statistiques associées à chaque colonne de vos tables : le processus `autovacuum`[^4] (désactivé en 8.1 et 8.2) se charge, entre autres fonctions, de parcourir régulièrement les tables de vos bases pour collecter et consolider la table `pg_statistic`. Il se porte ainsi garant de la pertinence des plans d'exécution.
 
 En réalité, ce processus _observe_ les variations de volumétrie des tables avant de déclencher l'opération `ANALYZE` par un processus de maintenance pour cette table. Ce mécanisme est bien plus pertinent et optimisé qu'une exécution à intervale régulier pour calculer arbitrairement les statistiques de la base.
 
-Le seuil de déclenchement<sup>[5]</sup> de l'_autoanalyze_ est obtenu à l'aide d'un calcul trivial impliquant deux paramètres globaux que l'on peut surcharger, `autovacuum_analyze_threshold = 50` et `autovacuum_analyze_scale_factor = 0.1`.
+Le seuil de déclenchement[^5] de l'_autoanalyze_ est obtenu à l'aide d'un calcul trivial impliquant deux paramètres globaux que l'on peut surcharger, `autovacuum_analyze_threshold = 50` et `autovacuum_analyze_scale_factor = 0.1`.
 
 ```text
 analyze threshold = analyze base threshold + 
@@ -200,8 +200,8 @@ LOG:  automatic analyze of table "demo.public.pgbench_accounts"
       system usage: CPU: user: 0.09 s, system: 0.00 s, elapsed: 0.25 s
 ```
 
-[4]: https://www.postgresql.org/docs/8.3/runtime-config-autovacuum.html
-[5]: https://www.postgresql.org/docs/12/routine-vacuuming.html#AUTOVACUUM
+[^4]: https://www.postgresql.org/docs/8.3/runtime-config-autovacuum.html
+[^5]: https://www.postgresql.org/docs/12/routine-vacuuming.html#AUTOVACUUM
 
 ---
 

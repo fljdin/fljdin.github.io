@@ -56,7 +56,7 @@ Access = drwx------
 Inode  = 33867963
 ```
 
-Les deux fichiers sont bien distincts et présentent des différences notables, comme les propriétaires et les droits d'accès. En réalité, Unix propose sept types de fichiers<sup>[1]</sup> et chacun présente des caractéristiques et comportements que lui sont propres. On retrouve ainsi les fichiers, répertoires, liens symboliques, mais aussi les _named pipes_, les _sockets_, les _devices_ ou les _doors_.
+Les deux fichiers sont bien distincts et présentent des différences notables, comme les propriétaires et les droits d'accès. En réalité, Unix propose sept types de fichiers[^1] et chacun présente des caractéristiques et comportements que lui sont propres. On retrouve ainsi les fichiers, répertoires, liens symboliques, mais aussi les _named pipes_, les _sockets_, les _devices_ ou les _doors_.
 
 Le dernier attribut que remonte ma commande `stat` correspond au _inumber_ ou numéro _inode_. Il s'agit d'un identifiant unique sur le système de fichiers permettant de retrouver toutes les métadonnées du fichier dans une table d'_inodes_. Nous avions vu à l'instant les droits et le propriétaire, l'_inode_ permet également de stocker les horodatages de création ou de modification ainsi que l'adresse physique des données du fichier sur le disque.
 
@@ -72,7 +72,7 @@ graph LR
   style iDir fill:white
 -->
 
-[1]: https://en.wikipedia.org/wiki/Unix_file_types
+[^1]: https://en.wikipedia.org/wiki/Unix_file_types
 
 ## Le mode -\-link de `pg_upgrade`
 
@@ -113,7 +113,7 @@ linking "/var/lib/pgsql/9.6/data/base/16384/16397_vm" to
 
 L'outil `pg_upgrade` est composé d'une série d'opération de contrôle, de copies de fichiers, d'arrêt/démarrage des instances et d'une remise à zéro des journaux de transactions avec `pg_resetwal`. Les lignes ci-dessus illustrent le mode `--link` lors de notre migration, avec la création d'un lien entre les deux versions du fichier de la table `pgbench_accounts`.
 
-La méthode employée peut être consultée dans les sources de `pg_upgrade`<sup>[2]</sup> et repose sur la méthode `link`<sup>[doc](https://www.gnu.org/software/coreutils/link)</sup>. Regardons en détail les métadonnées des fichiers de données de la table `pgbench_accounts` dans les deux répertoires.
+La méthode employée peut être consultée dans les sources de `pg_upgrade`[^2] et repose sur la méthode `link`<sup>[doc](https://www.gnu.org/software/coreutils/link)</sup>. Regardons en détail les métadonnées des fichiers de données de la table `pgbench_accounts` dans les deux répertoires.
 
 ```ini
 # FORMAT="${FORMAT}Links  = %h\n"
@@ -156,7 +156,7 @@ En contrepartie :
 
 - **Pas de retour arrière** : chacune des deux instances disposent de fichiers internes comme les journaux de transactions ou le fichier de contrôle, rendant incompatibles les fichiers de données à l'une des deux instances dès lors que l'autre a démarré après la migration.
 
-[2]: https://doxygen.postgresql.org/file_8c.html#a177e42cfa16856fb3b24c12684da9db8
+[^2]: https://doxygen.postgresql.org/file_8c.html#a177e42cfa16856fb3b24c12684da9db8
 
 ## Fin de vie d'une donnée liée
 
@@ -222,8 +222,8 @@ Sur un système de fichiers, le nombre maximal de fichiers que l'on peut créer 
 
 Apparu en version 9.0, l'outil `pg_upgrade` est une petite usine qui simule un import/export des structures d'une instance complète, avec la capacité de copier ou lier les anciens fichiers, de façon bien plus rapide qu'une insertion massive avec l'instruction `COPY` de `pg_restore`. C'est une solution de choix lorsque l'on migre d'une version majeure à l'autre sur un même serveur, notamment pour le gain de temps non négligeable que propose l'option `--link`.
 
-Avec la version 12, l'outil propose une nouvelle option `--clone` et s'appuie sur la notion de liens « par référence » (ou _reflinks_), conçus initialement sur les systèmes de fichiers supportant la « copie sur écriture »<sup>[3]</sup>. La documentation précise que la copie des fichiers _pratiquement instantanée_ et n'affecte pas l'ancienne instance.
+Avec la version 12, l'outil propose une nouvelle option `--clone` et s'appuie sur la notion de liens « par référence » (ou _reflinks_), conçus initialement sur les systèmes de fichiers supportant la « copie sur écriture »[^3]. La documentation précise que la copie des fichiers _pratiquement instantanée_ et n'affecte pas l'ancienne instance.
 
 Peut-être l'occasion de creuser le sujet dans un prochain article ?
 
-[3]: https://fr.wikipedia.org/wiki/Copy-on-write
+[^3]: https://fr.wikipedia.org/wiki/Copy-on-write
