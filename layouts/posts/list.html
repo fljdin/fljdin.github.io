@@ -1,9 +1,12 @@
 {{ define "main" }}
-{{ with .Site.GetPage "posts" }}
-<div class="posts">
-  {{ range .RegularPages }}
-    {{ .Render "summary" }}
-  {{ end }}
-</div>
-{{ end }}
+<article class="page">
+  <h1 class="page-title">{{ .Title }}</h1>
+  <div class="posts">
+    <ul>
+      {{ range .RegularPages }}
+        <li>{{ .Date.Format "02 Jan 2006"}} » <a href="{{ .Permalink }}">{{ .Title }}</a></li>
+      {{ end }}
+    </ul>
+  </div>
+</article>
 {{ end }}
