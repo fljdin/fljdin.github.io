@@ -16,7 +16,7 @@ Vous pourriez me croiser au hasard d'un couloir dans la région lilloise où je
 co-organise les soirées [Meetup PostgreSQL Lille]
 pour les passionné⋅es  et professionnel⋅les des Hauts-de-France.
 
-[mes lectures personnelles]: /lectures-personnelles/
+[mes lectures personnelles]: /pages/lectures/
 [Meetup PostgreSQL Lille]: https://www.meetup.com/fr-FR/Meetup-PostgreSQL-Lille
 
 Vous pouvez également me contacter et me suivre par l'un des médias suivants.

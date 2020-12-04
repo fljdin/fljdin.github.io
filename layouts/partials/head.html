@@ -4,7 +4,9 @@
   <title>{{ .Title }}</title>
   {{ $style := resources.Get "css/main.scss" | toCSS | minify }}
   <link rel="stylesheet" href="{{ $style.Permalink }}">
-  <link rel="alternate" type="application/atom+xml" title="{{ .Site.Title }}" href="{{ .Site.BaseURL }}/atom.xml">
+  {{ range .AlternativeOutputFormats -}}
+  {{ printf `<link rel="%s" type="%s" title="%s" href="%s" />` .Rel .MediaType.Type $.Site.Title .Permalink | safeHTML }}
+  {{ end -}}
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
 </head>

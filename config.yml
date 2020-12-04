@@ -1,10 +1,27 @@
 baseURL: https://fljd.in
 title: Florent Jardin
 
-permalinks:
-  posts: /:year/:month/:day/:slug
-  pages: /:slug
+author:
+  name: Florent Jardin
 
 paginate: 5
+rssLimit: 5
+
+permalinks:
+  posts: /:year/:month/:day/:slug
+
+disableKinds:
+- taxonomy
+- term
+
 removePathAccents: true
 pygmentsUseClasses: true
+
+outputFormats:
+  FEED:
+    mediaType: application/rss+xml
+    baseName: feed
+
+outputs:
+  home: [ HTML, FEED ]
+  section: [ HTML ]
