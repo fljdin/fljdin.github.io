@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Les liens physiques avec pg_upgrade"
 slug: les-liens-physiques-avec-pgupgrade
 date: 2020-04-23 15:30:00 +0200

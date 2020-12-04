@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Quelques outils méconnus"
 date: 2020-11-18
 tags: [postgresql,administration]

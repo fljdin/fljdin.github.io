@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Reprenons sérieusement"
 date: 2019-06-12 10:30:00 +0100
 tags: blog

@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Tour d'horizon de PgBouncer"
 slug: tour-d-horizon-de-pgbouncer
 date: 2020-08-21

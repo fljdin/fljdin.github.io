@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Le jour où tout bascule"
 date: 2019-12-19 17:00:00 +0200
 tags: [postgresql, replication]

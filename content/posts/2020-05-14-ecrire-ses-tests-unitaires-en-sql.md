@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Écrire ses tests unitaires en SQL"
 date: 2020-05-14 17:30:00 +0200
 tags: [postgresql,developpement]

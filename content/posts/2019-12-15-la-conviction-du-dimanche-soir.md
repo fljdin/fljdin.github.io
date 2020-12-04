@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "La conviction du dimanche soir"
 date: 2019-12-15 08:00:00 +0100
 tags: [blog, developpement]

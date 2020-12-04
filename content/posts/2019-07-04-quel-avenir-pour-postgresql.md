@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Quel avenir pour PostgreSQL ?"
 date: 2019-07-04 11:00:00 +0100
 tags: postgresql

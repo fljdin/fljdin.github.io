@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Gestion des signaux internes"
 date: 2020-01-17 20:00:00 +0200
 tags: [postgresql, linux]

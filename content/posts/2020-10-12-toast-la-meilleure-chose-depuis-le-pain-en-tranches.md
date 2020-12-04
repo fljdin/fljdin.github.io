@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "La meilleure chose depuis le pain en tranches"
 slug: toast-la-meilleure-chose-depuis-le-pain-en-tranches
 date: 2020-10-12

@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Construire une instance standby avec pgBackRest"
 date: 2019-11-07 16:00:00 +0200
 tags: [postgresql, replication]
