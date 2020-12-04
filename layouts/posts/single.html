@@ -2,8 +2,10 @@
 <article class="post">
   <h1 class="post-title">{{ .Title }}</a></h1>
 
-  <time datetime="{{ .Date.Format "2006-01-02" }}" class="post-date">{{ .Date.Format "02 Jan 2006"}}</time>
-
+  <p class="post-date">
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "02 Jan 2006"}}</time>
+    - {{ .ReadingTime }} minutes de lecture
+  </p>
   {{ .Content }}
 </article>
 
@@ -22,5 +24,4 @@
   </ul>
 </aside>
 {{ end }}
-
 {{ end }}

@@ -5,3 +5,4 @@ title: Florent Jardin
 #   posts: /:year/:month/:day/:slug
 
 removePathAccents: true
+pygmentsUseClasses: true
