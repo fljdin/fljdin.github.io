@@ -154,18 +154,18 @@ select * from pg_stat_replication;
 -- reply_time       | 2019-11-07 12:39:59.595595+00
 ```
 
-<div class="message">
-Pour la rédaction de cet article, je n'ai pas véritablement utilisé trois serveurs, mais bien un seul en réalité. L'astuce pour faire tourner deux instances sur le même port 5432 consiste à ajouter des IP virtuelles sur l'interface du serveur et de faire résoudre les noms de machines par le fichier <code class="highlighter-rouge">/etc/hosts</code> local.
+{{< message >}}
+Pour la rédaction de cet article, je n'ai pas véritablement utilisé trois serveurs, mais bien un seul en réalité. L'astuce pour faire tourner deux instances sur le même port 5432 consiste à ajouter des IP virtuelles sur l'interface du serveur et de faire résoudre les noms de machines par le fichier `/etc/hosts` local.
 
-<pre class="highlight">
+```text
 sudo ip add add 10.1.0.1/28 dev ens6
 sudo ip add add 10.1.0.2/28 dev ens6
 sudo ip add add 10.1.0.3/28 dev ens6
-</pre>
+```
 
-Les instances doivent ensuite être installées/configurées avec les bons paramètres <code class="highlighter-rouge">listen_addresses</code> et <code class="highlighter-rouge">unix_socket_directories</code> comme suivent :
+Les instances doivent ensuite être installées/configurées avec les bons paramètres `listen_addresses` et `unix_socket_directories` comme suivent :
 
-<pre class="highlight">
+```text
 sudo apt-get install -y postgresql-common
 sudo vim /etc/postgresql-common/createcluster.conf
 sudo apt-get install -y postgresql-12
@@ -180,7 +180,7 @@ sudo pg_createcluster 12 lab2 \
 
 sudo pg_ctlcluster start 12 lab1
 sudo pg_ctlcluster start 12 lab2
-</pre>
+```
 
-Quelques ajustements de droits sur le répertoire <code class="highlighter-rouge">/tmp/pgbackrest</code> pour les fichiers de verrous (paramètre <code class="highlighter-rouge">--lock-path</code>) et le tour est joué !
-</div>
+Quelques ajustements de droits sur le répertoire `/tmp/pgbackrest` pour les fichiers de verrous (paramètre `--lock-path`) et le tour est joué !
+{{< /message >}}

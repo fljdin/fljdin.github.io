@@ -5,7 +5,7 @@ date: 2019-07-04 11:00:00 +0100
 tags: postgresql
 ---
 
-À moins d'avoir passé la dernière décennie dans une grotte ou un service informatique vieillissant, chacun·e des acteur·rice·s de l'IT a dû entendre parler du projet PostgreSQL, ne serait-ce que son nom inintelligible. La page d'accueil est par ailleurs catégorique : il s'agit <u>du moteur relationnel open-source le plus avancé au monde</u>. (*[PostgreSQL: The World's Most Advanced Open Source Relational Database](https://www.postgresql.org)*)
+À moins d'avoir passé la dernière décennie dans une grotte ou un service informatique vieillissant, chacun·e des acteur·rice·s de l'IT a dû entendre parler du projet PostgreSQL, ne serait-ce que son nom inintelligible. La page d'accueil est par ailleurs catégorique : il s'agit **du moteur relationnel open-source le plus avancé au monde**. (*[PostgreSQL: The World's Most Advanced Open Source Relational Database](https://www.postgresql.org)*)
 
 Comment expliquer ce succès ? D'ailleurs, quelles sont les tendances du produit et comment s'articule la vie d'un logiciel aussi ambitieux ? Est-il possible de voir émerger en France un mouvement massif de migration vers ce moteur, alors même qu'Oracle et Microsoft ont une part de marché importante sur les grands secteurs de la santé, du bancaire ou de la grande distribution ?
 <!--more-->
@@ -14,9 +14,9 @@ Comment expliquer ce succès ? D'ailleurs, quelles sont les tendances du produit
 
 ## Historique du projet et cycle de vie
 
-<div class="message">
+{{< message >}}
 Pour démarrer cet article, je me lance dans un exercice sobre mais indispensable pour appréhender ce phénomène qu'aucun DBA tel que moi ne peut ignorer.
-</div>
+{{< /message >}}
 
 Ce projet est ancien, très ancien. Même qu'il est plus vieux que le Web lui-même[^1]. Il a été initié en 1986 par un professeur et son équipe à l'université de Californie à Berkeley avec le soutien de plusieurs sponsors. À l'origine de ce projet, la volonté d'améliorer un autre projet de l'université de Californie, exprimée dans l'extrait du document ci-dessous[^2]. 
 
@@ -82,9 +82,9 @@ Je ne parle volontairement pas des outils tiers qui soutiennent la dynamique du 
 
 ## La maturité
 
-<div class="message">
+{{< message >}}
 Les éléments suivants ont été arbitrairement seléctionnés par mes soins pour illustrer le propos global de l'article.
-</div>
+{{< /message >}}
 
 Il est tout à fait impossible de cartographier l'usage d'un produit open-source en milieu d'entreprise. Une initiative française s'illustre en réunissant de nombreux acteurs dans un groupe dédié[^12] à la promotion et la standardisation des outils. Les cabinets de conseils et sociétés de service autours de PostgreSQL sont encore dans un marché de niche ; mon intuition me pousse à croire qu'une tendance se dessine tout de même sur le territoire français.
 
@@ -128,9 +128,9 @@ Mises bout à bout, ces fonctionnalités redessinent le paysage numérique et po
 
 Il existe bien d'autres fonctionnalités que j'affectionne dans PostgreSQL, qu'il faut absolument connaître pour faire un choix crucial en début de projet, je pourrais parler plus longuement du _hot backup_ et du _hot standby_, deux modes de fonctionnements pour la sauvegarde et la lecture seule sur une base répliquée (_Oracle Active Dataguard_ est une option payante.) ou alors des très récents index couvrants apparus en version 11, faisant de l'ombre à SQL Server. Mais tout n'est pas glorieux, et les contributeurs du projet PostgreSQL ont encore un grand défi à surmonter : la Haute Disponibilité.
 
-<div class="message">
+{{< message >}}
 Pour limiter au plus possible l'exposé détaillé des solutions technique mises à disposition nativement au grand public, je considère que les élements de la documentation officielle<sup><a href="https://www.postgresql.org/docs/current/different-replication-solutions.html">24</a></sup> sont connus du lecteur, à savoir : le log shipping, la réplication <i>streaming</i> et la réplication logique.
-</div>
+{{< /message >}}
 
 Je disais donc, la Haute Disponibilité[^25] est une des fonctionnalités les plus demandées lorsque l'on traite d'une architecture où le cœur d'un système repose sur un moteur de bases de données. Elle consiste à apporter une solution technique de gestion de ressources en cas de panne dans le système. Un incendie ? Une panne de disque ? Une erreur humaine sur le serveur ? PostgreSQL propose une réplication aux petits oignons pour assurer la copie des données en temps réel sur un second serveur ou _datacenter_.
 

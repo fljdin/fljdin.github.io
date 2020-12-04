@@ -80,10 +80,10 @@ Les choses sont devenues passionnantes lorsque j'ai découvert la notion de lien
 
 Puisqu'un exemple concret parle toujours de lui-même, je propose d'étudier la méthode de migration de données d'une version 9.6 vers une version 12 de PostgreSQL avec l'outil `pg_upgrade`. Ce dernier propose l'option `--link` pour réduire le temps de migration des données sans copier les fichiers d’une instance à l’autre. Bien sûr, ce n'est pas le comportement par défaut.
 
-<div class="message">
-La distribution CentOS 7 est utilisée pour la démonstration.<br/>
-Le paquet <code class="highlighter-rouge">postgresql12-server</code> doit être installé au préalable.
-</div>
+{{< message >}}
+La distribution CentOS 7 est utilisée pour la démonstration.\
+Le paquet `postgresql12-server` doit être installé au préalable.
+{{< /message >}}
 
 ```sh
 # la routine setup permet la création du fichier de service ainsi

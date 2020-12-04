@@ -15,10 +15,11 @@ Ce fut par hasard et avec grand étonnement, que je suis tombé sur l'extension 
 
 ---
 
-<div class="message">
-<b>Disclaimer</b><br/>
-L'extension en elle-même n'est pas disponible sous forme de paquet et il faudra passer par le compilateur et les utilitaire <i>cpanm</i> ou <i>pgxn</i>, pour obtenir le framework complet. Dans le cadre de ma rapide démonstration, j'utilise un conteneur docker dont le Dockerfile provient des travaux de Damien Clochard<a href="https://github.com/dalibo/docker-pgtap/blob/master/Dockerfile"><sup>3</sup></a>.
-</div>
+{{< message >}}
+**Disclaimer** \
+L'extension en elle-même n'est pas disponible sous forme de paquet et il faudra passer par le compilateur et les utilitaire _cpanm_ ou _pgxn_, pour obtenir le framework complet. Dans le cadre de ma rapide démonstration, j'utilise un conteneur docker dont le Dockerfile provient des [travaux](https://github.com/dalibo/docker-pgtap/blob/master/Dockerfile) de Damien Clochard.
+{{< /message >}}
+
 
 ## Appliquons une démarche de développement par les tests
 
@@ -53,8 +54,8 @@ ROLLBACK;
 
 À travers mon conteneur, je lance la commande `pg_prove` nécessaire pour l'extension et l'exécution des tests renseignés dans le fichier `test.sql`. Je constate bel et bien un test en erreur : la fonction `is_public_holiday` n'existe pas encore dans mon cycle de développement.
 
-```sh
-# docker exec -it pgdemo pg_prove -U postgres test.sql
+```text
+$ docker exec -it pgdemo pg_prove -U postgres test.sql
 test.sql .. 1/1 
 # Failed test 1: "Function is_public_holiday(date) should exist"
 # Looks like you failed 1 test of 1
@@ -81,10 +82,11 @@ END;
 $$;
 ```
 
-```sh
-# docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
+```text
+$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
 CREATE FUNCTION
-# docker exec -it pgdemo pg_prove -U postgres test.sql
+
+$ docker exec -it pgdemo pg_prove -U postgres test.sql
 test.sql .. ok   
 All tests successful.
 Files=1, Tests=1,  0 wallclock secs 
@@ -116,8 +118,8 @@ SELECT is(
 
 Lançons à présent les tests.
 
-```sh
-# docker exec -it pgdemo pg_prove -U postgres test.sql
+```text
+$ docker exec -it pgdemo pg_prove -U postgres test.sql
 test.sql .. 1/3 
 # Failed test 2: "2020-05-01 is a public holiday"
 #         have: false
@@ -150,10 +152,11 @@ END;
 
 C'est simple, efficace… et subjectivement très mauvais. Le résultat escompté est atteint avec 100% des tests réussis. Mais je commence à entrevoir des problèmes de maintenance de code. Poussons les tests plus loin.
 
-```sh
-# docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
+```text
+$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
 CREATE FUNCTION
-# docker exec -it pgdemo pg_prove -U postgres test.sql
+
+$ docker exec -it pgdemo pg_prove -U postgres test.sql
 test.sql .. ok   
 All tests successful.
 Files=1, Tests=3,  0 wallclock secs
@@ -220,12 +223,13 @@ Dans cette version améliorée, je prends la décision de créer le type `month_
 
 Mes tests restent inchangés pour les dates de 1<sup>er</sup> janvier et du 1<sup>er</sup> mai.
 
-```sh
-# docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
+```text
+$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
 DROP TYPE
 CREATE TYPE
 CREATE FUNCTION
-# docker exec -it pgdemo pg_prove -U postgres test.sql
+
+$ docker exec -it pgdemo pg_prove -U postgres test.sql
 test.sql .. ok   
 All tests successful.
 Files=1, Tests=4,  1 wallclock secs
@@ -396,8 +400,8 @@ END;
 
 Et cette fois-ci, nous sommes assurés par nos tests que l'ensemble des jours fériés seront correctement identifiés par la fonction.
 
-```sh
-# docker exec -it pgdemo pg_prove -U postgres test.sql
+```text
+$ docker exec -it pgdemo pg_prove -U postgres test.sql
 test.sql .. ok     
 All tests successful.
 Files=1, Tests=28,  0 wallclock secs
@@ -442,6 +446,6 @@ SELECT throws_ok(
 
 Le _framework_ existe depuis 2008 et continue son bonhomme de chemin auprès de la communauté. Ce n'est clairement pas un outil pour un environnement de production, mais peut s'avérer un bel atout pour les chaînes de développement continu afin de s'assurer que les migrations applicatives n'oublient pas un objet ou une relation dans son livrable, ou pire, n'en suppriment pas par erreur.
 
-<div class="message">
-J'espère que l'exemple léger sélectionné par mes soins vous aura plu, et vous aura permis de découvrir comme moi un <i>framework</i> de tests orienté SQL. Si vous souhaitez parcourir les fichiers de ma démonstration, ils sont en accès libre sur <a href="https://gist.github.com/fljdin/4e4e5257667b3dca7278b05a31751fc3">gist.github.com/fljdin</a>.
-</div>
+{{< message >}}
+J'espère que l'exemple léger sélectionné par mes soins vous aura plu, et vous aura permis de découvrir comme moi un _framework_ de tests orienté SQL. Si vous souhaitez parcourir les fichiers de ma démonstration, ils sont en accès libre sur [gist.github.com/fljdin](https://gist.github.com/fljdin/4e4e5257667b3dca7278b05a31751fc3).
+{{< /message >}}

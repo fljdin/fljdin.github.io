@@ -83,7 +83,9 @@ La distribution des valeurs de la colonne `aid` est représentée par le tableau
 
 Si l'on revient à notre critère de recherche, les lignes dont la valeur `aid` est inférieure à 1 000 représenteraient un peu plus de 1 % des 1000 lignes de la table, soit environ 10 lignes si toutes les valeurs étaient distinctes. L'estimation de 9 lignes proposée par la commande `EXPLAIN` serait donc juste.
 
-<div class="message">La documentation du projet détaille en profondeur le calcul de ces estimations avec de nombreux exemples : <i><a href="https://www.postgresql.org/docs/12/row-estimation-examples.html">How the Planner Uses Statistics: Row Estimation Examples</a></i>.</div>
+{{< message >}}
+La documentation du projet détaille en profondeur le calcul de ces estimations avec de nombreux exemples : _[How the Planner Uses Statistics: Row Estimation Examples](https://www.postgresql.org/docs/12/row-estimation-examples.html)_.
+{{< /message >}}
 
 [^1]: https://www.postgresql.org/docs/12/runtime-config-query.html
 [^2]: https://postgresqlco.nf/en/doc/param/default_statistics_target/

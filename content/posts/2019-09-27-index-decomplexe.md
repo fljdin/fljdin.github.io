@@ -15,11 +15,10 @@ L'usage du même mot n'est pas fortuit. Chacun de ces usages désigne la capacit
 
 Ainsi, le lecteur peut démarrer sa recherche à partir de la première lettre de son mot, le comparer aux termes triés, recommencer avec la deuxième lettre, etc. jusqu'à identifier le terme voulu ou la racine la plus proche. Le résultat est alors accompagné d'une liste de numéros de pages, dans lesquelles l'auteur du livre a reférencé de lui-même les concepts-clés nécessaires à la recherche par index.
 
-![Exemple d'un index terminologique][index-terminologique-img]
+![Exemple d'un index terminologique](/img/posts/2019-09-27-index-terminologique.png)
 
 [^1]: https://fr.wikipedia.org/wiki/Index_terminologique
 [^2]: https://fr.wikipedia.org/wiki/Index_(base_de_donn%C3%A9es)
-[index-terminologique-img]: /img/posts/2019-09-27-index-terminologique.png
 
 ---
 
@@ -202,6 +201,6 @@ L'ajout d'un index ne doit pas être un réflexe systèmatique. Il faut tenir co
 
 Cet article s'est concentré sur le fonctionnement de l'index le plus courant _b-tree_ mais il en existe encore d'autres, répondant à des contraintes variées de recherche et de stockage !
 
-<div class="message">
-Si la démonstration vous a plu, le jeu de données <code class="highlighter-rouge">fr-mathematicians.sql</code> est disponible sur <a href="https://github.com/fljdin/database-samples/blob/master/fr-mathematians.sql">Github</a> et provient de la page « <a href="https://fr.wikipedia.org/wiki/Projet:Math%C3%A9matiques/Liste_des_math%C3%A9maticiens">Liste des mathématiciens</a> » disponible sur Wikipédia.
-</div>
+{{< message >}}
+Si la démonstration vous a plu, le jeu de données `fr-mathematicians.sql` est disponible sur [Github](https://github.com/fljdin/database-samples/blob/master/fr-mathematians.sql) et provient de la page « [Liste des mathématiciens](https://fr.wikipedia.org/wiki/Projet:Math%C3%A9matiques/Liste_des_math%C3%A9maticiens) » disponible sur Wikipédia.
+{{< /message >}}

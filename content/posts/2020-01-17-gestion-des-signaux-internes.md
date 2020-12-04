@@ -168,6 +168,6 @@ L'administrateur peut également provoquer ces signaux et ses effets mais inutil
 [^3]: http://man7.org/linux/man-pages/man1/trap.1p.html
 [^4]: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL
 
-<div class="message">
+{{< message >}}
 Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques toujours enrichissantes ! J'espère que cet article vous a plu et que vous avez pris plaisir comme moi à parcourir quelques fichiers du code source du projet libre PostgreSQL !
-</div>
+{{< /message >}}

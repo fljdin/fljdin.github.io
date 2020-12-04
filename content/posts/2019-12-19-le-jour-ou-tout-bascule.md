@@ -265,9 +265,9 @@ Le résultat de la commande `pg_rewind` nous informe que `batman` est revenu à 
 
 > pg_rewind requires that the target server either has the wal_log_hints option enabled in postgresql.conf or data checksums enabled when the cluster was initialized with initdb. Neither of these are currently on by default. full_page_writes must also be set to on, but is enabled by default.
 
-<div class="message">
-Pour certains au fond de la salle, cette opération correspond à l'instruction <code class="highlighter-rouge">FLASHBACK DATABASE</code> sur un moteur Oracle Database lorsque l'on souhaite reconstruire une instance Dataguard.
-</div>
+{{< message >}}
+Pour certains au fond de la salle, cette opération correspond à l'instruction `FLASHBACK DATABASE` sur un moteur Oracle Database lorsque l'on souhaite reconstruire une instance Dataguard.
+{{< /message >}}
 
 La dernière étape consiste à modifier la chaîne `primary_conninfo` et ajouter le fichier `standby.signal` avant de démarrer l'instance `batman` :
 
