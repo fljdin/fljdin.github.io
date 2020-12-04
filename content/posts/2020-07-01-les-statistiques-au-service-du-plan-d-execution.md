@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Les statistiques au service du plan d'exécution"
+slug: les-statistiques-au-service-du-plan-d-execution
 tags: [postgresql,maintenance,performance]
 date: 2020-07-01 20:30:00 +0200
 ---

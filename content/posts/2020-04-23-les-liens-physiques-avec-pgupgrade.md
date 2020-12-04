@@ -1,13 +1,17 @@
 ---
 layout: post
 title: "Les liens physiques avec pg_upgrade"
+slug: les-liens-physiques-avec-pgupgrade
 date: 2020-04-23 15:30:00 +0200
 tags: [linux,postgresql,migration]
 ---
 
-La création d'un lien sous Unix se réalise avec les commandes `ln`<sup>[doc](https://www.gnu.org/software/coreutils/ln)</sup> ou `cp`<sup>[doc](https://www.gnu.org/software/coreutils/cp)</sup>. Cette action permet de _lier_ deux fichiers vers la même donnée et de rendre disponible une ressource par l'intermédiaire de l'un ou de l'autre de ces fichiers.
+La création d'un lien sous Unix se réalise avec les commandes `ln`[^doc1] ou `cp`[^doc2]. Cette action permet de _lier_ deux fichiers vers la même donnée et de rendre disponible une ressource par l'intermédiaire de l'un ou de l'autre de ces fichiers.
 
 Cependant, les opérations diffèrent selon le type de ce lien. Le plus connu reste le _symlink_, le lien symbolique. Mais qu'en est-il des autres ? Comment se caractérisent-ils et dans quels contextes ? En vrai, qu'est-ce qu'un _inode_ ? Et PostgreSQL dans tout ça ? Autant de petites questions de curiosité que j'aborde avec vous dans cet article !<!--more-->
+
+[^doc1]: https://www.gnu.org/software/coreutils/ln
+[^doc2]: https://www.gnu.org/software/coreutils/cp
 
 ---
 

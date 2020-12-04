@@ -1,8 +1,9 @@
 baseURL: https://fljd.in
 title: Florent Jardin
 
-# permalinks:
-#   posts: /:year/:month/:day/:slug
+permalinks:
+  posts: /:year/:month/:day/:slug
+  pages: /:slug
 
 removePathAccents: true
 pygmentsUseClasses: true
