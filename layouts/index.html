@@ -1,9 +1,11 @@
 {{ define "main" }}
-{{ with .Site.GetPage "posts" }}
+
 <div class="posts">
-  {{ range .RegularPages }}
-    {{ .Render "summary" }}
-  {{ end }}
-</div>
+{{ range .Paginator.Pages }}
+  {{ .Render "summary" }}
 {{ end }}
+</div>
+
+{{ partial "pagination.html" . }}
+
 {{ end }}
