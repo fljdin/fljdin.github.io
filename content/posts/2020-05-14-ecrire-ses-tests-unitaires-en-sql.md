@@ -1,38 +1,58 @@
 ---
 title: "Écrire ses tests unitaires en SQL"
 date: 2020-05-14 17:30:00 +0200
-tags: [postgresql,developpement]
+tags: [postgresql, developpement]
 ---
 
-Je ne suis qu'un piètre développeur et je n'écris pas de tests unitaires. En réalité, ce n'est ni ma spécialité ni mon cœur de métier. Et pourtant, ma curiosité m'a mené à découvrir bien tardivement la mouvance TDD[^1] dans la conception logicielle et la rigueur d'écrire chaque test avant l'implémentation d'une fonctionnalité.
+Je ne suis qu'un piètre développeur et je n'écris pas de tests unitaires. En 
+réalité, ce n'est ni ma spécialité ni mon cœur de métier. Et pourtant, ma 
+curiosité m'a mené à découvrir bien tardivement la mouvance [TDD][1] dans la 
+conception logicielle et la rigueur d'écrire chaque test avant l'implémentation 
+d'une fonctionnalité.
 
-Ce fut par hasard et avec grand étonnement, que je suis tombé sur l'extension pgTAP[^2] il y a plusieurs mois, et l'idée de la mettre en application sur une instance PostgreSQL me hantait. Je vous propose dans cet article d'aborder ce _framework_ de tests avec un cas d'usage amusant.
+Ce fut par hasard et avec grand étonnement, que je suis tombé sur l'extension 
+[pgTAP][2] il y a plusieurs mois, et l'idée de la mettre en application sur une 
+instance PostgreSQL me hantait. Je vous propose dans cet article d'aborder ce 
+_framework_ de tests avec un cas d'usage amusant.
+
+[1]: https://fr.wikipedia.org/wiki/Test_driven_development
+[2]: https://pgtap.org/
+
 <!--more-->
-
-[^1]: https://fr.wikipedia.org/wiki/Test_driven_development
-[^2]: https://pgtap.org/
 
 ---
 
 {{< message >}}
-**Disclaimer** \
-L'extension en elle-même n'est pas disponible sous forme de paquet et il faudra passer par le compilateur et les utilitaire _cpanm_ ou _pgxn_, pour obtenir le framework complet. Dans le cadre de ma rapide démonstration, j'utilise un conteneur docker dont le Dockerfile provient des [travaux](https://github.com/dalibo/docker-pgtap/blob/master/Dockerfile) de Damien Clochard.
+Dans le cadre de ma rapide démonstration, j'utilise un conteneur docker dont le 
+Dockerfile provient des [travaux](https://github.com/dalibo/docker-pgtap/blob/master/Dockerfile) 
+de Damien Clochard. 
 {{< /message >}}
 
 
 ## Appliquons une démarche de développement par les tests
 
-En France, le mois de mai dispose du plus grand nombre de jours fériés, fait qu'apprécient grandement les salariés. Comment détermine-t-on en avance la liste des jours fériés d'une année ? Le jour courant est-il ou non férié ? Pourrait-on appliquer une contrainte de colonne pour qu'aucune date fériée ne soit insérée dans une table en base de données ?
+En France, le mois de mai dispose du plus grand nombre de jours fériés, fait 
+qu'apprécient grandement les salariés. Comment détermine-t-on en avance la liste 
+des jours fériés d'une année ? Le jour courant est-il ou non férié ? Pourrait-on 
+appliquer une contrainte de colonne pour qu'aucune date fériée ne soit insérée 
+dans une table en base de données ?
 
-Ces questions peuvent être celles qui émergent de la tête d'un développeur ou d'un membre de son équipe, et sont ainsi les premières étapes de la conception logicielle avec la rédaction de ces dernières sous la forme de tests unitaires. Le principe ultime à respecter dans un développement orienté tests (_TDD_) repose sur les quelques règles suivantes :
+Ces questions peuvent être celles qui émergent de la tête d'un développeur ou 
+d'un membre de son équipe, et sont ainsi les premières étapes de la conception 
+logicielle avec la rédaction de ces dernières sous la forme de tests unitaires. 
+Le principe ultime à respecter dans un développement orienté tests (_TDD_) repose 
+sur les quelques règles suivantes :
 
 - Écrire un test qui échoue
 - Écrire l'implémentation minimale et s'assurer que le test réussisse
-- Réusiner l'ensemble du code (… oui, c'est la traduction du terme _refactorer_[^4])
+- [Réusiner][4] l'ensemble du code (… oui, c'est la traduction du terme _refactorer_)
 
-[^4]: https://fr.wikipedia.org/wiki/R%C3%A9usinage_de_code
+[4]: https://fr.wikipedia.org/wiki/R%C3%A9usinage_de_code
 
-Fort de vouloir respecter cette boucle vertueuse, je rédige dans un fichier `test.sql` mon premier test unitaire. Il s'agit là d'utiliser la méthode `has_function()` fournie par pgTAP pour m'assurer qu'une fonction est présente dans la base de données.
+Fort de vouloir respecter cette boucle vertueuse, je rédige dans un fichier 
+`test.sql` mon premier test unitaire. Il s'agit là d'utiliser la méthode 
+`has_function()` fournie par pgTAP pour m'assurer qu'une fonction est présente 
+dans la base de données.
 
 ```sql
 -- Nous démarrons une transaction pour l'annuler en fin de test
@@ -51,7 +71,10 @@ SELECT * FROM finish();
 ROLLBACK;
 ```
 
-À travers mon conteneur, je lance la commande `pg_prove` nécessaire pour l'extension et l'exécution des tests renseignés dans le fichier `test.sql`. Je constate bel et bien un test en erreur : la fonction `is_public_holiday` n'existe pas encore dans mon cycle de développement.
+À travers mon conteneur, je lance la commande `pg_prove` nécessaire pour 
+l'extension et l'exécution des tests renseignés dans le fichier `test.sql`. Je 
+constate bel et bien un test en erreur : la fonction `is_public_holiday` n'existe 
+pas encore dans mon cycle de développement.
 
 ```text
 $ docker exec -it pgdemo pg_prove -U postgres test.sql
@@ -69,7 +92,9 @@ Files=1, Tests=1,  1 wallclock secs
 Result: FAIL
 ```
 
-Je m'attèle donc à la rédaction de ma fonction, que j'ajoute dans un nouveau fichier `is_public_holiday.sql`. La méthode TDD implique qu'un effort minimal soit fourni pour passer le test.
+Je m'attèle donc à la rédaction de ma fonction, que j'ajoute dans un nouveau 
+fichier `is_public_holiday.sql`. La méthode TDD implique qu'un effort minimal 
+soit fourni pour passer le test.
 
 ```sql
 CREATE OR REPLACE FUNCTION is_public_holiday(day date)
@@ -97,7 +122,10 @@ Result: PASS
 
 Bien.
 
-Pour dépasser le syndrôme de la page blanche, pourquoi ne pas tenter de s'assurer que notre fonction retourne parfaitement la valeur `true` ou `false` selon le jour qu'on lui passerait en paramètre ? Écrivons un test pour la date du 1<sup>er</sup> mai 2020 et un autre pour celle du 12 mai 2020.
+Pour dépasser le syndrôme de la page blanche, pourquoi ne pas tenter de s'assurer 
+que notre fonction retourne parfaitement la valeur `true` ou `false` selon le jour 
+qu'on lui passerait en paramètre ? Écrivons un test pour la date du 
+1{{< sup >}}er{{< /sup >}} mai 2020 et un autre pour celle du 12 mai 2020.
 
 ```sql
 -- [...]
@@ -135,7 +163,10 @@ Files=1, Tests=3,  1 wallclock secs
 Result: FAIL
 ```
 
-L'un de nos tests est donc en erreur, il faut apporter une évolution à notre fonction principale pour tâcher d'y remédier. Je suis partisan du moindre effort, une comparaison du mois et du jour de notre date suffira. Je me permets donc le luxe d'un `IF` au sein du code.
+L'un de nos tests est donc en erreur, il faut apporter une évolution à notre 
+fonction principale pour tâcher d'y remédier. Je suis partisan du moindre effort, 
+une comparaison du mois et du jour de notre date suffira. Je me permets donc le 
+luxe d'un `IF` au sein du code.
 
 ```sql
 BEGIN
@@ -149,7 +180,9 @@ BEGIN
 END;
 ```
 
-C'est simple, efficace… et subjectivement très mauvais. Le résultat escompté est atteint avec 100% des tests réussis. Mais je commence à entrevoir des problèmes de maintenance de code. Poussons les tests plus loin.
+C'est simple, efficace… et subjectivement très mauvais. Le résultat escompté est 
+atteint avec 100% des tests réussis. Mais je commence à entrevoir des problèmes 
+de maintenance de code. Poussons les tests plus loin.
 
 ```text
 $ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
@@ -165,7 +198,8 @@ Result: PASS
 
 ## Un peu de réusinage, parbleu !
 
-Non content d'avoir trouvé une solution fiable pour les jours fériés fixes, je poursuis avec un nouveau test pour le 1<sup>er</sup> janvier.
+Non content d'avoir trouvé une solution fiable pour les jours fériés fixes, je 
+poursuis avec un nouveau test pour le 1{{< sup >}}er{{< /sup >}} janvier.
 
 ```sql
 SELECT is(
@@ -175,7 +209,10 @@ SELECT is(
 );
 ```
 
-Et j'ajoute au code de ma fonction `is_public_holiday`, une nouvelle condition `IF`. Je me retrouve avec cette immondice, qui me rappelle certaines règles logiques issues de (trop) longues procédures stockées PL/SQL, que j'eus croisées dans une précédente vie.
+Et j'ajoute au code de ma fonction `is_public_holiday`, une nouvelle condition 
+`IF`. Je me retrouve avec cette immondice, qui me rappelle certaines règles 
+logiques issues de (trop) longues procédures stockées PL/SQL, que j'eus croisées 
+dans une précédente vie.
 
 ```sql
 BEGIN
@@ -195,7 +232,11 @@ BEGIN
 END;
 ```
 
-Mes tests passent correctement mais il est aproprié de s'arrêter sur l'un des principes du développement TDD : le _refactoring_, ou l'art de simplifier le code pour le rendre plus lisible et maintenable. L'idée est donc de proposer une réécriture de notre fonction `is_public_holiday` sans altérer l'état des tests. C'est parti !
+Mes tests passent correctement mais il est aproprié de s'arrêter sur l'un des 
+principes du développement TDD : le _refactoring_, ou l'art de simplifier le 
+code pour le rendre plus lisible et maintenable. L'idée est donc de proposer une 
+réécriture de notre fonction `is_public_holiday` sans altérer l'état des tests. 
+C'est parti !
 
 ```sql
 -- Type month_day
@@ -218,9 +259,13 @@ END;
 $$;
 ```
 
-Dans cette version améliorée, je prends la décision de créer le type `month_day` qui représente le couple mois/jour afin de réaliser des comparaisons ensemblistes avec le mot clé `ANY` fourni par le standard SQL. La variable `holidays` devient alors mon tableau de références contenant les jours fériés fixes de l'année.
+Dans cette version améliorée, je prends la décision de créer le type `month_day` 
+qui représente le couple mois/jour afin de réaliser des comparaisons ensemblistes 
+avec le mot clé `ANY` fourni par le standard SQL. La variable `holidays` devient 
+alors mon tableau de références contenant les jours fériés fixes de l'année.
 
-Mes tests restent inchangés pour les dates de 1<sup>er</sup> janvier et du 1<sup>er</sup> mai.
+Mes tests restent inchangés pour les dates de 1{{< sup >}}er{{< /sup >}} janvier 
+et du 1{{< sup >}}er{{< /sup >}} mai.
 
 ```text
 $ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
@@ -236,7 +281,9 @@ Files=1, Tests=4,  1 wallclock secs
 Result: PASS
 ```
 
-Pour m'assurer que tous les jours fériés fixes restants dans une année soient bien testés, je peux proposer un nouveau test qui les englobe. Par exemple, pour l'année 2020 :
+Pour m'assurer que tous les jours fériés fixes restants dans une année soient bien 
+testés, je peux proposer un nouveau test qui les englobe. Par exemple, pour l'année 
+2020 :
 
 ```sql
 SELECT is( 
@@ -250,7 +297,9 @@ SELECT is(
 ]) x;
 ```
 
-Sans trop de difficulté, et parce que nous avions réalisé avec succès la phase de réusinage du code, je peux ajouter l'implémentation des nouveaux jours fériés dans ma fonction et passer les tests avec succès.
+Sans trop de difficulté, et parce que nous avions réalisé avec succès la phase de 
+réusinage du code, je peux ajouter l'implémentation des nouveaux jours fériés 
+dans ma fonction et passer les tests avec succès.
 
 ```sql
 DECLARE
@@ -268,9 +317,22 @@ END;
 
 ## Les jours incroyables de la mort du Christ
 
-Si vous avez bien suivi, il ne manque plus que l'implémentation des fameux jours du lundi de Pâques[^5], du jeudi de l'Ascension[^6] et du lundi de Pentecôte[^7], voire du Vendredi Saint[^8] pour mes lecteurs assidus du Grand Est. Ces jours religieux ont la grande particularité d'être différents chaque année mais relativisons rapidement, les trois derniers dépendent de la date du lundi de Pâques. Rédigeons dès à présent les tests avant d'attaquer la partie épineuse de mon aventure.
+Si vous avez bien suivi, il ne manque plus que l'implémentation des fameux jours 
+du [lundi de Pâques][5], du [jeudi de l'Ascension][6] et du [lundi de Pentecôte][7], 
+voire du [Vendredi Saint][8] pour mes lecteurs assidus du Grand Est. Ces jours 
+religieux ont la grande particularité d'être différents chaque année mais 
+relativisons rapidement, les trois derniers dépendent de la date du lundi de 
+Pâques. Rédigeons dès à présent les tests avant d'attaquer la partie épineuse de 
+mon aventure.
 
-Pour la rédaction de ces tests, je souhaiterais m'assurer qu'une série de lundis de Pâques piochés au cours du dernier siècle soient bien identifiés comme des jours fériés par ma fonction.
+[5]: https://fr.wikipedia.org/wiki/Lundi_de_P%C3%A2ques
+[6]: https://fr.wikipedia.org/wiki/Ascension_(f%C3%AAte)
+[7]: https://fr.wikipedia.org/wiki/Pentec%C3%B4te
+[8]: https://fr.wikipedia.org/wiki/Vendredi_saint
+
+Pour la rédaction de ces tests, je souhaiterais m'assurer qu'une série de lundis 
+de Pâques piochés au cours du dernier siècle soient bien identifiés comme des 
+jours fériés par ma fonction.
 
 ```sql
 SELECT is( 
@@ -283,7 +345,16 @@ SELECT is(
 ]) x;
 ```
 
-Je ne vous le cache pas, j'ai découvert le calcul du jour de Pâques il y a plusieurs années, alors même que je devais écrire une fonction en _plpgsql_ selon la méthode de Gauss[^9] pour un système de planification embarqué dans une base PostgreSQL. Avec cet article, c'est l'occasion de la dépoussiérer et lui donner l'occasion d'être mise en lumière. J'ajoute à mon code initial, la définition de cette nouvelle fonction qui prendra une année en paramètre, requise pour déterminer « le dimanche qui suit la première pleine lune du printemps[^10] ».
+Je ne vous le cache pas, j'ai découvert le calcul du jour de Pâques il y a 
+plusieurs années, alors même que je devais écrire une fonction en PL/pgSQL selon 
+la [méthode de Gauss][9] pour un système de planification embarqué dans une base
+PostgreSQL. Avec cet article, c'est l'occasion de la dépoussiérer et lui donner 
+l'occasion d'être mise en lumière. J'ajoute à mon code initial, la définition de
+cette nouvelle fonction qui prendra une année en paramètre, requise pour 
+déterminer « le [dimanche][10] qui suit la première pleine lune du printemps ».
+
+[9]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques_selon_la_m%C3%A9thode_de_Gauss
+[10]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques
 
 ```sql
 CREATE OR REPLACE FUNCTION easter_date(year int)
@@ -304,7 +375,10 @@ END;
 $$;
 ```
 
-Il s'agit à présent d'intégrer ce calcul dans notre fonction `is_public_holiday` et satisfaire la comparaison avec nos dates de tests. Nous souhaitons connaître la date du lundi de Pâques, et non celle du dimanche fournie par l'algorithme précédent.
+Il s'agit à présent d'intégrer ce calcul dans notre fonction `is_public_holiday` 
+et satisfaire la comparaison avec nos dates de tests. Nous souhaitons connaître 
+la date du lundi de Pâques, et non celle du dimanche fournie par l'algorithme 
+précédent.
 
 ```sql
 DECLARE
@@ -330,7 +404,9 @@ BEGIN
 END;
 ```
 
-Encore une fois, j'implémente cette nouvelle règle de comparaison avec le minimum d'efforts et un bloc `IF` comme la fois passée. Les tests se réalisent sans accroc pour la sélection préalable des lundis de Pâques.
+Encore une fois, j'implémente cette nouvelle règle de comparaison avec le minimum 
+d'efforts et un bloc `IF` comme la fois passée. Les tests se réalisent sans accroc
+pour la sélection préalable des lundis de Pâques.
 
 ```sh
 # docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
@@ -348,7 +424,9 @@ Result: PASS
 
 ---
 
-Je poursuis les étapes itératives de développement, à savoir : écrire un test en erreur, écrire l'implémentation, simplifier le code. J'en viens à écrire une séries de tests pour les dates de l'Ascension et de la Pentecôte.
+Je poursuis les étapes itératives de développement, à savoir : écrire un test en 
+erreur, écrire l'implémentation, simplifier le code. J'en viens à écrire une 
+séries de tests pour les dates de l'Ascension et de la Pentecôte.
 
 ```sql
 SELECT is(
@@ -370,7 +448,12 @@ SELECT is(
 ]) x;
 ```
 
-Plutôt que d'employer une succession de `IF` pour valider ces nouvelles règles, je réécris la fonction `is_public_holiday` pour enrichir mon tableau de références `holidays` avec trois nouvelles dates, déterminées à partir du jour de Pâques. L'astuce consiste à ajouter `+1` pour obtenir le lundi de Pâques, `+39` pour le jeudi de l'Ascension et `+50` pour le lundi de la Pentecôte. _(Pour les régions exotiques, le Vendredi Saint aura lieu 2 jours avant Pâques.)_
+Plutôt que d'employer une succession de `IF` pour valider ces nouvelles règles, 
+je réécris la fonction `is_public_holiday` pour enrichir mon tableau de références 
+`holidays` avec trois nouvelles dates, déterminées à partir du jour de Pâques. 
+L'astuce consiste à ajouter `+1` pour obtenir le lundi de Pâques, `+39` pour le 
+jeudi de l'Ascension et `+50` pour le lundi de la Pentecôte. _(Pour les régions 
+exotiques, le Vendredi Saint aura lieu 2 jours avant Pâques.)_
 
 ```sql
 DECLARE
@@ -397,7 +480,8 @@ BEGIN
 END;
 ```
 
-Et cette fois-ci, nous sommes assurés par nos tests que l'ensemble des jours fériés seront correctement identifiés par la fonction.
+Et cette fois-ci, nous sommes assurés par nos tests que l'ensemble des jours 
+fériés seront correctement identifiés par la fonction.
 
 ```text
 $ docker exec -it pgdemo pg_prove -U postgres test.sql
@@ -408,16 +492,12 @@ Files=1, Tests=28,  0 wallclock secs
 Result: PASS
 ```
 
-[^5]: https://fr.wikipedia.org/wiki/Lundi_de_P%C3%A2ques
-[^6]: https://fr.wikipedia.org/wiki/Ascension_(f%C3%AAte)
-[^7]: https://fr.wikipedia.org/wiki/Pentec%C3%B4te
-[^8]: https://fr.wikipedia.org/wiki/Vendredi_saint
-[^9]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques_selon_la_m%C3%A9thode_de_Gauss
-[^10]: https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques
-
 ## La contrainte d'intégrité pour les jours fériés
 
-Pour en finir avec une dernière réflexion, le _framework_ pgTAP peut également être employé pour réaliser des tests de non régression au niveau du modèle de données. C'est même sa fonction première avec une série de méthodes permettant de questionner le catalogue système de la base.
+Pour en finir avec une dernière réflexion, le _framework_ pgTAP peut également 
+être employé pour réaliser des tests de non régression au niveau du modèle de 
+données. C'est même sa fonction première avec une série de méthodes permettant 
+de questionner le catalogue système de la base.
 
 Voyons quelques unes d'entre-elles avec les exemples suivants.
 
@@ -443,8 +523,15 @@ SELECT throws_ok(
 
 ---
 
-Le _framework_ existe depuis 2008 et continue son bonhomme de chemin auprès de la communauté. Ce n'est clairement pas un outil pour un environnement de production, mais peut s'avérer un bel atout pour les chaînes de développement continu afin de s'assurer que les migrations applicatives n'oublient pas un objet ou une relation dans son livrable, ou pire, n'en suppriment pas par erreur.
+Le _framework_ existe depuis 2008 et continue son bonhomme de chemin auprès de 
+la communauté. Ce n'est clairement pas un outil pour un environnement de production, 
+mais peut s'avérer un bel atout pour les chaînes de développement continu afin 
+de s'assurer que les migrations applicatives n'oublient pas un objet ou une 
+relation dans son livrable, ou pire, n'en suppriment pas par erreur.
 
 {{< message >}}
-J'espère que l'exemple léger sélectionné par mes soins vous aura plu, et vous aura permis de découvrir comme moi un _framework_ de tests orienté SQL. Si vous souhaitez parcourir les fichiers de ma démonstration, ils sont en accès libre sur [gist.github.com/fljdin](https://gist.github.com/fljdin/4e4e5257667b3dca7278b05a31751fc3).
+J'espère que l'exemple léger sélectionné par mes soins vous aura plu, et vous 
+aura permis de découvrir comme moi un _framework_ de tests orienté SQL. Si vous 
+souhaitez parcourir les fichiers de ma démonstration, ils sont en accès libre sur 
+[gist.github.com/fljdin](https://gist.github.com/fljdin/4e4e5257667b3dca7278b05a31751fc3).
 {{< /message >}}

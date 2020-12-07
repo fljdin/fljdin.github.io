@@ -4,22 +4,46 @@ date: 2020-01-17 20:00:00 +0200
 tags: [postgresql, linux]
 ---
 
-Je voulais m'attarder sur une notion que je n'avais pas exploré à l'époque où j'apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l'école et où l'on usait de commandes apprises par cœur : les signaux !
+Je voulais m'attarder sur une notion que je n'avais pas exploré à l'époque où 
+j'apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l'école et 
+où l'on usait de commandes apprises par cœur : les signaux !
 
-Les signaux les plus connus et les plus utilisés sont les numéros 6 `SIGABRT` et 9 `SIGKILL`, ça vous revient ? Pourquoi en existe-t-il autant, dans quels contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !
+Les signaux les plus connus et les plus utilisés sont les numéros 6 `SIGABRT` et 
+9 `SIGKILL`, ça vous revient ? Pourquoi en existe-t-il autant, dans quels 
+contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons 
+le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !
+
 <!--more-->
 
 ---
 
-Commençons sobrement par une description issue de Wikipédia[^1] :
+Commençons sobrement par une description issue de [Wikipédia][1] :
 
-> Un signal est une forme limitée de communication entre processus utilisée par les systèmes de type Unix et ceux respectant les standards POSIX. Il s'agit d'une notification asynchrone envoyée à un processus pour lui signaler l'apparition d'un événement. Quand un signal est envoyé à un processus, le système d'exploitation interrompt l'exécution normale de celui-ci. Si le processus possède une routine de traitement pour le signal reçu, il lance son exécution. Dans le cas contraire, il exécute la routine de traitement des signaux par défaut.
+[1]: https://fr.wikipedia.org/wiki/Signal_(informatique)
 
-En somme, les signaux sont de simples événements à destination d'un processus pour ordonner une action, comme l'éveil, l'arrêt, la lecture d'un fichier de configuration ou le repli (non, pas ce signal-là).
+> Un signal est une forme limitée de communication entre processus utilisée par 
+> les systèmes de type Unix et ceux respectant les standards POSIX. Il s'agit 
+> d'une notification asynchrone envoyée à un processus pour lui signaler 
+> l'apparition d'un événement. Quand un signal est envoyé à un processus, le 
+> système d'exploitation interrompt l'exécution normale de celui-ci. Si le 
+> processus possède une routine de traitement pour le signal reçu, il lance son 
+> exécution. Dans le cas contraire, il exécute la routine de traitement des
+> signaux par défaut.
+
+En somme, les signaux sont de simples événements à destination d'un processus 
+pour ordonner une action, comme l'éveil, l'arrêt, la lecture d'un fichier de 
+configuration ou le repli sur un champ de bataille (non, pas ce signal-là).
 
 ![Gestion des signaux en temps de guerre arthurienne](/img/posts/2020-01-17-drapeaux-kaamelott.jpg)
 
-Tout administrateur qui se respecte (ou non) connaît la commande `kill` fournie par son système pour résoudre le problème épineux des programmes qui font n'importe quoi -- d'après leurs dires -- en leur envoyant un message d'arrêt. Ces messages sont nombreux et permettent différentes réactions en s'inspirant de cette fameuse norme POSIX.1-1990 dont je vous renvoie au tableau du manuel `signal(7)`[^2] ou la commande `kill -l` pour les lister.
+Tout administrateur qui se respecte (ou non) connaît la commande `kill` fournie 
+par son système pour résoudre le problème épineux des programmes qui font n'importe
+quoi -- d'après leurs dires -- en leur envoyant un message d'arrêt. Ces messages 
+sont nombreux et permettent différentes réactions en s'inspirant de cette fameuse 
+norme POSIX.1-1990 dont je vous renvoie au tableau du [manuel][2] `signal(7)` ou 
+la commande `kill -l` pour les lister.
+
+[2]: http://man7.org/linux/man-pages/man7/signal.7.html
 
 ```sh
 kill -l
@@ -39,16 +63,26 @@ kill -l
 # 63) SIGRTMAX-1  64) SIGRTMAX 
 ```
 
-À l'aide de cette commande, il est possible d'interragir avec un processus actif dès lors que l'on a connaissance de son `pid`, le _process identifier_. La plupart du temps, nous ignorons tout bonnement l'état dans lequel il se trouve. Est-il en attente ? Fait-il un calcul important ? 
+À l'aide de cette commande, il est possible d'interragir avec un processus actif 
+dès lors que l'on a connaissance de son `pid`, le _process identifier_. La plupart 
+du temps, nous ignorons tout bonnement l'état dans lequel il se trouve. Est-il
+en attente ? Fait-il un calcul important ? 
 
-Trop souvent, en l'absence de journaux d'activité ou de verbosité du processus, d'impatience ou d'urgence, on lui envoie un message d'auto-suicide `kill -9 pid`. Et prends ça dans tes circuits logiques.
-
-[^1]: https://fr.wikipedia.org/wiki/Signal_(informatique)
-[^2]: http://man7.org/linux/man-pages/man7/signal.7.html
+Trop souvent, en l'absence de journaux d'activité ou de verbosité du processus, 
+d'impatience ou d'urgence, on lui envoie un message d'auto-suicide `kill -9 pid`. 
+Et prends ça dans tes circuits logiques.
 
 ---
 
-À son démarrage, un programme met en place une série d'instructions à l'aide de méthodes comme `trap`<sup>[3](man)</sup> pour un script _bash_ ou de la librairie `signal.h` pour un programme en C. Ces outils permettent de surcharger les comportements du programme à la réception d'un signal en leur associant une instruction ou une fonction plus complexe. Prenons l'exemple d'un bête terminal, qui en soit, est un programme en attente de saisie utilisateur,  dispose d'un `pid` et d'un interpréteur _bash_.
+À son démarrage, un programme met en place une série d'instructions à l'aide de 
+méthodes comme `trap` ([documentation][3]) pour un script _bash_ ou de la librairie 
+`signal.h` pour un programme en C. Ces outils permettent de surcharger les 
+comportements du programme à la réception d'un signal en leur associant une 
+instruction ou une fonction plus complexe. Prenons l'exemple d'un bête terminal, 
+qui en soit, est un programme en attente de saisie utilisateur,  dispose d'un
+`pid` et d'un interpréteur _bash_.
+
+[3]: http://man7.org/linux/man-pages/man1/trap.1p.html
 
 ```sh
 # Obtenir le pid du terminal tty courant
@@ -65,9 +99,14 @@ kill -SIGUSR2 5032
 # ven. janv. 17 16:29:10 CET 2020
 ```
 
-Cela devient particulièrement intéressant dans un contexte de programme multi-processeurs, de pouvoir se reposer sur un système de signaux pour déclencher les événements entre un processus père et ses enfants, plutôt que de complexifier les échanges avec une _queue_ en mémoire ou sur fichier.
+Cela devient particulièrement intéressant dans un contexte de programme 
+multi-processeurs, de pouvoir se reposer sur un système de signaux pour déclencher 
+les événements entre un processus père et ses enfants, plutôt que de complexifier
+les échanges avec une _queue_ en mémoire ou sur fichier.
 
-Si l'on prend l'exemple du processus `archiver` de PostgreSQL, la définition des signaux est la première étape au moment de sa création par le processus `postmaster`, juste avant l'entrée dans sa boucle principale.
+Si l'on prend l'exemple du processus `archiver` de PostgreSQL, la définition des 
+signaux est la première étape au moment de sa création par le processus `postmaster`, 
+juste avant l'entrée dans sa boucle principale.
 
 ```c
 // src/backend/postmaster/pgarch.c
@@ -107,7 +146,12 @@ PgArchiverMain(int argc, char *argv[])
 }
 ```
 
-La méthode `pqsignal` prend en paramètre la valeur `enum` du signal ainsi qu'un pointeur de fonction selon l'événement que l'on veut provoquer. Dans PostgreSQL, certains paramètres d'instance sont dynamiques et doivent être réactualisés sans interrompre le processus, c'est notamment le cas pour le processus `archiver` et son paramètre `archive_command` qui définit la méthode d'archivage lorsqu'un journal de transaction doit être archivé.
+La méthode `pqsignal` prend en paramètre la valeur `enum` du signal ainsi qu'un 
+pointeur de fonction selon l'événement que l'on veut provoquer. Dans PostgreSQL,
+certains paramètres d'instance sont dynamiques et doivent être réactualisés sans 
+interrompre le processus, c'est notamment le cas pour le processus `archiver` 
+et son paramètre `archive_command` qui définit la méthode d'archivage lorsqu'un 
+journal de transaction doit être archivé.
 
 ```c
 // src/backend/postmaster/interrupt.c
@@ -130,7 +174,10 @@ SignalHandlerForConfigReload(SIGNAL_ARGS)
 }
 ```
 
-Ainsi, lorsque le processus `archiver` reçoit un signal `SIGHUP`, il active le _flag_ `ConfigReloadPending` qui sera traité au sein de la boucle principale `pgarch_MainLoop()` et déclenchera la relecture du fichier de configuration avec la function `ProcessConfigFile()`.
+Ainsi, lorsque le processus `archiver` reçoit un signal `SIGHUP`, il active le 
+_flag_ `ConfigReloadPending` qui sera traité au sein de la boucle principale 
+`pgarch_MainLoop()` et déclenchera la relecture du fichier de configuration avec
+la function `ProcessConfigFile()`.
 
 ```c
 // src/backend/postmaster/pgarch.c
@@ -159,14 +206,25 @@ pgarch_MainLoop(void)
 
 ---
 
-Les déclencheurs de signaux sont multiples et peuvent venir des propres enfants du `postmater` pour annoncer un événement ou un changement d'état en usant principalement du signal `SIGUSR1`. Ces événements internes sont nécessaires pour coordonner les processus comme par exemple, demander au `walwriter` de changer de journal de transactions ou à l'`autovacuum launcher` de créer un nouveau processus `autovacuum worker`. 
-Les différents événements sont référencés par l'énumération `PMSignalReason` décrite dans le fichier `src/include/storage/pmsignal.h`.
+Les déclencheurs de signaux sont multiples et peuvent venir des propres enfants 
+du `postmater` pour annoncer un événement ou un changement d'état en usant 
+principalement du signal `SIGUSR1`. Ces événements internes sont nécessaires pour 
+coordonner les processus comme par exemple, demander au `walwriter` de changer 
+de journal de transactions ou à l'`autovacuum launcher` de créer un nouveau 
+processus `autovacuum worker`. 
+Les différents événements sont référencés par l'énumération `PMSignalReason` 
+décrite dans le fichier `src/include/storage/pmsignal.h`.
 
-L'administrateur peut également provoquer ces signaux et ses effets mais inutile de préciser qu'il est formellement déconseillé de passer par la commande `kill` ! Préférez les outils `systemctl` ou `pg_ctl` pour recharger (`reload`) la configuration ou les fonctions SQL[^4] prévues pour envoyer des signaux internes.
+L'administrateur peut également provoquer ces signaux et ses effets mais inutile
+de préciser qu'il est formellement déconseillé de passer par la commande `kill` !
+Préférez les outils `systemctl` ou `pg_ctl` pour recharger (`reload`) la 
+configuration ou les [fonctions SQL][4] prévues pour envoyer des signaux internes.
 
-[^3]: http://man7.org/linux/man-pages/man1/trap.1p.html
-[^4]: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL
+[4]: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL
 
 {{< message >}}
-Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques toujours enrichissantes ! J'espère que cet article vous a plu et que vous avez pris plaisir comme moi à parcourir quelques fichiers du code source du projet libre PostgreSQL !
+Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques 
+toujours enrichissantes ! J'espère que cet article vous a plu et que vous avez 
+pris plaisir comme moi à parcourir quelques fichiers du code source du projet 
+libre PostgreSQL !
 {{< /message >}}

@@ -1,25 +1,44 @@
 ---
 title: "Quelques outils méconnus"
 date: 2020-11-18
-tags: [postgresql,administration]
+tags: [postgresql, administration]
 ---
 
-Cette semaine, passait sur [mon fil d'actualité Twitter](https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments) une simple URL pointant sur le site <https://pgpedia.info>. Non loin d'être le seul à l'avoir remarqué, nous en parlions entre collègues pour constater avec surprise que nous ne connaissions pas cette mine d'or d'informations sur PostgreSQL. Après y avoir perdu plusieurs heures, je me suis dit qu'un article sur les quelques utilitaires que j'estime méconnus, pourrait être une bonne conclusion de la semaine.
+Cette semaine, passait sur [mon fil d'actualité Twitter][t] une simple URL
+pointant sur le site <https://pgpedia.info>. Non loin d'être le seul à l'avoir 
+remarqué, nous en parlions entre collègues pour constater avec surprise que nous
+ne connaissions pas cette mine d'or d'informations sur PostgreSQL. Après y avoir 
+perdu plusieurs heures, je me suis dit qu'un article sur les quelques utilitaires 
+que j'estime méconnus, pourrait être une bonne conclusion de la semaine.
+
+[t]: https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments
 
 <!--more-->
+
 ---
 
 ## pg_controldata
 
 _Source : <https://pgpedia.info/p/pg_controldata.html>_
 
-Ce premier outil est un _must-have_ pour tous les administrateurs de base de données. Il permet de dresser les principales informations de l'instance, qu'elle soit en cours d'exécution ou arrêtée. Ces dernières sont en partie extraites du fichier `pg_control`[^1] contenu dans le répertoire `PGDATA/global`, dont notamment, les informations sur les toutes dernières actions du processus `checkpointer`. On y retrouve aussi quelques configurations fixes et variables de l'instance.
+Ce premier outil est un _must-have_ pour tous les administrateurs de base de 
+données. Il permet de dresser les principales informations de l'instance, qu'elle 
+soit en cours d'exécution ou arrêtée. Ces dernières sont en partie extraites du 
+fichier [pg_control][1] contenu dans le répertoire `PGDATA/global`, dont 
+notamment, les informations sur les toutes dernières actions du processus 
+`checkpointer`. On y retrouve aussi quelques configurations fixes et variables 
+de l'instance.
 
-[^1]: https://pgpedia.info/p/pg_control.html
+[1]: https://pgpedia.info/p/pg_control.html
 
-Lorsque j'interviens durant un audit, plusieurs lignes m'interessent pour orienter mes analyses. En voici quelques exemples :
+Lorsque j'interviens durant un audit, plusieurs lignes m'interessent pour orienter 
+mes analyses. En voici quelques exemples :
 
-* `Database cluster state` : pour déterminer l'état de l'instance et savoir si j'interviens sur une instance principale ou secondaire. La liste des états est précisée dans le fichier `src/include/catalog/pg_control.h`[^2].
+* `Database cluster state` : pour déterminer l'état de l'instance et savoir si 
+j'interviens sur une instance principale ou secondaire. La liste des états est 
+précisée dans le fichier `src/include/catalog/pg_control.h` ([source][2]).
+
+[2]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/include/catalog/pg_control.h
 
 ```c
  typedef enum DBState
@@ -34,19 +53,30 @@ Lorsque j'interviens durant un audit, plusieurs lignes m'interessent pour orient
  } DBState;
 ```
 
-[^2]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/include/catalog/pg_control.h
+* `REDO WAL file` et `REDO location` : pour connaître le fichier WAL le plus
+proche du dernier _checkpoint_ requis pour la récupération des transactions suite 
+à un _crash_, dans des situations extrêmes où l'archivage n'est pas en place. 
+Dans le cas d'une restauration, ces éléments peuvent me permettre d'identifier 
+le bon fichier `backup_label` à positionner dans le `PGDATA`.
 
-* `REDO WAL file` et `REDO location` : pour connaître le fichier WAL le plus proche du dernier _checkpoint_ requis pour la récupération des transactions suite à un _crash_, dans des situations extrêmes où l'archivage n'est pas en place. Dans le cas d'une restauration, ces éléments peuvent me permettre d'identifier le bon fichier `backup_label` à positionner dans le `PGDATA`.
+* `Data page checksum version` : parfaitement incontournable, cette valeur 
+m'indique si les [sommes de contrôle][3] sont actives pour l'instance. Ce 
+mécanisme va permettre de suivre l'évolution des données d'une page en calculant 
+une somme de contrôle (_checksum_) afin de régulièrement s'assurer qu'aucune 
+corruption matérielle n'ait provoqué un changement de cette page. Par défaut, 
+l'outil `initdb` ne l'active pas et c'est bien dommage !
 
-* `Data page checksum version` : parfaitement incontournable, cette valeur m'indique si les sommes de contrôle[^3] sont actives pour l'instance. Ce mécanisme va permettre de suivre l'évolution des données d'une page en calculant une somme de contrôle (_checksum_) afin de régulièrement s'assurer qu'aucune corruption matérielle n'ait provoqué un changement de cette page. Par défaut, l'outil `initdb` ne l'active pas et c'est bien dommage !
-
-[^3]: https://pgpedia.info/d/data-page-checksums.html
+[3]: https://pgpedia.info/d/data-page-checksums.html
 
 ## pg_waldump
 
 _Source : <https://pgpedia.info/p/pg_waldump.html>_
 
-Anciennement connu sous le nom de `pg_xlogdump`, avant que n'ait eu lieu la campagne de renommage de `xlog` en `wal` initiée avec PostgreSQL 10, cet utilitaire permet de parcourir le contenu des journaux de transactions. Jusqu'à présent, je ne m'en sers qu'à des fins pédagogiques, bien qu'il puisse s'avérer redoutable dans un cas de débogage de haute voltige.
+Anciennement connu sous le nom de `pg_xlogdump`, avant que n'ait eu lieu la
+campagne de renommage de `xlog` en `wal` initiée avec PostgreSQL 10, cet utilitaire 
+permet de parcourir le contenu des journaux de transactions. Jusqu'à présent, je 
+ne m'en sers qu'à des fins pédagogiques, bien qu'il puisse s'avérer redoutable 
+dans un cas de débogage de haute voltige.
 
 ```sql
 BEGIN;
@@ -60,7 +90,9 @@ INSERT INTO test VALUES (1);
 COMMIT;
 ```
 
-Cette simple transaction provoque plusieurs transformations dans les pages de l'instance, notamment dans le catalogue de la base qui reçoit les instructions SQL, que je cache volontairement dans l'exemple suivant :
+Cette simple transaction provoque plusieurs transformations dans les pages de 
+l'instance, notamment dans le catalogue de la base qui reçoit les instructions 
+SQL, que je cache volontairement dans l'exemple suivant :
 
 ```text
 $ pg_waldump -p data/pg_wal --start=0/52CA530 --xid=1315
@@ -72,7 +104,10 @@ rmgr: Heap        desc: INSERT+INIT off 1 flags 0x00
 rmgr: Transaction desc: COMMIT 2020-11-18 11:48:23.229489 CET
 ```
 
-L'outil fourni également un vue synthétique avec l'option `--stats` si l'on souhaite connaître la quantité d'opérations (en nombre et taille en octets) à rejouer lors d'une restauration ou d'une initialisation des données dans le cadre d'une réplication logique.
+L'outil fourni également un vue synthétique avec l'option `--stats` si l'on 
+souhaite connaître la quantité d'opérations (en nombre et taille en octets) à 
+rejouer lors d'une restauration ou d'une initialisation des données dans le 
+cadre d'une réplication logique.
 
 ```text
 $ pg_waldump -p data/pg_wal --start=0/52CA530 --end=0/52F8EE8 --stats
@@ -86,7 +121,13 @@ Total   243           189643
 
 _Source : <https://pgpedia.info/p/pg_test_fsync.html>_
 
-Alors, celui-là, je ne le connaissais pas avant hier ! Il s'avère être un compagnon appréciable lorsqu'on déploit une instance de production sur un système dont on a peu ou pas connaissance des performances d'écriture. Bien qu'à l'origine, cet outil ait été conçu pour comparer les différentes méthodes de synchronisation sur disques et de correctement positionner le paramètre `wal_sync_method` pour l'instance, il permet de connaître très facilement le débit du disque qui contiendra les journaux de transactions.
+Alors, celui-là, je ne le connaissais pas avant hier ! Il s'avère être un 
+compagnon appréciable lorsqu'on déploit une instance de production sur un système 
+dont on a peu ou pas connaissance des performances d'écriture. Bien qu'à l'origine, 
+cet outil ait été conçu pour comparer les différentes méthodes de synchronisation 
+sur disques et de correctement positionner le paramètre `wal_sync_method` pour 
+l'instance, il permet de connaître très facilement le débit du disque qui 
+contiendra les journaux de transactions.
 
 ```text
 $ pg_test_fsync --filename=data/pg_wal/testfile
@@ -123,20 +164,28 @@ Non-sync'ed 8kB writes:
   write                     257485,249 ops/sec       4 usecs/op
 ```
 
-J'ai ainsi appris que les méthodes variaient, selon les implémentations de chaque système[^4]. Sous Linux, nous aurons par défault la méthode `fdatasync` alors qu'elle sera `open_datasync` sous Windows.
+J'ai ainsi appris que les méthodes variaient, selon les [implémentations][4] de chaque 
+système. Sous Linux, nous aurons par défault la méthode `fdatasync` alors
+qu'elle sera `open_datasync` sous Windows.
 
-Dans la même veine, il existe un autre outil de _benchmark_ nommé `pg_test_timing`[^5], mais cette fois-ci, pour contrôler que l'horloge du système ne dérive pas lors d'une instruction chronométrée telle que la commande `EXPLAIN ANALYZE`.
+Dans la même veine, il existe un autre outil de _benchmark_ nommé 
+[pg_test_timing][5], mais cette fois-ci, pour contrôler que l'horloge du système 
+ne dérive pas lors d'une instruction chronométrée telle que la commande `EXPLAIN ANALYZE`.
 
-[^4]: https://www.postgresql.org/docs/13/wal-reliability.html
-[^5]: https://www.postgresql.org/docs/13/pgtesttiming.html
+[4]: https://www.postgresql.org/docs/13/wal-reliability.html
+[5]: https://www.postgresql.org/docs/13/pgtesttiming.html
 
 ## pg_verifybackup
 
 _Source : <https://pgpedia.info/p/pg_verifybackup.html>_
 
-Ce petit dernier est arrivé en octobre de cette année avec la sortie de PostgreSQL 13. La communauté a mis à disposition un nouveau fichier appelé « manifeste de sauvegarde » (_backup manifest_) qui a pour rôle de lister l'ensemble des fichiers contenu dans une sauvegarde physique, ainsi que leur signature par sommes de contrôle.
+Ce petit dernier est arrivé en octobre de cette année avec la sortie de PostgreSQL 
+13. La communauté a mis à disposition un nouveau fichier appelé « manifeste de 
+sauvegarde » (_backup manifest_) qui a pour rôle de lister l'ensemble des fichiers 
+contenu dans une sauvegarde physique, ainsi que leur signature par sommes de contrôle.
 
-À présent, l'outil `pg_basebackup` créé le fichier `backup_manifest` au sein de son archive, dont la représentation est au format JSON. 
+À présent, l'outil `pg_basebackup` créé le fichier `backup_manifest` au sein de 
+son archive, dont la représentation est au format JSON. 
 
 ```json
 {
@@ -176,12 +225,16 @@ Ce petit dernier est arrivé en octobre de cette année avec la sortie de Postgr
 }
 ```
 
-Alors que l'outil tier `pgbackrest`[^6] proposait son propre système de contrôle, ce nouveau fichier manifeste pourrait permettre à d'autres solutions de sauvegardes comme `pitrery`[^7] de bénéficier d'une vérification à moindre coût.
+Alors que l'outil tier [pgbackrest][6] proposait son propre système de contrôle, 
+ce nouveau fichier manifeste pourrait permettre à d'autres solutions de sauvegardes
+comme [pitrery][7] de bénéficier d'une vérification à moindre coût.
 
-[^6]: https://pgbackrest.org/
-[^7]: https://github.com/dalibo/pitrery/issues/125
+[6]: https://pgbackrest.org/
+[7]: https://github.com/dalibo/pitrery/issues/125
 
-En effet, à l'aide de l'outil `pg_verifybackup`, il est possible de s'assurer qu'une sauvegarde physique n'a pas subi de corruption ou de transformation avant de la restaurer.
+En effet, à l'aide de l'outil `pg_verifybackup`, il est possible de s'assurer 
+qu'une sauvegarde physique n'a pas subi de corruption ou de transformation avant 
+de la restaurer.
 
 ```text
 $ pg_verifybackup basebackup
@@ -196,8 +249,12 @@ backup successfully verified
 
 ## Conclusion
 
-La page de documentation « _PostgreSQL Server Applications_ »[^8] recense les utilitaires maintenus par la communauté. L'histoire du projet a montré que nombre d'entre eux étaient issus d'une contribution avant d'y être intégrés et démocratisés.
+La page de [documentation][8] « _PostgreSQL Server Applications_ » recense les 
+utilitaires maintenus par la communauté. L'histoire du projet a montré que nombre 
+d'entre eux étaient issus d'une contribution avant d'y être intégrés et démocratisés.
 
-Le site <https://pgpedia.info> est un excellent complément à la documentation car il retrace avec fidélité les changements survenus pour chaque aspect, méthode, outil présent dans le projet PostgreSQL. Ajoutez-le à vos favoris !
+[8]: https://www.postgresql.org/docs/13/reference-server.html
 
-[^8]: https://www.postgresql.org/docs/13/reference-server.html
+Le site <https://pgpedia.info> est un excellent complément à la documentation car 
+il retrace avec fidélité les changements survenus pour chaque aspect, méthode, 
+outil présent dans le projet PostgreSQL. Ajoutez-le à vos favoris !
