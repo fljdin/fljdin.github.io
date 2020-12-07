@@ -3,105 +3,105 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://fljd.in/archives/</loc>
+    <loc>https://fljdin.github.io/archives/</loc>
     <lastmod>2020-11-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/</loc>
+    <loc>https://fljdin.github.io/</loc>
     <lastmod>2020-11-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/11/18/quelques-outils-meconnus/</loc>
+    <loc>https://fljdin.github.io/2020/11/18/quelques-outils-meconnus/</loc>
     <lastmod>2020-11-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</loc>
+    <loc>https://fljdin.github.io/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</loc>
     <lastmod>2020-10-12T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</loc>
+    <loc>https://fljdin.github.io/2020/08/21/tour-d-horizon-de-pgbouncer/</loc>
     <lastmod>2020-08-21T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</loc>
+    <loc>https://fljdin.github.io/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</loc>
     <lastmod>2020-07-01T20:30:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</loc>
+    <loc>https://fljdin.github.io/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</loc>
     <lastmod>2020-05-14T17:30:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</loc>
+    <loc>https://fljdin.github.io/2020/04/23/les-liens-physiques-avec-pgupgrade/</loc>
     <lastmod>2020-04-23T15:30:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/03/20/de-la-securite-pour-vos-mots-de-passe/</loc>
+    <loc>https://fljdin.github.io/2020/03/20/de-la-securite-pour-vos-mots-de-passe/</loc>
     <lastmod>2020-03-20T16:00:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</loc>
+    <loc>https://fljdin.github.io/2020/01/17/gestion-des-signaux-internes/</loc>
     <lastmod>2020-01-17T20:00:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/12/19/le-jour-ou-tout-bascule/</loc>
+    <loc>https://fljdin.github.io/2019/12/19/le-jour-ou-tout-bascule/</loc>
     <lastmod>2019-12-19T17:00:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/</loc>
+    <loc>https://fljdin.github.io/2019/12/15/la-conviction-du-dimanche-soir/</loc>
     <lastmod>2019-12-15T08:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</loc>
+    <loc>https://fljdin.github.io/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</loc>
     <lastmod>2019-11-07T16:00:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/09/27/index-decomplexe/</loc>
+    <loc>https://fljdin.github.io/2019/09/27/index-decomplexe/</loc>
     <lastmod>2019-09-27T16:00:00+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/07/04/quel-avenir-pour-postgresql/</loc>
+    <loc>https://fljdin.github.io/2019/07/04/quel-avenir-pour-postgresql/</loc>
     <lastmod>2019-07-04T11:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/06/24/la-boite-a-outils-du-dba/</loc>
+    <loc>https://fljdin.github.io/2019/06/24/la-boite-a-outils-du-dba/</loc>
     <lastmod>2019-06-24T12:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</loc>
+    <loc>https://fljdin.github.io/2019/06/20/jette-ton-instance-a-la-poubelle/</loc>
     <lastmod>2019-06-20T13:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/2019/06/12/reprenons-serieusement/</loc>
+    <loc>https://fljdin.github.io/2019/06/12/reprenons-serieusement/</loc>
     <lastmod>2019-06-12T10:30:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/pages/lectures/</loc>
+    <loc>https://fljdin.github.io/pages/lectures/</loc>
   </url>
   
   <url>
-    <loc>https://fljd.in/pages/</loc>
+    <loc>https://fljdin.github.io/pages/</loc>
   </url>
   
   <url>
-    <loc>https://fljd.in/pages/a-propos/</loc>
+    <loc>https://fljdin.github.io/pages/a-propos/</loc>
   </url>
   
 </urlset>

@@ -2,16 +2,16 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Carnet de découvertes on Florent Jardin</title>
-    <link>https://fljd.in/</link>
+    <link>https://fljdin.github.io/</link>
     <description>Recent content in Carnet de découvertes on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate>
     <item>
       <title>Quelques outils méconnus</title>
-      <link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link>
+      <link>https://fljdin.github.io/2020/11/18/quelques-outils-meconnus/</link>
       <pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://fljd.in/2020/11/18/quelques-outils-meconnus/</guid>
+      <guid>https://fljdin.github.io/2020/11/18/quelques-outils-meconnus/</guid>
       <description>&lt;p&gt;Cette semaine, passait sur &lt;a href=&#34;https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments&#34;&gt;mon fil d&amp;rsquo;actualité Twitter&lt;/a&gt; une simple URL
 pointant sur le site &lt;a href=&#34;https://pgpedia.info&#34;&gt;https://pgpedia.info&lt;/a&gt;. Non loin d&amp;rsquo;être le seul à l&amp;rsquo;avoir
 remarqué, nous en parlions entre collègues pour constater avec surprise que nous
@@ -22,10 +22,10 @@ que j&amp;rsquo;estime méconnus, pourrait être une bonne conclusion de la sema
     
     <item>
       <title>La meilleure chose depuis le pain en tranches</title>
-      <link>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</link>
+      <link>https://fljdin.github.io/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</link>
       <pubDate>Mon, 12 Oct 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</guid>
+      <guid>https://fljdin.github.io/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</guid>
       <description>&lt;p&gt;Je me souviens de cette époque où j&amp;rsquo;ai été confronté pour la première fois à la
 notion de TOAST avec PostgreSQL. Je trouvais la dénomination amusante, bien
 qu&amp;rsquo;étrange, pour nommer le mécanisme de stockage étendu « &lt;em&gt;The Oversized-Attribute
@@ -36,10 +36,10 @@ petite révolution et de la meilleure chose depuis le pain en tranches.&lt;/p&gt
     
     <item>
       <title>Tour d&#39;horizon de PgBouncer</title>
-      <link>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</link>
+      <link>https://fljdin.github.io/2020/08/21/tour-d-horizon-de-pgbouncer/</link>
       <pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</guid>
+      <guid>https://fljdin.github.io/2020/08/21/tour-d-horizon-de-pgbouncer/</guid>
       <description>&lt;blockquote&gt;
 &lt;p&gt;Les programmes de regroupement de connexions (&lt;em&gt;pooling&lt;/em&gt;) vous permettent de
 réduire la surcharge liée à la base de données lorsque le nombre de connexions
@@ -59,10 +59,10 @@ performances de votre instance PostgreSQL !&lt;/p&gt;</description>
     
     <item>
       <title>Les statistiques au service du plan d&#39;exécution</title>
-      <link>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</link>
+      <link>https://fljdin.github.io/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</link>
       <pubDate>Wed, 01 Jul 2020 20:30:00 +0200</pubDate>
       
-      <guid>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid>
+      <guid>https://fljdin.github.io/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid>
       <description>&lt;p&gt;La lecture d&amp;rsquo;un plan d&amp;rsquo;exécution fait partie des meilleures armes du développeur
 et de l&amp;rsquo;administrateur de bases de données pour identifier les problèmes de
 performances. Dans &lt;a href=&#34;/2019/09/27/index-decomplexe&#34;&gt;un précédent article&lt;/a&gt;, je
@@ -75,10 +75,10 @@ près ce que propose PostgreSQL pour garantir les performances de vos requêtes.
     
     <item>
       <title>Écrire ses tests unitaires en SQL</title>
-      <link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link>
+      <link>https://fljdin.github.io/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link>
       <pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate>
       
-      <guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid>
+      <guid>https://fljdin.github.io/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid>
       <description>&lt;p&gt;Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
 réalité, ce n&amp;rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
 curiosité m&amp;rsquo;a mené à découvrir bien tardivement la mouvance &lt;a href=&#34;https://fr.wikipedia.org/wiki/Test_driven_development&#34;&gt;TDD&lt;/a&gt; dans la
