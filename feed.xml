@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Carnet de découvertes on Florent Jardin</title>
+    <link>https://fljd.in/</link>
+    <description>Recent content in Carnet de découvertes on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate>
+    <item>
+      <title>Quelques outils méconnus</title>
+      <link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link>
+      <pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2020/11/18/quelques-outils-meconnus/</guid>
+      <description>&lt;p&gt;Cette semaine, passait sur &lt;a href=&#34;https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments&#34;&gt;mon fil d&amp;rsquo;actualité Twitter&lt;/a&gt; une simple URL
+pointant sur le site &lt;a href=&#34;https://pgpedia.info&#34;&gt;https://pgpedia.info&lt;/a&gt;. Non loin d&amp;rsquo;être le seul à l&amp;rsquo;avoir
+remarqué, nous en parlions entre collègues pour constater avec surprise que nous
+ne connaissions pas cette mine d&amp;rsquo;or d&amp;rsquo;informations sur PostgreSQL. Après y avoir
+perdu plusieurs heures, je me suis dit qu&amp;rsquo;un article sur les quelques utilitaires
+que j&amp;rsquo;estime méconnus, pourrait être une bonne conclusion de la semaine.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>La meilleure chose depuis le pain en tranches</title>
+      <link>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</link>
+      <pubDate>Mon, 12 Oct 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</guid>
+      <description>&lt;p&gt;Je me souviens de cette époque où j&amp;rsquo;ai été confronté pour la première fois à la
+notion de TOAST avec PostgreSQL. Je trouvais la dénomination amusante, bien
+qu&amp;rsquo;étrange, pour nommer le mécanisme de stockage étendu « &lt;em&gt;The Oversized-Attribute
+Storage Technique&lt;/em&gt; ». Bien que l&amp;rsquo;acronyme ne fasse pas de référence culinaire,
+on peut retrouver dans la &lt;a href=&#34;https://www.postgresql.org/docs/13/storage-toast.html&#34;&gt;documentation officielle&lt;/a&gt; qu&amp;rsquo;il s&amp;rsquo;agissait d&amp;rsquo;une
+petite révolution et de la meilleure chose depuis le pain en tranches.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Tour d&#39;horizon de PgBouncer</title>
+      <link>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</link>
+      <pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;Les programmes de regroupement de connexions (&lt;em&gt;pooling&lt;/em&gt;) vous permettent de
+réduire la surcharge liée à la base de données lorsque le nombre de connexions
+physiques réduit les performances. Ceci est particulièrement pertinent sous
+Windows, où les limitations du système empêchent un grand nombre de connexions.
+C&amp;rsquo;est également vital pour les applications Web où le nombre de connexions peut
+devenir très important.&lt;/p&gt;
+&lt;p&gt;(Source : &lt;a href=&#34;https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration&#34;&gt;https://wiki.postgresql.org&lt;/a&gt;)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Je n&amp;rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
+projet PostgreSQL pour aborder l&amp;rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
+des deux seuls &lt;em&gt;poolers&lt;/em&gt; de connexions largement répandus. Le produit est
+déconcertant de facilité, sa documentation et la littérature qui gravitent sur
+Internet sont claires et unanimes : PgBouncer améliorera grandement les
+performances de votre instance PostgreSQL !&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Les statistiques au service du plan d&#39;exécution</title>
+      <link>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</link>
+      <pubDate>Wed, 01 Jul 2020 20:30:00 +0200</pubDate>
+      
+      <guid>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid>
+      <description>&lt;p&gt;La lecture d&amp;rsquo;un plan d&amp;rsquo;exécution fait partie des meilleures armes du développeur
+et de l&amp;rsquo;administrateur de bases de données pour identifier les problèmes de
+performances. Dans &lt;a href=&#34;/2019/09/27/index-decomplexe&#34;&gt;un précédent article&lt;/a&gt;, je
+présentais l&amp;rsquo;intérêt de positionner un index sur les colonnes d&amp;rsquo;une table pour
+faciliter les recherches, notamment avec l&amp;rsquo;aide de la commande &lt;code&gt;EXPLAIN&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;À cette époque, je ne m&amp;rsquo;étais pas attardé sur la notion des statistiques de
+données, que l&amp;rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
+près ce que propose PostgreSQL pour garantir les performances de vos requêtes.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Écrire ses tests unitaires en SQL</title>
+      <link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link>
+      <pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate>
+      
+      <guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid>
+      <description>&lt;p&gt;Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
+réalité, ce n&amp;rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
+curiosité m&amp;rsquo;a mené à découvrir bien tardivement la mouvance &lt;a href=&#34;https://fr.wikipedia.org/wiki/Test_driven_development&#34;&gt;TDD&lt;/a&gt; dans la
+conception logicielle et la rigueur d&amp;rsquo;écrire chaque test avant l&amp;rsquo;implémentation
+d&amp;rsquo;une fonctionnalité.&lt;/p&gt;
+&lt;p&gt;Ce fut par hasard et avec grand étonnement, que je suis tombé sur l&amp;rsquo;extension
+&lt;a href=&#34;https://pgtap.org/&#34;&gt;pgTAP&lt;/a&gt; il y a plusieurs mois, et l&amp;rsquo;idée de la mettre en application sur une
+instance PostgreSQL me hantait. Je vous propose dans cet article d&amp;rsquo;aborder ce
+&lt;em&gt;framework&lt;/em&gt; de tests avec un cas d&amp;rsquo;usage amusant.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
