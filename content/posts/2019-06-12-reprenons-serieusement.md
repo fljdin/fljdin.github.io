@@ -1,7 +1,8 @@
 ---
 title: "Reprenons sérieusement"
 date: 2019-06-12 10:30:00 +0100
-tags: [blog]
+categories: [blog]
+tags: [opensource]
 ---
 
 La série d'articles que je souhaite publier dans les mois et années à venir

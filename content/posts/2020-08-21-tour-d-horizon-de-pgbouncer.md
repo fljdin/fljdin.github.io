@@ -2,7 +2,8 @@
 title: "Tour d'horizon de PgBouncer"
 slug: tour-d-horizon-de-pgbouncer
 date: 2020-08-21
-tags: [postgresql, performance, pgbouncer]
+categories: [postgresql]
+tags: [performance, pgbouncer]
 ---
 
 > Les programmes de regroupement de connexions (_pooling_) vous permettent de 

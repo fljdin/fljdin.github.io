@@ -1,6 +1,7 @@
 ---
 date: 2099-01-01
 title: "tsvector"
-tags: [postgresql,performance]
+categories: [postgresql]
+tags: [performance]
 draft: true
 ---

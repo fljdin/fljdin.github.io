@@ -1,7 +1,8 @@
 ---
 date: 2099-01-01
 title: "make"
-tags: []
+categories: [linux]
+tags: [automatisation]
 draft: true
 ---
 

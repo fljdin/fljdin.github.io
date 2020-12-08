@@ -1,7 +1,8 @@
 ---
 title: "Quelques outils méconnus"
 date: 2020-11-18
-tags: [postgresql, administration]
+categories: [postgresql]
+tags: [administration]
 ---
 
 Cette semaine, passait sur [mon fil d'actualité Twitter][t] une simple URL

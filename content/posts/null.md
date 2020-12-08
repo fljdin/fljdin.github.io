@@ -1,7 +1,7 @@
 ---
 date: 2099-01-01
 title: "null"
-tags: []
+categories: [postgresql]
 draft: true
 ---
 

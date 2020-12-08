@@ -1,7 +1,8 @@
 ---
 title: "Jette ton instance à la poubelle"
 date: 2019-06-20 13:00:00 +0100
-tags: [postgresql, administration]
+categories: [postgresql]
+tags: [administration]
 ---
 
 À des fins de qualité ou de formation, il est très souvent nécessaire d'avoir 

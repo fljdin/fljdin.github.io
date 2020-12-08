@@ -1,7 +1,8 @@
 ---
 title: "La conviction du dimanche soir"
 date: 2019-12-15 08:00:00 +0100
-tags: [blog, developpement]
+categories: [blog]
+tags: [developpement]
 ---
 
 Il y a parfois des projets qui émergent de nulle part, d'autres qui mûrissent 

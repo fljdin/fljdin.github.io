@@ -1,7 +1,8 @@
 ---
 title: "Le jour où tout bascule"
 date: 2019-12-19 17:00:00 +0200
-tags: [postgresql, replication]
+categories: [postgresql]
+tags: [replication]
 ---
 
 Lorsque l'on exploite une plateforme PostgreSQL avec de la réplication, il est 

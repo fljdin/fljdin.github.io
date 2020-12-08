@@ -2,7 +2,7 @@
 title: "La meilleure chose depuis le pain en tranches"
 slug: toast-la-meilleure-chose-depuis-le-pain-en-tranches
 date: 2020-10-12
-tags: [postgresql]
+categories: [postgresql]
 ---
 
 Je me souviens de cette époque où j'ai été confronté pour la première fois à la 

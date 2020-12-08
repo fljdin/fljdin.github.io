@@ -1,7 +1,8 @@
 ---
 title: "Index décomplexé"
 date: 2019-09-27 16:00:00 +0200
-tags: [postgresql, performance]
+categories: [postgresql]
+tags: [performance]
 ---
 
 > {{< u >}}Index terminologique{{< /u >}} : permet au lecteur de localiser 

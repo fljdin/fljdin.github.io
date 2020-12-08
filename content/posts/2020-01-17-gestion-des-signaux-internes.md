@@ -1,7 +1,8 @@
 ---
 title: "Gestion des signaux internes"
 date: 2020-01-17 20:00:00 +0200
-tags: [postgresql, linux]
+categories: [postgresql, linux]
+tags: [developpement]
 ---
 
 Je voulais m'attarder sur une notion que je n'avais pas exploré à l'époque où 

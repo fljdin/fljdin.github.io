@@ -1,7 +1,8 @@
 ---
 title: "Construire une instance standby avec pgBackRest"
 date: 2019-11-07 16:00:00 +0200
-tags: [postgresql, replication]
+categories: [postgresql]
+tags: [replication]
 ---
 
 Pour cette démonstration, j'utilise le système Debian et dispose de deux instances 

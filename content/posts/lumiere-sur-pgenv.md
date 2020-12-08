@@ -1,7 +1,8 @@
 ---
 date: 2099-01-01
 title: "Lumière sur : pgenv"
-tags: [postgresql]
+categories: [postgresql]
+tags: [administration]
 draft: true
 ---
 

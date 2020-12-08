@@ -1,7 +1,8 @@
 ---
 title: "La brêve histoire du fichier backup_label"
 date: 2099-01-01
-tags: [postgresql,sauvegarde]
+categories: [postgresql]
+tags: [sauvegarde]
 draft: true
 ---
 
