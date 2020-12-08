@@ -1,8 +1,11 @@
 ---
+- title: "L'apprentissage de l'imperfection"
+  author: 'Tal Ben-Shahar'
+  isbn: 2266210572
+  current: yes
 - title: "SQL Performance Explained"
   author: 'Markus Winand'
   isbn: 3950307826
-  current: yes
 - title: "Les furtifs"
   author: 'Alain Damasio'
   isbn: 2370490748
@@ -15,7 +18,7 @@
   isbn: 2021223310
 - title: 'Learn C the Hard Way'
   author: 'Zed A. Shaw'
-  isbn: 0321884922
+  isbn: '0321884922'
   current: yes
 - title: 'PostgreSQL - Architecture et notions avancées'
   author: 'Guillaume Lelarge'
