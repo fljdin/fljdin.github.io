@@ -1,0 +1,16 @@
+{{ define "main" }}
+<article class="page">
+  <h1 class="page-title">{{ .Title }}</h1>
+  <div class="readings">
+    {{ range $.Site.Data.readings }}
+      <div class="done">
+        {{- if isset . "isbn" -}}
+          <img src="http://images.amazon.com/images/P/{{ .isbn }}" alt="{{ .title }} - {{ .author }}" />
+        {{- else -}}  
+          &nbsp;&nbsp;<a href="{{ .url }}">{{ .text }}</a>
+        {{- end -}}
+      </div>
+    {{ end }}
+  </div>
+</article>
+{{ end }}
