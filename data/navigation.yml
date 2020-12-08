@@ -1,4 +1,4 @@
-- { text: 'Flux RSS', url: /feed.xml, icon: rss }
+- { text: 'Flux RSS', url: /index.xml, icon: rss }
 - { text: 'Twitter', url: 'https://twitter.com/fljdin', icon: twitter}
 - { text: 'GitHub', url: 'https://github.com/fljdin', icon: github }
 - { text: 'LinkedIn', url: 'https://www.linkedin.com/in/florent-jardin', icon: linkedin }

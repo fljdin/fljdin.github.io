@@ -1,6 +1,6 @@
 {{ define "main" }}
 <article class="page">
-  <h1 class="page-title">{{ .Title }}</h1>
+  <h1>{{ .Page.Title | humanize }}</h1>
   <div class="posts">
     <ul>
       {{ range .Pages -}}
