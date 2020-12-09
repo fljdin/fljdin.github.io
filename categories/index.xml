@@ -2,34 +2,34 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Florent Jardin</title>
-    <link>https://fljdin.github.io/categories/</link>
+    <link>https://fljd.in/categories/</link>
     <description>Recent content in Categories on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljdin.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>postgresql</title>
-      <link>https://fljdin.github.io/categories/postgresql/</link>
+      <link>https://fljd.in/categories/postgresql/</link>
       <pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://fljdin.github.io/categories/postgresql/</guid>
+      <guid>https://fljd.in/categories/postgresql/</guid>
       <description></description>
     </item>
     
     <item>
       <title>linux</title>
-      <link>https://fljdin.github.io/categories/linux/</link>
+      <link>https://fljd.in/categories/linux/</link>
       <pubDate>Thu, 23 Apr 2020 15:30:00 +0200</pubDate>
       
-      <guid>https://fljdin.github.io/categories/linux/</guid>
+      <guid>https://fljd.in/categories/linux/</guid>
       <description></description>
     </item>
     
     <item>
       <title>blog</title>
-      <link>https://fljdin.github.io/categories/blog/</link>
+      <link>https://fljd.in/categories/blog/</link>
       <pubDate>Sun, 15 Dec 2019 08:00:00 +0100</pubDate>
       
-      <guid>https://fljdin.github.io/categories/blog/</guid>
+      <guid>https://fljd.in/categories/blog/</guid>
       <description></description>
     </item>
     

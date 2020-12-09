@@ -2,16 +2,16 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>developpement on Florent Jardin</title>
-    <link>https://fljdin.github.io/tags/developpement/</link>
+    <link>https://fljd.in/tags/developpement/</link>
     <description>Recent content in developpement on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 14 May 2020 17:30:00 +0200</lastBuildDate><atom:link href="https://fljdin.github.io/tags/developpement/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 14 May 2020 17:30:00 +0200</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Écrire ses tests unitaires en SQL</title>
-      <link>https://fljdin.github.io/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link>
+      <link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link>
       <pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate>
       
-      <guid>https://fljdin.github.io/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid>
+      <guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid>
       <description>&lt;p&gt;Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
 réalité, ce n&amp;rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
 curiosité m&amp;rsquo;a mené à découvrir bien tardivement la mouvance &lt;a href=&#34;https://fr.wikipedia.org/wiki/Test_driven_development&#34;&gt;TDD&lt;/a&gt; dans la
@@ -25,10 +25,10 @@ instance PostgreSQL me hantait. Je vous propose dans cet article d&amp;rsquo;abo
     
     <item>
       <title>Gestion des signaux internes</title>
-      <link>https://fljdin.github.io/2020/01/17/gestion-des-signaux-internes/</link>
+      <link>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</link>
       <pubDate>Fri, 17 Jan 2020 20:00:00 +0200</pubDate>
       
-      <guid>https://fljdin.github.io/2020/01/17/gestion-des-signaux-internes/</guid>
+      <guid>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</guid>
       <description>&lt;p&gt;Je voulais m&amp;rsquo;attarder sur une notion que je n&amp;rsquo;avais pas exploré à l&amp;rsquo;époque où
 j&amp;rsquo;apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l&amp;rsquo;école et
 où l&amp;rsquo;on usait de commandes apprises par cœur : les signaux !&lt;/p&gt;
@@ -40,10 +40,10 @@ le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQ
     
     <item>
       <title>La conviction du dimanche soir</title>
-      <link>https://fljdin.github.io/2019/12/15/la-conviction-du-dimanche-soir/</link>
+      <link>https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/</link>
       <pubDate>Sun, 15 Dec 2019 08:00:00 +0100</pubDate>
       
-      <guid>https://fljdin.github.io/2019/12/15/la-conviction-du-dimanche-soir/</guid>
+      <guid>https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/</guid>
       <description>&lt;p&gt;Il y a parfois des projets qui émergent de nulle part, d&amp;rsquo;autres qui mûrissent 
 d&amp;rsquo;années en années. Certains mêmes peuvent être déclenchés par l&amp;rsquo;heureuse 
 rencontre de deux inconnus, ou alors par la simple volonté de combler un vide.
