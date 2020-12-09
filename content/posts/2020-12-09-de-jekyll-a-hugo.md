@@ -1,7 +1,8 @@
 ---
 title: "De Jekyll à Hugo"
 date: 2020-12-09
-tags: [blog]
+categories: [blog]
+tags: [administration]
 ---
 
 Dans l'univers des générateurs de sites statiques, la bataille fait rage entre
