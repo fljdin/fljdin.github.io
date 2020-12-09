@@ -35,13 +35,12 @@ sollicités par la communauté sur GitHub, mais il en existe des centaines.</p>
 <p>Pourquoi cet engouement ? Cet article n&rsquo;en parlera pas.</p>
 <hr>
 <p>Pour de louables raisons, je m&rsquo;étais engagé <a href="/2019/06/12/reprenons-serieusement">l&rsquo;année dernière</a> à auto-héberger
-un nouvel espace d&rsquo;expression personnel, à travers notamment des technologies que
-je ne maîtrisais pas correctement, que j&rsquo;ai pliées pour faire fonctionner, que
-j&rsquo;ai réinstallées, transformées pour les adapter à mon besoin. Sans trop rentrer
-dans les détails, j&rsquo;ai fini par avoir :</p>
+mon nouvel espace d&rsquo;expression personnel. J&rsquo;y ai découvert avec intérêt et amusement
+de nombreuses technologies que j&rsquo;ai pliées, réinstallées, transformées pour les
+adapter à mon besoin. Sans trop rentrer dans les détails, j&rsquo;ai fini par avoir :</p>
 <ul>
 <li>un serveur VPS chez OVH pour un coût de 3,99€ par mois</li>
-<li>une routine mensuelle de renouvellement de certificat avec <code>certbot</code></li>
+<li>une routine mensuelle de renouvellement de certificat avec <a href="https://pypi.org/project/certbot/">certbot</a></li>
 <li>une instance <a href="https://github.com/eclipse-theia/theia">Theia</a> dans un conteneur Docker</li>
 <li>une image Jekyll 4.1.0 que j&rsquo;invoquais dans Docker</li>
 <li>deux dépôts GitHub privés pour les articles (<em>posts</em>) et les brouillons (<em>drafts</em>)</li>
@@ -51,8 +50,8 @@ dans les détails, j&rsquo;ai fini par avoir :</p>
 année qui démarre bientôt (il devient agé, limité, pour ne pas dire sénil), j&rsquo;ai
 remis récemment en cause mon attachement pour le <em>framework</em> <strong>Jekyll</strong>, si élégant
 à l&rsquo;époque.</p>
-<p>Le machin repose sur des dépendances Ruby. Aussi nombreuses ou presque qu&rsquo;un
-nouveau projet en Node.js. J&rsquo;ai mangé du <code>Gemfile</code> par le passé, aussi je n&rsquo;avais
+<p>Le machin repose sur des dépendances Ruby. Aussi nombreuses (ou presque) qu&rsquo;un
+nouveau projet en Node.js. J&rsquo;ai mangé du <code>Gemfile</code> par le passé, aussi je n&rsquo;ai eu
 aucune réelle difficulté à installer les quelques modules nécessaires à la
 concrétisation de mon projet. En voici le contenu :</p>
 <div class="highlight"><pre class="chroma"><code class="language-ruby" data-lang="ruby"><span class="n">source</span> <span class="s2">&#34;https://rubygems.org&#34;</span>
@@ -218,7 +217,7 @@ rendu de ses pages.</p>
 qui me permettrait de lever la restriction. Ma solution de contournement fut
 d&rsquo;utiliser les composants <em>shortcodes</em> pour mes quelques exceptions et la
 <a href="https://gohugo.io/templates/shortcode-templates/">documentation</a> était bien suffisante pour y parvenir sereinement.</p>
-<p>Par exemple pour mes encarts, j&rsquo;ai gagné en facilité de rédaction avec une méthode
+<p>Par exemple pour mes encarts, j&rsquo;ai gagné en facilité de rédaction avec la méthode
 <code>markdownify</code> fourni par le système de rendu, et je n&rsquo;écris plus que du Markdown
 dans mes fichiers !</p>
 <div class="highlight"><pre class="chroma"><code class="language-html" data-lang="html"><span class="c">&lt;!-- layout/shortcodes/message.html --&gt;</span>
@@ -232,7 +231,7 @@ Exemple de rendu avec un lien de [documentation][17].
 <hr>
 <h2 id="en-bref">En bref</h2>
 <p>Au-delà des quelques paramètrages ou réécriture Markdown qui m&rsquo;ont fait perdre
-du temps, Hugo présente bien plus de fonctionnalités natives que ne le faisait
+du temps, Hugo présente bien plus de fonctionnalités natives que ne le fait
 Jekyll. Je dresse une liste non exhausitive des apports qui m&rsquo;ont convaincu à
 passer le cap.</p>
 <ul>
@@ -243,8 +242,8 @@ passer le cap.</p>
 </ul>
 <p>Pour conclure, je me suis résolu à héberger le projet et le rendu des pages sur
 GitHub, en suivant les <a href="https://gohugo.io/hosting-and-deployment/hosting-on-github/">instructions</a> détaillées. La <a href="https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site">bascule</a> du nom de
-domaine a ainsi été opérée ce matin et je n&rsquo;ai plus à me préoccuper de mon ancienne
-instance VPS ni du certificat renouvellé auprès de Let&rsquo;s Encrypt.</p>
+domaine a ainsi été opérée ce midi et je n&rsquo;ai plus à me préoccuper de mon ancienne
+instance VPS ni du certificat à renouveller auprès de Let&rsquo;s Encrypt.</p>
 </article>
 
 
