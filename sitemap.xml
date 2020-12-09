@@ -3,17 +3,27 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://fljd.in/tags/administration/</loc>
+    <lastmod>2020-12-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://fljd.in/archives/</loc>
     <lastmod>2020-12-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://fljd.in/tags/blog/</loc>
+    <loc>https://fljd.in/categories/blog/</loc>
     <lastmod>2020-12-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://fljd.in/</loc>
+    <lastmod>2020-12-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://fljd.in/categories/</loc>
     <lastmod>2020-12-09T00:00:00+00:00</lastmod>
   </url>
   
@@ -25,16 +35,6 @@
   <url>
     <loc>https://fljd.in/tags/</loc>
     <lastmod>2020-12-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://fljd.in/tags/administration/</loc>
-    <lastmod>2020-11-18T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://fljd.in/categories/</loc>
-    <lastmod>2020-11-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -125,11 +125,6 @@
   <url>
     <loc>https://fljd.in/tags/replication/</loc>
     <lastmod>2019-12-19T17:00:00+02:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://fljd.in/categories/blog/</loc>
-    <lastmod>2019-12-15T08:00:00+01:00</lastmod>
   </url>
   
   <url>

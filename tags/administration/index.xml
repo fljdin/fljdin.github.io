@@ -5,7 +5,20 @@
     <link>https://fljd.in/tags/administration/</link>
     <description>Recent content in administration on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/administration/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 09 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/administration/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>De Jekyll à Hugo</title>
+      <link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link>
+      <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid>
+      <description>&lt;p&gt;Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
+plusieurs &lt;em&gt;frameworks&lt;/em&gt; depuis quelques années. Vous avez peut-être entendu parler
+de &lt;a href=&#34;https://github.com/jekyll/jekyll&#34;&gt;Jekyll&lt;/a&gt;, &lt;a href=&#34;https://github.com/vercel/next.js&#34;&gt;Next.js&lt;/a&gt;, &lt;a href=&#34;https://github.com/gatsbyjs/gatsby&#34;&gt;Gastby&lt;/a&gt; ou &lt;a href=&#34;https://github.com/gohugoio/hugo&#34;&gt;Hugo&lt;/a&gt; ? Je ne cite que les plus
+sollicités par la communauté sur GitHub, mais il en existe des centaines.&lt;/p&gt;
+&lt;p&gt;Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>Quelques outils méconnus</title>
       <link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link>
