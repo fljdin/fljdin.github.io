@@ -1,0 +1,4 @@
+[submodule "main"]
+	path = public
+	url = https://github.com/fljdin/fljdin.github.io.git
+	branch = main
