@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Florent Jardin</title>
+    <link>https://fljdin.github.io/tags/</link>
+    <description>Recent content in Tags on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljdin.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>administration</title>
+      <link>https://fljdin.github.io/tags/administration/</link>
+      <pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljdin.github.io/tags/administration/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>performance</title>
+      <link>https://fljdin.github.io/tags/performance/</link>
+      <pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljdin.github.io/tags/performance/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>pgbouncer</title>
+      <link>https://fljdin.github.io/tags/pgbouncer/</link>
+      <pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljdin.github.io/tags/pgbouncer/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>maintenance</title>
+      <link>https://fljdin.github.io/tags/maintenance/</link>
+      <pubDate>Wed, 01 Jul 2020 20:30:00 +0200</pubDate>
+      
+      <guid>https://fljdin.github.io/tags/maintenance/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>developpement</title>
+      <link>https://fljdin.github.io/tags/developpement/</link>
+      <pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate>
+      
+      <guid>https://fljdin.github.io/tags/developpement/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

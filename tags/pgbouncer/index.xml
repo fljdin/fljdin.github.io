@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>pgbouncer on Florent Jardin</title>
+    <link>https://fljdin.github.io/tags/pgbouncer/</link>
+    <description>Recent content in pgbouncer on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Fri, 21 Aug 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljdin.github.io/tags/pgbouncer/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Tour d&#39;horizon de PgBouncer</title>
+      <link>https://fljdin.github.io/2020/08/21/tour-d-horizon-de-pgbouncer/</link>
+      <pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljdin.github.io/2020/08/21/tour-d-horizon-de-pgbouncer/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;Les programmes de regroupement de connexions (&lt;em&gt;pooling&lt;/em&gt;) vous permettent de
+réduire la surcharge liée à la base de données lorsque le nombre de connexions
+physiques réduit les performances. Ceci est particulièrement pertinent sous
+Windows, où les limitations du système empêchent un grand nombre de connexions.
+C&amp;rsquo;est également vital pour les applications Web où le nombre de connexions peut
+devenir très important.&lt;/p&gt;
+&lt;p&gt;(Source : &lt;a href=&#34;https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration&#34;&gt;https://wiki.postgresql.org&lt;/a&gt;)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Je n&amp;rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
+projet PostgreSQL pour aborder l&amp;rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
+des deux seuls &lt;em&gt;poolers&lt;/em&gt; de connexions largement répandus. Le produit est
+déconcertant de facilité, sa documentation et la littérature qui gravitent sur
+Internet sont claires et unanimes : PgBouncer améliorera grandement les
+performances de votre instance PostgreSQL !&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

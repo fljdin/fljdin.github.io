@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>blog on Florent Jardin</title>
+    <link>https://fljdin.github.io/categories/blog/</link>
+    <description>Recent content in blog on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Sun, 15 Dec 2019 08:00:00 +0100</lastBuildDate><atom:link href="https://fljdin.github.io/categories/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>La conviction du dimanche soir</title>
+      <link>https://fljdin.github.io/2019/12/15/la-conviction-du-dimanche-soir/</link>
+      <pubDate>Sun, 15 Dec 2019 08:00:00 +0100</pubDate>
+      
+      <guid>https://fljdin.github.io/2019/12/15/la-conviction-du-dimanche-soir/</guid>
+      <description>&lt;p&gt;Il y a parfois des projets qui émergent de nulle part, d&amp;rsquo;autres qui mûrissent 
+d&amp;rsquo;années en années. Certains mêmes peuvent être déclenchés par l&amp;rsquo;heureuse 
+rencontre de deux inconnus, ou alors par la simple volonté de combler un vide.
+Aussi, dimanche dernier, je me suis plongé dans la lecture d&amp;rsquo;un &lt;a href=&#34;https://www.oreilly.com/library/view/learn-c-the/9780133124385/&#34;&gt;livre technique&lt;/a&gt; 
+sans raison apparente et me suis donné pour nouvel objectif de réapprendre le 
+langage C.&lt;/p&gt;
+&lt;p&gt;Incongru, n&amp;rsquo;est-ce pas ? Pourtant, l&amp;rsquo;idée n&amp;rsquo;est pas nouvelle, elle a germée
+paisiblement jusqu&amp;rsquo;à plusieurs récents épisodes de mon quotidien. Et si ce langage 
+informatique, très bas niveau, dont font l&amp;rsquo;impasse de nombreux étudiants (dont 
+moi durant ma licence), avait des choses à m&amp;rsquo;apprendre pour progresser dans ma 
+compréhension du logiciel libre ?&lt;/p&gt;
+&lt;p&gt;Je ne sais pas, mais j&amp;rsquo;ai eu comme la conviction d&amp;rsquo;être passer à côté d&amp;rsquo;une 
+évidence…&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Reprenons sérieusement</title>
+      <link>https://fljdin.github.io/2019/06/12/reprenons-serieusement/</link>
+      <pubDate>Wed, 12 Jun 2019 10:30:00 +0100</pubDate>
+      
+      <guid>https://fljdin.github.io/2019/06/12/reprenons-serieusement/</guid>
+      <description>&lt;p&gt;La série d&amp;rsquo;articles que je souhaite publier dans les mois et années à venir
+s&amp;rsquo;intègre dans un engagement personnel envers un domaine qui accapare mes journées
+de professionnel.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

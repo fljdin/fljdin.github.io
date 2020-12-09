@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Carnet de découvertes on Florent Jardin</title>
-    <link>https://fljdin.github.io/</link>
-    <description>Recent content in Carnet de découvertes on Florent Jardin</description>
+    <title>postgresql on Florent Jardin</title>
+    <link>https://fljdin.github.io/categories/postgresql/</link>
+    <description>Recent content in postgresql on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljdin.github.io/categories/postgresql/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Quelques outils méconnus</title>
       <link>https://fljdin.github.io/2020/11/18/quelques-outils-meconnus/</link>
@@ -65,7 +65,7 @@ performances de votre instance PostgreSQL !&lt;/p&gt;</description>
       <guid>https://fljdin.github.io/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid>
       <description>&lt;p&gt;La lecture d&amp;rsquo;un plan d&amp;rsquo;exécution fait partie des meilleures armes du développeur
 et de l&amp;rsquo;administrateur de bases de données pour identifier les problèmes de
-performances. Dans &lt;a href=&#34;/2019/09/27/index-decomplexe&#34;&gt;un précédent article&lt;/a&gt;, je
+performances. Dans &lt;a href=&#34;https://fljdin.github.io/2019/09/27/index-decomplexe&#34;&gt;un précédent article&lt;/a&gt;, je
 présentais l&amp;rsquo;intérêt de positionner un index sur les colonnes d&amp;rsquo;une table pour
 faciliter les recherches, notamment avec l&amp;rsquo;aide de la commande &lt;code&gt;EXPLAIN&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;À cette époque, je ne m&amp;rsquo;étais pas attardé sur la notion des statistiques de

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pages on Florent Jardin</title>
+    <link>https://fljdin.github.io/pages/</link>
+    <description>Recent content in Pages on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator><atom:link href="https://fljdin.github.io/pages/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Lectures personnelles</title>
+      <link>https://fljdin.github.io/pages/lectures/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljdin.github.io/pages/lectures/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>À propos</title>
+      <link>https://fljdin.github.io/pages/a-propos/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljdin.github.io/pages/a-propos/</guid>
+      <description>Carnet de découvertes d&amp;rsquo;un DBA libre et passionné par l&amp;rsquo;open-source.
+ Je suis consultant en bases de données orientées relationnelles (Oracle Database, PostgreSQL) avec pour nouvelles ambitions de promouvoir l&amp;rsquo;open-source à travers une série d&amp;rsquo;articles et de découvertes sur ce monde alternatif sans limite. En parallèle, je tiens à jour la liste de mes lectures personnelles que j&amp;rsquo;essaie de rendre la plus variée possible.
+Vous pourriez me croiser au hasard d&amp;rsquo;un couloir dans la région lilloise où je co-organise les soirées Meetup PostgreSQL Lille pour les passionné⋅es et professionnel⋅les des Hauts-de-France.</description>
+    </item>
+    
+  </channel>
+</rss>

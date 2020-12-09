@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>replication on Florent Jardin</title>
+    <link>https://fljdin.github.io/tags/replication/</link>
+    <description>Recent content in replication on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Thu, 19 Dec 2019 17:00:00 +0200</lastBuildDate><atom:link href="https://fljdin.github.io/tags/replication/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Le jour où tout bascule</title>
+      <link>https://fljdin.github.io/2019/12/19/le-jour-ou-tout-bascule/</link>
+      <pubDate>Thu, 19 Dec 2019 17:00:00 +0200</pubDate>
+      
+      <guid>https://fljdin.github.io/2019/12/19/le-jour-ou-tout-bascule/</guid>
+      <description>&lt;p&gt;Lorsque l&amp;rsquo;on exploite une plateforme PostgreSQL avec de la réplication, il est
+exceptionnel de devoir déclencher le plan de bascule, rédigé par un ancien
+collègue ou un prestataire oublié. Ce genre de décision se prend lorsque
+l&amp;rsquo;ensemble des experts ont individuellement déterminé qu&amp;rsquo;aucune autre solution
+n&amp;rsquo;était envisageable.&lt;/p&gt;
+&lt;p&gt;Quels moyens a-t-on avec une architecture PostgreSQL dans son plus simple appareil
+pour réaliser une bascule des rôles et raccrocher les instances secondaires au
+nouveau primaire fraîchement élu ?&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Construire une instance standby avec pgBackRest</title>
+      <link>https://fljdin.github.io/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</link>
+      <pubDate>Thu, 07 Nov 2019 16:00:00 +0200</pubDate>
+      
+      <guid>https://fljdin.github.io/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</guid>
+      <description>&lt;p&gt;Pour cette démonstration, j&amp;rsquo;utilise le système Debian et dispose de deux instances
+en version 12, d&amp;rsquo;un serveur de sauvegarde et du paquet &lt;code&gt;pgbackrest&lt;/code&gt; pour mettre
+en place une réplication et observer les nouveautés concernant la &lt;a href=&#34;https://paquier.xyz/postgresql-2/postgres-12-recovery-change/&#34;&gt;disparition&lt;/a&gt;
+du fichier &lt;code&gt;recovery.conf&lt;/code&gt;.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
