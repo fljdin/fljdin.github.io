@@ -22,13 +22,12 @@ Pourquoi cet engouement ? Cet article n'en parlera pas.
 ---
 
 Pour de louables raisons, je m'étais engagé [l'année dernière][5] à auto-héberger
-un nouvel espace d'expression personnel, à travers notamment des technologies que
-je ne maîtrisais pas correctement, que j'ai pliées pour faire fonctionner, que
-j'ai réinstallées, transformées pour les adapter à mon besoin. Sans trop rentrer
-dans les détails, j'ai fini par avoir :
+mon nouvel espace d'expression personnel. J'y ai découvert avec intérêt et amusement
+de nombreuses technologies que j'ai pliées, réinstallées, transformées pour les
+adapter à mon besoin. Sans trop rentrer dans les détails, j'ai fini par avoir :
 
 * un serveur VPS chez OVH pour un coût de 3,99€ par mois
-* une routine mensuelle de renouvellement de certificat avec `certbot`
+* une routine mensuelle de renouvellement de certificat avec [certbot]
 * une instance [Theia][6] dans un conteneur Docker
 * une image Jekyll 4.1.0 que j'invoquais dans Docker
 * deux dépôts GitHub privés pour les articles (_posts_) et les brouillons (_drafts_)
@@ -37,14 +36,15 @@ dans les détails, j'ai fini par avoir :
 [5]: /2019/06/12/reprenons-serieusement
 [6]: https://github.com/eclipse-theia/theia
 [7]: https://github.com/poole/poole
+[certbot]: https://pypi.org/project/certbot/
 
 Alors que la question de conserver ou non le serveur VPS se pose pour la nouvelle
 année qui démarre bientôt (il devient agé, limité, pour ne pas dire sénil), j'ai
 remis récemment en cause mon attachement pour le _framework_ **Jekyll**, si élégant
 à l'époque.
 
-Le machin repose sur des dépendances Ruby. Aussi nombreuses ou presque qu'un
-nouveau projet en Node.js. J'ai mangé du `Gemfile` par le passé, aussi je n'avais
+Le machin repose sur des dépendances Ruby. Aussi nombreuses (ou presque) qu'un
+nouveau projet en Node.js. J'ai mangé du `Gemfile` par le passé, aussi je n'ai eu
 aucune réelle difficulté à installer les quelques modules nécessaires à la
 concrétisation de mon projet. En voici le contenu :
 
@@ -288,7 +288,7 @@ d'utiliser les composants _shortcodes_ pour mes quelques exceptions et la
 
 [17]: https://gohugo.io/templates/shortcode-templates/
 
-Par exemple pour mes encarts, j'ai gagné en facilité de rédaction avec une méthode
+Par exemple pour mes encarts, j'ai gagné en facilité de rédaction avec la méthode
 `markdownify` fourni par le système de rendu, et je n'écris plus que du Markdown
 dans mes fichiers !
 
@@ -309,7 +309,7 @@ _Ne pas s'attarder sur les `\` qui ne servent qu'à échapper les accolades._
 ## En bref
 
 Au-delà des quelques paramètrages ou réécriture Markdown qui m'ont fait perdre
-du temps, Hugo présente bien plus de fonctionnalités natives que ne le faisait
+du temps, Hugo présente bien plus de fonctionnalités natives que ne le fait
 Jekyll. Je dresse une liste non exhausitive des apports qui m'ont convaincu à
 passer le cap.
 
@@ -324,8 +324,8 @@ passer le cap.
 
 Pour conclure, je me suis résolu à héberger le projet et le rendu des pages sur
 GitHub, en suivant les [instructions][21] détaillées. La [bascule][22] du nom de
-domaine a ainsi été opérée ce matin et je n'ai plus à me préoccuper de mon ancienne
-instance VPS ni du certificat renouvellé auprès de Let's Encrypt.
+domaine a ainsi été opérée ce midi et je n'ai plus à me préoccuper de mon ancienne
+instance VPS ni du certificat à renouveller auprès de Let's Encrypt.
 
 [21]: https://gohugo.io/hosting-and-deployment/hosting-on-github/
 [22]: https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site
