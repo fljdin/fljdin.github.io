@@ -5,7 +5,20 @@
     <link>https://fljd.in/</link>
     <description>Recent content in Carnet de découvertes on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Wed, 18 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 09 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>De Jekyll à Hugo</title>
+      <link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link>
+      <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid>
+      <description>&lt;p&gt;Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
+plusieurs &lt;em&gt;frameworks&lt;/em&gt; depuis quelques années. Vous avez peut-être entendu parler
+de &lt;a href=&#34;https://github.com/jekyll/jekyll&#34;&gt;Jekyll&lt;/a&gt;, &lt;a href=&#34;https://github.com/vercel/next.js&#34;&gt;Next.js&lt;/a&gt;, &lt;a href=&#34;https://github.com/gatsbyjs/gatsby&#34;&gt;Gastby&lt;/a&gt; ou &lt;a href=&#34;https://github.com/gohugoio/hugo&#34;&gt;Hugo&lt;/a&gt; ? Je ne cite que les plus
+sollicités par la communauté sur GitHub, mais il en existe des centaines.&lt;/p&gt;
+&lt;p&gt;Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>Quelques outils méconnus</title>
       <link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link>
@@ -71,23 +84,6 @@ faciliter les recherches, notamment avec l&amp;rsquo;aide de la commande &lt;cod
 &lt;p&gt;À cette époque, je ne m&amp;rsquo;étais pas attardé sur la notion des statistiques de
 données, que l&amp;rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
 près ce que propose PostgreSQL pour garantir les performances de vos requêtes.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Écrire ses tests unitaires en SQL</title>
-      <link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link>
-      <pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate>
-      
-      <guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid>
-      <description>&lt;p&gt;Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
-réalité, ce n&amp;rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
-curiosité m&amp;rsquo;a mené à découvrir bien tardivement la mouvance &lt;a href=&#34;https://fr.wikipedia.org/wiki/Test_driven_development&#34;&gt;TDD&lt;/a&gt; dans la
-conception logicielle et la rigueur d&amp;rsquo;écrire chaque test avant l&amp;rsquo;implémentation
-d&amp;rsquo;une fonctionnalité.&lt;/p&gt;
-&lt;p&gt;Ce fut par hasard et avec grand étonnement, que je suis tombé sur l&amp;rsquo;extension
-&lt;a href=&#34;https://pgtap.org/&#34;&gt;pgTAP&lt;/a&gt; il y a plusieurs mois, et l&amp;rsquo;idée de la mettre en application sur une
-instance PostgreSQL me hantait. Je vous propose dans cet article d&amp;rsquo;aborder ce
-&lt;em&gt;framework&lt;/em&gt; de tests avec un cas d&amp;rsquo;usage amusant.&lt;/p&gt;</description>
     </item>
     
   </channel>

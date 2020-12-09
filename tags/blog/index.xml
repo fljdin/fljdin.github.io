@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>blog on Florent Jardin</title>
+    <link>https://fljd.in/tags/blog/</link>
+    <description>Recent content in blog on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Wed, 09 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>De Jekyll à Hugo</title>
+      <link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link>
+      <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid>
+      <description>&lt;p&gt;Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
+plusieurs &lt;em&gt;frameworks&lt;/em&gt; depuis quelques années. Vous avez peut-être entendu parler
+de &lt;a href=&#34;https://github.com/jekyll/jekyll&#34;&gt;Jekyll&lt;/a&gt;, &lt;a href=&#34;https://github.com/vercel/next.js&#34;&gt;Next.js&lt;/a&gt;, &lt;a href=&#34;https://github.com/gatsbyjs/gatsby&#34;&gt;Gastby&lt;/a&gt; ou &lt;a href=&#34;https://github.com/gohugoio/hugo&#34;&gt;Hugo&lt;/a&gt; ? Je ne cite que les plus
+sollicités par la communauté sur GitHub, mais il en existe des centaines.&lt;/p&gt;
+&lt;p&gt;Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
