@@ -32,24 +32,6 @@
 
   <article class="post">
   <h1 class="post-title">
-    <a href="https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/">Les statistiques au service du plan d&#39;exécution</a>
-  </h1>
-
-  <time datetime="2020-07-01" class="post-date">01 Jul 2020</time>
-
-  <p>La lecture d&rsquo;un plan d&rsquo;exécution fait partie des meilleures armes du développeur
-et de l&rsquo;administrateur de bases de données pour identifier les problèmes de
-performances. Dans <a href="/2019/09/27/index-decomplexe">un précédent article</a>, je
-présentais l&rsquo;intérêt de positionner un index sur les colonnes d&rsquo;une table pour
-faciliter les recherches, notamment avec l&rsquo;aide de la commande <code>EXPLAIN</code>.</p>
-<p>À cette époque, je ne m&rsquo;étais pas attardé sur la notion des statistiques de
-données, que l&rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
-près ce que propose PostgreSQL pour garantir les performances de vos requêtes.</p>
-  <small>» <a href="https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/">Lire la suite</a></small>
-</article>
-
-  <article class="post">
-  <h1 class="post-title">
     <a href="https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/">Écrire ses tests unitaires en SQL</a>
   </h1>
 
@@ -117,6 +99,24 @@ le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQ
   <small>» <a href="https://fljd.in/2020/01/17/gestion-des-signaux-internes/">Lire la suite</a></small>
 </article>
 
+  <article class="post">
+  <h1 class="post-title">
+    <a href="https://fljd.in/2019/12/19/le-jour-ou-tout-bascule/">Le jour où tout bascule</a>
+  </h1>
+
+  <time datetime="2019-12-19" class="post-date">19 Dec 2019</time>
+
+  <p>Lorsque l&rsquo;on exploite une plateforme PostgreSQL avec de la réplication, il est
+exceptionnel de devoir déclencher le plan de bascule, rédigé par un ancien
+collègue ou un prestataire oublié. Ce genre de décision se prend lorsque
+l&rsquo;ensemble des experts ont individuellement déterminé qu&rsquo;aucune autre solution
+n&rsquo;était envisageable.</p>
+<p>Quels moyens a-t-on avec une architecture PostgreSQL dans son plus simple appareil
+pour réaliser une bascule des rôles et raccrocher les instances secondaires au
+nouveau primaire fraîchement élu ?</p>
+  <small>» <a href="https://fljd.in/2019/12/19/le-jour-ou-tout-bascule/">Lire la suite</a></small>
+</article>
+
 </div>
 
 
@@ -135,7 +135,7 @@ le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQ
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2020-12-21">2020</time> 
+    &copy; 2019-<time datetime="2020-12-10">2020</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
