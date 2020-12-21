@@ -4,12 +4,42 @@
   
   <url>
     <loc>https://fljd.in/tags/administration/</loc>
-    <lastmod>2020-12-09T00:00:00+00:00</lastmod>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://fljd.in/archives/</loc>
-    <lastmod>2020-12-09T00:00:00+00:00</lastmod>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://fljd.in/</loc>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://fljd.in/categories/</loc>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</loc>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://fljd.in/tags/opensource/</loc>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://fljd.in/categories/postgresql/</loc>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://fljd.in/tags/</loc>
+    <lastmod>2020-12-21T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -18,28 +48,8 @@
   </url>
   
   <url>
-    <loc>https://fljd.in/</loc>
-    <lastmod>2020-12-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://fljd.in/categories/</loc>
-    <lastmod>2020-12-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</loc>
     <lastmod>2020-12-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://fljd.in/tags/</loc>
-    <lastmod>2020-12-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://fljd.in/categories/postgresql/</loc>
-    <lastmod>2020-11-18T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -155,11 +165,6 @@
   <url>
     <loc>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</loc>
     <lastmod>2019-06-20T13:00:00+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://fljd.in/tags/opensource/</loc>
-    <lastmod>2019-06-12T10:30:00+01:00</lastmod>
   </url>
   
   <url>
