@@ -3,7 +3,6 @@ date: 2020-12-21
 title: "Compiler et patcher avec pgenv"
 categories: [postgresql]
 tags: [administration,opensource]
-draft: true
 ---
 
 Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
