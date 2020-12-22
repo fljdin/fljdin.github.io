@@ -131,7 +131,7 @@ version 13.1.</p>
 <span class="nv">PGENV_LOG</span><span class="o">=</span><span class="s2">&#34;</span><span class="nv">$PGENV_ROOT</span><span class="s2">/pgsql/data/server.log&#34;</span>
 
 <span class="c1"># Initdb flags</span>
-<span class="nv">PGENV_INITDB_OPTS</span><span class="o">=</span><span class="s2">&#34;--usernddame </span><span class="k">$(</span>whoami<span class="k">)</span><span class="s2"> --auth=peer --data-checksums&#34;</span>
+<span class="nv">PGENV_INITDB_OPTS</span><span class="o">=</span><span class="s2">&#34;--username </span><span class="k">$(</span>whoami<span class="k">)</span><span class="s2"> --auth=peer --data-checksums&#34;</span>
 </code></pre></div><p>Ainsi, lors de la première utilisation de cette version 13.1, <code>pgenv</code> va lancer
 la commande <code>initdb</code> pour alimenter le répertoire de données avec mon compte
 comme propriétaire et démarrer le processus <code>postgres</code>.</p>
@@ -310,7 +310,7 @@ debian/stretch64 (libvirt, 9.12.0)
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2020-12-21">2020</time> 
+    &copy; 2019-<time datetime="2020-12-22">2020</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
