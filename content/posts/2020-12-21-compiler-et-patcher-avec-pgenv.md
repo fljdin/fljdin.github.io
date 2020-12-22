@@ -128,7 +128,7 @@ automatiquement positionné sur le répertoire `$PGENV_ROOT/pgsql-13.1`.
     └── postgresql-13.1.tar.bz2
 ```
 
-Pour être fidèle avec ma première partie, je vais configurer correctement les
+Pour être fidèle à ma première partie, je vais configurer correctement les
 paramètres de la commande `initdb` dans le fichier de configuration dédié à la
 version 13.1.
 
@@ -138,7 +138,7 @@ $ pgenv config edit 13.1
 PGENV_LOG="$PGENV_ROOT/pgsql/data/server.log"
 
 # Initdb flags
-PGENV_INITDB_OPTS="--usernddame $(whoami) --auth=peer --data-checksums"
+PGENV_INITDB_OPTS="--username $(whoami) --auth=peer --data-checksums"
 ```
 
 Ainsi, lors de la première utilisation de cette version 13.1, `pgenv` va lancer
@@ -220,9 +220,9 @@ les données.
 └── src
 ```
 
-Ce lien symbolique nous oblige à manipuler toutes autres les instances avec des
-chemins absolus, une surcharge de leurs paramètres `port` ou `listen_address` et
-de faire appel à la bonne version de la commande `pg_ctl`. Il est donc possible
+Ce lien symbolique nous oblige à manipuler toutes les autres instances avec des
+chemins absolus, une surcharge de leurs paramètres `port` ou `listen_addresses`
+et de faire appel à la bonne version de la commande `pg_ctl`. Il est donc possible
 de faire de la réplication, mais oubliez `pgenv` pour la gestion des processus
 d'instances.
 
@@ -233,7 +233,7 @@ d'instances.
 Nous sommes en décembre 2020 à l'heure de la rédaction de cet article, et la
 communauté PostgreSQL travaille activement sur le développement de la prochaine
 version 14 du logiciel. Chaque année, les contributeur⋅rices du monde entier
-se retrouvent en ligne autours du _[Commitfest][2]_ pour étudier les nouvelles
+se retrouvent en ligne autour du _[Commitfest][2]_ pour étudier les nouvelles
 propositions de fonctionnalités ou de correction de bogues.
 
 [2]: https://commitfest.postgresql.org/
@@ -286,7 +286,7 @@ Using PGENV_ROOT /var/lib/pgenv
 [DEBUG] Patch index file [/var/lib/pgenv/patch/index/patch.13]
 [DEBUG] Applying patch [0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch]
         into source tree /var/lib/pgenv/src/postgresql-13.1
-Applied patch 13/0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch 
+Applied patch 0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch 
 PostgreSQL 13.1 built
 ```
 
