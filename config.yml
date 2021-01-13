@@ -10,5 +10,19 @@ rssLimit: 5
 permalinks:
   posts: /:year/:month/:day/:slug
 
+related:
+  includeNewer: true
+  threshold: 80
+  toLower: false
+  indices:
+  - name: keywords
+    weight: 100
+  - name: tags
+    weight: 80
+  - name: categories
+    weight: 50
+  - name: date
+    weight: 10
+
 removePathAccents: true
 pygmentsUseClasses: true
