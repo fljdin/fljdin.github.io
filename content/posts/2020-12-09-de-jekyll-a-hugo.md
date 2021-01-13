@@ -236,9 +236,10 @@ bloc de code Markdown en série de balises stylisées.
 </div>
 ```
 
-Puisque mon thème original proposait une feuille de style au format [SASS][16],
-j'ai tenté d'activer l'un des paramètres de Hugo pour utiliser les classes de
-style plutôt que le comportement ci-dessus.
+Puisque mon thème original proposait une feuille de style au format [SASS][16]
+spécfiquement pour la colorisation syntaxique, j'ai tenté d'activer l'un des
+paramètres de Hugo pour utiliser les classes de style plutôt que le comportement
+ci-dessus.
 
 [16]: https://sass-lang.com/
 

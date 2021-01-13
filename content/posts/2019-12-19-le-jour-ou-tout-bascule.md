@@ -322,7 +322,7 @@ GRANT EXECUTE ON
 
 Sur le serveur `batman`, l'instance doit être arrêtée avant de lancer la 
 synchronisation et le contenu de la zone d'archivage `batcave` doit être copié 
-manuellement vers le répertoire de récupération `pg_wal` ; il s'agit de 
+manuellement vers le répertoire de récupération `pg_wal` ; il s'agit de reproduire
 l'instruction `restore_command` que ne peut pas exécuter l'instance lorsqu'elle 
 est éteinte.
 
