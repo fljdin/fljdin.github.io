@@ -34,7 +34,7 @@ Ce défi est immense. Autant pour moi que pour toi, lecteur.
 
 Pour ma part, plusieurs changements ont eu lieu depuis l'année écoulée. Et à 
 chaque nouveau palier se découvrent de nouveaux challenges et de nouvelles 
-évidences. Manger bio et local, déconsommer, réduire l'usage des emballage 
+évidences. Manger bio et local, déconsommer, réduire l'usage des emballages 
 plastique, pratiquer le yoga et la course à pied. 
 
 Mon quotidien professionnel n'a pas été épargné avec un pont dans ma carrière 
