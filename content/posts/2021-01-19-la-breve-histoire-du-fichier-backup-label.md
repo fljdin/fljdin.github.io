@@ -3,14 +3,13 @@ title: "La brêve histoire du fichier backup_label"
 date: 2021-01-19
 categories: [postgresql]
 tags: [sauvegarde]
-draft: true
 ---
 
 Je suis resté longtemps ignorant des mécanismes de [journalisation][1] et de _PITR_ 
 avec PostgreSQL alors même qu'il s'agit d'un des fonctionnements critiques pour
 la durabilité des données d'une instance. Mieux comprendre ces concepts m'aurait
 permis à une époque, d'être plus serein lors de la mise en place de sauvegardes
-et surtout au moment de leurs restaurations !
+et surtout au moment de leur restauration !
 
 [1]: https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf
 
@@ -28,11 +27,16 @@ version 8.0 de PostgreSQL et qu'adviendra-t-il de lui dans les prochaines anné
 En guise d'introduction pour mieux comprendre cet article, il est bon d'expliquer 
 que chaque opération d'écriture dans PostgreSQL comme un `UPDATE` ou un `INSERT`,
 est écrite une première fois au moment du `COMMIT` de la transaction dans un groupe 
-de fichiers, que l'on appelle _WAL_ ou **journaux de transactions**. La modification
-est définitivement synchronisée dans les fichiers de données au passage du 
-prochain `CHECKPOINT` de l'instance. Cette écriture en deux temps sur les disques 
-ou **journalisation**, apporte d'excellentes performances et garantit qu'aucun bloc 
-modifié ne soit perdu lorsqu'une transaction se termine correctement.
+de fichiers, que l'on appelle _WAL_ ou **journaux de transactions**. Ajoutées les
+unes à la suite des autres, ces modifications représentent un faible coût pour
+l'activité des disques par rapport aux écritures aléatoires d'autres processus
+de synchronisation à l'œuvre dans PostgreSQL.
+
+Parmi l'un d'eux, le processus `checkpointer` s'assure que les nouvelles données
+en mémoire soient définitivement synchronisées dans les fichiers de données à des
+moments réguliers que l'on appelle `CHECKPOINT`. Cette écriture en deux temps sur 
+les disques apporte d'excellentes performances et garantit qu'aucun bloc modifié 
+ne soit perdu lorsqu'une transaction se termine correctement.
 
 ![Écriture différée sur les disques](/img/posts/2021-01-19-ecriture-differee-sur-disque.png)
 
@@ -66,12 +70,12 @@ sequenceDiagram
     end
 -->
 
-Par ce mécanisme, les fichiers de données de notre instance sont constamment
-en retard sur la véritable activité transactionnelle, et ce, jusqu'au prochain
-`CHECKPOINT`. En cas d'arrêt brutal du système, les blocs en attente de
-synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_ sont
-perdus et les fichiers de données sont dit **inconsistants** car ils mixent des 
-données de transactions anciennes, nouvelles, valides ou invalides.
+Par ce mécanisme de journalisation, les fichiers de données de notre instance
+sont constamment en retard sur la véritable activité transactionnelle, et ce, 
+jusqu'au prochain `CHECKPOINT`. En cas d'arrêt brutal du système, les blocs en 
+attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_
+sont perdus et les fichiers de données sont dit **inconsistants** car ils mixent 
+des données de transactions anciennes, nouvelles, valides ou invalides.
 
 Dans pareilles situations, il est possible de redémarrer l'instance afin qu'elle
 _rejoue_ les modifications dans l'ordre des transactions telles qu'elles avaient
@@ -278,12 +282,12 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
   rejouer lors d'une récupération de données ;
 
 Vous l'aurez compris, pendant de nombreuses années, la capacité de faire une
-sauvegarde dites consistante, reposait sur les deux méthodes vues précédemment.
+sauvegarde dite consistante, reposait sur les deux méthodes vues précédemment.
 La fonction historique `pg_start_backup()` fut particulièrement touchée
 par d'incessantes critiques au sujet d'un comportement non souhaité, notamment
 son mode « exclusif ».
 
-Voyons cela ensemble sur une instance récente en version 13.1 :
+Voyons cela ensemble sur une instance récente en version 13 :
 
 ```sql
 SELECT pg_start_backup('demo');
@@ -445,7 +449,7 @@ plus débattue et a été retirée du _backlog_ de développement lors du Commit
 de [juillet 2020][20]. Lors des derniers échanges, le contributeur David Steele
 (auteur de pgBackRest notamment) [annonçait][21] qu'une sauvegarde exclusive pourrait
 stocker son fichier `backup_label` directement en mémoire partagée plutôt que sur 
-le disque et ainsi corriger sa principal faiblesse :
+le disque et ainsi corriger sa principale faiblesse :
 
 [20]: https://commitfest.postgresql.org/28/1913/
 [21]: https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0bd4bf0d%40pgmasters.net
