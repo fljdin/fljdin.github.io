@@ -5,18 +5,18 @@
     <link>https://fljd.in/archives/</link>
     <description>Recent content in Archives on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Mon, 19 Jan 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 19 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>La brêve histoire du fichier backup_label</title>
-      <link>https://fljd.in/2099/01/19/la-breve-histoire-du-fichier-backup_label/</link>
-      <pubDate>Mon, 19 Jan 2099 00:00:00 +0000</pubDate>
+      <link>https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/</link>
+      <pubDate>Tue, 19 Jan 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://fljd.in/2099/01/19/la-breve-histoire-du-fichier-backup_label/</guid>
+      <guid>https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/</guid>
       <description>&lt;p&gt;Je suis resté longtemps ignorant des mécanismes de &lt;a href=&#34;https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf&#34;&gt;journalisation&lt;/a&gt; et de &lt;em&gt;PITR&lt;/em&gt;
 avec PostgreSQL alors même qu&amp;rsquo;il s&amp;rsquo;agit d&amp;rsquo;un des fonctionnements critiques pour
 la durabilité des données d&amp;rsquo;une instance. Mieux comprendre ces concepts m&amp;rsquo;aurait
 permis à une époque, d&amp;rsquo;être plus serein lors de la mise en place de sauvegardes
-et surtout au moment de leurs restaurations !&lt;/p&gt;
+et surtout au moment de leur restauration !&lt;/p&gt;
 &lt;p&gt;Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
 fait parlé de lui pendant plusieurs années : le fichier &lt;code&gt;backup_label&lt;/code&gt;.
 Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en
