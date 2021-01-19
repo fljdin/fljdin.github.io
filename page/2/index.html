@@ -32,6 +32,31 @@
 
   <article class="post">
   <h1 class="post-title">
+    <a href="https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/">Tour d&#39;horizon de PgBouncer</a>
+  </h1>
+
+  <time datetime="2020-08-21" class="post-date">21 Aug 2020</time>
+
+  <blockquote>
+<p>Les programmes de regroupement de connexions (<em>pooling</em>) vous permettent de
+réduire la surcharge liée à la base de données lorsque le nombre de connexions
+physiques réduit les performances. Ceci est particulièrement pertinent sous
+Windows, où les limitations du système empêchent un grand nombre de connexions.
+C&rsquo;est également vital pour les applications Web où le nombre de connexions peut
+devenir très important.</p>
+<p>(Source : <a href="https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration">https://wiki.postgresql.org</a>)</p>
+</blockquote>
+<p>Je n&rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
+projet PostgreSQL pour aborder l&rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
+des deux seuls <em>poolers</em> de connexions largement répandus. Le produit est
+déconcertant de facilité, sa documentation et la littérature qui gravitent sur
+Internet sont claires et unanimes : PgBouncer améliorera grandement les
+performances de votre instance PostgreSQL !</p>
+  <small>» <a href="https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/">Lire la suite</a></small>
+</article>
+
+  <article class="post">
+  <h1 class="post-title">
     <a href="https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/">Les statistiques au service du plan d&#39;exécution</a>
   </h1>
 
@@ -100,23 +125,6 @@ déploiements des systèmes courants.</p>
   <small>» <a href="https://fljd.in/2020/03/20/de-la-securite-pour-vos-mots-de-passe/">Lire la suite</a></small>
 </article>
 
-  <article class="post">
-  <h1 class="post-title">
-    <a href="https://fljd.in/2020/01/17/gestion-des-signaux-internes/">Gestion des signaux internes</a>
-  </h1>
-
-  <time datetime="2020-01-17" class="post-date">17 Jan 2020</time>
-
-  <p>Je voulais m&rsquo;attarder sur une notion que je n&rsquo;avais pas exploré à l&rsquo;époque où
-j&rsquo;apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l&rsquo;école et
-où l&rsquo;on usait de commandes apprises par cœur : les signaux !</p>
-<p>Les signaux les plus connus et les plus utilisés sont les numéros 6 <code>SIGABRT</code> et
-9 <code>SIGKILL</code>, ça vous revient ? Pourquoi en existe-t-il autant, dans quels
-contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons
-le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !</p>
-  <small>» <a href="https://fljd.in/2020/01/17/gestion-des-signaux-internes/">Lire la suite</a></small>
-</article>
-
 </div>
 
 
@@ -135,7 +143,7 @@ le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQ
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2020-12-22">2020</time> 
+    &copy; 2019-<time datetime="2021-01-19">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>sauvegarde on Florent Jardin</title>
+    <link>https://fljd.in/tags/sauvegarde/</link>
+    <description>Recent content in sauvegarde on Florent Jardin</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <lastBuildDate>Mon, 19 Jan 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/sauvegarde/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>La brêve histoire du fichier backup_label</title>
+      <link>https://fljd.in/2099/01/19/la-breve-histoire-du-fichier-backup_label/</link>
+      <pubDate>Mon, 19 Jan 2099 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2099/01/19/la-breve-histoire-du-fichier-backup_label/</guid>
+      <description>&lt;p&gt;Je suis resté longtemps ignorant des mécanismes de &lt;a href=&#34;https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf&#34;&gt;journalisation&lt;/a&gt; et de &lt;em&gt;PITR&lt;/em&gt;
+avec PostgreSQL alors même qu&amp;rsquo;il s&amp;rsquo;agit d&amp;rsquo;un des fonctionnements critiques pour
+la durabilité des données d&amp;rsquo;une instance. Mieux comprendre ces concepts m&amp;rsquo;aurait
+permis à une époque, d&amp;rsquo;être plus serein lors de la mise en place de sauvegardes
+et surtout au moment de leurs restaurations !&lt;/p&gt;
+&lt;p&gt;Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
+fait parlé de lui pendant plusieurs années : le fichier &lt;code&gt;backup_label&lt;/code&gt;.
+Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en
+version 8.0 de PostgreSQL et qu&amp;rsquo;adviendra-t-il de lui dans les prochaines années ?&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Construire une instance standby avec pgBackRest</title>
+      <link>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</link>
+      <pubDate>Thu, 07 Nov 2019 16:00:00 +0200</pubDate>
+      
+      <guid>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</guid>
+      <description>&lt;p&gt;Pour cette démonstration, j&amp;rsquo;utilise le système Debian et dispose de deux instances
+en version 12, d&amp;rsquo;un serveur de sauvegarde et du paquet &lt;code&gt;pgbackrest&lt;/code&gt; pour mettre
+en place une réplication et observer les nouveautés concernant la &lt;a href=&#34;https://paquier.xyz/postgresql-2/postgres-12-recovery-change/&#34;&gt;disparition&lt;/a&gt;
+du fichier &lt;code&gt;recovery.conf&lt;/code&gt;.&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

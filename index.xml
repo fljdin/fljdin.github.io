@@ -6,6 +6,7 @@
     <description>Recent content in Carnet de découvertes on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
     <lastBuildDate>Mon, 21 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml" />
+    
     <item>
       <title>Compiler et patcher avec pgenv</title>
       <link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link>
@@ -61,29 +62,6 @@ qu&amp;rsquo;étrange, pour nommer le mécanisme de stockage étendu « &lt;em&
 Storage Technique&lt;/em&gt; ». Bien que l&amp;rsquo;acronyme ne fasse pas de référence culinaire,
 on peut retrouver dans la &lt;a href=&#34;https://www.postgresql.org/docs/13/storage-toast.html&#34;&gt;documentation officielle&lt;/a&gt; qu&amp;rsquo;il s&amp;rsquo;agissait d&amp;rsquo;une
 petite révolution et de la meilleure chose depuis le pain en tranches.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Tour d&#39;horizon de PgBouncer</title>
-      <link>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</link>
-      <pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</guid>
-      <description>&lt;blockquote&gt;
-&lt;p&gt;Les programmes de regroupement de connexions (&lt;em&gt;pooling&lt;/em&gt;) vous permettent de
-réduire la surcharge liée à la base de données lorsque le nombre de connexions
-physiques réduit les performances. Ceci est particulièrement pertinent sous
-Windows, où les limitations du système empêchent un grand nombre de connexions.
-C&amp;rsquo;est également vital pour les applications Web où le nombre de connexions peut
-devenir très important.&lt;/p&gt;
-&lt;p&gt;(Source : &lt;a href=&#34;https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration&#34;&gt;https://wiki.postgresql.org&lt;/a&gt;)&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;Je n&amp;rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
-projet PostgreSQL pour aborder l&amp;rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
-des deux seuls &lt;em&gt;poolers&lt;/em&gt; de connexions largement répandus. Le produit est
-déconcertant de facilité, sa documentation et la littérature qui gravitent sur
-Internet sont claires et unanimes : PgBouncer améliorera grandement les
-performances de votre instance PostgreSQL !&lt;/p&gt;</description>
     </item>
     
   </channel>

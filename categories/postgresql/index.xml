@@ -5,7 +5,24 @@
     <link>https://fljd.in/categories/postgresql/</link>
     <description>Recent content in postgresql on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Mon, 21 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 19 Jan 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>La brêve histoire du fichier backup_label</title>
+      <link>https://fljd.in/2099/01/19/la-breve-histoire-du-fichier-backup_label/</link>
+      <pubDate>Mon, 19 Jan 2099 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2099/01/19/la-breve-histoire-du-fichier-backup_label/</guid>
+      <description>&lt;p&gt;Je suis resté longtemps ignorant des mécanismes de &lt;a href=&#34;https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf&#34;&gt;journalisation&lt;/a&gt; et de &lt;em&gt;PITR&lt;/em&gt;
+avec PostgreSQL alors même qu&amp;rsquo;il s&amp;rsquo;agit d&amp;rsquo;un des fonctionnements critiques pour
+la durabilité des données d&amp;rsquo;une instance. Mieux comprendre ces concepts m&amp;rsquo;aurait
+permis à une époque, d&amp;rsquo;être plus serein lors de la mise en place de sauvegardes
+et surtout au moment de leurs restaurations !&lt;/p&gt;
+&lt;p&gt;Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
+fait parlé de lui pendant plusieurs années : le fichier &lt;code&gt;backup_label&lt;/code&gt;.
+Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en
+version 8.0 de PostgreSQL et qu&amp;rsquo;adviendra-t-il de lui dans les prochaines années ?&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>Compiler et patcher avec pgenv</title>
       <link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link>
@@ -71,22 +88,6 @@ des deux seuls &lt;em&gt;poolers&lt;/em&gt; de connexions largement répandus. L
 déconcertant de facilité, sa documentation et la littérature qui gravitent sur
 Internet sont claires et unanimes : PgBouncer améliorera grandement les
 performances de votre instance PostgreSQL !&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Les statistiques au service du plan d&#39;exécution</title>
-      <link>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</link>
-      <pubDate>Wed, 01 Jul 2020 20:30:00 +0200</pubDate>
-      
-      <guid>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid>
-      <description>&lt;p&gt;La lecture d&amp;rsquo;un plan d&amp;rsquo;exécution fait partie des meilleures armes du développeur
-et de l&amp;rsquo;administrateur de bases de données pour identifier les problèmes de
-performances. Dans &lt;a href=&#34;https://fljd.in/2019/09/27/index-decomplexe&#34;&gt;un précédent article&lt;/a&gt;, je
-présentais l&amp;rsquo;intérêt de positionner un index sur les colonnes d&amp;rsquo;une table pour
-faciliter les recherches, notamment avec l&amp;rsquo;aide de la commande &lt;code&gt;EXPLAIN&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;À cette époque, je ne m&amp;rsquo;étais pas attardé sur la notion des statistiques de
-données, que l&amp;rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
-près ce que propose PostgreSQL pour garantir les performances de vos requêtes.&lt;/p&gt;</description>
     </item>
     
   </channel>

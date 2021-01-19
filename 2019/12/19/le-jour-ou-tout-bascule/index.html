@@ -230,7 +230,7 @@ utiliser l&rsquo;outil <code>pg_rewind</code> correctement :</p>
   <span class="k">function</span> <span class="n">pg_read_binary_file</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span> <span class="nb">bigint</span><span class="p">,</span> <span class="nb">bigint</span><span class="p">,</span> <span class="nb">boolean</span><span class="p">)</span> <span class="k">TO</span> <span class="n">streamer</span><span class="p">;</span>
 </code></pre></div><p>Sur le serveur <code>batman</code>, l&rsquo;instance doit être arrêtée avant de lancer la
 synchronisation et le contenu de la zone d&rsquo;archivage <code>batcave</code> doit être copié
-manuellement vers le répertoire de récupération <code>pg_wal</code> ; il s&rsquo;agit de
+manuellement vers le répertoire de récupération <code>pg_wal</code> ; il s&rsquo;agit de reproduire
 l&rsquo;instruction <code>restore_command</code> que ne peut pas exécuter l&rsquo;instance lorsqu&rsquo;elle
 est éteinte.</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">pg_ctl stop -D batman
@@ -357,7 +357,7 @@ Zalando qui propose intelligemment l&rsquo;usage de <code>pg_rewind</code> dans 
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2020-12-22">2020</time> 
+    &copy; 2019-<time datetime="2021-01-19">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
