@@ -241,7 +241,7 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
   [10]: https://www.postgresql.org/message-id/flat/D960CB61B694CF459DCFB4B0128514C201ED284B%40exadv11.host.magwien.gv.at
   [c979a1fe]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c979a1fefafcc83553bf218c7f2270cad77ea31d
 
-  Publié avec la version 8.4, le code `xlog.c` se voit enrigchir d'une méthode 
+  Publié avec la version 8.4, le code `xlog.c` se voit enrichir d'une méthode 
   interne pour annuler la sauvegarde en cours. L'exécution de la commande 
   `pg_ctl stop` en mode _fast_ renomme le fichier en `backup_label.old` ;
 
