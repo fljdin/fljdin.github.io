@@ -42,7 +42,7 @@ fait parlé de lui pendant plusieurs années : le fichier <code>backup_label</c
 Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en
 version 8.0 de PostgreSQL et qu&rsquo;adviendra-t-il de lui dans les prochaines années ?</p>
 <hr>
-<h1 id="il-était-une-fois-la-journalisation">Il était une fois la journalisation</h1>
+<h2 id="il-était-une-fois-la-journalisation">Il était une fois la journalisation</h2>
 <p>En guise d&rsquo;introduction pour mieux comprendre cet article, il est bon d&rsquo;expliquer
 que chaque opération d&rsquo;écriture dans PostgreSQL comme un <code>UPDATE</code> ou un <code>INSERT</code>,
 est écrite une première fois au moment du <code>COMMIT</code> de la transaction dans un groupe
@@ -88,7 +88,7 @@ récentes données sont perdues</u>.</p>
 <p>… Et l&rsquo;outil <a href="https://pgpedia.info/p/pg_resetwal.html">pg_resetwal</a> ne les
 récuperera pas pour vous.</p>
 <hr>
-<h1 id="entre-en-scène-le-backup_label">Entre en scène le backup_label</h1>
+<h2 id="entre-en-scène-le-backup_label">Entre en scène le backup_label</h2>
 <p>Après ce charmant avertissement, on considèrera que l&rsquo;archivage des journaux
 de transactions n&rsquo;est plus une option dans vos plans de sauvegarde. Assurez-vous
 que ces archives soient stockées sur un espace sécurisé, voire une zone
@@ -151,7 +151,7 @@ En cas d&rsquo;absence du <code>backup_label</code>, le processus de démarrage 
 place le <a href="https://pgpedia.info/p/pg_control.html">fichier de contrôle</a> afin de déterminer le plus récent point de
 reprise sans garantie qu&rsquo;il soit le bon.</p>
 <hr>
-<h1 id="lheure-de-gloire">L&rsquo;heure de gloire</h1>
+<h2 id="lheure-de-gloire">L&rsquo;heure de gloire</h2>
 <p>Vous conviendrez que la forme et l&rsquo;intérêt du fichier <code>backup_label</code> sont
 anecdotiques (bien qu&rsquo;essentiels) dans l&rsquo;architecture de sauvegarde avec PostgreSQL.
 Il ne s&rsquo;agit que d&rsquo;un fichier texte de quelques lignes, requis exclusivement pour
@@ -261,7 +261,7 @@ sérieuses corruptions de données.</p>
 <p>Source : <a href="https://docs.postgresql.fr/12/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-EXCLUSIVE">Créer une sauvegarde exclusive de bas niveau</a></p>
 </blockquote>
 <hr>
-<h1 id="place-à-la-relève">Place à la relève</h1>
+<h2 id="place-à-la-relève">Place à la relève</h2>
 <p>Cette limitation était connue de longue date et l&rsquo;équipe de développement
 proposa une <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=7117685461af50f50c03f43e6a622284c8d54694">alternative</a> en septembre 2016 avec la sortie de la version 9.6
 et l&rsquo;introduction de la sauvegarde dite « concurrente ». Depuis ce jour, la
@@ -313,7 +313,7 @@ de nouvelles solutions de sauvegardes, plus performantes et plus modulaires que
 de <a href="https://pgbackrest.org/">pgBackRest</a> écrit en C, <a href="https://www.pgbarman.org/">Barman</a> écrit en Python ou <a href="https://dalibo.github.io/pitrery/">pitrery</a> écrit en Bash.
 En outre, ces outils soulagent l&rsquo;administrateur de la rédaction de scripts devenus
 trop complexes et loin d&rsquo;être immuable dans les années à venir.</p>
-<h1 id="morale-de-lhistoire">Morale de l&rsquo;histoire</h1>
+<h2 id="morale-de-lhistoire">Morale de l&rsquo;histoire</h2>
 <p>Au fil des versions, le fichier <code>backup_label</code> a enduré de nombreuses tempêtes
 et rebondissements pour aboutir à une forme plus aboutie de la sauvegarde et de
 la restauration physique dans PostgreSQL.</p>
@@ -360,7 +360,7 @@ backup now so it wouldn&rsquo;t be a loss in functionality.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-01-20">2021</time> 
+    &copy; 2019-<time datetime="2021-02-17">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
