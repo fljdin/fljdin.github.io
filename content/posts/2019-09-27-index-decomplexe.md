@@ -157,7 +157,7 @@ Un index _b-tree_ est composé :
 * de blocs intermédiaires, dont le bloc racine (_root_) ;
 * de blocs feuilles.
 
-Il est possible de les consulter à l'aide des fonctions mis à disposition par 
+Il est possible de les consulter à l'aide des fonctions mises à disposition par 
 les extensions [pgstattuple][4] et [pageinspect][5], et de démêler le parcours 
 d'index que réalise le moteur à chaque exécution.
 

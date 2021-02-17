@@ -22,7 +22,7 @@ version 8.0 de PostgreSQL et qu'adviendra-t-il de lui dans les prochaines anné
 
 ---
 
-# Il était une fois la journalisation
+## Il était une fois la journalisation
 
 En guise d'introduction pour mieux comprendre cet article, il est bon d'expliquer 
 que chaque opération d'écriture dans PostgreSQL comme un `UPDATE` ou un `INSERT`,
@@ -113,7 +113,7 @@ récuperera pas pour vous.
 
 ---
 
-# Entre en scène le backup_label
+## Entre en scène le backup_label
 
 Après ce charmant avertissement, on considèrera que l'archivage des journaux
 de transactions n'est plus une option dans vos plans de sauvegarde. Assurez-vous
@@ -203,7 +203,7 @@ reprise sans garantie qu'il soit le bon.
 
 ---
 
-# L'heure de gloire
+## L'heure de gloire
 
 Vous conviendrez que la forme et l'intérêt du fichier `backup_label` sont
 anecdotiques (bien qu'essentiels) dans l'architecture de sauvegarde avec PostgreSQL.
@@ -356,7 +356,7 @@ instructions claires de la documentation.
 
 ---
 
-# Place à la relève
+## Place à la relève
 
 Cette limitation était connue de longue date et l'équipe de développement
 proposa une [alternative][18] en septembre 2016 avec la sortie de la version 9.6 
@@ -425,7 +425,7 @@ trop complexes et loin d'être immuable dans les années à venir.
 [Barman]: https://www.pgbarman.org/
 [pitrery]: https://dalibo.github.io/pitrery/
 
-#  Morale de l'histoire
+##  Morale de l'histoire
 
 Au fil des versions, le fichier `backup_label` a enduré de nombreuses tempêtes
 et rebondissements pour aboutir à une forme plus aboutie de la sauvegarde et de
