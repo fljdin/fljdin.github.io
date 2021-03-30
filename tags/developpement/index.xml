@@ -5,7 +5,20 @@
     <link>https://fljd.in/tags/developpement/</link>
     <description>Recent content in developpement on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Thu, 14 May 2020 17:30:00 +0200</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 30 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Comprendre les requêtes préparées</title>
+      <link>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</link>
+      <pubDate>Tue, 30 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</guid>
+      <description>&lt;p&gt;Les requêtes ou &lt;a href=&#34;https://en.wikipedia.org/wiki/Prepared_statement&#34;&gt;instructions préparées&lt;/a&gt; sont un mécanisme proposé par la
+plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
+au précédent. On parle d&amp;rsquo;un &lt;em&gt;template&lt;/em&gt; de requête qu&amp;rsquo;il est nécessaire de
+préparer avant d&amp;rsquo;exécuter. Les principaux bénéfices que nous lui connaissont
+méritent un article afin de mieux comprendre leur implémentation.&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>Écrire ses tests unitaires en SQL</title>
       <link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link>

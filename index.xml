@@ -5,7 +5,20 @@
     <link>https://fljd.in/</link>
     <description>Recent content in Carnet de découvertes on Florent Jardin</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 19 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 30 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Comprendre les requêtes préparées</title>
+      <link>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</link>
+      <pubDate>Tue, 30 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</guid>
+      <description>&lt;p&gt;Les requêtes ou &lt;a href=&#34;https://en.wikipedia.org/wiki/Prepared_statement&#34;&gt;instructions préparées&lt;/a&gt; sont un mécanisme proposé par la
+plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
+au précédent. On parle d&amp;rsquo;un &lt;em&gt;template&lt;/em&gt; de requête qu&amp;rsquo;il est nécessaire de
+préparer avant d&amp;rsquo;exécuter. Les principaux bénéfices que nous lui connaissont
+méritent un article afin de mieux comprendre leur implémentation.&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>La brêve histoire du fichier backup_label</title>
       <link>https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/</link>
@@ -64,20 +77,6 @@ remarqué, nous en parlions entre collègues pour constater avec surprise que no
 ne connaissions pas cette mine d&amp;rsquo;or d&amp;rsquo;informations sur PostgreSQL. Après y avoir
 perdu plusieurs heures, je me suis dit qu&amp;rsquo;un article sur les quelques utilitaires
 que j&amp;rsquo;estime méconnus, pourrait être une bonne conclusion de la semaine.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>La meilleure chose depuis le pain en tranches</title>
-      <link>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</link>
-      <pubDate>Mon, 12 Oct 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</guid>
-      <description>&lt;p&gt;Je me souviens de cette époque où j&amp;rsquo;ai été confronté pour la première fois à la
-notion de TOAST avec PostgreSQL. Je trouvais la dénomination amusante, bien
-qu&amp;rsquo;étrange, pour nommer le mécanisme de stockage étendu « &lt;em&gt;The Oversized-Attribute
-Storage Technique&lt;/em&gt; ». Bien que l&amp;rsquo;acronyme ne fasse pas de référence culinaire,
-on peut retrouver dans la &lt;a href=&#34;https://www.postgresql.org/docs/13/storage-toast.html&#34;&gt;documentation officielle&lt;/a&gt; qu&amp;rsquo;il s&amp;rsquo;agissait d&amp;rsquo;une
-petite révolution et de la meilleure chose depuis le pain en tranches.&lt;/p&gt;</description>
     </item>
     
   </channel>
