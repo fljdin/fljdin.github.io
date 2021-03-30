@@ -15,7 +15,7 @@
       <description>&lt;p&gt;Les requêtes ou &lt;a href=&#34;https://en.wikipedia.org/wiki/Prepared_statement&#34;&gt;instructions préparées&lt;/a&gt; sont un mécanisme proposé par la
 plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
 au précédent. On parle d&amp;rsquo;un &lt;em&gt;template&lt;/em&gt; de requête qu&amp;rsquo;il est nécessaire de
-préparer avant d&amp;rsquo;exécuter. Les principaux bénéfices que nous lui connaissont
+préparer avant d&amp;rsquo;exécuter. Les principaux bénéfices que nous lui connaissons
 méritent un article afin de mieux comprendre leur implémentation.&lt;/p&gt;</description>
     </item>
     
