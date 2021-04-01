@@ -53,7 +53,7 @@ ce sujet le sous-protocole _Extended Query_ décrit dans la documentation sur le
 messages afin de garantir la prise en compte des paramètres à inclure dans une 
 instruction préparée, sans risque d'injection.
 
-[3]: https://www.postgresql.org/docs/13/protocol-flow.html
+[3]: https://www.postgresql.org/docs/13/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
 
 * **Parse** : l'instruction SQL et éventuellement un nom et un typage pour les 
 paramètres ;
