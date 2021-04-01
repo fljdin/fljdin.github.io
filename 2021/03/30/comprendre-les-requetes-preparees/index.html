@@ -58,11 +58,11 @@ est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à n
 <span class="k">EXECUTE</span> <span class="n">get_notation</span><span class="p">(</span><span class="s1">&#39;Pattinson&#39;</span><span class="p">,</span> <span class="err">$$</span><span class="n">Robert</span><span class="s1">&#39; ; DROP TABLE students;--$$);
 </span><span class="s1">-- (0 rows)
 </span></code></pre></div><p>L&rsquo;exemple précédent utilise les ordres SQL <code>PREPARE</code> et <code>EXECUTE</code> mais ce n&rsquo;est
-pas la seule façon de déclarer une instruction préparée. En réalité, ces deux
-clauses s&rsquo;appuient sur le sous-protocole <em>Extended Query</em> décrit dans la
-documentation sur les <a href="https://www.postgresql.org/docs/13/protocol-flow.html">flux de messages</a>. La communication client-serveur peut
-alors se découper en trois messages pour garantir la prise en compte des
-paramètres à inclure dans une instruction préparée, sans risque d&rsquo;injection.</p>
+pas la seule façon de déclarer une instruction préparée. En effet, il existe à
+ce sujet le sous-protocole <em>Extended Query</em> décrit dans la documentation sur les
+<a href="https://www.postgresql.org/docs/13/protocol-flow.html">flux de messages</a>. La communication client-serveur se découpe en trois
+messages afin de garantir la prise en compte des paramètres à inclure dans une
+instruction préparée, sans risque d&rsquo;injection.</p>
 <ul>
 <li><strong>Parse</strong> : l&rsquo;instruction SQL et éventuellement un nom et un typage pour les
 paramètres ;</li>
@@ -129,10 +129,10 @@ final à retourner au client.</li>
 </ul>
 <p>Les étapes d&rsquo;analyse d&rsquo;une instruction lors des messages <code>Parse</code> et <code>Bind</code> ont un
 coût : il est nécessaire de valider la syntaxe, réécrire les jointures si besoin
-et surtout, construire le plan d&rsquo;exécution.
-Par défaut, une série de plans sera construit avant que le moteur n&rsquo;en retienne
-qu&rsquo;un seul dont le coût est avantageux. Ce plan devient le <strong>plan générique</strong> et
-sera réutilisé au sein de la même session pour toutes les exécutions de
+et surtout, construire le plan d&rsquo;exécution. Par défaut, une série de plans sera
+construit avant que le moteur n&rsquo;en retienne qu&rsquo;un seul dont le coût est bon
+compromis avec la moyenne des cinq premiers. Ce plan devient le <strong>plan générique</strong>
+et sera réutilisé au sein de la même session pour toutes les exécutions de
 l&rsquo;instruction préparée.</p>
 <p>L&rsquo;utilisation de ce plan d&rsquo;exécution unique devient la clé pour économiser
 quelques précieuses millisecondes d&rsquo;analyse à chaque nouveau message <code>Execute</code>.
@@ -286,7 +286,7 @@ l&rsquo;ouverture de la session.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-03-30">2021</time> 
+    &copy; 2019-<time datetime="2021-04-01">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
