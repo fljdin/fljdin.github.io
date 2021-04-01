@@ -6,5 +6,5 @@
   <time datetime="{{ .Date.Format "2006-01-02" }}" class="post-date">{{ .Date.Format "02 Jan 2006"}}</time>
 
   {{ .Summary }}
-  <small>» <a href="{{ .Permalink }}">Lire la suite</a></small>
+  <small>» <a href="{{ .Permalink }}">{{ i18n "readMore" }}</a></small>
 </article>

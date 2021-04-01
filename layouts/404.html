@@ -1,7 +1,7 @@
 {{ define "main" }}
 <div class="page">
   <h1 class="page-title">404: Page not found</h1>
-  <p class="lead">Désolé, cette page a été supprimée ou n'existe pas.</p>
-  <p><a href="{{ "/" | relURL }}">Revenir à la page d'accueil.</a></p>
+  <p class="lead">{{ i18n "noPage" }}</p>
+  <p><a href="{{ "/" | relURL }}">{{ i18n "goHome" }}</a></p>
 </div>
 {{ end }}

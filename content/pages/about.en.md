@@ -1,5 +1,6 @@
 ---
-title: À propos
+title: About me
+slug: about
 ---
 
 > Carnet de découvertes d'un DBA libre et passionné par l'open-source.

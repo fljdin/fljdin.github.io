@@ -1,0 +1,10 @@
+---
+
+- { id: about, other: "About me" }
+- { id: previousPage, other: "Previous page" }
+- { id: nextPage, other: "Next page" }
+- { id: readingTime, one: "1 minute to read", other: "{{ .Count }} minutes to read" }
+- { id: suggestedPosts, other: "Suggested posts" }
+- { id: readMore, other: "Read more" }
+- { id: noPage, other: "Sorry, the page you're looking for doesn't exist." }
+- { id: goHome, other: "Revenir à la page d'accueil." }

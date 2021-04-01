@@ -2,14 +2,14 @@
 {{ if gt $pag.TotalPages 1 -}}
 <div class="pagination">
   {{ if $pag.HasNext }}
-    <a class="pagination-item older" href="{{ $pag.Next.URL }}">Page précédente</a>
+    <a class="pagination-item older" href="{{ $pag.Next.URL }}">{{ i18n "previousPage" }}</a>
   {{ else }}
-    <span class="pagination-item older">Page précédente</span>
+    <span class="pagination-item older">{{ i18n "previousPage" }}</span>
   {{ end }}
   {{ if $pag.HasPrev }}
-    <a class="pagination-item newer" href="{{ $pag.Prev.URL }}">Page suivante</a>
+    <a class="pagination-item newer" href="{{ $pag.Prev.URL }}">{{ i18n "nextPage" }}</a>
   {{ else }}
-    <span class="pagination-item newer">Page suivante</span>
+    <span class="pagination-item newer">{{ i18n "nextPage" }}</span>
   {{ end }}
 </div>
 {{ end }}

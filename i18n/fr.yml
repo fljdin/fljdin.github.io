@@ -1,0 +1,10 @@
+---
+
+- { id: about, other: "À propos" }
+- { id: previousPage, other: "Page précédente" }
+- { id: nextPage, other: "Page suivante" }
+- { id: readingTime, one: "1 minute de lecture", other: "{{ .Count }} minutes de lecture" }
+- { id: suggestedPosts, other: "Suggestion d'articles" }
+- { id: readMore, other: "Lire la suite" }
+- { id: noPage, other: "Désolé, cette page a été supprimée ou n'existe pas." }
+- { id: goHome, other: "Revenir à la page d'accueil." }
