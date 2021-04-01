@@ -60,7 +60,7 @@ est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à n
 </span></code></pre></div><p>L&rsquo;exemple précédent utilise les ordres SQL <code>PREPARE</code> et <code>EXECUTE</code> mais ce n&rsquo;est
 pas la seule façon de déclarer une instruction préparée. En effet, il existe à
 ce sujet le sous-protocole <em>Extended Query</em> décrit dans la documentation sur les
-<a href="https://www.postgresql.org/docs/13/protocol-flow.html">flux de messages</a>. La communication client-serveur se découpe en trois
+<a href="https://www.postgresql.org/docs/13/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY">flux de messages</a>. La communication client-serveur se découpe en trois
 messages afin de garantir la prise en compte des paramètres à inclure dans une
 instruction préparée, sans risque d&rsquo;injection.</p>
 <ul>
