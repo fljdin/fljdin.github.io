@@ -8,7 +8,7 @@ tags: [developpement, performance]
 Les requêtes ou [instructions préparées][1] sont un mécanisme proposé par la
 plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
 au précédent. On parle d'un _template_ de requête qu'il est nécessaire de
-préparer avant d'exécuter. Les principaux bénéfices que nous lui connaissont
+préparer avant d'exécuter. Les principaux bénéfices que nous lui connaissons
 méritent un article afin de mieux comprendre leur implémentation.
 
 [1]: https://en.wikipedia.org/wiki/Prepared_statement
@@ -47,11 +47,11 @@ EXECUTE get_notation('Pattinson', $$Robert' ; DROP TABLE students;--$$);
 ```
 
 L'exemple précédent utilise les ordres SQL `PREPARE` et `EXECUTE` mais ce n'est
-pas la seule façon de déclarer une instruction préparée. En réalité, ces deux 
-clauses s'appuient sur le sous-protocole _Extended Query_ décrit dans la
-documentation sur les [flux de messages][3]. La communication client-serveur peut
-alors se découper en trois messages pour garantir la prise en compte des 
-paramètres à inclure dans une instruction préparée, sans risque d'injection.
+pas la seule façon de déclarer une instruction préparée. En effet, il existe à
+ce sujet le sous-protocole _Extended Query_ décrit dans la documentation sur les 
+[flux de messages][3]. La communication client-serveur se découpe en trois 
+messages afin de garantir la prise en compte des paramètres à inclure dans une 
+instruction préparée, sans risque d'injection.
 
 [3]: https://www.postgresql.org/docs/13/protocol-flow.html
 
@@ -133,11 +133,11 @@ final à retourner au client.
 
 Les étapes d'analyse d'une instruction lors des messages `Parse` et `Bind` ont un 
 coût : il est nécessaire de valider la syntaxe, réécrire les jointures si besoin 
-et surtout, construire le plan d'exécution.
-Par défaut, une série de plans sera construit avant que le moteur n'en retienne 
-qu'un seul dont le coût est avantageux. Ce plan devient le **plan générique** et 
-sera réutilisé au sein de la même session pour toutes les exécutions de 
-l'instruction préparée. 
+et surtout, construire le plan d'exécution. Par défaut, une série de plans sera 
+construit avant que le moteur n'en retienne qu'un seul dont le coût est bon 
+compromis avec la moyenne des cinq premiers. Ce plan devient le **plan générique** 
+et sera réutilisé au sein de la même session pour toutes les exécutions de 
+l'instruction préparée.
 
 L'utilisation de ce plan d'exécution unique devient la clé pour économiser 
 quelques précieuses millisecondes d'analyse à chaque nouveau message `Execute`.
@@ -274,10 +274,10 @@ transactions.
 ## Pour aller plus loin
 
 Que ce soit pour se protéger des injections ou pour atteindre de hautes 
-performances, j'ai voulu montrer dans cet article qu'il était toujours bénéfique 
-de préparer ses requêtes, d'autant plus si votre librairie préférée le supporte. 
-Si vous êtes à la recherche de temps de réponse les plus faibles possibles, 
-posez-vous les questions suivantes :
+performances, j'ai voulu montrer dans cet article qu'il était pouvait être 
+bénéfique de préparer ses requêtes, d'autant plus si votre librairie préférée le
+supporte. Si vous êtes à la recherche de temps de réponse les plus faibles
+possibles, posez-vous les questions suivantes :
 
 * Mes requêtes ont-elles fréquemment la même forme ?
 * Leurs plans d'exécution sont-ils relativement bien optimisés ?
