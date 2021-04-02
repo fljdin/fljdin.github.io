@@ -1,6 +1,6 @@
 ---
 title: À propos
-slug: a-propos
+translationKey: a-propos
 ---
 
 > Carnet de découvertes d'un DBA libre et passionné par l'open-source.

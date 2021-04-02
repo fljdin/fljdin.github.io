@@ -2,7 +2,3 @@
 - { text: 'Twitter', url: 'https://twitter.com/fljdin', icon: twitter}
 - { text: 'GitHub', url: 'https://github.com/fljdin', icon: github }
 - { text: 'LinkedIn', url: 'https://www.linkedin.com/in/florent-jardin', icon: linkedin }
-- { text: 'À propos', url: /a-propos, lang: 'fr' }
-- { text: 'About me', url: /en/about, lang: 'en' }
-- { text: 'Archives', url: /archives, lang: 'fr' }
-- { text: 'Archives', url: /en/archives, lang: 'en' }

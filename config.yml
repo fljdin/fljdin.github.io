@@ -32,12 +32,28 @@ pygmentsUseClasses: true
 defaultContentLanguage: fr
 languages:
   fr:
+    title: "Carnet de découvertes"
     languageName: Français
     contentDir: content/fr
     weight: 1
-    title: "Carnet de découvertes"
+    menu: 
+      navigation:
+      - identifier: about
+        title: "À propos"
+        url: "/a-propos"
+      - identifier: archives
+        title: "Archives"
+        url: "/archives"
   en:
+    title: "Discovery notebook"
     languageName: English
     contentDir: content/en
     weight: 2
-    title: "Discovery notebook"
+    menu:
+      navigation:
+      - identifier: about
+        title: "About me"
+        url: "/en/about"
+      - identifier: archives
+        title: "Archives"
+        url: "/en/archives"
