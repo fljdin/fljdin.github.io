@@ -1,14 +1,15 @@
 baseURL: https://fljd.in
-title: Florent Jardin
 
 author:
   name: Florent Jardin
 
 paginate: 5
 rssLimit: 5
+theme: fljdin
 
 permalinks:
   posts: /:year/:month/:day/:slug
+  pages: /:slug
 
 related:
   includeNewer: true
@@ -32,7 +33,11 @@ defaultContentLanguage: fr
 languages:
   fr:
     languageName: Français
+    contentDir: content/fr
     weight: 1
+    title: "Carnet de découvertes"
   en:
     languageName: English
+    contentDir: content/en
     weight: 2
+    title: "Discovery notebook"

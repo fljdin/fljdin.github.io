@@ -1,6 +1,5 @@
 ---
 
-- { id: about, other: "À propos" }
 - { id: previousPage, other: "Page précédente" }
 - { id: nextPage, other: "Page suivante" }
 - { id: readingTime, one: "1 minute de lecture", other: "{{ .Count }} minutes de lecture" }
