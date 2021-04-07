@@ -8,24 +8,16 @@ translationKey: a-propos
 {{< avatar src="/img/avatar.jpg" alt="Florent Jardin" >}}
 
 Je suis consultant en bases de données orientées relationnelles (Oracle Database,
-PostgreSQL) avec pour nouvelles ambitions de promouvoir l'open-source à travers
-une série d'articles et de découvertes sur ce monde alternatif sans limite. En
-parallèle, je tiens à jour la liste de [mes lectures personnelles]
-que j'essaie de rendre la plus variée possible.
+PostgreSQL) avec pour ambition de promouvoir l'open-source à travers une série 
+d'articles sur ce monde alternatif sans limite. Dans ce carnet de découvertes, 
+je souhaite partager mes recherches autours des fonctionnalités de PostgreSQL en 
+tâchant de les rendre simples d'accès pour les administrateur⋅rices de tout horizon.
 
-Vous pourriez me croiser au hasard d'un couloir dans la région lilloise où je
-co-organise les soirées [Meetup PostgreSQL Lille]
-pour les passionné⋅es  et professionnel⋅les des Hauts-de-France.
-
-[mes lectures personnelles]: /pages/lectures/
-[Meetup PostgreSQL Lille]: https://www.meetup.com/fr-FR/Meetup-PostgreSQL-Lille
-
-Vous pouvez également me contacter et me suivre par l'un des médias suivants.
+Vous pouvez me contacter et me suivre par l'un des réseaux suivants.
 
 * https://twitter.com/fljdin
 * https://github.com/fljdin
 * https://www.linkedin.com/in/florent-jardin
-
 
 ---
 
