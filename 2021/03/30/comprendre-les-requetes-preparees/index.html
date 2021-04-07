@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <title>Comprendre les requêtes préparées</title>
   
@@ -16,10 +16,14 @@
     
 <header class="homepage">
   <h3 class="homepage-title">
-    <a href="https://fljd.in" title="Florent Jardin">Florent Jardin</a>
+    <a href="/" title="Florent Jardin">Florent Jardin</a>
     <small>
-      <a href="/index.xml"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"></use></svg></a><a href="https://twitter.com/fljdin"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"></use></svg></a><a href="https://github.com/fljdin"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"></use></svg></a><a href="https://www.linkedin.com/in/florent-jardin"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"></use></svg></a>&nbsp;&nbsp;<a href="/pages/a-propos/">À propos</a>&nbsp;&nbsp;<a href="/archives/">Archives</a>
-    </small>
+      <a href="/index.xml"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"></use></svg></a>
+        <a href="https://twitter.com/fljdin"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"></use></svg></a>
+        <a href="https://github.com/fljdin"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"></use></svg></a>
+        <a href="https://www.linkedin.com/in/florent-jardin"><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"></use></svg></a>
+        
+      &nbsp;&nbsp;<a href="/a-propos">À propos</a>&nbsp;&nbsp;<a href="/archives">Archives</a></small>
   </h3>
 </header>
   
@@ -60,7 +64,7 @@ est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à n
 </span></code></pre></div><p>L&rsquo;exemple précédent utilise les ordres SQL <code>PREPARE</code> et <code>EXECUTE</code> mais ce n&rsquo;est
 pas la seule façon de déclarer une instruction préparée. En effet, il existe à
 ce sujet le sous-protocole <em>Extended Query</em> décrit dans la documentation sur les
-<a href="https://www.postgresql.org/docs/13/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY">flux de messages</a>. La communication client-serveur se découpe en trois
+<a href="https://www.postgresql.org/docs/13/protocol-flow.html">flux de messages</a>. La communication client-serveur se découpe en trois
 messages afin de garantir la prise en compte des paramètres à inclure dans une
 instruction préparée, sans risque d&rsquo;injection.</p>
 <ul>
@@ -257,7 +261,7 @@ l&rsquo;ouverture de la session.</p>
 
 
 <aside class="related">
-  <h3>Suggestion d'articles</h3>
+  <h3>Suggestion d&#39;articles</h3>
   <ul class="related-posts">
     
       <li>
@@ -286,7 +290,7 @@ l&rsquo;ouverture de la session.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-01">2021</time> 
+    &copy; 2019-<time datetime="2021-04-07">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
