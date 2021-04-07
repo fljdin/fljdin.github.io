@@ -1,23 +1,24 @@
 ---
-title: "La brêve histoire du fichier backup_label"
-date: 2021-01-19
+title: "A brief history of backup label"
+date: 2021-04-02
 categories: [postgresql]
-tags: [sauvegarde]
+tags: [backup]
 translationKey: "la-breve-histoire-du-fichier-backup_label"
+diff: https://editor.mergely.com/GDTodTN8/
 ---
 
 Je suis resté longtemps ignorant des mécanismes de [journalisation][1] et de _PITR_ 
 avec PostgreSQL alors même qu'il s'agit d'un des fonctionnements critiques pour
 la durabilité des données d'une instance. Mieux comprendre ces concepts m'aurait
 permis à une époque, d'être plus serein lors de la mise en place de sauvegardes
-et surtout au moment de leur restauration !
+et surtout au moment de leur restauration !
 
 [1]: https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf
 
 Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
-fait parlé de lui pendant plusieurs années : le fichier `backup_label`. 
-Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en 
-version 8.0 de PostgreSQL et qu'adviendra-t-il de lui dans les prochaines années ?
+fait parlé de lui pendant plusieurs années : le fichier `backup_label`. 
+Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en 
+version 8.0 de PostgreSQL et qu'adviendra-t-il de lui dans les prochaines années ?
 
 <!--more-->
 
@@ -74,7 +75,7 @@ sequenceDiagram
 Par ce mécanisme de journalisation, les fichiers de données de notre instance
 sont constamment en retard sur la véritable activité transactionnelle, et ce, 
 jusqu'au prochain `CHECKPOINT`. En cas d'arrêt brutal du système, les blocs en 
-attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_
+attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_
 sont perdus et les fichiers de données sont dit **inconsistants** car ils mixent 
 des données de transactions anciennes, nouvelles, valides ou invalides.
 
@@ -94,7 +95,7 @@ Que ce soit à la suite d'un crash ou dans le cadre d'une restauration de
 sauvegarde, les fichiers de données doivent être cohérents pour assurer le retour
 du service et l'accès en écriture aux données. Quelle mauvaise surprise n'a-t-on 
 pas lorsqu'une instance PostgreSQL interrompt son démarrage avec le message
-suivant :
+suivant :
 
 ```PANIC: could not locate a valid checkpoint record```
 
@@ -103,7 +104,7 @@ de son démarrage et qu'elle échoue à trouver le _point de reprise_ le plus pr
 de son état. Sans les journaux, la récupération échoue et s'arrête. À cet instant
 précis, vos nerfs et votre politique de sauvegarde sont mis à rude épreuve.
 
-Pour le dire encore autrement :
+Pour le dire encore autrement :
 en l'absence des journaux de transactions ou de leurs archives, {{< u >}}vos plus
 récentes données sont perdues{{< /u >}}.
 
@@ -126,7 +127,7 @@ lorsque vous devez déclencher votre [plan de bascule][3].
 
 Pour ceux ayant atteint cette partie de l'article, vous ne devriez pas être
 trop perdus si je vous annonce que le fichier `backup_label` est un composant
-d'un plus large concept, à savoir : la sauvegarde.
+d'un plus large concept, à savoir : la sauvegarde.
 
 > Le fichier historique de sauvegarde est un simple fichier texte. Il contient 
 > le label que vous avez attribué à l'opération `pg_basebackup`, ainsi que les
@@ -135,7 +136,7 @@ d'un plus large concept, à savoir : la sauvegarde.
 > le fichier historique vous permet de savoir quel fichier de sauvegarde vous
 > devez utiliser pour la restauration.
 > 
-> Source : [Réaliser une sauvegarde de base][4]
+> Source : [Réaliser une sauvegarde de base][4]
 
 [4]: https://docs.postgresql.fr/13/continuous-archiving.html#BACKUP-BASE-BACKUP
 
@@ -219,7 +220,7 @@ fichier `backup_label` évolua pour gagner en modularité et en stabilité.
 À l'origine, l'outil `pg_basebackup` n'était pas encore disponible et seul l'appel
 à la méthode [pg_start_backup()][9] permettait de générer le fichier dans lequel
 se trouvaient les quatres informations [suivantes][8] pour accompagner la
-sauvegarde à chaud :
+sauvegarde à chaud :
 
 [8]: https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411
 [9]: https://pgpedia.info/p/pg_start_backup.html
@@ -235,7 +236,7 @@ fprintf(fp, "LABEL: %s\n", backupidstr);
 ```
 
 Les versions majeures se sont enchaînées avec son lot de corrections ou 
-d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
+d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
 - [Contribution][10] de Laurenz Albe (commit [c979a1fe])
 
@@ -244,7 +245,7 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Publié avec la version 8.4, le code `xlog.c` se voit enrichir d'une méthode 
   interne pour annuler la sauvegarde en cours. L'exécution de la commande 
-  `pg_ctl stop` en mode _fast_ renomme le fichier en `backup_label.old` ;
+  `pg_ctl stop` en mode _fast_ renomme le fichier en `backup_label.old` ;
 
 - [Contribution][11] de Dave Kerr (commit [0f04fc67])
 
@@ -253,13 +254,13 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Apparue avec la version mineure 9.0.9, la méthode `pg_start_backup()` inclut
   un appel `fsync()` pour forcer l'écriture sur disque du fichier `backup_label`.
-  Cette sécurité garantit la consistance d'un instantané matériel ;
+  Cette sécurité garantit la consistance d'un instantané matériel ;
 
 - [Contribution][12] de Heikki Linnakangas (commit [41f9ffd9])
 
   Proposé en version 9.2, ce patch corrige des comportements anormaux de
   restauration à partir de la nouvelle méthode de sauvegarde par flux. Le fichier
-  `backup_label` précise la méthode employée entre `pg_start_backup` ou `streamed` ;
+  `backup_label` précise la méthode employée entre `pg_start_backup` ou `streamed` ;
 
   [12]: https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com
   [41f9ffd9]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c
@@ -271,7 +272,7 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Depuis la version 9.2, la méthode `pg_start_backup()` peut être exécutée sur
   une instance secondaire. Le rôle de l'instance d'où provient la sauvegarde est
-  renseignée dans le fichier `backup_label` ;
+  renseignée dans le fichier `backup_label` ;
 
 - [Contribution][14] de Michael Paquier (commit [6271fceb])
 
@@ -280,15 +281,15 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Ajoutée en version 11, l'information _timeline_ dans le fichier `backup_label`
   rejoint les précédentes pour comparer sa valeur avec celles des journaux à 
-  rejouer lors d'une récupération de données ;
+  rejouer lors d'une récupération de données ;
 
 Vous l'aurez compris, pendant de nombreuses années, la capacité de faire une
 sauvegarde dite consistante, reposait sur les deux méthodes vues précédemment.
 La fonction historique `pg_start_backup()` fut particulièrement touchée
 par d'incessantes critiques au sujet d'un comportement non souhaité, notamment
-son mode « exclusif ».
+son mode « exclusif ».
 
-Voyons cela ensemble sur une instance récente en version 13 :
+Voyons cela ensemble sur une instance récente en version 13 :
 
 ```sql
 SELECT pg_start_backup('demo');
@@ -351,7 +352,7 @@ instructions claires de la documentation.
 > ou d'un serveur secondaire est une erreur fréquente qui peut mener à de 
 > sérieuses corruptions de données.
 >
-> Source : [Créer une sauvegarde exclusive de bas niveau][17]
+> Source : [Créer une sauvegarde exclusive de bas niveau][17]
 
 [17]: https://docs.postgresql.fr/12/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-EXCLUSIVE
 
@@ -361,7 +362,7 @@ instructions claires de la documentation.
 
 Cette limitation était connue de longue date et l'équipe de développement
 proposa une [alternative][18] en septembre 2016 avec la sortie de la version 9.6 
-et l'introduction de la sauvegarde dite « concurrente ». Depuis ce jour, la 
+et l'introduction de la sauvegarde dite « concurrente ». Depuis ce jour, la 
 sauvegarde exclusive est annoncée obsolète par les développeurs et pourrait être
 supprimée dans les versions à venir.
 
@@ -450,7 +451,7 @@ plus débattue et a été retirée du _backlog_ de développement lors du Commit
 de [juillet 2020][20]. Lors des derniers échanges, le contributeur David Steele
 (auteur de pgBackRest notamment) [annonçait][21] qu'une sauvegarde exclusive pourrait
 stocker son fichier `backup_label` directement en mémoire partagée plutôt que sur 
-le disque et ainsi corriger sa principale faiblesse :
+le disque et ainsi corriger sa principale faiblesse :
 
 [20]: https://commitfest.postgresql.org/28/1913/
 [21]: https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0bd4bf0d%40pgmasters.net
@@ -459,4 +460,4 @@ le disque et ainsi corriger sa principale faiblesse :
 > memory and store the backup label in it. We only allow one exclusive 
 > backup now so it wouldn't be a loss in functionality.
 
-La suite au prochain épisode !
+La suite au prochain épisode !
