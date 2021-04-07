@@ -6,4 +6,4 @@ server:
 	hugo server -D
 
 build: clean
-	hugo
+	HUGO_DISABLELANGUAGES="en" hugo

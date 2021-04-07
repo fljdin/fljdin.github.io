@@ -1,0 +1,23 @@
+{{ $icons := resources.Get "img/social-icons.svg" }}
+<header class="homepage">
+  <h3 class="homepage-title">
+    <a href="{{ .Site.BaseURL | relLangURL }}" title="{{ .Site.Author.name }}">{{ .Site.Author.name }}</a>
+    <small>
+      {{ range $.Site.Data.navigation -}}
+        {{if isset . "icon" -}}
+        <a href="{{ .url }}"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#" .icon }}"></use></svg></a>
+        {{ else if eq $.Site.Language.Lang .lang }}
+        &nbsp;&nbsp;<a href="{{ .url }}">{{ .text  }}</a>
+        {{- end }}
+      {{- end }}
+      {{ range $.Site.Menus.navigation -}}
+        &nbsp;&nbsp;<a href="{{ .URL }}">{{ .Title  }}</a>
+      {{- end }}
+      {{- if .IsTranslated -}}
+        {{ range .Translations -}}
+          &nbsp;&nbsp;<a href="{{ .Permalink }}">{{ .Language.LanguageName }}</a>
+        {{- end }}
+      {{- end -}}
+    </small>
+  </h3>
+</header>

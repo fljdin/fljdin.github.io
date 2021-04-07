@@ -3,6 +3,7 @@ title: "La brêve histoire du fichier backup_label"
 date: 2021-01-19
 categories: [postgresql]
 tags: [sauvegarde]
+translationKey: "la-breve-histoire-du-fichier-backup_label"
 ---
 
 Je suis resté longtemps ignorant des mécanismes de [journalisation][1] et de _PITR_ 
