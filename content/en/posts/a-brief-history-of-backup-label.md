@@ -4,43 +4,40 @@ date: 2021-04-02
 categories: [postgresql]
 tags: [backup]
 translationKey: "la-breve-histoire-du-fichier-backup_label"
-diff: https://editor.mergely.com/GDTodTN8/
+trad: https://pad.education/p/a-brief-history-of-backup-label
 ---
 
-Je suis resté longtemps ignorant des mécanismes de [journalisation][1] et de _PITR_ 
-avec PostgreSQL alors même qu'il s'agit d'un des fonctionnements critiques pour
-la durabilité des données d'une instance. Mieux comprendre ces concepts m'aurait
-permis à une époque, d'être plus serein lors de la mise en place de sauvegardes
-et surtout au moment de leur restauration !
+For a long time, I remained ignorant about [transaction logging mechanisms][1] 
+and PITR in PostgreSQL, although they were crucial in data durability. A better
+understanding of these concepts would have helped me in a previous life, to be
+more confident during a backup configuration and, well, during after-crash
+intervention!
 
-[1]: https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf
+[1]: http://www.interdb.jp/pg/pgsql09.html
 
-Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
-fait parlé de lui pendant plusieurs années : le fichier `backup_label`. 
-Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en 
-version 8.0 de PostgreSQL et qu'adviendra-t-il de lui dans les prochaines années ?
+By reading this post, I will come back to an amusing file that used to be a
+topic of discussion over the past decade : the backup label file. What is it and
+what is it used for? How has it be enhanced from its origin with PostgreSQL 8.0
+and what could be expected from him over the next years?
 
 <!--more-->
 
 ---
 
-## Il était une fois la journalisation
+## Once upon a time there was transaction logging
 
-En guise d'introduction pour mieux comprendre cet article, il est bon d'expliquer 
-que chaque opération d'écriture dans PostgreSQL comme un `UPDATE` ou un `INSERT`,
-est écrite une première fois au moment du `COMMIT` de la transaction dans un groupe 
-de fichiers, que l'on appelle _WAL_ ou **journaux de transactions**. Ajoutées les
-unes à la suite des autres, ces modifications représentent un faible coût pour
-l'activité des disques par rapport aux écritures aléatoires d'autres processus
-de synchronisation à l'œuvre dans PostgreSQL.
+As an introduction and to better understand this post, it seems good to me to 
+explain that each changing operation in PostgreSQL, like an `UPDATE` or an `INSERT`, 
+is written a first time on `COMMIT` in a group of files, which is called _WAL_ 
+or **transaction logs**. Taken together, these changes represent a low cost to 
+disk activity compared to random writings of others processes at work in PostgreSQL.
 
-Parmi l'un d'eux, le processus `checkpointer` s'assure que les nouvelles données
-en mémoire soient définitivement synchronisées dans les fichiers de données à des
-moments réguliers que l'on appelle `CHECKPOINT`. Cette écriture en deux temps sur 
-les disques apporte d'excellentes performances et garantit qu'aucun bloc modifié 
-ne soit perdu lorsqu'une transaction se termine correctement.
+Among them, the `checkpointer` process ensures that new data in memory is permanently 
+synchronized in the data files and that at regular times called `CHECKPOINT`. This 
+on-disk two-step writing provides excellent performance and ensures that modified 
+blocks are not lost when a transaction ends successfully.
 
-![Écriture différée sur les disques](/img/posts/2021-01-19-ecriture-differee-sur-disque.png)
+![Asynchroneous writes on disks](/img/posts/2021-01-19-ecriture-differee-sur-disque.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 sequenceDiagram
