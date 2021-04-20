@@ -35,7 +35,7 @@ En somme, les signaux sont de simples événements à destination d'un processus
 pour ordonner une action, comme l'éveil, l'arrêt, la lecture d'un fichier de 
 configuration ou le repli sur un champ de bataille (non, pas ce signal-là).
 
-![Gestion des signaux en temps de guerre arthurienne](/img/posts/2020-01-17-drapeaux-kaamelott.jpg)
+![Gestion des signaux en temps de guerre arthurienne](/img/fr/2020-01-17-drapeaux-kaamelott.jpg)
 
 Tout administrateur qui se respecte (ou non) connaît la commande `kill` fournie 
 par son système pour résoudre le problème épineux des programmes qui font n'importe

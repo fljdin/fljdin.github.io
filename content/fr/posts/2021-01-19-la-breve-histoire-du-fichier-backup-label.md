@@ -39,7 +39,7 @@ moments réguliers que l'on appelle `CHECKPOINT`. Cette écriture en deux temps 
 les disques apporte d'excellentes performances et garantit qu'aucun bloc modifié 
 ne soit perdu lorsqu'une transaction se termine correctement.
 
-![Écriture différée sur les disques](/img/posts/2021-01-19-ecriture-differee-sur-disque.png)
+![Écriture différée sur les disques](/img/fr/2021-01-19-ecriture-differee-sur-disque.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 sequenceDiagram

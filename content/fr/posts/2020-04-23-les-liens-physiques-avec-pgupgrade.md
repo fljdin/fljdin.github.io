@@ -99,7 +99,7 @@ Ainsi, pour chaque fichier sur notre système lui est associé un _inode_. La
 représentation suivante permet donc de comprendre la relation entre un lien 
 symbolique et un répertoire.
 
-![Relation entre symlink et directory](/img/posts/2020-04-23-symlink-directory.png)
+![Relation entre symlink et directory](/img/fr/2020-04-23-symlink-directory.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 graph LR
@@ -202,7 +202,7 @@ graph LR
   style inode fill:white
 -->
 
-![Relation hardlink entre deux fichiers](/img/posts/2020-04-23-hardlink-pgbench_accounts.png)
+![Relation hardlink entre deux fichiers](/img/fr/2020-04-23-hardlink-pgbench_accounts.png)
 
 Les avantages sont doubles dans le cas d'une migration majeure :
 
@@ -294,7 +294,7 @@ graph LR
   style inode2 fill:white
 -->
 
-![Nouvel inode après un VACUUM FULL](/img/posts/2020-04-23-hardlink-after-vacuum-full.png)
+![Nouvel inode après un VACUUM FULL](/img/fr/2020-04-23-hardlink-after-vacuum-full.png)
 
 Sur un système de fichiers, le nombre maximal de fichiers que l'on peut créer est 
 défini par la quantité d'_inodes_ disponibles, alors autant faire le ménage dès 

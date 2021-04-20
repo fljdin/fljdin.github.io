@@ -28,7 +28,7 @@ requête est écrite en pur SQL.
 
 [2]: https://fr.wikipedia.org/wiki/Injection_SQL
 
-![Exploit of a mom](/img/posts/2021-03-30-exploits_of_a_mom.png)
+![Exploit of a mom](/img/fr/2021-03-30-exploits_of_a_mom.png)
 
 _Source : <https://xkcd.com/327>_
 
@@ -260,7 +260,7 @@ de préparation (_Parse, Rewrite, Plan_) est supérieur au temps d'exécution po
 préparées, il s'annule intégralement sur un volume de plusieurs milliers de 
 requêtes exécutées dans la même session avec l'utilisation d'un plan générique.
 
-![Répartition des temps d'exécution](/img/posts/2021-03-30-repartition-temps-de-reponse.png)
+![Répartition des temps d'exécution](/img/fr/2021-03-30-repartition-temps-de-reponse.png)
 
 
 {{< message >}}

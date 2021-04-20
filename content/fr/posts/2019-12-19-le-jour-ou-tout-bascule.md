@@ -34,7 +34,7 @@ réplication, nous l'employerons dans cet article pour configurer nos instances
 sans le fichier `recovery.conf`. Pour la facilité de lecture, je baptiserai 
 volontairement les deux serveurs : `batman` et `robin`.
 
-![Architecture simplifiée](/img/posts/2019-12-19-architecture-batman-robin.png)
+![Architecture simplifiée](/img/fr/2019-12-19-architecture-batman-robin.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 graph LR
@@ -151,7 +151,7 @@ et aucun mécanisme d'éviction en cas de _split-brain_ ou de VIP flottante n'on
 
 [1]: https://www.postgresql.org/docs/12/libpq-connect.html#id-1.7.3.8.3.6
 
-![Split brain applicatif](/img/posts/2019-12-19-split-brain.png)
+![Split brain applicatif](/img/fr/2019-12-19-split-brain.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 graph LR
@@ -270,7 +270,7 @@ nouvellement primaire `robin` et pourrait être un risque en cas de surincident.
 De manière générale, il est recommandé d'externaliser systématiquement les archives 
 et les sauvegardes !
 
-![Situation après la synchronisation](/img/posts/2019-12-19-architecture-apres-rsync.png)
+![Situation après la synchronisation](/img/fr/2019-12-19-architecture-apres-rsync.png)
 
 <!--
 graph LR
@@ -447,7 +447,7 @@ d'un nœud. Le diagramme suivant présenterait alors le moins de risque possible
 tout en assurant un niveau de service acceptable, avec un minimum d'actions en 
 cas de bascule :
 
-![Architecture complète](/img/posts/2019-12-19-architecture-complete.png)
+![Architecture complète](/img/fr/2019-12-19-architecture-complete.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 graph LR

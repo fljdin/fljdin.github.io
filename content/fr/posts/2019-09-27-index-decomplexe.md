@@ -33,7 +33,7 @@ alors accompagné d'une liste de numéros de pages, dans lesquelles l'auteur du
 livre a reférencé de lui-même les concepts-clés nécessaires à la recherche par 
 index.
 
-![Exemple d'un index terminologique](/img/posts/2019-09-27-index-terminologique.png)
+![Exemple d'un index terminologique](/img/fr/2019-09-27-index-terminologique.png)
 
 ---
 

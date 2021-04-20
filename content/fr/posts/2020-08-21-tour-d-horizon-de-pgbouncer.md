@@ -52,7 +52,7 @@ l'illustre le schéma ci-après.
 
 [4]: https://www.postgresql.org/docs/12/connect-estab.html
 
-![Architecture simplifiée](/img/posts/2020-08-21-architecture-classique.png)
+![Architecture simplifiée](/img/fr/2020-08-21-architecture-classique.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor/
 graph LR
@@ -92,7 +92,7 @@ responsable des demandes entrantes et se comporte comme un proxy, qu'il soit sur
 le serveur hébergeant les données, sur les serveurs frontaux ou même sur un 
 serveur tiers, dédié à ces redirections.
 
-![Architecture avec PgBouncer](/img/posts/2020-08-21-architecture-pgbouncer.png)
+![Architecture avec PgBouncer](/img/fr/2020-08-21-architecture-pgbouncer.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 graph LR

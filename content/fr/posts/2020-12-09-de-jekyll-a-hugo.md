@@ -96,7 +96,7 @@ souhaitais.
 
 [8]: https://jekyllrb.com/docs/liquid/
 
-![Un thème par défaut pas sans défaut](/img/posts/2020-12-09-hugo-import-from-jekyll.png)
+![Un thème par défaut pas sans défaut](/img/fr/2020-12-09-hugo-import-from-jekyll.png)
 
 Autant le rendu des articles est impeccable avec ce thème, autant la navigation
 est assez pauvre à mon goût. Bien évidemment, c'est bien suffisant pour n'importe

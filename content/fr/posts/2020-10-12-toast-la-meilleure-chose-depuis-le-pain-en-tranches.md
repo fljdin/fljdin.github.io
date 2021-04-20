@@ -16,7 +16,7 @@ petite révolution et de la meilleure chose depuis le pain en tranches.
 
 <!--more-->
 
-![Envie d'une tranche de pain ?](/img/posts/2020-10-12-toasted-bread.jpg)
+![Envie d'une tranche de pain ?](/img/fr/2020-10-12-toasted-bread.jpg)
 
 ---
 
