@@ -11,7 +11,7 @@ alors bien plus aisée au quotidien, simplifiant leur mise en place et leur
 maintenance.
 
 Sans cesse amélioré au cours des dernières années, je me souviens encore de mon 
-émerveillement devant le magie du partitionnement par hachage, [apparu][1] en 
+émerveillement devant la magie du partitionnement par hachage, [apparu][1] en 
 version 11. Comment le déployer et que permet-il ? J'ai voulu m'en rendre compte 
 dans une rapide démonstration sur le type [UUID][2] en étudiant les fonctions
 d'appui qui se cachent derrière le hachage des valeurs.
@@ -29,7 +29,7 @@ Dès lors qu'une ou plusieurs tables dépasse le milliard de lignes, il y a fort
 à parier que les problèmes de performance ou de maintenance soient au rendez-vous :
 index volumineux, fragmentation importante, gel de l'activité pour cause de
 [rebouclage des identifiants de transactions][3], difficultés à purger les données.
-L'apparition du partitionnement déclaratif dans PostgreSQL a permit d'y adresser
+L'apparition du partitionnement déclaratif dans PostgreSQL a permis d'y adresser
 des solutions avec un minimum de complexité.
 
 [3]: https://blog.crunchydata.com/blog/managing-transaction-id-wraparound-in-postgresql
@@ -93,22 +93,9 @@ intégrée dans le catalogue et il n'est plus nécessaire de passer par des
 extensions comme `pgcrypto` ou `uuid-ossp` pour générer un `uuid` aléatoire.
 {{< /message >}}
 
-La commande `ANALYZE` est consciente du découpage de la table partitionnée et
-permet la collecte des statistiques sur l'ensemble des sous-tables. Cela est
-flagrant avec l'option `VERBOSE`. La vue `pg_stat_user_tables` nous indique bien
-un nombre de tuples équitablement insérés dans les partitions.
+La vue `pg_stat_user_tables` nous indique bien un nombre de tuples équitablement
+insérés dans les partitions.
 
-```sql
-ANALYZE VERBOSE t1;
-```
-```text
-INFO:  analyzing "public.t1" inheritance tree
-INFO:  analyzing "public.t1_0_5"
-INFO:  analyzing "public.t1_1_5"
-INFO:  analyzing "public.t1_2_5"
-INFO:  analyzing "public.t1_3_5"
-INFO:  analyzing "public.t1_4_5"
-```
 ```sql
 SELECT relname, SUM(n_live_tup) n_live_tup
   FROM pg_stat_user_tables
@@ -270,7 +257,7 @@ SELECT gen_random_uuid() FROM generate_series(1, 1e6) g;
 -- INSERT 0 1000000
 ```
 
-La suite de mon expérience m'a mené un peu plus loin que ce dont j'imaginais à
+La suite de mon expérience m'a mené un peu plus loin que ce que j'imaginais à
 l'origine. Même en l'absence d'un salage avec la constante `HASH_PARTITION_SEED`,
 une [autre opération][8] au cœur de la méthode de hachage survient : 
 `hash_combine64()`.
@@ -333,7 +320,7 @@ déclaratif sans se soucier de la distribution logique des valeurs de la clé de
 partitionnement.
 
 Bien que l'élagage de partition lors de la planification ne soit pas l'objectif
-de la manœuvre puisque sur la clé de partitionnement est par nature indexée, il 
+de la manœuvre puisque la clé de partitionnement est par nature indexée, il 
 devient très intéressant de bénéficier notamment d'une maintenance par `VACUUM` 
 accélérée en subdivisant les données et les index sur le disque. La distribution
 des opérations de lecture et d'écriture sur plusieurs disques à l'aide des 
