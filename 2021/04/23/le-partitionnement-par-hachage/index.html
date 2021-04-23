@@ -41,7 +41,7 @@ version 10 de PostgreSQL en octobre 2017. La gestion des sous-tables devenait
 alors bien plus aisée au quotidien, simplifiant leur mise en place et leur
 maintenance.</p>
 <p>Sans cesse amélioré au cours des dernières années, je me souviens encore de mon
-émerveillement devant le magie du partitionnement par hachage, <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e">apparu</a> en
+émerveillement devant la magie du partitionnement par hachage, <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e">apparu</a> en
 version 11. Comment le déployer et que permet-il ? J&rsquo;ai voulu m&rsquo;en rendre compte
 dans une rapide démonstration sur le type <a href="https://fr.wikipedia.org/wiki/Universally_unique_identifier">UUID</a> en étudiant les fonctions
 d&rsquo;appui qui se cachent derrière le hachage des valeurs.</p>
@@ -51,7 +51,7 @@ d&rsquo;appui qui se cachent derrière le hachage des valeurs.</p>
 à parier que les problèmes de performance ou de maintenance soient au rendez-vous :
 index volumineux, fragmentation importante, gel de l&rsquo;activité pour cause de
 <a href="https://blog.crunchydata.com/blog/managing-transaction-id-wraparound-in-postgresql">rebouclage des identifiants de transactions</a>, difficultés à purger les données.
-L&rsquo;apparition du partitionnement déclaratif dans PostgreSQL a permit d&rsquo;y adresser
+L&rsquo;apparition du partitionnement déclaratif dans PostgreSQL a permis d&rsquo;y adresser
 des solutions avec un minimum de complexité.</p>
 <p>La clé de partitionnement peut être définie par trois méthodes (<em>range</em>, <em>list</em>,
 <em>hash</em>) qui présentent chacunes des réponses appropriées aux besoins d&rsquo;une table
@@ -99,18 +99,9 @@ Insérons un petit million de lignes et observons leur répartition.</p>
 </span></code></pre></div><div class="message">À partir de la version 13 de PostgreSQL, la fonction <code>gen_random_uuid()</code> est
 intégrée dans le catalogue et il n&rsquo;est plus nécessaire de passer par des
 extensions comme <code>pgcrypto</code> ou <code>uuid-ossp</code> pour générer un <code>uuid</code> aléatoire.</div>
-<p>La commande <code>ANALYZE</code> est consciente du découpage de la table partitionnée et
-permet la collecte des statistiques sur l&rsquo;ensemble des sous-tables. Cela est
-flagrant avec l&rsquo;option <code>VERBOSE</code>. La vue <code>pg_stat_user_tables</code> nous indique bien
-un nombre de tuples équitablement insérés dans les partitions.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">ANALYZE</span> <span class="k">VERBOSE</span> <span class="n">t1</span><span class="p">;</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">INFO:  analyzing &#34;public.t1&#34; inheritance tree
-INFO:  analyzing &#34;public.t1_0_5&#34;
-INFO:  analyzing &#34;public.t1_1_5&#34;
-INFO:  analyzing &#34;public.t1_2_5&#34;
-INFO:  analyzing &#34;public.t1_3_5&#34;
-INFO:  analyzing &#34;public.t1_4_5&#34;
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">relname</span><span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">n_live_tup</span><span class="p">)</span> <span class="n">n_live_tup</span>
+<p>La vue <code>pg_stat_user_tables</code> nous indique bien un nombre de tuples équitablement
+insérés dans les partitions.</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">relname</span><span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">n_live_tup</span><span class="p">)</span> <span class="n">n_live_tup</span>
   <span class="k">FROM</span> <span class="n">pg_stat_user_tables</span>
  <span class="k">GROUP</span> <span class="k">BY</span> <span class="k">cube</span><span class="p">(</span><span class="n">relname</span><span class="p">)</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">relname</span><span class="p">;</span>
 </code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text"> relname | n_live_tup 
@@ -229,7 +220,7 @@ laquelle je sépare les valeurs de <em>hash</em> paires et impaires.</p>
 <span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">t2</span>
 <span class="k">SELECT</span> <span class="n">gen_random_uuid</span><span class="p">()</span> <span class="k">FROM</span> <span class="n">generate_series</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="n">e6</span><span class="p">)</span> <span class="k">g</span><span class="p">;</span>
 <span class="c1">-- INSERT 0 1000000
-</span></code></pre></div><p>La suite de mon expérience m&rsquo;a mené un peu plus loin que ce dont j&rsquo;imaginais à
+</span></code></pre></div><p>La suite de mon expérience m&rsquo;a mené un peu plus loin que ce que j&rsquo;imaginais à
 l&rsquo;origine. Même en l&rsquo;absence d&rsquo;un salage avec la constante <code>HASH_PARTITION_SEED</code>,
 une <a href="https://github.com/postgres/postgres/blob/REL_13_2/src/include/common/hashfn.h#L80">autre opération</a> au cœur de la méthode de hachage survient :
 <code>hash_combine64()</code>.</p>
@@ -275,7 +266,7 @@ nouvelle méthode permettant de bénéficier de tous les avantages du partitionn
 déclaratif sans se soucier de la distribution logique des valeurs de la clé de
 partitionnement.</p>
 <p>Bien que l&rsquo;élagage de partition lors de la planification ne soit pas l&rsquo;objectif
-de la manœuvre puisque sur la clé de partitionnement est par nature indexée, il
+de la manœuvre puisque la clé de partitionnement est par nature indexée, il
 devient très intéressant de bénéficier notamment d&rsquo;une maintenance par <code>VACUUM</code>
 accélérée en subdivisant les données et les index sur le disque. La distribution
 des opérations de lecture et d&rsquo;écriture sur plusieurs disques à l&rsquo;aide des
