@@ -50,12 +50,12 @@ d&rsquo;appui qui se cachent derrière le hachage des valeurs.</p>
 <p>Dès lors qu&rsquo;une ou plusieurs tables dépasse le milliard de lignes, il y a fort
 à parier que les problèmes de performance ou de maintenance soient au rendez-vous :
 index volumineux, fragmentation importante, gel de l&rsquo;activité pour cause de
-<a href="https://blog.crunchydata.com/blog/managing-transaction-id-wraparound-in-postgresql">rebouclage de identifiants de transactions</a>, difficultés à purger les données.
+<a href="https://blog.crunchydata.com/blog/managing-transaction-id-wraparound-in-postgresql">rebouclage des identifiants de transactions</a>, difficultés à purger les données.
 L&rsquo;apparition du partitionnement déclaratif dans PostgreSQL a permit d&rsquo;y adresser
 des solutions avec un minimum de complexité.</p>
 <p>La clé de partitionnement peut être définie par trois méthodes (<em>range</em>, <em>list</em>,
 <em>hash</em>) qui présentent chacunes des réponses appropriées aux besoins d&rsquo;une table
-ou d&rsquo;une fonctionnalité. Nous privilégerions une clé répartie sur un intervale
+ou d&rsquo;une fonctionnalité. Nous privilégierons une clé répartie sur un intervalle
 de temps pour l&rsquo;archivage de données sur une date, ou bien une clé dont les valeurs
 sont régulées dans une liste lorsque l&rsquo;on souhaite maîtriser la répartition et
 pouvoir la faire évoluer simplement.</p>
