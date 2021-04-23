@@ -61,7 +61,7 @@ sont régulées dans une liste lorsque l&rsquo;on souhaite maîtriser la répart
 pouvoir la faire évoluer simplement.</p>
 <p>La dernière méthode <em>hash</em> est intéressante à plusieurs égards par la confusion
 de la clé primaire avec la clé de partionnement et par une répartition équilibrée
-des données sur l&rsquo;ensemble des sous-tables définie à l&rsquo;avance. De manière générale,
+des données sur l&rsquo;ensemble des sous-tables définies à l&rsquo;avance. De manière générale,
 si vous n&rsquo;avez pas idée de votre clé de partitionnement et que vous lisez
 principalement vos données sur leur clé primaire, la méthode par hachage peut être
 un très bon choix de repli.</p>
@@ -133,7 +133,7 @@ précédent.</p>
 </span><span class="c1"></span>
 <span class="k">DROP</span> <span class="k">TABLE</span> <span class="n">t1_0_5</span><span class="p">;</span>
 <span class="k">COMMIT</span><span class="p">;</span>
-</code></pre></div><p>Le contenu de l&rsquo;ancienne partition <code>t1_0_5</code> est déversée dans la table partitionnée
+</code></pre></div><p>Le contenu de l&rsquo;ancienne partition <code>t1_0_5</code> est déversé dans la table partitionnée
 et l&rsquo;opérateur modulus <code>10</code> permet la redistribution des lignes dans les deux
 nouvelles partitions, respectivement celles dont les restes de la division sont <code>0</code>
 et <code>5</code>. On garantit ainsi que les autres partitions ne deviennent pas leur nouvelle

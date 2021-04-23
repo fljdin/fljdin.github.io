@@ -66,7 +66,7 @@ ne soit perdu lorsqu&rsquo;une transaction se termine correctement.</p>
 sont constamment en retard sur la véritable activité transactionnelle, et ce,
 jusqu&rsquo;au prochain <code>CHECKPOINT</code>. En cas d&rsquo;arrêt brutal du système, les blocs en
 attente de synchronisation (<em>dirty pages</em>) présents dans la mémoire <em>Shared Buffer</em>
-sont perdus et les fichiers de données sont dit <strong>inconsistants</strong> car ils mixent
+sont perdus et les fichiers de données sont dit <strong>incohérents</strong> car ils mixent
 des données de transactions anciennes, nouvelles, valides ou invalides.</p>
 <p>Dans pareilles situations, il est possible de redémarrer l&rsquo;instance afin qu&rsquo;elle
 <em>rejoue</em> les modifications dans l&rsquo;ordre des transactions telles qu&rsquo;elles avaient
@@ -86,11 +86,9 @@ suivant :</p>
 de son démarrage et qu&rsquo;elle échoue à trouver le <em>point de reprise</em> le plus proche
 de son état. Sans les journaux, la récupération échoue et s&rsquo;arrête. À cet instant
 précis, vos nerfs et votre politique de sauvegarde sont mis à rude épreuve.</p>
-<p>Pour le dire encore autrement :
-en l&rsquo;absence des journaux de transactions ou de leurs archives, <u>vos plus
-récentes données sont perdues</u>.</p>
-<p>… Et l&rsquo;outil <a href="https://pgpedia.info/p/pg_resetwal.html">pg_resetwal</a> ne les
-récuperera pas pour vous.</p>
+<p>Pour le dire encore autrement : en l&rsquo;absence des journaux de transactions ou de
+leurs archives, <u>vos plus récentes données sont perdues</u>.</p>
+<p>… Et l&rsquo;outil <a href="https://pgpedia.info/p/pg_resetwal.html">pg_resetwal</a> ne les récuperera pas pour vous.</p>
 <hr>
 <h2 id="entre-en-scène-le-backup_label">Entre en scène le backup_label</h2>
 <p>Après ce charmant avertissement, on considèrera que l&rsquo;archivage des journaux
