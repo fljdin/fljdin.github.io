@@ -43,7 +43,7 @@ pouvoir la faire évoluer simplement.
 
 La dernière méthode _hash_ est intéressante à plusieurs égards par la confusion 
 de la clé primaire avec la clé de partionnement et par une répartition équilibrée
-des données sur l'ensemble des sous-tables définie à l'avance. De manière générale,
+des données sur l'ensemble des sous-tables définies à l'avance. De manière générale,
 si vous n'avez pas idée de votre clé de partitionnement et que vous lisez 
 principalement vos données sur leur clé primaire, la méthode par hachage peut être
 un très bon choix de repli.
@@ -139,7 +139,7 @@ DROP TABLE t1_0_5;
 COMMIT;
 ```
 
-Le contenu de l'ancienne partition `t1_0_5` est déversée dans la table partitionnée
+Le contenu de l'ancienne partition `t1_0_5` est déversé dans la table partitionnée
 et l'opérateur modulus `10` permet la redistribution des lignes dans les deux
 nouvelles partitions, respectivement celles dont les restes de la division sont `0`
 et `5`. On garantit ainsi que les autres partitions ne deviennent pas leur nouvelle

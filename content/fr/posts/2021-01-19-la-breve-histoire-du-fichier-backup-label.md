@@ -75,7 +75,7 @@ Par ce mécanisme de journalisation, les fichiers de données de notre instance
 sont constamment en retard sur la véritable activité transactionnelle, et ce, 
 jusqu'au prochain `CHECKPOINT`. En cas d'arrêt brutal du système, les blocs en 
 attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_
-sont perdus et les fichiers de données sont dit **inconsistants** car ils mixent 
+sont perdus et les fichiers de données sont dit **incohérents** car ils mixent 
 des données de transactions anciennes, nouvelles, valides ou invalides.
 
 Dans pareilles situations, il est possible de redémarrer l'instance afin qu'elle
@@ -103,12 +103,10 @@ de son démarrage et qu'elle échoue à trouver le _point de reprise_ le plus pr
 de son état. Sans les journaux, la récupération échoue et s'arrête. À cet instant
 précis, vos nerfs et votre politique de sauvegarde sont mis à rude épreuve.
 
-Pour le dire encore autrement :
-en l'absence des journaux de transactions ou de leurs archives, {{< u >}}vos plus
-récentes données sont perdues{{< /u >}}.
+Pour le dire encore autrement : en l'absence des journaux de transactions ou de 
+leurs archives, {{< u >}}vos plus récentes données sont perdues{{< /u >}}.
 
-… Et l'outil [pg_resetwal][2] ne les 
-récuperera pas pour vous.
+… Et l'outil [pg_resetwal][2] ne les récuperera pas pour vous.
 
 [2]: https://pgpedia.info/p/pg_resetwal.html
 
