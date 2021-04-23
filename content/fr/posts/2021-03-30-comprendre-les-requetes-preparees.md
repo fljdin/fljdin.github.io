@@ -274,10 +274,10 @@ transactions.
 ## Pour aller plus loin
 
 Que ce soit pour se protéger des injections ou pour atteindre de hautes 
-performances, j'ai voulu montrer dans cet article qu'il était pouvait être 
-bénéfique de préparer ses requêtes, d'autant plus si votre librairie préférée le
-supporte. Si vous êtes à la recherche de temps de réponse les plus faibles
-possibles, posez-vous les questions suivantes :
+performances, j'ai voulu montrer dans cet article qu'il pouvait être bénéfique 
+de préparer ses requêtes, d'autant plus si votre librairie préférée le supporte. 
+Si vous êtes à la recherche de temps de réponse les plus faibles possibles, 
+posez-vous les questions suivantes :
 
 * Mes requêtes ont-elles fréquemment la même forme ?
 * Leurs plans d'exécution sont-ils relativement bien optimisés ?
