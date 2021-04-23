@@ -49,7 +49,7 @@ par la douloureuse expérience du terrain. Bien que les nombreuses couches
 d&rsquo;abstraction les rendent aujourd&rsquo;hui inopérantes grâce aux échappements ou à la
 validation des données en entrée, ces attaques sont encore possibles dès que la
 requête est écrite en pur SQL.</p>
-<p><img src="/img/posts/2021-03-30-exploits_of_a_mom.png" alt="Exploit of a mom"></p>
+<p><img src="/img/fr/2021-03-30-exploits_of_a_mom.png" alt="Exploit of a mom"></p>
 <p><em>Source : <a href="https://xkcd.com/327">https://xkcd.com/327</a></em></p>
 <p>L&rsquo;une des meilleures approches pour éviter ces attaques, repose sur la séparation
 des requêtes et de leurs paramètres au moment de leur exécution. L&rsquo;instruction,
@@ -64,7 +64,7 @@ est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à n
 </span></code></pre></div><p>L&rsquo;exemple précédent utilise les ordres SQL <code>PREPARE</code> et <code>EXECUTE</code> mais ce n&rsquo;est
 pas la seule façon de déclarer une instruction préparée. En effet, il existe à
 ce sujet le sous-protocole <em>Extended Query</em> décrit dans la documentation sur les
-<a href="https://www.postgresql.org/docs/13/protocol-flow.html">flux de messages</a>. La communication client-serveur se découpe en trois
+<a href="https://www.postgresql.org/docs/13/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY">flux de messages</a>. La communication client-serveur se découpe en trois
 messages afin de garantir la prise en compte des paramètres à inclure dans une
 instruction préparée, sans risque d&rsquo;injection.</p>
 <ul>
@@ -235,17 +235,17 @@ les phases de préparation et d&rsquo;exécution est sans surprise. Alors que le
 de préparation (<em>Parse, Rewrite, Plan</em>) est supérieur au temps d&rsquo;exécution pour des instructions non
 préparées, il s&rsquo;annule intégralement sur un volume de plusieurs milliers de
 requêtes exécutées dans la même session avec l&rsquo;utilisation d&rsquo;un plan générique.</p>
-<p><img src="/img/posts/2021-03-30-repartition-temps-de-reponse.png" alt="Répartition des temps d&rsquo;exécution"></p>
+<p><img src="/img/fr/2021-03-30-repartition-temps-de-reponse.png" alt="Répartition des temps d&rsquo;exécution"></p>
 <div class="message">Le graphique ci-dessus reprend les temps moyens de chaque étape d&rsquo;une requête
 unitaire à l&rsquo;issue d&rsquo;une vingtaine de traitements <code>pgbench</code> pour 10 000
 transactions.</div>
 <hr>
 <h2 id="pour-aller-plus-loin">Pour aller plus loin</h2>
 <p>Que ce soit pour se protéger des injections ou pour atteindre de hautes
-performances, j&rsquo;ai voulu montrer dans cet article qu&rsquo;il était pouvait être
-bénéfique de préparer ses requêtes, d&rsquo;autant plus si votre librairie préférée le
-supporte. Si vous êtes à la recherche de temps de réponse les plus faibles
-possibles, posez-vous les questions suivantes :</p>
+performances, j&rsquo;ai voulu montrer dans cet article qu&rsquo;il pouvait être bénéfique
+de préparer ses requêtes, d&rsquo;autant plus si votre librairie préférée le supporte.
+Si vous êtes à la recherche de temps de réponse les plus faibles possibles,
+posez-vous les questions suivantes :</p>
 <ul>
 <li>Mes requêtes ont-elles fréquemment la même forme ?</li>
 <li>Leurs plans d&rsquo;exécution sont-ils relativement bien optimisés ?</li>
@@ -265,6 +265,12 @@ l&rsquo;ouverture de la session.</p>
   <ul class="related-posts">
     
       <li>
+        <a href="https://fljd.in/2021/04/23/le-partitionnement-par-hachage/">Le partitionnement par hachage
+          <small><time datetime="2021-04-23">23 Apr 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
         <a href="https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/">Tour d&#39;horizon de PgBouncer
           <small><time datetime="2020-08-21">21 Aug 2020</time></small>
         </a>
@@ -276,12 +282,6 @@ l&rsquo;ouverture de la session.</p>
         </a>
       </li>
     
-      <li>
-        <a href="https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/">Écrire ses tests unitaires en SQL
-          <small><time datetime="2020-05-14">14 May 2020</time></small>
-        </a>
-      </li>
-    
   </ul>
 </aside>
 
@@ -290,7 +290,7 @@ l&rsquo;ouverture de la session.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-07">2021</time> 
+    &copy; 2019-<time datetime="2021-04-23">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

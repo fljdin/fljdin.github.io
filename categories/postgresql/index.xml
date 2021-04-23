@@ -5,7 +5,24 @@
     <link>https://fljd.in/categories/postgresql/</link>
     <description>Recent content in postgresql on Carnet de découvertes</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 30 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 23 Apr 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Le partitionnement par hachage</title>
+      <link>https://fljd.in/2021/04/23/le-partitionnement-par-hachage/</link>
+      <pubDate>Fri, 23 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2021/04/23/le-partitionnement-par-hachage/</guid>
+      <description>&lt;p&gt;Le partitionnement déclaratif a été une véritable révolution à la sortie de la
+version 10 de PostgreSQL en octobre 2017. La gestion des sous-tables devenait
+alors bien plus aisée au quotidien, simplifiant leur mise en place et leur
+maintenance.&lt;/p&gt;
+&lt;p&gt;Sans cesse amélioré au cours des dernières années, je me souviens encore de mon
+émerveillement devant le magie du partitionnement par hachage, &lt;a href=&#34;https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e&#34;&gt;apparu&lt;/a&gt; en
+version 11. Comment le déployer et que permet-il ? J&amp;rsquo;ai voulu m&amp;rsquo;en rendre compte
+dans une rapide démonstration sur le type &lt;a href=&#34;https://fr.wikipedia.org/wiki/Universally_unique_identifier&#34;&gt;UUID&lt;/a&gt; en étudiant les fonctions
+d&amp;rsquo;appui qui se cachent derrière le hachage des valeurs.&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>Comprendre les requêtes préparées</title>
       <link>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</link>
@@ -64,20 +81,6 @@ remarqué, nous en parlions entre collègues pour constater avec surprise que no
 ne connaissions pas cette mine d&amp;rsquo;or d&amp;rsquo;informations sur PostgreSQL. Après y avoir
 perdu plusieurs heures, je me suis dit qu&amp;rsquo;un article sur les quelques utilitaires
 que j&amp;rsquo;estime méconnus, pourrait être une bonne conclusion de la semaine.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>La meilleure chose depuis le pain en tranches</title>
-      <link>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</link>
-      <pubDate>Mon, 12 Oct 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/</guid>
-      <description>&lt;p&gt;Je me souviens de cette époque où j&amp;rsquo;ai été confronté pour la première fois à la
-notion de TOAST avec PostgreSQL. Je trouvais la dénomination amusante, bien
-qu&amp;rsquo;étrange, pour nommer le mécanisme de stockage étendu « &lt;em&gt;The Oversized-Attribute
-Storage Technique&lt;/em&gt; ». Bien que l&amp;rsquo;acronyme ne fasse pas de référence culinaire,
-on peut retrouver dans la &lt;a href=&#34;https://www.postgresql.org/docs/13/storage-toast.html&#34;&gt;documentation officielle&lt;/a&gt; qu&amp;rsquo;il s&amp;rsquo;agissait d&amp;rsquo;une
-petite révolution et de la meilleure chose depuis le pain en tranches.&lt;/p&gt;</description>
     </item>
     
   </channel>

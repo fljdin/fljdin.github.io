@@ -56,7 +56,7 @@ serveur secondaire avec la commande <code>rsync</code>.</p>
 réplication, nous l&rsquo;employerons dans cet article pour configurer nos instances
 sans le fichier <code>recovery.conf</code>. Pour la facilité de lecture, je baptiserai
 volontairement les deux serveurs : <code>batman</code> et <code>robin</code>.</p>
-<p><img src="/img/posts/2019-12-19-architecture-batman-robin.png" alt="Architecture simplifiée"></p>
+<p><img src="/img/fr/2019-12-19-architecture-batman-robin.png" alt="Architecture simplifiée"></p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
 <p>L&rsquo;instance <code>batman</code> dispose de la configuration suivante :</p>
@@ -133,7 +133,7 @@ l&rsquo;instance secondaire est utilisée pour répartir la charge de lecture en
 nœud à l&rsquo;aide de l&rsquo;attribut de préférence <code>target_session_attrs</code> (<a href="https://www.postgresql.org/docs/12/libpq-connect.html#id-1.7.3.8.3.6">documentation</a>)
 et aucun mécanisme d&rsquo;éviction en cas de <em>split-brain</em> ou de VIP flottante n&rsquo;ont
 été déployés sur vos serveurs…</p>
-<p><img src="/img/posts/2019-12-19-split-brain.png" alt="Split brain applicatif"></p>
+<p><img src="/img/fr/2019-12-19-split-brain.png" alt="Split brain applicatif"></p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
 <h2 id="synchronisation">Synchronisation</h2>
@@ -209,7 +209,7 @@ que la zone d&rsquo;archivage (<code>batcave</code>) réside donc sur le même s
 nouvellement primaire <code>robin</code> et pourrait être un risque en cas de surincident.
 De manière générale, il est recommandé d&rsquo;externaliser systématiquement les archives
 et les sauvegardes !</p>
-<p><img src="/img/posts/2019-12-19-architecture-apres-rsync.png" alt="Situation après la synchronisation"></p>
+<p><img src="/img/fr/2019-12-19-architecture-apres-rsync.png" alt="Situation après la synchronisation"></p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
 <p>Vous y conviendrez, cette étape était particulièrement coton pour l&rsquo;envisager
@@ -332,7 +332,7 @@ d&rsquo;archivage sur un système de fichiers redondé pour se prévenir de l&rs
 d&rsquo;un nœud. Le diagramme suivant présenterait alors le moins de risque possible
 tout en assurant un niveau de service acceptable, avec un minimum d&rsquo;actions en
 cas de bascule :</p>
-<p><img src="/img/posts/2019-12-19-architecture-complete.png" alt="Architecture complète"></p>
+<p><img src="/img/fr/2019-12-19-architecture-complete.png" alt="Architecture complète"></p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
 <p>La détection de panne et la bascule automatique sont des thématiques récurrentes
@@ -361,7 +361,7 @@ Zalando qui propose intelligemment l&rsquo;usage de <code>pg_rewind</code> dans 
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-07">2021</time> 
+    &copy; 2019-<time datetime="2021-04-23">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

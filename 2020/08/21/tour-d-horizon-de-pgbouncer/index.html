@@ -68,7 +68,7 @@ processus <em>backend</em> qui maintiendra le lien entre les deux parties et ass
 l&rsquo;aboutissement des commandes du processus client, appelé <em>frontend</em>. Le
 <em>backend</em> ne sera libéré qu&rsquo;à la déconnexion de la session utilisateur, comme
 l&rsquo;illustre le schéma ci-après.</p>
-<p><img src="/img/posts/2020-08-21-architecture-classique.png" alt="Architecture simplifiée"></p>
+<p><img src="/img/fr/2020-08-21-architecture-classique.png" alt="Architecture simplifiée"></p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
 <p>Cependant, l&rsquo;établissement de la connexion n&rsquo;est pas une opération anodine. Les
@@ -85,7 +85,7 @@ clientes et l&rsquo;instance de base de données. Le processus <code>pgbouncer</
 responsable des demandes entrantes et se comporte comme un proxy, qu&rsquo;il soit sur
 le serveur hébergeant les données, sur les serveurs frontaux ou même sur un
 serveur tiers, dédié à ces redirections.</p>
-<p><img src="/img/posts/2020-08-21-architecture-pgbouncer.png" alt="Architecture avec PgBouncer"></p>
+<p><img src="/img/fr/2020-08-21-architecture-pgbouncer.png" alt="Architecture avec PgBouncer"></p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
 <p>PgBouncer ne présente qu&rsquo;une faible empreinte mémoire équivalente à <a href="https://www.pgbouncer.org/features.html">2 ko par
@@ -205,14 +205,14 @@ j&rsquo;y passe plus de temps à l&rsquo;avenir pour vous les présenter !</p>
       </li>
     
       <li>
-        <a href="https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/">Comprendre les requêtes préparées
-          <small><time datetime="2021-03-30">30 Mar 2021</time></small>
+        <a href="https://fljd.in/2021/04/23/le-partitionnement-par-hachage/">Le partitionnement par hachage
+          <small><time datetime="2021-04-23">23 Apr 2021</time></small>
         </a>
       </li>
     
       <li>
-        <a href="https://fljd.in/2019/09/27/index-decomplexe/">Index décomplexé
-          <small><time datetime="2019-09-27">27 Sep 2019</time></small>
+        <a href="https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/">Comprendre les requêtes préparées
+          <small><time datetime="2021-03-30">30 Mar 2021</time></small>
         </a>
       </li>
     
@@ -224,7 +224,7 @@ j&rsquo;y passe plus de temps à l&rsquo;avenir pour vous les présenter !</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-07">2021</time> 
+    &copy; 2019-<time datetime="2021-04-23">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

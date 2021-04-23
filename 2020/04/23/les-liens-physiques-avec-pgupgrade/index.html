@@ -102,7 +102,7 @@ l&rsquo;adresse physique des données du fichier sur le disque.</p>
 <p>Ainsi, pour chaque fichier sur notre système lui est associé un <em>inode</em>. La
 représentation suivante permet donc de comprendre la relation entre un lien
 symbolique et un répertoire.</p>
-<p><img src="/img/posts/2020-04-23-symlink-directory.png" alt="Relation entre symlink et directory"></p>
+<p><img src="/img/fr/2020-04-23-symlink-directory.png" alt="Relation entre symlink et directory"></p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
 <h2 id="le-mode---link-de-pg_upgrade">Le mode --link de <code>pg_upgrade</code></h2>
@@ -174,7 +174,7 @@ physique.</p>
 question. Une représentation de cette relation pourait être la suivante :</p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
-<p><img src="/img/posts/2020-04-23-hardlink-pgbench_accounts.png" alt="Relation hardlink entre deux fichiers"></p>
+<p><img src="/img/fr/2020-04-23-hardlink-pgbench_accounts.png" alt="Relation hardlink entre deux fichiers"></p>
 <p>Les avantages sont doubles dans le cas d&rsquo;une migration majeure :</p>
 <ul>
 <li><strong>Temps de copie des données quasi-nul</strong> : le modèle de données est importé dans
@@ -243,7 +243,7 @@ supprimé ! Nous nous retrouvons avec un fichier et son <em>inode</em> en trop s
 serveur.</p>
 <!-- raw HTML omitted -->
 <!-- raw HTML omitted -->
-<p><img src="/img/posts/2020-04-23-hardlink-after-vacuum-full.png" alt="Nouvel inode après un VACUUM FULL"></p>
+<p><img src="/img/fr/2020-04-23-hardlink-after-vacuum-full.png" alt="Nouvel inode après un VACUUM FULL"></p>
 <p>Sur un système de fichiers, le nombre maximal de fichiers que l&rsquo;on peut créer est
 défini par la quantité d'<em>inodes</em> disponibles, alors autant faire le ménage dès
 que possible pour ne pas atteindre cette limite. D&rsquo;autant plus que la suppression
@@ -284,7 +284,7 @@ n&rsquo;affecte pas l&rsquo;ancienne instance.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-07">2021</time> 
+    &copy; 2019-<time datetime="2021-04-23">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
