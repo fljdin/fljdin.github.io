@@ -171,7 +171,7 @@ par hachage, il suffit de consulter le catalogue.</p>
  hash | xid8                  |              | xid8_ops            | yes
 (46 rows)
 </code></pre></div><p>Lors de l&rsquo;élaboration du partitionnement par hachage, la communauté a étendu les
-fonctions d&rsquo;appui en <a href="https://www.postgresql.org/message-id/CA%2BTgmoZSTkD8ZazeXefmHFMKNG8U8sap-DbKkwVM%2BBw223mkVQ%40mail.gmail.com">proposant</a> que la valeur hâchée soit encodée sur 64 bits
+fonctions d&rsquo;appui en <a href="https://www.postgresql.org/message-id/CA%2BTgmoZSTkD8ZazeXefmHFMKNG8U8sap-DbKkwVM%2BBw223mkVQ%40mail.gmail.com">proposant</a> que la valeur hachée soit encodée sur 64 bits
 (<code>bigint</code>) et mélangée par <a href="https://fr.wikipedia.org/wiki/Salage_(cryptographie)">salage</a>. Dans le cas du type <code>uuid</code>, la fonction
 d&rsquo;appui est <code>uuid_hash_extended</code> pour laquelle le deuxième argument vaut
 <code>HASH_PARTITION_SEED</code> en dur <a href="https://github.com/postgres/postgres/blob/REL_13_2/src/backend/partitioning/partbounds.c#L4560">dans le code</a> de PostgreSQL.</p>
@@ -306,7 +306,7 @@ de solutions pour les tables très volumineuses.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-23">2021</time> 
+    &copy; 2019-<time datetime="2021-04-24">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

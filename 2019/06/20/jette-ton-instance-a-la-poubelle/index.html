@@ -126,16 +126,16 @@ Success. You can now start the database server using:
 
     pg_ctlcluster 11 regress start
 
-Ver Cluster Port Status Owner   Data directory                           
+Ver Cluster Port Status Owner   Data directory
 11  regress 5432 online fjardin /tmp/pg_virtualenv.PEkXHz/data/11/regress
 
 Log file
 /tmp/pg_virtualenv.PEkXHz/log/postgresql-11-regress.log
 </code></pre></div><p>Et voilà ! Tous les éléments suffisants à l&rsquo;administration de ce cluster temporaire
 <code>regress</code> se situent soit dans les variables d&rsquo;environnement, soit dans le fichier
-<code>pg_service.conf</code> de l&rsquo;espace temporaire. Les bases sont donc disponibles
-disponibles par l&rsquo;utilisateur courant jusqu&rsquo;à ce que ce dernier quitte
-l&rsquo;environnement d&rsquo;exécution par la commande <code>exit</code>.</p>
+<code>pg_service.conf</code> de l&rsquo;espace temporaire. Les bases sont donc disponibles par
+l&rsquo;utilisateur courant jusqu&rsquo;à ce que ce dernier quitte l&rsquo;environnement d&rsquo;exécution
+par la commande <code>exit</code>.</p>
 <div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">$ env | grep PG
 PGPORT=5432
 PGUSER=fjardin
@@ -209,7 +209,7 @@ fraîchement compilée ou disponible sur le <em>repository</em> !</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-23">2021</time> 
+    &copy; 2019-<time datetime="2021-04-24">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
