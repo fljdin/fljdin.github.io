@@ -45,7 +45,7 @@ exprimée dans l'extrait du [document][2] ci-dessous.
 > INGRES has been ‘‘hacked up enough’’ to make the inclusion of substantial new 
 > function extremely difficult. Another problem with continuing to extend the 
 > existing system is that many of our proposed ideas would be difficult to 
-> integrate into that system because of earlier design decisions. Consequently, 
+> integrate into that system because of earlier design decisions. Consequently,
 > we are building a new database system, called POSTGRES (POSTinGRES).
 
 Pour l'anecdote, le projet mentionné (INGRES) a par la suite permis l'émergence 
@@ -57,7 +57,7 @@ de produits sous [licence commerciale][3] comme Microsoft SQL Server ou Sybase
 [![Timeline of databases][timeline-of-databases-img]][timeline-of-databases-url]
 
 [timeline-of-databases-url]: https://en.wikipedia.org/wiki/User:Intgr/RDBMS_timeline
-[timeline-of-databases-img]: /img/posts/2019-07-04-timeline-of-databases.png
+[timeline-of-databases-img]: /img/fr/2019-07-04-timeline-of-databases.png
 
 Les années 1990 à 1994 virent des versions successives fiabiliser le produit 
 jusqu'à une nouvelle branche open-source appellée Postgres95, puis PostgreSQL, 
@@ -72,7 +72,7 @@ mises à disposition du grand public en téléchargement gratuit et libre.
 [![PostgreSQL release timeline][postgresql-release-timeline-img]][postgresql-release-timeline-url]
 
 [postgresql-release-timeline-url]: https://en.wikipedia.org/wiki/PostgreSQL#Release_history
-[postgresql-release-timeline-img]: /img/posts/2019-07-04-postgresql-release-timeline.png
+[postgresql-release-timeline-img]: /img/fr/2019-07-04-postgresql-release-timeline.png
 
 Source : [https://docs.postgresql.fr/12/history.html](https://docs.postgresql.fr/12/history.html)
 
@@ -248,7 +248,7 @@ en croire le classement annuel des moteurs de bases de données.
 [![Databases ranking][db-ranking-img]][db-ranking-url]
 
 [db-ranking-url]: https://db-engines.com/en/ranking_trend
-[db-ranking-img]: /img/posts/2019-07-04-db-ranking.png
+[db-ranking-img]: /img/fr/2019-07-04-db-ranking.png
 
 ---
 

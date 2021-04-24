@@ -91,7 +91,7 @@ toutes les raisons de design ou de sécurité citées plus haut, la présence du
 langage C dans les plus populaires des langages en 2019 révèle une certaine 
 réalité de terrain.
 
-[octoverse-programming-langages-img]: /img/posts/2019-12-15-octoverse-programming-langages.png
+[octoverse-programming-langages-img]: /img/fr/2019-12-15-octoverse-programming-langages.png
 
 ---
 

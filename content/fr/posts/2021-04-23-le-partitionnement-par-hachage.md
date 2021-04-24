@@ -190,7 +190,7 @@ demo=# \dAc hash
 ```
 
 Lors de l'élaboration du partitionnement par hachage, la communauté a étendu les
-fonctions d'appui en [proposant][4] que la valeur hâchée soit encodée sur 64 bits 
+fonctions d'appui en [proposant][4] que la valeur hachée soit encodée sur 64 bits 
 (`bigint`) et mélangée par [salage][5]. Dans le cas du type `uuid`, la fonction 
 d'appui est `uuid_hash_extended` pour laquelle le deuxième argument vaut 
 `HASH_PARTITION_SEED` en dur [dans le code][6] de PostgreSQL.

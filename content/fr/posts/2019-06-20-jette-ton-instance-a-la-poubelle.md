@@ -111,7 +111,7 @@ Success. You can now start the database server using:
 
     pg_ctlcluster 11 regress start
 
-Ver Cluster Port Status Owner   Data directory                           
+Ver Cluster Port Status Owner   Data directory
 11  regress 5432 online fjardin /tmp/pg_virtualenv.PEkXHz/data/11/regress
 
 Log file
@@ -120,9 +120,9 @@ Log file
 
 Et voilà ! Tous les éléments suffisants à l'administration de ce cluster temporaire
 `regress` se situent soit dans les variables d'environnement, soit dans le fichier
-`pg_service.conf` de l'espace temporaire. Les bases sont donc disponibles 
-disponibles par l'utilisateur courant jusqu'à ce que ce dernier quitte 
-l'environnement d'exécution par la commande `exit`.
+`pg_service.conf` de l'espace temporaire. Les bases sont donc disponibles par 
+l'utilisateur courant jusqu'à ce que ce dernier quitte l'environnement d'exécution
+par la commande `exit`.
 
 ```text
 $ env | grep PG

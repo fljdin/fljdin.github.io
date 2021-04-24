@@ -120,7 +120,7 @@ que ces archives soient stockées sur un espace sécurisé, voire une zone
 décentralisée pour qu'elles soient accessibles par toutes les instances secondaires
 lorsque vous devez déclencher votre [plan de bascule][3].
 
-[3]: https://fljd.in/2019/12/19/le-jour-ou-tout-bascule
+[3]: /2019/12/19/le-jour-ou-tout-bascule
 
 Pour ceux ayant atteint cette partie de l'article, vous ne devriez pas être
 trop perdus si je vous annonce que le fichier `backup_label` est un composant
@@ -169,7 +169,7 @@ afin de pouvoir contrôler l'intégrité de la copie par la commande
 [pg_verifybackup][6]. Contrôlons le contenu du répertoire de sauvegarde et
 recherchons le tant attendu `backup_label`.
 
-[6]: https://fljd.in/2020/11/18/quelques-outils-meconnus/#pg_verifybackup
+[6]: /2020/11/18/quelques-outils-meconnus/#pg_verifybackup
 
 ```text
 $ tree backups/

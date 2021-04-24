@@ -52,4 +52,4 @@ enrichissante !
 ---
 
 Si vous souhaitez en savoir plus sur mon profil, je vous invite à consulter la 
-page [À Propos](/pages/a-propos/) de ce site.
+page [À Propos](/a-propos/) de ce site.
