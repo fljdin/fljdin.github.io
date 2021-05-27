@@ -80,16 +80,14 @@ attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared B
 sont perdus et les fichiers de données sont dit **incohérents** car ils mixent 
 des données de transactions anciennes, nouvelles, valides ou invalides.
 
-Dans pareilles situations, il est possible de redémarrer l'instance afin qu'elle
-_rejoue_ les modifications dans l'ordre des transactions telles qu'elles avaient
-été écrites dans les _WAL_. Cette reconstruction des fichiers de données pour
-retrouver leur état consistant est sobrement appelée la **récupération des données**
-ou _crash recovery_.
+In such situations, cluster service will be able to restart by applying losted
+changes thanks to transaction logs written in WAL files. This rebuilding process
+of data files to their consistent state is simply called **crash recovery**.
 
 {{< message >}}
-En version 8.0 et supérieures, ce mécanisme a permis l'émergence des solutions
-de restauration dans le temps (_Point In Time Recovery_) et de réplication par
-récupération des journaux (_Log Shipping_) sur une instance secondaire.
+In PostgreSQL 8.0 and above, this mecanism laid the foundation for priceless
+functionalities, like Point In Time Recovery or standby replication with Log
+Shipping to a secondary cluster.
 {{< /message >}}
 
 Que ce soit à la suite d'un crash ou dans le cadre d'une restauration de 
@@ -100,10 +98,10 @@ suivant :
 
 ```PANIC: could not locate a valid checkpoint record```
 
-Il indique que l'instance a détecté une inconsistance dans les fichiers au moment
-de son démarrage et qu'elle échoue à trouver le _point de reprise_ le plus proche 
-de son état. Sans les journaux, la récupération échoue et s'arrête. À cet instant
-précis, vos nerfs et votre politique de sauvegarde sont mis à rude épreuve.
+At this moment of startup stage, the cluster does not find any consistent point 
+between data files and fails to look after the nearest checkpoint record. Without
+transactions logs, crash recovery fails and stops. At this point, your nerves and 
+your backup policy are put to the test.
 
 Pour le dire encore autrement : en l'absence des journaux de transactions ou de 
 leurs archives, {{< u >}}vos plus récentes données sont perdues{{< /u >}}.
@@ -114,13 +112,12 @@ leurs archives, {{< u >}}vos plus récentes données sont perdues{{< /u >}}.
 
 ---
 
-## Entre en scène le backup_label
+## And comes backup label
 
-Après ce charmant avertissement, on considèrera que l'archivage des journaux
-de transactions n'est plus une option dans vos plans de sauvegarde. Assurez-vous
-que ces archives soient stockées sur un espace sécurisé, voire une zone
-décentralisée pour qu'elles soient accessibles par toutes les instances secondaires
-lorsque vous devez déclencher votre [plan de bascule][3].
+After this lovely warning, we will consider that the archiving of transaction logs
+is no longer an option when you are making backups. Make sure that these archives 
+are stored in a secure place, or even a decentralized area so that they are 
+accessible by all standby clusters when you need to trigger your failover plan.
 
 [3]: /2019/12/19/le-jour-ou-tout-bascule
 
@@ -137,11 +134,10 @@ d'un plus large concept, à savoir : la sauvegarde.
 > 
 > Source : [Réaliser une sauvegarde de base][4]
 
-[4]: https://docs.postgresql.fr/13/continuous-archiving.html#BACKUP-BASE-BACKUP
+[4]: https://www.postgresql.org/docs/13/continuous-archiving.html#BACKUP-BASE-BACKUP
 
-Prenons une instance classique en cours d'exécution et réalisons une sauvegarde
-avec l'outil [pg_basebackup][5] que nous vante la documentation. Observons son
-comportement le plus simple avec la génération d'une archive au format `tar`.
+Let’s see the simplest behavior of this documentation-praised tool [pg_basebackup][5]
+by creating a `tar` archive of my running cluster.
 
 [5]: https://www.postgresql.org/docs/13/app-pgbasebackup.html
 
@@ -165,6 +161,11 @@ sur `stream` par défaut, ce qui indique que tous les journaux de transactions
 présents et à venir dans le sous-répertoire `pg_wal` de l'instance seront 
 également sauvegardés dans une archive dédiée, notamment grâce à la création
 d'un slot de réplication temporaire.
+
+Since version 10, option `--wal-method` is setted on `stream` by default, which
+means that all present and future WAL segments in subdirectory `pg_wal` will be
+written in a dedicated archive next to the backup, thanks to a temporary
+replication slot.
 
 Depuis la version 13, l'outil embarque le fichier manifeste dans la sauvegarde
 afin de pouvoir contrôler l'intégrité de la copie par la commande
