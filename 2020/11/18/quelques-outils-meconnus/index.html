@@ -93,16 +93,16 @@ campagne de renommage de <code>xlog</code> en <code>wal</code> initiée avec Pos
 permet de parcourir le contenu des journaux de transactions. Jusqu&rsquo;à présent, je
 ne m&rsquo;en sers qu&rsquo;à des fins pédagogiques, bien qu&rsquo;il puisse s&rsquo;avérer redoutable
 dans un cas de débogage de haute voltige.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">BEGIN</span><span class="p">;</span>
-<span class="k">SELECT</span> <span class="n">txid_current</span><span class="p">();</span>
-<span class="c1">--  txid_current 
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">BEGIN</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">txid_current</span><span class="p">();</span><span class="w">
+</span><span class="w"></span><span class="c1">--  txid_current 
 </span><span class="c1">-- --------------
 </span><span class="c1">--          1315
-</span><span class="c1"></span>
-<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">test</span><span class="p">(</span><span class="n">id</span> <span class="nb">int</span><span class="p">);</span>
-<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">test</span> <span class="k">VALUES</span> <span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-<span class="k">COMMIT</span><span class="p">;</span>
-</code></pre></div><p>Cette simple transaction provoque plusieurs transformations dans les pages de
+</span><span class="c1"></span><span class="w">
+</span><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">test</span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="nb">int</span><span class="p">);</span><span class="w">
+</span><span class="w"></span><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">test</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="w">
+</span><span class="w"></span><span class="k">COMMIT</span><span class="p">;</span><span class="w">
+</span></code></pre></div><p>Cette simple transaction provoque plusieurs transformations dans les pages de
 l&rsquo;instance, notamment dans le catalogue de la base qui reçoit les instructions
 SQL, que je cache volontairement dans l&rsquo;exemple suivant :</p>
 <div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">$ pg_waldump -p data/pg_wal --start=0/52CA530 --xid=1315
@@ -266,7 +266,7 @@ outil présent dans le projet PostgreSQL. Ajoutez-le à vos favoris !</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

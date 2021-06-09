@@ -5,7 +5,20 @@
     <link>https://fljd.in/tags/developpement/</link>
     <description>Recent content in developpement on Carnet de découvertes</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 30 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 09 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Les intervalles de valeurs</title>
+      <link>https://fljd.in/2021/05/09/les-intervalles-de-valeurs/</link>
+      <pubDate>Sun, 09 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://fljd.in/2021/05/09/les-intervalles-de-valeurs/</guid>
+      <description>&lt;p&gt;Ce mois-ci, je vous propose de réviser un peu le langage SQL en l&amp;rsquo;appliquant pour
+des cas d&amp;rsquo;usage assez fréquents qui mettent en scène des types temporels, notamment
+les intervalles de dates. Ce sera l&amp;rsquo;occasion également de revenir sur l&amp;rsquo;implémentation
+très originale qu&amp;rsquo;en a fait PostgreSQL avec les types d&amp;rsquo;intervalle de valeurs, ou
+&lt;em&gt;&lt;a href=&#34;https://www.postgresql.org/docs/13/rangetypes.html&#34;&gt;range types&lt;/a&gt;&lt;/em&gt; dans la documentation.&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>Comprendre les requêtes préparées</title>
       <link>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</link>

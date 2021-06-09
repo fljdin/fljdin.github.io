@@ -3,13 +3,25 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://fljd.in/archives/</loc>
-    <lastmod>2021-04-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-05-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://fljd.in/</loc>
-    <lastmod>2021-04-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-05-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://fljd.in/categories/</loc>
-    <lastmod>2021-04-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-05-09T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://fljd.in/tags/developpement/</loc>
+    <lastmod>2021-05-09T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://fljd.in/2021/05/09/les-intervalles-de-valeurs/</loc>
+    <lastmod>2021-05-09T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://fljd.in/categories/postgresql/</loc>
+    <lastmod>2021-05-09T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://fljd.in/tags/</loc>
+    <lastmod>2021-05-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://fljd.in/2021/04/23/le-partitionnement-par-hachage/</loc>
     <lastmod>2021-04-23T00:00:00+00:00</lastmod>
@@ -20,16 +32,7 @@
     <loc>https://fljd.in/tags/performance/</loc>
     <lastmod>2021-04-23T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://fljd.in/categories/postgresql/</loc>
-    <lastmod>2021-04-23T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://fljd.in/tags/</loc>
-    <lastmod>2021-04-23T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</loc>
-    <lastmod>2021-03-30T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://fljd.in/tags/developpement/</loc>
     <lastmod>2021-03-30T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/</loc>

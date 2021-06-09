@@ -34,7 +34,7 @@
 
   <p class="post-date">
     <time datetime="2020-07-01">1 juill 2020</time>
-    - 11 minutes de lecture
+    - 9 minutes de lecture
   </p>
   <p>La lecture d&rsquo;un plan d&rsquo;exécution fait partie des meilleures armes du développeur
 et de l&rsquo;administrateur de bases de données pour identifier les problèmes de
@@ -55,8 +55,8 @@ existe des données supplémentaires qui permettent au moteur d&rsquo;avoir une 
 <p>Prenons la table <code>pgbench_history</code> sur laquelle j&rsquo;ai ajouté un index pour la
 colonne <code>aid</code>. Quel plan nous propose le moteur pour récupérer toutes les lignes
 dont la valeur <code>aid</code> est inférieure à 1 000 ?</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">pgbench_history</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                      QUERY PLAN
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">EXPLAIN</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgbench_history</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                      QUERY PLAN
 --------------------------------------------------------
  Bitmap Heap Scan on pgbench_history
  (cost=4.34..11.79 rows=9 width=116)
@@ -73,9 +73,9 @@ coûteuses en performance.</p>
 <p>Comment le moteur peut-il être certain que ce plan est le moins coûteux ?
 Comparons son coût d&rsquo;accès total (ici <code>11.79</code>) avec un autre plan pour lequel
 nous interdisons l&rsquo;usage de l&rsquo;index.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SET</span> <span class="n">enable_bitmapscan</span> <span class="o">=</span> <span class="k">off</span><span class="p">;</span>
-<span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">pgbench_history</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                            QUERY PLAN
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SET</span><span class="w"> </span><span class="n">enable_bitmapscan</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">off</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">EXPLAIN</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgbench_history</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                            QUERY PLAN
 ------------------------------------------------------------------
  Seq Scan on pgbench_history  (cost=0.00..19.50 rows=9 width=116)
    Filter: (aid &lt; 1000)
@@ -89,10 +89,10 @@ en réduisant le nombre de choix possibles dans l&rsquo;élaboration de ses plan
 nombre de lignes que retourneront les nœuds. Dans le cas des deux plans, le
 planificateur <em>estime</em> qu&rsquo;il existe 9 lignes répondant au critère de recherche.
 Cette <em>statistique</em> peut être déduite des vues système <code>pg_class</code> et <code>pg_stats</code>.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">s</span><span class="p">.</span><span class="o">*</span><span class="p">,</span> <span class="k">c</span><span class="p">.</span><span class="n">relpages</span><span class="p">,</span> <span class="k">c</span><span class="p">.</span><span class="n">reltuples</span>
-  <span class="k">FROM</span> <span class="n">pg_stats</span> <span class="n">s</span> <span class="k">JOIN</span> <span class="n">pg_class</span> <span class="k">c</span> <span class="k">ON</span> <span class="n">s</span><span class="p">.</span><span class="n">tablename</span> <span class="o">=</span> <span class="k">c</span><span class="p">.</span><span class="n">relname</span>
- <span class="k">WHERE</span> <span class="n">tablename</span> <span class="o">=</span> <span class="s1">&#39;pgbench_history&#39;</span> <span class="k">AND</span> <span class="n">attname</span> <span class="o">=</span> <span class="s1">&#39;aid&#39;</span> <span class="err">\</span><span class="n">gx</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]----------+------------------------------------
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">relpages</span><span class="p">,</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">reltuples</span><span class="w">
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stats</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">pg_class</span><span class="w"> </span><span class="k">c</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">tablename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">relname</span><span class="w">
+</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">tablename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pgbench_history&#39;</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">attname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aid&#39;</span><span class="w"> </span><span class="err">\</span><span class="n">gx</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]----------+------------------------------------
 schemaname             | public
 tablename              | pgbench_history
 attname                | aid
@@ -136,15 +136,15 @@ meilleur plan <strong>doit être</strong> le moins coûteux en ressources et don
 optimisé pour la requête SQL.</p>
 <p>Qu&rsquo;advient-il de notre plan si, par erreur ou hasard, les statistiques étaient
 erronées ou venaient à disparaître pour la colonne <code>aid</code> ?</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">DELETE</span> <span class="k">FROM</span> <span class="n">pg_statistic</span> <span class="n">s</span>
- <span class="k">WHERE</span> <span class="n">starelid</span> <span class="o">=</span> <span class="s1">&#39;pgbench_history&#39;</span><span class="p">::</span><span class="n">regclass</span> <span class="k">AND</span> <span class="n">staattnum</span> <span class="o">=</span> <span class="p">(</span>
-   <span class="k">SELECT</span> <span class="n">attnum</span> <span class="k">FROM</span> <span class="n">pg_attribute</span> 
-    <span class="k">WHERE</span> <span class="n">attrelid</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">starelid</span> <span class="k">AND</span> <span class="n">attname</span> <span class="o">=</span> <span class="s1">&#39;aid&#39;</span>
- <span class="p">);</span>
-
-<span class="k">RESET</span> <span class="n">enable_bitmapscan</span><span class="p">;</span>
-<span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">pgbench_history</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                             QUERY PLAN                             
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">DELETE</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_statistic</span><span class="w"> </span><span class="n">s</span><span class="w">
+</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">starelid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pgbench_history&#39;</span><span class="p">::</span><span class="n">regclass</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">staattnum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">   </span><span class="k">SELECT</span><span class="w"> </span><span class="n">attnum</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_attribute</span><span class="w"> 
+</span><span class="w">    </span><span class="k">WHERE</span><span class="w"> </span><span class="n">attrelid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">starelid</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">attname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aid&#39;</span><span class="w">
+</span><span class="w"> </span><span class="p">);</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">RESET</span><span class="w"> </span><span class="n">enable_bitmapscan</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">EXPLAIN</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgbench_history</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                             QUERY PLAN                             
 --------------------------------------------------------------------
  Seq Scan on pgbench_history  (cost=0.00..19.50 rows=333 width=116)
    Filter: (aid &lt; 1000)
@@ -152,9 +152,9 @@ erronées ou venaient à disparaître pour la colonne <code>aid</code> ?</p>
 <code>Bitmap</code> n&rsquo;est plus le moins coûteux et n&rsquo;est donc plus proposé par le
 planificateur. Le moteur privilégera la lecture complète de la table (<code>Seq Scan</code>)
 dont le coût est invariant.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SET</span> <span class="n">enable_seqscan</span> <span class="o">=</span> <span class="k">off</span><span class="p">;</span>
-<span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">pgbench_history</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                      QUERY PLAN
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SET</span><span class="w"> </span><span class="n">enable_seqscan</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">off</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">EXPLAIN</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgbench_history</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000</span><span class="p">;</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">                      QUERY PLAN
 --------------------------------------------------------
  Bitmap Heap Scan on pgbench_history
  (cost=10.86..22.02 rows=333 width=116)
@@ -196,13 +196,13 @@ avec une contrainte de clé primaire sur la colonne <code>aid</code>. La vue sys
 statistiques, notamment la colonne <code>n_mod_since_analyze</code> qui indique la quantité
 de tuples ayant été modifiés depuis la dernière opération de collecte <code>ANALYZE</code>.
 Voyons son contenu après la modification d&rsquo;une portion de lignes.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">UPDATE</span> <span class="n">pgbench_accounts</span> <span class="k">SET</span> <span class="n">filler</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">;</span>
-<span class="c1">-- UPDATE 10000
-</span><span class="c1"></span>
-<span class="k">SELECT</span> <span class="n">relname</span><span class="p">,</span> <span class="n">last_autoanalyze</span><span class="p">,</span> <span class="n">n_live_tup</span><span class="p">,</span> <span class="n">n_mod_since_analyze</span> 
-  <span class="k">FROM</span> <span class="n">pg_stat_user_tables</span> <span class="n">u</span>
- <span class="k">WHERE</span> <span class="n">relname</span> <span class="o">=</span> <span class="s1">&#39;pgbench_accounts&#39;</span> <span class="err">\</span><span class="n">gx</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]-------+------------------------------
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">UPDATE</span><span class="w"> </span><span class="n">pgbench_accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">filler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">10000</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="c1">-- UPDATE 10000
+</span><span class="c1"></span><span class="w">
+</span><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">relname</span><span class="p">,</span><span class="w"> </span><span class="n">last_autoanalyze</span><span class="p">,</span><span class="w"> </span><span class="n">n_live_tup</span><span class="p">,</span><span class="w"> </span><span class="n">n_mod_since_analyze</span><span class="w"> 
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_user_tables</span><span class="w"> </span><span class="n">u</span><span class="w">
+</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">relname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pgbench_accounts&#39;</span><span class="w"> </span><span class="err">\</span><span class="n">gx</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]-------+------------------------------
 relname             | pgbench_accounts
 last_autoanalyze    | 2020-06-18 15:12:55.224493+02
 n_live_tup          | 1000000
@@ -212,17 +212,17 @@ automatique des statistiques semble ne pas s&rsquo;être déclenché. En effet, 
 de déclenchement pour cette table serait plutôt de 100 050 lignes
 (<code>50 + 0.1 * 1000000</code>). Recommençons avec un plus large échantillon et observons
 les traces d&rsquo;activité du processus <code>autovacuum</code>.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">ALTER</span> <span class="k">SYSTEM</span> <span class="k">SET</span> <span class="n">log_min_messages</span> <span class="o">=</span> <span class="n">debug2</span><span class="p">;</span>
-<span class="k">ALTER</span> <span class="k">SYSTEM</span> <span class="k">SET</span> <span class="n">log_autovacuum_min_duration</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="k">SELECT</span> <span class="n">pg_reload_conf</span><span class="p">();</span>
-
-<span class="k">UPDATE</span> <span class="n">pgbench_accounts</span> <span class="k">SET</span> <span class="n">filler</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">&lt;=</span> <span class="mi">90051</span><span class="p">;</span>
-<span class="c1">-- UPDATE 90051
-</span><span class="c1"></span>
-<span class="k">SELECT</span> <span class="n">relname</span><span class="p">,</span> <span class="n">last_autoanalyze</span><span class="p">,</span> <span class="n">n_live_tup</span><span class="p">,</span> <span class="n">n_mod_since_analyze</span> 
-  <span class="k">FROM</span> <span class="n">pg_stat_user_tables</span> <span class="n">u</span>
- <span class="k">WHERE</span> <span class="n">relname</span> <span class="o">=</span> <span class="s1">&#39;pgbench_accounts&#39;</span> <span class="err">\</span><span class="n">gx</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]-------+------------------------------
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">ALTER</span><span class="w"> </span><span class="k">SYSTEM</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">log_min_messages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">debug2</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">ALTER</span><span class="w"> </span><span class="k">SYSTEM</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">log_autovacuum_min_duration</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_reload_conf</span><span class="p">();</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">UPDATE</span><span class="w"> </span><span class="n">pgbench_accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">filler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">90051</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="c1">-- UPDATE 90051
+</span><span class="c1"></span><span class="w">
+</span><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">relname</span><span class="p">,</span><span class="w"> </span><span class="n">last_autoanalyze</span><span class="p">,</span><span class="w"> </span><span class="n">n_live_tup</span><span class="p">,</span><span class="w"> </span><span class="n">n_mod_since_analyze</span><span class="w"> 
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_user_tables</span><span class="w"> </span><span class="n">u</span><span class="w">
+</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">relname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pgbench_accounts&#39;</span><span class="w"> </span><span class="err">\</span><span class="n">gx</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]-------+------------------------------
 relname             | pgbench_accounts
 last_autoanalyze    | 2020-06-30 17:44:22.424363+02
 n_live_tup          | 1000000
@@ -254,46 +254,46 @@ les options de stockage d&rsquo;une table (<code>reloptions</code>) ou à défau
 d&rsquo;instance, ainsi que le calcul du seuil de déclenchement sur la base de la
 formule précédente. La seconde fonction s&rsquo;assure notamment que le mécanisme de
 collecte automatique n&rsquo;est pas désactivé (<code>autovacuum_enabled = off</code>).</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">CREATE</span> <span class="k">OR</span> <span class="k">REPLACE</span> <span class="k">FUNCTION</span> <span class="n">get_reloption</span><span class="p">(</span><span class="n">reloptions</span> <span class="nb">text</span><span class="p">[],</span> <span class="n">name</span> <span class="nb">text</span><span class="p">)</span>
-<span class="k">RETURNS</span> <span class="nb">text</span> <span class="k">LANGUAGE</span> <span class="k">sql</span>
-<span class="k">AS</span> <span class="err">$$</span>
-  <span class="k">SELECT</span> <span class="n">coalesce</span><span class="p">(</span><span class="k">min</span><span class="p">(</span><span class="n">option_value</span><span class="p">),</span> <span class="n">current_setting</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
-    <span class="k">FROM</span> <span class="n">pg_options_to_table</span><span class="p">(</span><span class="n">reloptions</span><span class="p">)</span> <span class="k">WHERE</span> <span class="n">option_name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span>
-<span class="err">$$</span><span class="p">;</span>
-
-<span class="k">CREATE</span> <span class="k">OR</span> <span class="k">REPLACE</span> <span class="k">FUNCTION</span> <span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">o</span> <span class="n">oid</span><span class="p">)</span>
-<span class="k">RETURNS</span> <span class="nb">float</span> <span class="k">LANGUAGE</span> <span class="k">sql</span>
-<span class="k">AS</span> <span class="err">$$</span>
-  <span class="k">SELECT</span> <span class="n">get_reloption</span><span class="p">(</span><span class="n">reloptions</span><span class="p">,</span> <span class="s1">&#39;autovacuum_analyze_threshold&#39;</span><span class="p">)::</span><span class="nb">int</span> <span class="o">+</span> 
-         <span class="n">get_reloption</span><span class="p">(</span><span class="n">reloptions</span><span class="p">,</span> <span class="s1">&#39;autovacuum_analyze_scale_factor&#39;</span><span class="p">)::</span><span class="nb">float</span> <span class="o">*</span>
-            <span class="n">pg_stat_get_live_tuples</span><span class="p">(</span><span class="n">oid</span><span class="p">)</span>
-    <span class="k">FROM</span> <span class="n">pg_class</span> <span class="k">c</span>
-   <span class="k">WHERE</span> <span class="n">oid</span> <span class="o">=</span> <span class="n">o</span> <span class="k">AND</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="p">(</span>
-     <span class="k">SELECT</span> <span class="mi">1</span> <span class="k">FROM</span> <span class="n">pg_options_to_table</span><span class="p">(</span><span class="k">c</span><span class="p">.</span><span class="n">reloptions</span><span class="p">)</span>
-      <span class="k">WHERE</span> <span class="n">option_name</span> <span class="o">=</span> <span class="s1">&#39;autovacuum_enabled&#39;</span> <span class="k">AND</span> <span class="n">option_value</span> <span class="o">=</span> <span class="s1">&#39;off&#39;</span>
-    <span class="p">)</span>
-<span class="err">$$</span><span class="p">;</span>
-</code></pre></div><p>Avec les résultats de ces fonctions, je peux construire une requête plus évoluée
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">CREATE</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="k">REPLACE</span><span class="w"> </span><span class="k">FUNCTION</span><span class="w"> </span><span class="n">get_reloption</span><span class="p">(</span><span class="n">reloptions</span><span class="w"> </span><span class="nb">text</span><span class="p">[],</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="nb">text</span><span class="p">)</span><span class="w">
+</span><span class="w"></span><span class="k">RETURNS</span><span class="w"> </span><span class="nb">text</span><span class="w"> </span><span class="k">LANGUAGE</span><span class="w"> </span><span class="k">sql</span><span class="w">
+</span><span class="w"></span><span class="k">AS</span><span class="w"> </span><span class="err">$$</span><span class="w">
+</span><span class="w">  </span><span class="k">SELECT</span><span class="w"> </span><span class="n">coalesce</span><span class="p">(</span><span class="k">min</span><span class="p">(</span><span class="n">option_value</span><span class="p">),</span><span class="w"> </span><span class="n">current_setting</span><span class="p">(</span><span class="n">name</span><span class="p">))</span><span class="w">
+</span><span class="w">    </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_options_to_table</span><span class="p">(</span><span class="n">reloptions</span><span class="p">)</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">option_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">name</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="err">$$</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="k">REPLACE</span><span class="w"> </span><span class="k">FUNCTION</span><span class="w"> </span><span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">o</span><span class="w"> </span><span class="n">oid</span><span class="p">)</span><span class="w">
+</span><span class="w"></span><span class="k">RETURNS</span><span class="w"> </span><span class="nb">float</span><span class="w"> </span><span class="k">LANGUAGE</span><span class="w"> </span><span class="k">sql</span><span class="w">
+</span><span class="w"></span><span class="k">AS</span><span class="w"> </span><span class="err">$$</span><span class="w">
+</span><span class="w">  </span><span class="k">SELECT</span><span class="w"> </span><span class="n">get_reloption</span><span class="p">(</span><span class="n">reloptions</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;autovacuum_analyze_threshold&#39;</span><span class="p">)::</span><span class="nb">int</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+</span><span class="w">         </span><span class="n">get_reloption</span><span class="p">(</span><span class="n">reloptions</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;autovacuum_analyze_scale_factor&#39;</span><span class="p">)::</span><span class="nb">float</span><span class="w"> </span><span class="o">*</span><span class="w">
+</span><span class="w">            </span><span class="n">pg_stat_get_live_tuples</span><span class="p">(</span><span class="n">oid</span><span class="p">)</span><span class="w">
+</span><span class="w">    </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_class</span><span class="w"> </span><span class="k">c</span><span class="w">
+</span><span class="w">   </span><span class="k">WHERE</span><span class="w"> </span><span class="n">oid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">o</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">     </span><span class="k">SELECT</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_options_to_table</span><span class="p">(</span><span class="k">c</span><span class="p">.</span><span class="n">reloptions</span><span class="p">)</span><span class="w">
+</span><span class="w">      </span><span class="k">WHERE</span><span class="w"> </span><span class="n">option_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;autovacuum_enabled&#39;</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">option_value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;off&#39;</span><span class="w">
+</span><span class="w">    </span><span class="p">)</span><span class="w">
+</span><span class="w"></span><span class="err">$$</span><span class="p">;</span><span class="w">
+</span></code></pre></div><p>Avec les résultats de ces fonctions, je peux construire une requête plus évoluée
 qui estime l&rsquo;heure du prochain déclenchement en fonction de nombre de modification
 et de la dernière collecte.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">relname</span><span class="p">,</span> <span class="n">n_live_tup</span><span class="p">,</span> <span class="n">n_mod_since_analyze</span><span class="p">,</span>
-    <span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">relid</span><span class="p">)</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">last_autoanalyze</span><span class="p">,</span>
-    <span class="k">current_timestamp</span> <span class="o">+</span> 
-      <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> 
-        <span class="k">CASE</span> <span class="k">WHEN</span> <span class="n">n_mod_since_analyze</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">THEN</span> <span class="k">null</span>
-             <span class="k">WHEN</span> <span class="n">n_mod_since_analyze</span> <span class="o">&gt;</span> <span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">relid</span><span class="p">)</span> <span class="k">THEN</span> <span class="mi">1</span>
-             <span class="k">ELSE</span> <span class="n">n_mod_since_analyze</span> <span class="o">/</span> <span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">relid</span><span class="p">)</span> <span class="k">END</span><span class="p">)</span> <span class="o">*</span>
-      <span class="p">(</span><span class="k">current_timestamp</span> <span class="o">-</span> <span class="n">last_autoanalyze</span><span class="p">)</span> <span class="n">next_autoanalyze</span>
-<span class="k">FROM</span> <span class="n">pg_stat_user_tables</span> <span class="k">WHERE</span> <span class="n">relname</span> <span class="o">=</span> <span class="s1">&#39;pgbench_accounts&#39;</span> <span class="err">\</span><span class="n">gx</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]--------+------------------------------
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">relname</span><span class="p">,</span><span class="w"> </span><span class="n">n_live_tup</span><span class="p">,</span><span class="w"> </span><span class="n">n_mod_since_analyze</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">relid</span><span class="p">)</span><span class="w"> </span><span class="n">threshold</span><span class="p">,</span><span class="w"> </span><span class="n">last_autoanalyze</span><span class="p">,</span><span class="w">
+</span><span class="w">    </span><span class="k">current_timestamp</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+</span><span class="w">      </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> 
+</span><span class="w">        </span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">n_mod_since_analyze</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="k">null</span><span class="w">
+</span><span class="w">             </span><span class="k">WHEN</span><span class="w"> </span><span class="n">n_mod_since_analyze</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">relid</span><span class="p">)</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span><span class="w">             </span><span class="k">ELSE</span><span class="w"> </span><span class="n">n_mod_since_analyze</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">get_anl_threshold</span><span class="p">(</span><span class="n">relid</span><span class="p">)</span><span class="w"> </span><span class="k">END</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w">
+</span><span class="w">      </span><span class="p">(</span><span class="k">current_timestamp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">last_autoanalyze</span><span class="p">)</span><span class="w"> </span><span class="n">next_autoanalyze</span><span class="w">
+</span><span class="w"></span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_user_tables</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">relname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pgbench_accounts&#39;</span><span class="w"> </span><span class="err">\</span><span class="n">gx</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]--------+------------------------------
 relname              | pgbench_accounts
 n_live_tup           | 1000000
 n_mod_since_analyze  | 0
 threshold            | 100050
 last_autoanalyze     | 2020-07-01 15:07:40.134444+02
 next_autoanalyze     | 
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">UPDATE</span> <span class="n">pgbench_accounts</span> <span class="k">SET</span> <span class="n">filler</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">&lt;=</span> <span class="mi">25000</span><span class="p">;</span>
-<span class="c1">-- UPDATE 25000
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">UPDATE</span><span class="w"> </span><span class="n">pgbench_accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">filler</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">25000</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="c1">-- UPDATE 25000
 </span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]--------+------------------------------
 relname              | pgbench_accounts
 n_live_tup           | 1000000
@@ -304,11 +304,11 @@ next_autoanalyze     | 2020-07-01 18:16:43.734491+02
 </code></pre></div><p>La commande <code>ALTER TABLE</code> suivante permet de modifier les options de stockage de
 la table, et d&rsquo;ajuster le seuil du déclenchement automatique de la collecte. À
 vous de voir si l&rsquo;activité sur votre table le justifie !</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">pgbench_accounts</span> <span class="k">SET</span> <span class="p">(</span>
-  <span class="n">autovacuum_analyze_scale_factor</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">01</span><span class="p">,</span> 
-  <span class="n">autovacuum_analyze_threshold</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="p">);</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]--------+------------------------------
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">ALTER</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">pgbench_accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">  </span><span class="n">autovacuum_analyze_scale_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">01</span><span class="p">,</span><span class="w"> 
+</span><span class="w">  </span><span class="n">autovacuum_analyze_threshold</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="w"></span><span class="p">);</span><span class="w">
+</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">-[ RECORD 1 ]--------+------------------------------
 relname              | pgbench_accounts
 n_live_tup           | 1000000
 n_mod_since_analyze  | 25000
@@ -369,7 +369,7 @@ des vies… (euh) des plans d&rsquo;exécution !</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

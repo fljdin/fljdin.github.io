@@ -155,8 +155,8 @@ la main une sauvegarde physique différentielle.</p>
 <p>Puisque la sauvegarde exclusive est annoncée obsolète depuis la version 9.6,
 nous déclarerons le début d&rsquo;une sauvegarde concurrente sur l&rsquo;instance primaire
 <code>robin</code> à l&rsquo;aide de la commande suivante et nous maintiendrons la connexion :</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">pg_start_backup</span><span class="p">(</span><span class="s1">&#39;rsync the batman&#39;</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
-<span class="c1">--  pg_start_backup 
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_start_backup</span><span class="p">(</span><span class="s1">&#39;rsync the batman&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">true</span><span class="p">,</span><span class="w"> </span><span class="k">false</span><span class="p">);</span><span class="w">
+</span><span class="w"></span><span class="c1">--  pg_start_backup 
 </span><span class="c1">-- -----------------
 </span><span class="c1">--  0/15000028
 </span></code></pre></div><p>Sur le nœud <code>batman</code>, on peut alors transférer les données avec l&rsquo;option
@@ -168,8 +168,8 @@ rsync robin:/opt/robin/ batman --archive --checksum --whole-file
 </code></pre></div><p>À l&rsquo;issue de cette copie victorieuse, n&rsquo;oubliez pas de lancer la commande
 <code>pg_stop_backup()</code> sur l&rsquo;instance primaire pour finaliser la sauvegarde et la
 rendre valide.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">labelfile</span> <span class="k">FROM</span> <span class="n">pg_stop_backup</span><span class="p">(</span><span class="k">false</span><span class="p">)</span> <span class="err">\</span><span class="n">gx</span>
-<span class="c1">-- -[ RECORD 1 ]-------------------------------------------------------------
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">labelfile</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stop_backup</span><span class="p">(</span><span class="k">false</span><span class="p">)</span><span class="w"> </span><span class="err">\</span><span class="n">gx</span><span class="w">
+</span><span class="w"></span><span class="c1">-- -[ RECORD 1 ]-------------------------------------------------------------
 </span><span class="c1">-- labelfile | START WAL LOCATION: 0/15000028 (file 000000020000000000000015)+
 </span><span class="c1">--           | CHECKPOINT LOCATION: 0/15000060                               +
 </span><span class="c1">--           | BACKUP METHOD: streamed                                       +
@@ -222,17 +222,17 @@ les modifications réalisées depuis sa promotion.</p>
 <p>Comme suggéré dans la <a href="https://www.postgresql.org/docs/12/app-pgrewind.html#id-1.9.5.9.8">documentation</a>, le compte de réplication <code>streamer</code>
 doit disposer des droits d&rsquo;exécution sur certaines fontions internes pour
 utiliser l&rsquo;outil <code>pg_rewind</code> correctement :</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="err">\</span><span class="k">connect</span> <span class="n">postgres</span>
-
-<span class="k">GRANT</span> <span class="k">EXECUTE</span> <span class="k">ON</span> 
-  <span class="k">function</span> <span class="n">pg_ls_dir</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span> <span class="nb">boolean</span><span class="p">,</span> <span class="nb">boolean</span><span class="p">)</span> <span class="k">TO</span> <span class="n">streamer</span><span class="p">;</span>
-<span class="k">GRANT</span> <span class="k">EXECUTE</span> <span class="k">ON</span> 
-  <span class="k">function</span> <span class="n">pg_stat_file</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span> <span class="nb">boolean</span><span class="p">)</span> <span class="k">TO</span> <span class="n">streamer</span><span class="p">;</span>
-<span class="k">GRANT</span> <span class="k">EXECUTE</span> <span class="k">ON</span> 
-  <span class="k">function</span> <span class="n">pg_read_binary_file</span><span class="p">(</span><span class="nb">text</span><span class="p">)</span> <span class="k">TO</span> <span class="n">streamer</span><span class="p">;</span>
-<span class="k">GRANT</span> <span class="k">EXECUTE</span> <span class="k">ON</span> 
-  <span class="k">function</span> <span class="n">pg_read_binary_file</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span> <span class="nb">bigint</span><span class="p">,</span> <span class="nb">bigint</span><span class="p">,</span> <span class="nb">boolean</span><span class="p">)</span> <span class="k">TO</span> <span class="n">streamer</span><span class="p">;</span>
-</code></pre></div><p>Sur le serveur <code>batman</code>, l&rsquo;instance doit être arrêtée avant de lancer la
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="err">\</span><span class="k">connect</span><span class="w"> </span><span class="n">postgres</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">GRANT</span><span class="w"> </span><span class="k">EXECUTE</span><span class="w"> </span><span class="k">ON</span><span class="w"> 
+</span><span class="w">  </span><span class="k">function</span><span class="w"> </span><span class="n">pg_ls_dir</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span><span class="w"> </span><span class="nb">boolean</span><span class="p">,</span><span class="w"> </span><span class="nb">boolean</span><span class="p">)</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">streamer</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">GRANT</span><span class="w"> </span><span class="k">EXECUTE</span><span class="w"> </span><span class="k">ON</span><span class="w"> 
+</span><span class="w">  </span><span class="k">function</span><span class="w"> </span><span class="n">pg_stat_file</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span><span class="w"> </span><span class="nb">boolean</span><span class="p">)</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">streamer</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">GRANT</span><span class="w"> </span><span class="k">EXECUTE</span><span class="w"> </span><span class="k">ON</span><span class="w"> 
+</span><span class="w">  </span><span class="k">function</span><span class="w"> </span><span class="n">pg_read_binary_file</span><span class="p">(</span><span class="nb">text</span><span class="p">)</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">streamer</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">GRANT</span><span class="w"> </span><span class="k">EXECUTE</span><span class="w"> </span><span class="k">ON</span><span class="w"> 
+</span><span class="w">  </span><span class="k">function</span><span class="w"> </span><span class="n">pg_read_binary_file</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span><span class="w"> </span><span class="nb">bigint</span><span class="p">,</span><span class="w"> </span><span class="nb">bigint</span><span class="p">,</span><span class="w"> </span><span class="nb">boolean</span><span class="p">)</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">streamer</span><span class="p">;</span><span class="w">
+</span></code></pre></div><p>Sur le serveur <code>batman</code>, l&rsquo;instance doit être arrêtée avant de lancer la
 synchronisation et le contenu de la zone d&rsquo;archivage <code>batcave</code> doit être copié
 manuellement vers le répertoire de récupération <code>pg_wal</code> ; il s&rsquo;agit de reproduire
 l&rsquo;instruction <code>restore_command</code> que ne peut pas exécuter l&rsquo;instance lorsqu&rsquo;elle
@@ -361,7 +361,7 @@ Zalando qui propose intelligemment l&rsquo;usage de <code>pg_rewind</code> dans 
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

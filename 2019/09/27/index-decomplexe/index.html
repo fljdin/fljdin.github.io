@@ -34,7 +34,7 @@
 
   <p class="post-date">
     <time datetime="2019-09-27">27 sept 2019</time>
-    - 9 minutes de lecture
+    - 8 minutes de lecture
   </p>
   <blockquote>
 <p><u>Index terminologique</u> : permet au lecteur de localiser 
@@ -72,11 +72,11 @@ de tomber sur l&rsquo;information.</p>
 <p>La méthode d&rsquo;accès pour récupérer la liste des mathématiciens ayant fait partie
 de la famille Gauss peut être obtenue avec l&rsquo;ordre <code>EXPLAIN</code> suivie de la requête 
 <code>SELECT</code> :</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">EXPLAIN</span> <span class="p">(</span><span class="k">ANALYZE</span><span class="p">,</span><span class="n">BUFFERS</span><span class="p">)</span> 
- <span class="k">SELECT</span> <span class="n">firstname</span><span class="p">,</span> <span class="n">lastname</span>
-   <span class="k">FROM</span> <span class="n">mathematicians</span>
-  <span class="k">WHERE</span> <span class="n">lastname</span> <span class="o">=</span> <span class="s1">&#39;Gauss&#39;</span><span class="p">;</span>
-</code></pre></div><p>Le résultat correspond au plan d&rsquo;exécution ou <em>query plan</em>, que le moteur 
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">EXPLAIN</span><span class="w"> </span><span class="p">(</span><span class="k">ANALYZE</span><span class="p">,</span><span class="n">BUFFERS</span><span class="p">)</span><span class="w"> 
+</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">firstname</span><span class="p">,</span><span class="w"> </span><span class="n">lastname</span><span class="w">
+</span><span class="w">   </span><span class="k">FROM</span><span class="w"> </span><span class="n">mathematicians</span><span class="w">
+</span><span class="w">  </span><span class="k">WHERE</span><span class="w"> </span><span class="n">lastname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Gauss&#39;</span><span class="p">;</span><span class="w">
+</span></code></pre></div><p>Le résultat correspond au plan d&rsquo;exécution ou <em>query plan</em>, que le moteur 
 construit à partir des statistiques mises à sa disposition, telles que le nombre 
 de lignes connues dans la table, la présence d&rsquo;index ou la ventilation des données 
 selon leur valeur (aussi appelée histogramme). Durant cette première étape, le 
@@ -158,13 +158,13 @@ la plus faible possible pour réduire les coûts de lecture.</p>
 <p>Il est possible de les consulter à l&rsquo;aide des fonctions mises à disposition par 
 les extensions <a href="https://www.postgresql.org/docs/current/pgstattuple.html">pgstattuple</a> et <a href="https://www.postgresql.org/docs/current/pageinspect.html">pageinspect</a>, et de démêler le parcours 
 d&rsquo;index que réalise le moteur à chaque exécution.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"> <span class="k">SELECT</span> <span class="n">bt_page_stats</span><span class="p">.</span><span class="n">blkno</span><span class="p">,</span> <span class="k">type</span><span class="p">,</span> <span class="n">live_items</span>
-   <span class="k">FROM</span> <span class="n">generate_series</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>
-          <span class="n">pg_relpages</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">)::</span><span class="nb">integer</span><span class="o">-</span><span class="mi">1</span>
-        <span class="p">)</span> <span class="n">blkno</span><span class="p">,</span>
-<span class="k">LATERAL</span> <span class="n">bt_page_stats</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span> <span class="n">blkno</span><span class="p">);</span>
-
-<span class="c1">--  blkno | type | live_items 
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">bt_page_stats</span><span class="p">.</span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="k">type</span><span class="p">,</span><span class="w"> </span><span class="n">live_items</span><span class="w">
+</span><span class="w">   </span><span class="k">FROM</span><span class="w"> </span><span class="n">generate_series</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">          </span><span class="n">pg_relpages</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">)::</span><span class="nb">integer</span><span class="o">-</span><span class="mi">1</span><span class="w">
+</span><span class="w">        </span><span class="p">)</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w">
+</span><span class="w"></span><span class="k">LATERAL</span><span class="w"> </span><span class="n">bt_page_stats</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">blkno</span><span class="p">);</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">--  blkno | type | live_items 
 </span><span class="c1">-- -------+------+------------
 </span><span class="c1">--      1 | l    |        317
 </span><span class="c1">--      2 | l    |        319
@@ -178,12 +178,12 @@ bloc appartenant à l&rsquo;index, à l&rsquo;exception du bloc méta. On consta
 n°3 est la racine (<code>type=r</code>) de notre <em>b-tree</em>, bloc à partir duquel le moteur 
 pourra réaliser les comparaisons successives jusqu&rsquo;à atteindre les valeurs de sa 
 recherche.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">ctid</span><span class="p">,</span> <span class="k">data</span><span class="p">,</span> <span class="n">convert_from</span><span class="p">(</span><span class="n">decode</span><span class="p">(</span>
-         <span class="k">substring</span><span class="p">(</span><span class="k">replace</span><span class="p">(</span><span class="k">data</span><span class="p">,</span> <span class="s1">&#39; 00&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span> 
-       <span class="s1">&#39;hex&#39;</span><span class="p">),</span> <span class="s1">&#39;utf8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">text</span>
-  <span class="k">FROM</span> <span class="n">bt_page_items</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
-
-<span class="c1">--   ctid   |                      data                       |     text     
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">ctid</span><span class="p">,</span><span class="w"> </span><span class="k">data</span><span class="p">,</span><span class="w"> </span><span class="n">convert_from</span><span class="p">(</span><span class="n">decode</span><span class="p">(</span><span class="w">
+</span><span class="w">         </span><span class="k">substring</span><span class="p">(</span><span class="k">replace</span><span class="p">(</span><span class="k">data</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; 00&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">),</span><span class="w"> </span><span class="mi">4</span><span class="p">),</span><span class="w"> 
+</span><span class="w">       </span><span class="s1">&#39;hex&#39;</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">text</span><span class="w">
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">bt_page_items</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">--   ctid   |                      data                       |     text     
 </span><span class="c1">-- ---------+-------------------------------------------------+--------------
 </span><span class="c1">--  (1,0)   |                                                 | 
 </span><span class="c1">--  (2,38)  | 0f 4b 6c 65 65 6e 65 00                         | Kleene
@@ -195,24 +195,24 @@ type de donnée indexée et s&rsquo;il s&rsquo;agit d&rsquo;un bloc d&rsquo;inde
 dans cet exemple, la colonne <code>text</code> nous indique la borne basse (<em>minus infinity</em>)
 de chaque bloc. Il est possible d&rsquo;obtenir les extrêmes de chaque bloc feuille 
 avec la requête suivante :</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">blkno</span><span class="p">,</span> <span class="k">min</span><span class="p">(</span><span class="nb">text</span><span class="p">),</span> <span class="k">max</span><span class="p">(</span><span class="nb">text</span><span class="p">)</span>
-  <span class="k">FROM</span> <span class="p">(</span>
-    <span class="k">SELECT</span> <span class="n">blkno</span><span class="p">,</span> <span class="n">convert_from</span><span class="p">(</span><span class="n">decode</span><span class="p">(</span>
-            <span class="k">substring</span><span class="p">(</span><span class="k">replace</span><span class="p">(</span><span class="k">data</span><span class="p">,</span> <span class="s1">&#39; 00&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span> 
-            <span class="s1">&#39;hex&#39;</span><span class="p">),</span> <span class="s1">&#39;utf8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">text</span>
-      <span class="k">FROM</span> <span class="p">(</span>
-        <span class="k">SELECT</span> <span class="n">bt_page_stats</span><span class="p">.</span><span class="n">blkno</span> 
-          <span class="k">FROM</span> <span class="n">generate_series</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">pg_relpages</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">)::</span><span class="nb">integer</span><span class="o">-</span><span class="mi">1</span>
-               <span class="p">)</span> <span class="n">blkno</span><span class="p">,</span>
-        <span class="k">LATERAL</span> <span class="n">bt_page_stats</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span> <span class="n">blkno</span><span class="p">)</span>
-          <span class="k">WHERE</span> <span class="k">type</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-      <span class="p">)</span> <span class="n">blkno</span><span class="p">,</span>
-   <span class="k">LATERAL</span> <span class="n">bt_page_items</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span> <span class="n">blkno</span><span class="p">)</span>
-     <span class="k">WHERE</span> <span class="k">length</span><span class="p">(</span><span class="k">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-  <span class="p">)</span> <span class="n">t</span> <span class="k">GROUP</span> <span class="k">BY</span> <span class="n">blkno</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">blkno</span><span class="p">;</span>
-
-<span class="c1">--  blkno |     min      |     max      
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="k">min</span><span class="p">(</span><span class="nb">text</span><span class="p">),</span><span class="w"> </span><span class="k">max</span><span class="p">(</span><span class="nb">text</span><span class="p">)</span><span class="w">
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="k">SELECT</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w"> </span><span class="n">convert_from</span><span class="p">(</span><span class="n">decode</span><span class="p">(</span><span class="w">
+</span><span class="w">            </span><span class="k">substring</span><span class="p">(</span><span class="k">replace</span><span class="p">(</span><span class="k">data</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; 00&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">),</span><span class="w"> </span><span class="mi">4</span><span class="p">),</span><span class="w"> 
+</span><span class="w">            </span><span class="s1">&#39;hex&#39;</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">text</span><span class="w">
+</span><span class="w">      </span><span class="k">FROM</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">        </span><span class="k">SELECT</span><span class="w"> </span><span class="n">bt_page_stats</span><span class="p">.</span><span class="n">blkno</span><span class="w"> 
+</span><span class="w">          </span><span class="k">FROM</span><span class="w"> </span><span class="n">generate_series</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w">
+</span><span class="w">                 </span><span class="n">pg_relpages</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">)::</span><span class="nb">integer</span><span class="o">-</span><span class="mi">1</span><span class="w">
+</span><span class="w">               </span><span class="p">)</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w">
+</span><span class="w">        </span><span class="k">LATERAL</span><span class="w"> </span><span class="n">bt_page_stats</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">blkno</span><span class="p">)</span><span class="w">
+</span><span class="w">          </span><span class="k">WHERE</span><span class="w"> </span><span class="k">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;l&#39;</span><span class="w">
+</span><span class="w">      </span><span class="p">)</span><span class="w"> </span><span class="n">blkno</span><span class="p">,</span><span class="w">
+</span><span class="w">   </span><span class="k">LATERAL</span><span class="w"> </span><span class="n">bt_page_items</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">blkno</span><span class="p">)</span><span class="w">
+</span><span class="w">     </span><span class="k">WHERE</span><span class="w"> </span><span class="k">length</span><span class="p">(</span><span class="k">data</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w">
+</span><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">blkno</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">blkno</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">--  blkno |     min      |     max      
 </span><span class="c1">-- -------+--------------+--------------
 </span><span class="c1">--      1 | Abbt         | Kleene
 </span><span class="c1">--      2 | Kleene       | Zarankiewicz
@@ -223,16 +223,16 @@ classés entre les lettres A et K, soit dans le bloc n°1 de l&rsquo;index
 <code>mathematicians_lastname_idx</code>. Le parcours se poursuit donc dans ce nouveau bloc 
 feuille, où les adresses <code>ctid</code> correspondent à présent aux blocs physiques de 
 la table <code>mathematicians</code>.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="o">*</span>
-  <span class="k">FROM</span> <span class="p">(</span>
-    <span class="k">SELECT</span> <span class="n">ctid</span><span class="p">,</span> <span class="k">data</span><span class="p">,</span> <span class="n">convert_from</span><span class="p">(</span><span class="n">decode</span><span class="p">(</span>
-             <span class="k">substring</span><span class="p">(</span><span class="k">replace</span><span class="p">(</span><span class="k">data</span><span class="p">,</span> <span class="s1">&#39; 00&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span> 
-           <span class="s1">&#39;hex&#39;</span><span class="p">),</span> <span class="s1">&#39;utf8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">text</span>
-      <span class="k">FROM</span> <span class="n">bt_page_items</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-  <span class="p">)</span> <span class="n">t</span>
- <span class="k">WHERE</span> <span class="nb">text</span> <span class="k">IN</span> <span class="p">(</span><span class="s1">&#39;Gauss&#39;</span><span class="p">,</span> <span class="s1">&#39;Cartan&#39;</span><span class="p">);</span>
-
-<span class="c1">--   ctid   |          data           |  text  
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w">
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">    </span><span class="k">SELECT</span><span class="w"> </span><span class="n">ctid</span><span class="p">,</span><span class="w"> </span><span class="k">data</span><span class="p">,</span><span class="w"> </span><span class="n">convert_from</span><span class="p">(</span><span class="n">decode</span><span class="p">(</span><span class="w">
+</span><span class="w">             </span><span class="k">substring</span><span class="p">(</span><span class="k">replace</span><span class="p">(</span><span class="k">data</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; 00&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">),</span><span class="w"> </span><span class="mi">4</span><span class="p">),</span><span class="w"> 
+</span><span class="w">           </span><span class="s1">&#39;hex&#39;</span><span class="p">),</span><span class="w"> </span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nb">text</span><span class="w">
+</span><span class="w">      </span><span class="k">FROM</span><span class="w"> </span><span class="n">bt_page_items</span><span class="p">(</span><span class="s1">&#39;mathematicians_lastname_idx&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w">
+</span><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="n">t</span><span class="w">
+</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="nb">text</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;Gauss&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Cartan&#39;</span><span class="p">);</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">--   ctid   |          data           |  text  
 </span><span class="c1">-- ---------+-------------------------+--------
 </span><span class="c1">--  (3,8)   | 0f 43 61 72 74 61 6e 00 | Cartan
 </span><span class="c1">--  (4,8)   | 0f 43 61 72 74 61 6e 00 | Cartan
@@ -300,7 +300,7 @@ disponible sur Wikipédia.</div>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

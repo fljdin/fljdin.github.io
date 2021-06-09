@@ -34,7 +34,7 @@
 
   <p class="post-date">
     <time datetime="2021-03-30">30 mars 2021</time>
-    - 8 minutes de lecture
+    - 7 minutes de lecture
   </p>
   <p>Les requêtes ou <a href="https://en.wikipedia.org/wiki/Prepared_statement">instructions préparées</a> sont un mécanisme proposé par la
 plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
@@ -55,11 +55,11 @@ requête est écrite en pur SQL.</p>
 des requêtes et de leurs paramètres au moment de leur exécution. L&rsquo;instruction,
 dite <strong>préparée</strong>, est ainsi intégralement analysée et le positionnement des valeurs
 est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à néant.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">PREPARE</span> <span class="n">get_notation</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span> <span class="nb">text</span><span class="p">)</span> <span class="k">AS</span>
- <span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">exam</span><span class="p">,</span> <span class="n">notation</span> <span class="k">FROM</span> <span class="n">students</span>
-  <span class="k">WHERE</span> <span class="n">lastname</span> <span class="o">=</span> <span class="err">$</span><span class="mi">1</span> <span class="k">AND</span> <span class="n">firstname</span> <span class="o">=</span> <span class="err">$</span><span class="mi">2</span><span class="p">;</span>
-
-<span class="k">EXECUTE</span> <span class="n">get_notation</span><span class="p">(</span><span class="s1">&#39;Pattinson&#39;</span><span class="p">,</span> <span class="err">$$</span><span class="n">Robert</span><span class="s1">&#39; ; DROP TABLE students;--$$);
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">PREPARE</span><span class="w"> </span><span class="n">get_notation</span><span class="p">(</span><span class="nb">text</span><span class="p">,</span><span class="w"> </span><span class="nb">text</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w">
+</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">exam</span><span class="p">,</span><span class="w"> </span><span class="n">notation</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">students</span><span class="w">
+</span><span class="w">  </span><span class="k">WHERE</span><span class="w"> </span><span class="n">lastname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">$</span><span class="mi">1</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">firstname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">$</span><span class="mi">2</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">EXECUTE</span><span class="w"> </span><span class="n">get_notation</span><span class="p">(</span><span class="s1">&#39;Pattinson&#39;</span><span class="p">,</span><span class="w"> </span><span class="err">$$</span><span class="n">Robert</span><span class="s1">&#39; ; DROP TABLE students;--$$);
 </span><span class="s1">-- (0 rows)
 </span></code></pre></div><p>L&rsquo;exemple précédent utilise les ordres SQL <code>PREPARE</code> et <code>EXECUTE</code> mais ce n&rsquo;est
 pas la seule façon de déclarer une instruction préparée. En effet, il existe à
@@ -83,24 +83,24 @@ paramètres <code>log_parser_stats</code>, <code>log_planner_stats</code>, <code
 <code>log_min_duration_statement</code>, il est possible d&rsquo;identifier les étapes citées plus
 haut avec l&rsquo;exécution d&rsquo;une requête préparée par <code>pgbench</code>, nommée <code>P0_1</code>.</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="c1">-- Message PARSE
-</span><span class="c1"></span><span class="n">LOG</span><span class="p">:</span>  <span class="n">PARSER</span> <span class="k">STATISTICS</span>
-<span class="n">LOG</span><span class="p">:</span>  <span class="n">PARSE</span> <span class="n">ANALYSIS</span> <span class="k">STATISTICS</span>
-<span class="n">LOG</span><span class="p">:</span>  <span class="n">REWRITER</span> <span class="k">STATISTICS</span>
-<span class="n">LOG</span><span class="p">:</span>  <span class="n">duration</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">284</span> <span class="n">ms</span>  
-      <span class="n">parse</span> <span class="n">P0_1</span><span class="p">:</span> <span class="k">SELECT</span> <span class="n">abalance</span> <span class="k">FROM</span> <span class="n">pgbench_accounts</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">=</span> <span class="err">$</span><span class="mi">1</span><span class="p">;</span>
-
-<span class="c1">-- Message BIND
-</span><span class="c1"></span><span class="n">LOG</span><span class="p">:</span>  <span class="n">PLANNER</span> <span class="k">STATISTICS</span>
-<span class="n">LOG</span><span class="p">:</span>  <span class="n">duration</span><span class="p">:</span> <span class="mi">1</span><span class="p">.</span><span class="mi">211</span> <span class="n">ms</span>  
-      <span class="n">bind</span> <span class="n">P0_1</span><span class="p">:</span> <span class="k">SELECT</span> <span class="n">abalance</span> <span class="k">FROM</span> <span class="n">pgbench_accounts</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">=</span> <span class="err">$</span><span class="mi">1</span><span class="p">;</span>
-<span class="n">DETAIL</span><span class="p">:</span>  <span class="k">parameters</span><span class="p">:</span> <span class="err">$</span><span class="mi">1</span> <span class="o">=</span> <span class="s1">&#39;1600439&#39;</span>
-
-<span class="c1">-- Message EXECUTE
-</span><span class="c1"></span><span class="n">LOG</span><span class="p">:</span>  <span class="n">EXECUTOR</span> <span class="k">STATISTICS</span>
-<span class="n">LOG</span><span class="p">:</span>  <span class="n">duration</span><span class="p">:</span> <span class="mi">4</span><span class="p">.</span><span class="mi">170</span> <span class="n">ms</span>  
-      <span class="k">execute</span> <span class="n">P0_1</span><span class="p">:</span> <span class="k">SELECT</span> <span class="n">abalance</span> <span class="k">FROM</span> <span class="n">pgbench_accounts</span> <span class="k">WHERE</span> <span class="n">aid</span> <span class="o">=</span> <span class="err">$</span><span class="mi">1</span><span class="p">;</span>
-<span class="n">DETAIL</span><span class="p">:</span>  <span class="k">parameters</span><span class="p">:</span> <span class="err">$</span><span class="mi">1</span> <span class="o">=</span> <span class="s1">&#39;1600439&#39;</span>
-</code></pre></div><h2 id="quand-un-plan-générique-se-déroule-sans-accroc">Quand un plan générique se déroule sans accroc</h2>
+</span><span class="c1"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">PARSER</span><span class="w"> </span><span class="k">STATISTICS</span><span class="w">
+</span><span class="w"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">PARSE</span><span class="w"> </span><span class="n">ANALYSIS</span><span class="w"> </span><span class="k">STATISTICS</span><span class="w">
+</span><span class="w"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">REWRITER</span><span class="w"> </span><span class="k">STATISTICS</span><span class="w">
+</span><span class="w"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">duration</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">.</span><span class="mi">284</span><span class="w"> </span><span class="n">ms</span><span class="w">  
+</span><span class="w">      </span><span class="n">parse</span><span class="w"> </span><span class="n">P0_1</span><span class="p">:</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">abalance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgbench_accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">$</span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">-- Message BIND
+</span><span class="c1"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">PLANNER</span><span class="w"> </span><span class="k">STATISTICS</span><span class="w">
+</span><span class="w"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">duration</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">.</span><span class="mi">211</span><span class="w"> </span><span class="n">ms</span><span class="w">  
+</span><span class="w">      </span><span class="n">bind</span><span class="w"> </span><span class="n">P0_1</span><span class="p">:</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">abalance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgbench_accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">$</span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="n">DETAIL</span><span class="p">:</span><span class="w">  </span><span class="k">parameters</span><span class="p">:</span><span class="w"> </span><span class="err">$</span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;1600439&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">-- Message EXECUTE
+</span><span class="c1"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">EXECUTOR</span><span class="w"> </span><span class="k">STATISTICS</span><span class="w">
+</span><span class="w"></span><span class="n">LOG</span><span class="p">:</span><span class="w">  </span><span class="n">duration</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">.</span><span class="mi">170</span><span class="w"> </span><span class="n">ms</span><span class="w">  
+</span><span class="w">      </span><span class="k">execute</span><span class="w"> </span><span class="n">P0_1</span><span class="p">:</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">abalance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pgbench_accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">aid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">$</span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="n">DETAIL</span><span class="p">:</span><span class="w">  </span><span class="k">parameters</span><span class="p">:</span><span class="w"> </span><span class="err">$</span><span class="mi">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;1600439&#39;</span><span class="w">
+</span></code></pre></div><h2 id="quand-un-plan-générique-se-déroule-sans-accroc">Quand un plan générique se déroule sans accroc</h2>
 <p>Cependant, la sécurité contre les injections n&rsquo;est pas mise en avant dans la
 documentation de PostgreSQL au sujet de <code>PREPARE</code>. Et pour cause, depuis son
 implémentation dans la version 7.3, cette méthode repose sur des mécanismes
@@ -143,10 +143,10 @@ quelques précieuses millisecondes d&rsquo;analyse à chaque nouveau message <co
 Si je reprends l&rsquo;exemple de Bobby et de la table <code>students</code>, on observe un gain
 significatif au bout de la cinquième ou sixième exécution avec un temps de
 planification (<em>Planning Time</em>) quasi-nul.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">EXPLAIN</span> <span class="p">(</span><span class="k">ANALYZE</span><span class="p">)</span> 
-<span class="k">EXECUTE</span> <span class="n">get_notation</span><span class="p">(</span><span class="s1">&#39;Pattinson&#39;</span><span class="p">,</span> <span class="s1">&#39;Robert&#39;</span><span class="p">);</span>
-
-<span class="c1">--                                 QUERY PLAN
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">EXPLAIN</span><span class="w"> </span><span class="p">(</span><span class="k">ANALYZE</span><span class="p">)</span><span class="w"> 
+</span><span class="w"></span><span class="k">EXECUTE</span><span class="w"> </span><span class="n">get_notation</span><span class="p">(</span><span class="s1">&#39;Pattinson&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Robert&#39;</span><span class="p">);</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">--                                 QUERY PLAN
 </span><span class="c1">-- -------------------------------------------------------------------------------
 </span><span class="c1">--  Index Scan using students_lastname_firstname_idx on students  
 </span><span class="c1">--    (cost=0.29..6.06 rows=1 width=13) (actual time=0.027..0.029 rows=1 loops=1)
@@ -265,6 +265,12 @@ l&rsquo;ouverture de la session.</p>
   <ul class="related-posts">
     
       <li>
+        <a href="https://fljd.in/2021/05/09/les-intervalles-de-valeurs/">Les intervalles de valeurs
+          <small><time datetime="2021-05-09">9 mai 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
         <a href="https://fljd.in/2021/04/23/le-partitionnement-par-hachage/">Le partitionnement par hachage
           <small><time datetime="2021-04-23">23 avr 2021</time></small>
         </a>
@@ -276,12 +282,6 @@ l&rsquo;ouverture de la session.</p>
         </a>
       </li>
     
-      <li>
-        <a href="https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/">Les statistiques au service du plan d&#39;exécution
-          <small><time datetime="2020-07-01">1 juill 2020</time></small>
-        </a>
-      </li>
-    
   </ul>
 </aside>
 
@@ -290,7 +290,7 @@ l&rsquo;ouverture de la session.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

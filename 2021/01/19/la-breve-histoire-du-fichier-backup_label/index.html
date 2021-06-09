@@ -213,8 +213,8 @@ La fonction historique <code>pg_start_backup()</code> fut particulièrement touc
 par d&rsquo;incessantes critiques au sujet d&rsquo;un comportement non souhaité, notamment
 son mode « exclusif ».</p>
 <p>Voyons cela ensemble sur une instance récente en version 13 :</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">pg_start_backup</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">);</span>
-<span class="c1">--  pg_start_backup 
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_start_backup</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">);</span><span class="w">
+</span><span class="w"></span><span class="c1">--  pg_start_backup 
 </span><span class="c1">-- -----------------
 </span><span class="c1">--  0/1D000028
 </span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">$ kill -ABRT $(head -1 data/postmaster.pid)
@@ -276,13 +276,13 @@ le disque et n&rsquo;est plus écrit dans le répertoire de l&rsquo;instance par
 doit être en capacité d&rsquo;exécuter la commande <code>pg_stop_backup()</code> dans la même
 connexion à l&rsquo;instance pour y récupérer les éléments et reconstruire le fichier
 au moment de la restauration.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">pg_start_backup</span><span class="p">(</span><span class="n">label</span> <span class="o">=&gt;</span> <span class="s1">&#39;demo&#39;</span><span class="p">,</span> <span class="k">exclusive</span> <span class="o">=&gt;</span> <span class="k">false</span><span class="p">,</span> <span class="n">fast</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">);</span>
-<span class="c1">--  pg_start_backup 
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_start_backup</span><span class="p">(</span><span class="n">label</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s1">&#39;demo&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">exclusive</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">false</span><span class="p">,</span><span class="w"> </span><span class="n">fast</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">true</span><span class="p">);</span><span class="w">
+</span><span class="w"></span><span class="c1">--  pg_start_backup 
 </span><span class="c1">-- -----------------
 </span><span class="c1">--  0/42000028
-</span><span class="c1"></span>
-<span class="k">SELECT</span> <span class="n">labelfile</span> <span class="k">FROM</span> <span class="n">pg_stop_backup</span><span class="p">(</span><span class="k">exclusive</span> <span class="o">=&gt;</span> <span class="k">false</span><span class="p">);</span>
-<span class="c1">--                            labelfile                            
+</span><span class="c1"></span><span class="w">
+</span><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">labelfile</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stop_backup</span><span class="p">(</span><span class="k">exclusive</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">false</span><span class="p">);</span><span class="w">
+</span><span class="w"></span><span class="c1">--                            labelfile                            
 </span><span class="c1">-- ----------------------------------------------------------------
 </span><span class="c1">-- START WAL LOCATION: 0/42000028 (file 000000010000000000000042)+
 </span><span class="c1">-- CHECKPOINT LOCATION: 0/42000060                               +
@@ -362,7 +362,7 @@ backup now so it wouldn&rsquo;t be a loss in functionality.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

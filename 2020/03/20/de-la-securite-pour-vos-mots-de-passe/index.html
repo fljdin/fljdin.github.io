@@ -34,7 +34,7 @@
 
   <p class="post-date">
     <time datetime="2020-03-20">20 mars 2020</time>
-    - 5 minutes de lecture
+    - 4 minutes de lecture
   </p>
   <p>La sécurité d&rsquo;un système d&rsquo;information prend une multitude de forme. Aussi,
 j&rsquo;aimerai m&rsquo;attarder sur une évolution apparue en version 10 de PostgreSQL,
@@ -44,19 +44,19 @@ déploiements des systèmes courants.</p>
 dans une table système nommée <a href="https://www.postgresql.org/docs/current/catalog-pg-authid.html">pg_authid</a> avec l&rsquo;algorithme MD5. La chaîne
 encodée sur 32 caractères héxadécimaux est le résultat du hachage du mot de passe
 en clair avec le nom de l&rsquo;utilisateur.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">u</span><span class="p">,</span> <span class="n">md5</span><span class="p">(</span><span class="s1">&#39;secret&#39;</span> <span class="o">||</span> <span class="n">u</span><span class="p">)</span> <span class="k">AS</span> <span class="n">hash</span> 
-  <span class="k">FROM</span> <span class="k">unnest</span><span class="p">(</span><span class="nb">array</span><span class="p">[</span><span class="s1">&#39;tom&#39;</span><span class="p">,</span><span class="s1">&#39;jerry&#39;</span><span class="p">])</span> <span class="k">AS</span> <span class="n">u</span><span class="p">;</span>
-   
-<span class="c1">--    u   |               hash               
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">md5</span><span class="p">(</span><span class="s1">&#39;secret&#39;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">u</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">hash</span><span class="w"> 
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="k">unnest</span><span class="p">(</span><span class="nb">array</span><span class="p">[</span><span class="s1">&#39;tom&#39;</span><span class="p">,</span><span class="s1">&#39;jerry&#39;</span><span class="p">])</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">u</span><span class="p">;</span><span class="w">
+</span><span class="w">   
+</span><span class="w"></span><span class="c1">--    u   |               hash               
 </span><span class="c1">-- -------+----------------------------------
 </span><span class="c1">--  tom   | c85e6c670e521155c2823ddaa761c1be
 </span><span class="c1">--  jerry | df96e7fb3e9b25fda78387096d19aca6
 </span></code></pre></div><p>Ainsi, pour tout utilisateur présent dans l&rsquo;instance, il est possible d&rsquo;obtenir
 le <em>hash</em> avec la requête suivante :</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="n">rolname</span><span class="p">,</span> <span class="n">rolpassword</span> <span class="k">FROM</span> <span class="n">pg_authid</span>
- <span class="k">WHERE</span> <span class="n">rolpassword</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">;</span>
-
-<span class="c1">--  rolname |             rolpassword             
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="n">rolname</span><span class="p">,</span><span class="w"> </span><span class="n">rolpassword</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_authid</span><span class="w">
+</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">rolpassword</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">--  rolname |             rolpassword             
 </span><span class="c1">-- ---------+-------------------------------------
 </span><span class="c1">--  tom     | md5c85e6c670e521155c2823ddaa761c1be
 </span><span class="c1">--  jerry   | md5df96e7fb3e9b25fda78387096d19aca6
@@ -88,21 +88,21 @@ bien moins élevé que précédemment. La transformation de cette chaîne néces
 de modifier le paramètre <code>password_encryption</code> et de resaisir le mot de passe
 d&rsquo;un utilisateur.</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="c1">-- Surchage de la méthode pour la session en cours
-</span><span class="c1"></span><span class="k">SET</span> <span class="n">password_encryption</span> <span class="o">=</span> <span class="s1">&#39;scram-sha-256&#39;</span><span class="p">;</span>
-
-<span class="c1">-- Surcharge de la méthode les prochaines connexions de l&#39;utilisateur
-</span><span class="c1"></span><span class="k">ALTER</span> <span class="k">USER</span> <span class="n">jerry</span> <span class="k">SET</span> <span class="n">password_encryption</span> <span class="o">=</span> <span class="s1">&#39;scram-sha-256&#39;</span><span class="p">;</span>
-
-<span class="c1">-- Surcharge de la méthode pour toute l&#39;instance après rechargement
-</span><span class="c1"></span><span class="k">ALTER</span> <span class="k">SYSTEM</span> <span class="k">SET</span> <span class="n">password_encryption</span> <span class="o">=</span> <span class="s1">&#39;scram-sha-256&#39;</span><span class="p">;</span>
-<span class="k">SELECT</span> <span class="n">pg_reload_conf</span><span class="p">();</span>
-</code></pre></div><p>Avec l&rsquo;outil <code>psql</code>, il est recommandé de saisir un mot de passe <em>via</em> la commande
+</span><span class="c1"></span><span class="k">SET</span><span class="w"> </span><span class="n">password_encryption</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;scram-sha-256&#39;</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">-- Surcharge de la méthode les prochaines connexions de l&#39;utilisateur
+</span><span class="c1"></span><span class="k">ALTER</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">jerry</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">password_encryption</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;scram-sha-256&#39;</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">-- Surcharge de la méthode pour toute l&#39;instance après rechargement
+</span><span class="c1"></span><span class="k">ALTER</span><span class="w"> </span><span class="k">SYSTEM</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">password_encryption</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;scram-sha-256&#39;</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_reload_conf</span><span class="p">();</span><span class="w">
+</span></code></pre></div><p>Avec l&rsquo;outil <code>psql</code>, il est recommandé de saisir un mot de passe <em>via</em> la commande
 <code>\password</code> qui se chargera de hacher la saisie avec l&rsquo;algorithme défini
 précédemment et ainsi limiter le transport du mot de passe en clair sur le réseau
 et dans les traces associées à l&rsquo;activité de l&rsquo;instance.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SET</span> <span class="n">log_min_duration_statement</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="err">\</span><span class="n">password</span> <span class="n">jerry</span>
-<span class="c1">-- Enter new password: secret
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SET</span><span class="w"> </span><span class="n">log_min_duration_statement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="err">\</span><span class="n">password</span><span class="w"> </span><span class="n">jerry</span><span class="w">
+</span><span class="w"></span><span class="c1">-- Enter new password: secret
 </span><span class="c1">-- Enter it again: secret
 </span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Extrain du journal postgresql.log</span>
 <span class="m">2020-03-20</span> <span class="m">10</span><span class="o">:</span><span class="m">26</span><span class="o">:</span><span class="m">25.286</span> <span class="n">CET</span> <span class="n">[13500]</span> <span class="n">LOG</span><span class="o">:</span>
@@ -120,12 +120,12 @@ qui produit un résultat pseudo-aléatoire. L&rsquo;implémentation avec Postgre
 être consultée dans le fichier <code>src/common/scram-common.c</code>.</p>
 <p>Enfin, la requête suivante pourrait nous permettre de suivre la migration vers
 l&rsquo;adoption de la nouvelle méthode pour l&rsquo;ensemble des utilisateurs de l&rsquo;instance :</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> <span class="k">lower</span><span class="p">(</span><span class="n">regexp_replace</span><span class="p">(</span><span class="n">rolpassword</span><span class="p">,</span> <span class="s1">&#39;(md5|SCRAM-SHA-256)(.*)&#39;</span><span class="p">,</span> <span class="s1">&#39;\1&#39;</span><span class="p">))</span>
-       <span class="k">AS</span> <span class="k">method</span><span class="p">,</span> <span class="k">count</span><span class="p">(</span><span class="n">oid</span><span class="p">),</span> <span class="n">string_agg</span><span class="p">(</span><span class="n">rolname</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="k">AS</span> <span class="n">roles</span>
-  <span class="k">FROM</span> <span class="n">pg_authid</span> <span class="k">WHERE</span> <span class="n">rolpassword</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span>
- <span class="k">GROUP</span> <span class="k">BY</span> <span class="k">method</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="k">method</span><span class="p">;</span>
-
-<span class="c1">--     method     | count | roles 
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span><span class="w"> </span><span class="k">lower</span><span class="p">(</span><span class="n">regexp_replace</span><span class="p">(</span><span class="n">rolpassword</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;(md5|SCRAM-SHA-256)(.*)&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;\1&#39;</span><span class="p">))</span><span class="w">
+</span><span class="w">       </span><span class="k">AS</span><span class="w"> </span><span class="k">method</span><span class="p">,</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="n">oid</span><span class="p">),</span><span class="w"> </span><span class="n">string_agg</span><span class="p">(</span><span class="n">rolname</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">roles</span><span class="w">
+</span><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_authid</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">rolpassword</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w">
+</span><span class="w"> </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="k">method</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="k">method</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">--     method     | count | roles 
 </span><span class="c1">-- ---------------+-------+-------
 </span><span class="c1">--  md5           |     1 | tom
 </span><span class="c1">--  scram-sha-256 |     1 | jerry
@@ -161,7 +161,7 @@ aider à définir des exceptions pour les mauvais élèves.</p>
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>

@@ -113,10 +113,10 @@ sauvegarde avec l&rsquo;utilisateur dédié.</p>
 </code></pre></div><p>Dès ce moment, mon instance, consciente de l&rsquo;espace de stockage distant, peut
 envoyer ses archives de WAL <em>via</em> la commande <code>archive-push</code> de <code>pgbackrest</code>.
 Un redémarrage est requis pour activer le mode archive.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">ALTER</span> <span class="k">SYSTEM</span> <span class="k">SET</span> <span class="n">archive_mode</span> <span class="o">=</span> <span class="k">on</span><span class="p">;</span>
-<span class="k">ALTER</span> <span class="k">SYSTEM</span> <span class="k">SET</span> <span class="n">archive_command</span> <span class="o">=</span> 
-  <span class="s1">&#39;pgbackrest archive-push %p --stanza=lab --config=/etc/pgbackrest/lab1.conf&#39;</span><span class="p">;</span>
-</code></pre></div><p>Et pour finir, une première sauvegarde complète peut être lancée sur le serveur
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">ALTER</span><span class="w"> </span><span class="k">SYSTEM</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">archive_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">on</span><span class="p">;</span><span class="w">
+</span><span class="w"></span><span class="k">ALTER</span><span class="w"> </span><span class="k">SYSTEM</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">archive_command</span><span class="w"> </span><span class="o">=</span><span class="w"> 
+</span><span class="w">  </span><span class="s1">&#39;pgbackrest archive-push %p --stanza=lab --config=/etc/pgbackrest/lab1.conf&#39;</span><span class="p">;</span><span class="w">
+</span></code></pre></div><p>Et pour finir, une première sauvegarde complète peut être lancée sur le serveur
 de sauvegarde pour assurer la construction de l&rsquo;instance standby.</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">sudo -u pgbr pgbackrest backup --stanza<span class="o">=</span>lab --config<span class="o">=</span>/etc/pgbackrest/bkp1.conf
 sudo -u pgbr pgbackrest info
@@ -145,9 +145,9 @@ sudo pg_ctlcluster start <span class="m">12</span> lab2
 </code></pre></div><p>Tadaa ! Une connexion est alors établie entre les deux nœuds et l&rsquo;on constate
 que l&rsquo;utilisateur <code>streamer</code> rejoue en asynchrone les transactions de l&rsquo;instance
 primaire vers l&rsquo;instance standby.</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="n">pg_stat_replication</span><span class="p">;</span>
-
-<span class="c1">-- -[ RECORD 1 ]----+------------------------------
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">pg_stat_replication</span><span class="p">;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c1">-- -[ RECORD 1 ]----+------------------------------
 </span><span class="c1">-- pid              | 8893
 </span><span class="c1">-- usesysid         | 16384
 </span><span class="c1">-- usename          | streamer
@@ -222,7 +222,7 @@ fichiers de verrous (paramètre <code>--lock-path</code>) et le tour est joué !
     
     <footer class="footer">
   <small>
-    &copy; 2019-<time datetime="2021-04-24">2021</time> 
+    &copy; 2019-<time datetime="2021-06-09">2021</time> 
     — <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr">Creative Commons License BY-NC-ND 4.0</a>
   </small>
 </footer>
