@@ -2,7 +2,9 @@
 title: "Les intervalles de valeurs"
 categories: [postgresql]
 tags: [developpement]
-date: 2021-05-09
+date: 2021-06-09
+aliases: 
+  - "/2021/05/09/les-intervalles-de-valeurs/"
 ---
 
 Ce mois-ci, je vous propose de réviser un peu le langage SQL en l'appliquant pour
