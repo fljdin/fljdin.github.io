@@ -116,7 +116,7 @@ SELECT id, name, period FROM staff
 
 Il peut être possible que nous cherchions également à comparer deux intervalles,
 par exemple pour le calcul d'une intersection ou la recherche de chevauchement.
-Prenons le nouveau problème suivant : « Quels sont les salariées qu'Édouard est
+Prenons le nouveau problème suivant : « Quels sont les salariés qu'Édouard est
 susceptible d'avoir connu durant la durée de son contrat de travail ? »
 
 Dans ce cas de figure, nous cherchons le chevauchement entre les dates de début
