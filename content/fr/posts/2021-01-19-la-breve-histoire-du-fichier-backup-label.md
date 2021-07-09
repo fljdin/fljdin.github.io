@@ -424,6 +424,8 @@ trop complexes et loin d'être immuable dans les années à venir.
 [Barman]: https://www.pgbarman.org/
 [pitrery]: https://dalibo.github.io/pitrery/
 
+---
+
 ##  Morale de l'histoire
 
 Au fil des versions, le fichier `backup_label` a enduré de nombreuses tempêtes

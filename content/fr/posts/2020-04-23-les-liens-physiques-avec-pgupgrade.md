@@ -314,7 +314,7 @@ le gain de temps non négligeable que propose l'option `--link`.
 Avec la version 12, l'outil propose une nouvelle option `--clone` et s'appuie 
 sur la notion de liens « par référence » (ou _reflinks_), conçus initialement 
 sur les systèmes de fichiers supportant la [copie sur écriture][3]. La 
-documentation précise que la copie des fichiers _pratiquement instantanée_ et 
+documentation précise que la copie des fichiers est _pratiquement instantanée_ et 
 n'affecte pas l'ancienne instance.
 
 Peut-être l'occasion de creuser le sujet dans un prochain article ?
