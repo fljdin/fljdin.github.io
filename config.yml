@@ -29,10 +29,13 @@ removePathAccents: true
 pygmentsUseClasses: true
 
 # i18n
+languageCode: fr
 defaultContentLanguage: fr
+
 languages:
   fr:
     title: "Carnet de découvertes"
+    languageCode: fr
     languageName: Français
     contentDir: content/fr
     weight: 1
@@ -46,6 +49,7 @@ languages:
         url: "/archives"
   en:
     title: "Discovery notebook"
+    languageCode: en
     languageName: English
     contentDir: content/en
     weight: 2
