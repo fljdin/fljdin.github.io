@@ -10,6 +10,8 @@ draft: true
 
 https://github.com/dankeder/pg_dump_sample
 
+https://github.com/mla/pg_sample
+
 https://labs.dalibo.com/postgresql_anonymizer
 
 https://blog.taadeem.net/english/2019/01/03/8_anonymization_strategies_with_postgres
