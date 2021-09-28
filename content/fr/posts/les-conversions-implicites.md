@@ -1,8 +1,8 @@
 ---
-title: ""
-categories: []
-tags: []
-date: 2021-08-23
+title: "Les conversions implicites"
+categories: [postgresql]
+tags: [developpement]
+date: 2099-08-23
 draft: true
 ---
 
