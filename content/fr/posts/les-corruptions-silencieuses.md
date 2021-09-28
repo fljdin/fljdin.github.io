@@ -56,8 +56,8 @@ Le meilleur des conseils que trop peu se permettent, serait de se prévenir d'un
 surcorruption en {{< u >}}arrêtant les écritures le plus tôt possible{{< /u >}}.
 Le temps d'identifier l'origine de la corruption, en mobilisant plusieurs équipes
 pour éplucher les logs des hyperviseurs, des baies de stockages ou du fournisseur
-Cloud, il se peut (statistiquement) qu'une autre corruption atteinte à la vie des
-données saines du système.
+Cloud, il se peut (statistiquement) qu'une autre corruption porte atteinte à la
+vie des données saines du système.
 
 Il est aussi [indispensable][2] de procéder à une copie bas niveau du répertoire
 de données de l'instance et de travailler exclusivement sur un exemplaire de ladite
@@ -99,11 +99,11 @@ les valeurs disponibles dans le fichier corrompu.
 SET enable_seqscan = off;
 
 COPY (SELECT aid, bid, abalance, filler 
-        FROM public.pgbench_accounts WHERE aid < 1221)
+        FROM pgbench_accounts WHERE aid < 1221)
   TO stdout;
 
 COPY (SELECT aid, bid, abalance, filler 
-        FROM public.pgbench_accounts WHERE aid > 1281) 
+        FROM pgbench_accounts WHERE aid > 1281) 
   TO stdout;
 ```
 
@@ -252,7 +252,7 @@ UPDATE pgbench_branches SET filler = 'florent';
 CHECKPOINT;
 ```
 
-… et je corrompts la donnée de la table `pgbench_branches`. Au redémarrage,
+… et je corromps la donnée de la table `pgbench_branches`. Au redémarrage,
 PostgreSQL remonte correctement une anomalie de sommes de contrôle sur le bloc
 qui contient la donnée corrompue :
 
