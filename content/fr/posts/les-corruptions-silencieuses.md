@@ -3,7 +3,6 @@ title: "Les corruptions silencieuses"
 categories: [postgresql]
 tags: [administration]
 date: 2021-09-28
-draft: true
 ---
 
 Parmi les drames universellement reconnus, les corruptions de données sont des
