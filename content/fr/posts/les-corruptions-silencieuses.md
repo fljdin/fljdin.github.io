@@ -23,6 +23,7 @@ adaptés. Malgré cela, des précautions sont de mises.
 
 <!--
 https://thebuild.com/presentations/worst-day-fosdem-2014.pdf
+https://postgreshelp.com/postgresql-checksum/
 -->
 
 ---
@@ -37,28 +38,26 @@ le journal de l'instance, dans lequel l'anomalie sera flagrante avec des
 messages d'erreur de type `could not read block xxx in file` ou `invalid page
 (header) in block xxx of relation`.
 
-Les corruptions silencieuses, ainsi les appelle-t-on, peuvent aussi bien [toucher
-les index][1] que les tables. Les premières peuvent provoquer des ralentissements
-pour certaines requêtes, voire remonter des données erronées, alors que les
-secondes sont bien plus problèmatiques avec la destruction simple d'une partie
-des données utilisateurs.
+Les corruptions peuvent aussi bien [toucher les index][1] que les tables. Les
+premières peuvent provoquer des ralentissements pour certaines requêtes, voire
+remonter des données erronées, alors que les secondes sont bien plus
+problématiques avec la destruction simple d'une partie des données utilisateurs.
 
 [1]: https://www.enterprisedb.com/blog/how-to-fix-postgresql-index-corruption-deal-repair-rebuild
 
-À la vue de ces messages, la sueur perle probablement sur le front des équipes
-techniques, si tant est que l'information leur ait été remontée dans un court
-laps de temps. La corruption est-elle réversible avec une copie quelconque de la
-table dans une instance secondaire, ou dans une sauvegarde ? La corruption
-est-elle présente depuis longtemps ? Le système présente-t-il des messages
-alarmants sur l'état des écritures sur le volume ?
+Après un constat désarmant de corruption, la sueur perle probablement sur le 
+front des équipes techniques, si tant est que l'information leur ait été remontée
+dans un court laps de temps. La corruption est-elle réversible avec une copie
+quelconque de la table dans une instance secondaire, ou dans une sauvegarde ?
+La corruption est-elle présente depuis longtemps ? Le système présente-t-il des
+messages alarmants sur l'état des écritures sur le volume ?
  
-Après ce constat désarmant, que faire ? Le meilleur des conseils que trop peu se
-permettent, serait de se prévenir d'une surcorruption en {{< u >}}arrêtant 
-les écritures le plus tôt possible{{< /u >}}. Le temps d'identifier l'origine 
-de la corruption, en mobilisant plusieurs équipes pour éplucher les logs des 
-hyperviseurs, des baies de stockages ou du fournisseur Cloud, il se peut 
-(statistiquement) qu'une autre corruption atteinte à la vie des données saines
-du système.
+Le meilleur des conseils que trop peu se permettent, serait de se prévenir d'une
+surcorruption en {{< u >}}arrêtant les écritures le plus tôt possible{{< /u >}}.
+Le temps d'identifier l'origine de la corruption, en mobilisant plusieurs équipes
+pour éplucher les logs des hyperviseurs, des baies de stockages ou du fournisseur
+Cloud, il se peut (statistiquement) qu'une autre corruption atteinte à la vie des
+données saines du système.
 
 Il est aussi [indispensable][2] de procéder à une copie bas niveau du répertoire
 de données de l'instance et de travailler exclusivement sur un exemplaire de ladite
@@ -71,11 +70,11 @@ copie, _a minima_ sur des disques différents, au mieux, sur un serveur seconda
 ## Récupérer ce qui peut l'être
 
 Pour illustrer la complexité que peut devenir la récupération de données saines
-sur une base corrumpue, j'ai malmené une instance jettable en version 13 dont
+sur une base corrompue, j'ai malmené une instance jetable en version 13 dont
 les données de la table `pgbench_accounts` ont été partiellement détruites avec
 l'outil `fallocate`.
 
-Élargir la recherche des corruptions est possible en forçant la lecture intégrales
+Élargir la recherche des corruptions est possible en forçant la lecture intégrale
 des données contenues dans les tables. Avec PostgreSQL, le plus simple consiste
 à exporter les bases avec `pg_dump`, de surveiller la sortie d'erreurs… et 
 d'espérer qu'aucune donnée ne soit perdue.
@@ -169,10 +168,117 @@ le risque de corruptions.
 * **Ne pas stocker les fichiers** de l'instance sur une clé USB ou un montage
   réseau.
 
+Malgré toutes ces protections, une autre forme de corruption peut encore survenir.
+Une donnée erronée peut être retournée au client sans message d'erreur. On parle
+alors de [corruption silencieuse][6]. 
 
+Prenons l'exemple d'une donnée dans la table `pgbench_branches` :
 
-<!--
-* checksums
-* supervision
--->
+[6]: https://wiki.postgresql.org/wiki/Corruption_Detection_and_Containment
 
+```sql
+UPDATE pgbench_branches SET filler = 'florent';
+SELECT pg_relation_filepath('pgbench_branches');
+
+--  pg_relation_filepath 
+-- ----------------------
+--  base/17100/17179
+```
+
+À l'aide d'un éditeur hexadécimal, je suis libre d'émuler une corruption
+silencieuse en ciblant précisément une donnée de type `text`. Ici, je remplace
+quelques octets pour transformer `florent` en `fl4r%nt`.
+
+```text
+hexedit base/17100/17179
+
+00001F64   00 00 00 00  00 00 00 00  00 00 00 00  ............
+00001F70   02 00 03 80  02 29 18 00  01 00 00 00  .....)......
+00001F7C   00 00 00 00  B3 66 6C 34  72 25 6E 74  .....fl4r%nt
+00001F88   20 20 20 20  20 20 20 20  20 20 20 20
+00001F94   20 20 20 20  20 20 20 20  20 20 20 20
+00001FA0   20 20 20 20  20 20 20 20  20 20 20 20
+00001FAC   20 20 20 20  20 20 20 20  20 20 20 20
+```
+
+Pour cette démonstration, ce changement a été fait à froid, c'est-à-dire instance
+arrêtée et fichiers fermés. Une copie du bloc pouvant encore être dans le cache
+mémoire de PostgreSQL, le prochain `CHECKPOINT` ou synchronisation préventive
+aurait réécrit le bloc sain à l'intérieur du fichier.
+
+Au redémarrage de l'instance, le contenu de la table est erroné, mais PostgreSQL
+n'aura détecté aucune anomalie de corruption dans le bloc de fichier.
+
+```sql
+SELECT * FROM pgbench_branches;
+
+-- -[ RECORD 1 ]---------
+-- bid      | 1
+-- bbalance | 0
+-- filler   | fl4r%nt
+```
+
+Depuis la version 9.3 de PostgreSQL, publiée en septembre 2013, il est possible
+d'activer les [sommes de contrôles][7] pour les données d'une instance afin de
+contrôler l'état d'un bloc entre son écriture et ses futures lectures, évitant
+alors tout risque de corruption silencieuse.
+
+[7]: https://paquier.xyz/postgresql-2/postgres-9-3-feature-highlight-data-checksums/
+
+Cette opération nécessite pour les versions 11 et inférieures, que l'instance
+soit créée avec ce mode particulier. Depuis la [version 12][8], l'utilitaire 
+`pg_checksums` permet d'activer et de désactiver le mécanisme de sommes de 
+contrôle sur le répertoire de données d'une instance arrêtée, sans besoin de 
+migrer vers une nouvelle instance comme il était nécessaire dans les versions
+précédentes.
+
+[8]: https://pgpedia.info/d/data-page-checksums.html
+
+```sh
+$ pg_checksums --pgdata=$PGENV_ROOT/pgsql/data --enable
+
+Checksum operation completed
+Files scanned:  3097
+Blocks scanned: 109156
+pg_checksums: syncing data directory
+pg_checksums: updating control file
+Checksums enabled in cluster
+```
+
+Dans ce nouveau contexte, je réalise à une nouvelle fois un `UPDATE` sur la table…
+
+```sql
+UPDATE pgbench_branches SET filler = 'florent';
+CHECKPOINT;
+```
+
+… et je corrompts la donnée de la table `pgbench_branches`. Au redémarrage,
+PostgreSQL remonte correctement une anomalie de sommes de contrôle sur le bloc
+qui contient la donnée corrompue :
+
+```sql
+SELECT * FROM pgbench_branches;
+
+-- WARNING: page verification failed, calculated checksum 35393 but expected 2501
+-- ERROR: invalid page in block 0 of relation base/17100/17179
+```
+
+---
+
+## Conclusion
+
+Les corruptions sont des événements rarissimes et imprévisibles. Il est 
+communément admis que les dégâts sont irréversibles dans un grand nombre de
+situations, en l'absence de contre-mesures suffisantes. 
+
+À moins d'avoir une confiance aveugle dans l'infrastructure matérielle qui
+héberge vos instances, l'activation des sommes de contrôle représente à ce jour
+le mécanisme le plus complet pour identifier rapidement toutes les formes de
+corruptions sur les données de vos bases.
+
+**Mauvaise nouvelle : ce mécanisme n'est pas actif par défaut.**
+
+À vous d'intégrer l'option `--data-checksums` de l'utilitaire `initdb` lors du
+provisionnement de toutes vos nouvelles instances. Enfin, privilégiez une
+version 12 ou supérieure, car vous ne regretterez pas le gain de temps que
+vous apportera `pg_checksums` !
