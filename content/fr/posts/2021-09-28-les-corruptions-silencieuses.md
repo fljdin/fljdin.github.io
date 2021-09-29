@@ -150,7 +150,7 @@ le risque de corruptions.
 [5]: http://blog.ringerc.id.au/2012/10/avoiding-postgresql-database-corruption.html
 
 * **Mettre à jour** votre instance à la dernière version mineure disponible ;
-* **Ne pas désactiver** `fsync` et privilégier les paramètres `asynchronous_commit`
+* **Ne pas désactiver** `fsync` et privilégier les paramètres `synchronous_commit`
   et `commit_delay` ;
 * **Ne pas tuer** les processus PostgreSQL et utiliser les fonctions système
   `pg_cancel_backend` et `pg_terminate_backend` pour arrêter une requête longue ;
