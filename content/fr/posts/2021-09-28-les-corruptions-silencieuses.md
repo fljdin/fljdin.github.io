@@ -163,9 +163,17 @@ le risque de corruptions.
 * Mettre en place de la réplication et des sauvegardes physiques, avec un politique
   de rétention des journaux de transactions sur de longues périodes ;
 * **Éviter les disques en RAID5** et privilégier le RAID10 pour les disques mécaniques ;
-* **Ne pas utiliser** les systèmes de fichiers exotiques comme ZFS, BTRFS ou FAT32 ;
+* **Ne pas utiliser** les systèmes de fichiers exotiques comme (ZFS), BTRFS ou FAT32 ;
 * **Ne pas stocker les fichiers** de l'instance sur une clé USB ou un montage
   réseau.
+
+{{< message >}}
+Depuis quelques années, le projet ZFS s'est ouvert à la communauté avec OpenZFS
+en 2013. En plus des fonctionnalités de _Copy on Write_, de _Snapshot_ ou de
+_Mirroring_, ce système de fichiers couvre également l'aspect des sommes de 
+contrôle, le rendant bien plus résilient qu'à l'époque où Craig Ringer écrivait
+ses recommandations.
+{{< /message >}}
 
 Malgré toutes ces protections, une autre forme de corruption peut encore survenir.
 Une donnée erronée peut être retournée au client sans message d'erreur. On parle
