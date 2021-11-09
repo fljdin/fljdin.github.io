@@ -325,7 +325,7 @@ RETURNS float LANGUAGE sql
 AS $$
   SELECT get_reloption(reloptions, 'autovacuum_analyze_threshold')::int + 
          get_reloption(reloptions, 'autovacuum_analyze_scale_factor')::float *
-            pg_stat_get_live_tuples(oid)
+            c.reltuples
     FROM pg_class c
    WHERE oid = o AND NOT EXISTS (
      SELECT 1 FROM pg_options_to_table(c.reloptions)
