@@ -176,14 +176,14 @@ sudo apt-get install -y postgresql-12
 
 sudo -u postgres mkdir -p /var/run/postgresql/lab{1,2}
 sudo pg_createcluster 12 lab1 \
-  --pgoption listen_addresses=10.1.0.1 --pgoption port=5432 \
+  --pgoption listen_addresses=&#39;10.1.0.1&#39; --pgoption port=5432 \
   --pgoption unix_socket_directories=/var/run/postgresql/lab1
 sudo pg_createcluster 12 lab2 \
-  --pgoption listen_addresses=10.1.0.2 --pgoption port=5432 \
+  --pgoption listen_addresses=&#39;10.1.0.2&#39; --pgoption port=5432 \
   --pgoption unix_socket_directories=/var/run/postgresql/lab2
 
-sudo pg_ctlcluster start 12 lab1
-sudo pg_ctlcluster start 12 lab2
+sudo pg_ctlcluster 12 lab1 start
+sudo pg_ctlcluster 12 lab2 start
 </code></pre></div><p>Quelques ajustements de droits sur le répertoire <code>/tmp/pgbackrest</code> pour les
 fichiers de verrous (paramètre <code>--lock-path</code>) et le tour est joué !</p>
 </div>

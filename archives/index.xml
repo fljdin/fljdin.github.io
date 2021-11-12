@@ -1,4 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 24 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>BorgBackup ou la sauvegarde facile</title><link>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</link><pubDate>Tue, 24 Aug 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</guid><description>&lt;p>Jusqu&amp;rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 28 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Les corruptions silencieuses</title><link>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</link><pubDate>Tue, 28 Sep 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</guid><description>&lt;p>Parmi les drames universellement reconnus, les corruptions de données sont des
+événements mécaniques ou logiques qui surviennent à des moments imprévisibles.
+Tantôt il s&amp;rsquo;agira de l&amp;rsquo;âge avancé des secteurs disques, tantôt il s&amp;rsquo;agira d&amp;rsquo;une
+extinction inopinée d&amp;rsquo;un composant électrique ou d&amp;rsquo;une perte de paquet dans les
+protocoles de cache.&lt;/p>
+&lt;p>Bien que peu de personnes peuvent se vanter d&amp;rsquo;en avoir observé au cours de leur
+carrière, les corruptions sont particulièrement dévastatrices lorsqu&amp;rsquo;elles se
+sont propagées sur les supports de sauvegardes et détectées bien des jours, voire
+des semaines après l&amp;rsquo;incident. Les moteurs de bases de données sont très résilients
+face à ces destructions de données, en proposant des mécanismes de journalisation
+adaptés. Malgré cela, des précautions sont de mises.&lt;/p></description></item><item><title>BorgBackup ou la sauvegarde facile</title><link>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</link><pubDate>Tue, 24 Aug 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</guid><description>&lt;p>Jusqu&amp;rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
 sauvegardes de fichiers personnels réalisées naïvement avec un script &lt;code>rsync&lt;/code>.
 C&amp;rsquo;est honteux dans nos métiers, mais l&amp;rsquo;adage du cordonnier s&amp;rsquo;est vérifié avec
 moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/ -delete&lt;/code> durant des tests.&lt;/p>
@@ -22,8 +32,4 @@ maintenance.&lt;/p>
 émerveillement devant la magie du partitionnement par hachage, &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e">apparu&lt;/a> en
 version 11. Comment le déployer et que permet-il ? J&amp;rsquo;ai voulu m&amp;rsquo;en rendre compte
 dans une rapide démonstration sur le type &lt;a href="https://fr.wikipedia.org/wiki/Universally_unique_identifier">UUID&lt;/a> en étudiant les fonctions
-d&amp;rsquo;appui qui se cachent derrière le hachage des valeurs.&lt;/p></description></item><item><title>Comprendre les requêtes préparées</title><link>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</link><pubDate>Tue, 30 Mar 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</guid><description>&lt;p>Les requêtes ou &lt;a href="https://en.wikipedia.org/wiki/Prepared_statement">instructions préparées&lt;/a> sont un mécanisme proposé par la
-plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
-au précédent. On parle d&amp;rsquo;un &lt;em>template&lt;/em> de requête qu&amp;rsquo;il est nécessaire de
-préparer avant d&amp;rsquo;exécuter. Les principaux bénéfices que nous lui connaissons
-méritent un article afin de mieux comprendre leur implémentation.&lt;/p></description></item></channel></rss>
+d&amp;rsquo;appui qui se cachent derrière le hachage des valeurs.&lt;/p></description></item></channel></rss>
