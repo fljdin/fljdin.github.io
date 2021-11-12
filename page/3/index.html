@@ -1,0 +1,123 @@
+<!doctype html><html lang=fr>
+<head>
+<meta name=generator content="Hugo 0.89.2">
+<title>Carnet de découvertes</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=alternate type=application/rss+xml title="Carnet de découvertes" href=https://fljd.in/index.xml>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=https://fljd.in/en/>English</a></small>
+</h3>
+</header>
+<main>
+<div class=posts>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Tour d'horizon de PgBouncer</a>
+</h1>
+<time datetime=2020-08-21 class=post-date>21 août 2020</time>
+<blockquote>
+<p>Les programmes de regroupement de connexions (<em>pooling</em>) vous permettent de
+réduire la surcharge liée à la base de données lorsque le nombre de connexions
+physiques réduit les performances. Ceci est particulièrement pertinent sous
+Windows, où les limitations du système empêchent un grand nombre de connexions.
+C&rsquo;est également vital pour les applications Web où le nombre de connexions peut
+devenir très important.</p>
+<p>(Source : <a href=https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration>https://wiki.postgresql.org</a>)</p>
+</blockquote>
+<p>Je n&rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
+projet PostgreSQL pour aborder l&rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
+des deux seuls <em>poolers</em> de connexions largement répandus. Le produit est
+déconcertant de facilité, sa documentation et la littérature qui gravitent sur
+Internet sont claires et unanimes : PgBouncer améliorera grandement les
+performances de votre instance PostgreSQL !</p>
+<small>» <a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/>Les statistiques au service du plan d'exécution</a>
+</h1>
+<time datetime=2020-07-01 class=post-date>1 juil 2020</time>
+<p>La lecture d&rsquo;un plan d&rsquo;exécution fait partie des meilleures armes du développeur
+et de l&rsquo;administrateur de bases de données pour identifier les problèmes de
+performances. Dans <a href=/2019/09/27/index-decomplexe>un précédent article</a>, je
+présentais l&rsquo;intérêt de positionner un index sur les colonnes d&rsquo;une table pour
+faciliter les recherches, notamment avec l&rsquo;aide de la commande <code>EXPLAIN</code>.</p>
+<p>À cette époque, je ne m&rsquo;étais pas attardé sur la notion des statistiques de
+données, que l&rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
+près ce que propose PostgreSQL pour garantir les performances de vos requêtes.</p>
+<small>» <a href=https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Écrire ses tests unitaires en SQL</a>
+</h1>
+<time datetime=2020-05-14 class=post-date>14 mai 2020</time>
+<p>Je ne suis qu&rsquo;un piètre développeur et je n&rsquo;écris pas de tests unitaires. En
+réalité, ce n&rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
+curiosité m&rsquo;a mené à découvrir bien tardivement la mouvance <a href=https://fr.wikipedia.org/wiki/Test_driven_development>TDD</a> dans la
+conception logicielle et la rigueur d&rsquo;écrire chaque test avant l&rsquo;implémentation
+d&rsquo;une fonctionnalité.</p>
+<p>Ce fut par hasard et avec grand étonnement, que je suis tombé sur l&rsquo;extension
+<a href=https://pgtap.org/>pgTAP</a> il y a plusieurs mois, et l&rsquo;idée de la mettre en application sur une
+instance PostgreSQL me hantait. Je vous propose dans cet article d&rsquo;aborder ce
+<em>framework</em> de tests avec un cas d&rsquo;usage amusant.</p>
+<small>» <a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/>Les liens physiques avec pg_upgrade</a>
+</h1>
+<time datetime=2020-04-23 class=post-date>23 avr 2020</time>
+<p>La création d&rsquo;un lien sous Unix se réalise avec les commandes <a href=https://www.gnu.org/software/coreutils/ln>ln</a> ou
+<a href=https://www.gnu.org/software/coreutils/cp>cp</a>. Cette action permet de <em>lier</em> deux fichiers vers la même donnée et
+de rendre disponible une ressource par l&rsquo;intermédiaire de l&rsquo;un ou de l&rsquo;autre de
+ces fichiers.</p>
+<p>Cependant, les opérations diffèrent selon le type de ce lien. Le plus connu reste
+le <em>symlink</em>, le lien symbolique. Mais qu&rsquo;en est-il des autres ? Comment se
+caractérisent-ils et dans quels contextes ? En vrai, qu&rsquo;est-ce qu&rsquo;un <em>inode</em> ?
+Et PostgreSQL dans tout ça ? Autant de petites questions de curiosité que
+j&rsquo;aborde avec vous dans cet article !</p>
+<small>» <a href=https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2020/03/20/de-la-securite-pour-vos-mots-de-passe/>De la sécurité pour vos mots de passe</a>
+</h1>
+<time datetime=2020-03-20 class=post-date>20 mars 2020</time>
+<p>La sécurité d&rsquo;un système d&rsquo;information prend une multitude de forme. Aussi,
+j&rsquo;aimerai m&rsquo;attarder sur une évolution apparue en version 10 de PostgreSQL,
+devenue depuis lors une bonne pratique, bien que très absente dans les
+déploiements des systèmes courants.</p>
+<small>» <a href=https://fljd.in/2020/03/20/de-la-securite-pour-vos-mots-de-passe/>Lire la suite</a></small>
+</article>
+</div>
+<div class=pagination>
+<a class="pagination-item older" href=/page/4/>Page précédente</a>
+<a class="pagination-item newer" href=/page/2/>Page suivante</a>
+</div>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

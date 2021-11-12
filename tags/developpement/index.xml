@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>developpement on Carnet de découvertes</title><link>https://fljd.in/tags/developpement/</link><description>Recent content in developpement on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 16 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml"/><item><title>Parlons un peu des données externes</title><link>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</guid><description>&lt;p>Depuis plusieurs semaines, j&amp;rsquo;étudie les nouveautés de la &lt;a href="https://www.postgresql.org/docs/14/release-14.html">prochaine version majeure&lt;/a>
+de PostgreSQL avec un intérêt grandissant pour le connecteur &lt;a href="https://www.postgresql.org/docs/13/postgres-fdw.html">postgres_fdw&lt;/a>.
+Cette extension assez folle n&amp;rsquo;a pas son équivalent sur les autres systèmes de
+bases de données du marché, et pour cause, PostgreSQL est l&amp;rsquo;un des rares à respecter
+la norme SQL/MED, sous-partie du langage SQL tel que défini par le standard
+&lt;a href="https://www.iso.org/standard/63476.html">ISO/IEC 9075-9&lt;/a>.&lt;/p></description></item><item><title>Les intervalles de valeurs</title><link>https://fljd.in/2021/06/09/les-intervalles-de-valeurs/</link><pubDate>Wed, 09 Jun 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/06/09/les-intervalles-de-valeurs/</guid><description>&lt;p>Ce mois-ci, je vous propose de réviser un peu le langage SQL en l&amp;rsquo;appliquant pour
+des cas d&amp;rsquo;usage assez fréquents qui mettent en scène des types temporels, notamment
+les intervalles de dates. Ce sera l&amp;rsquo;occasion également de revenir sur l&amp;rsquo;implémentation
+très originale qu&amp;rsquo;en a fait PostgreSQL avec les types d&amp;rsquo;intervalle de valeurs, ou
+&lt;em>&lt;a href="https://www.postgresql.org/docs/13/rangetypes.html">range types&lt;/a>&lt;/em> dans la documentation.&lt;/p></description></item><item><title>Comprendre les requêtes préparées</title><link>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</link><pubDate>Tue, 30 Mar 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/</guid><description>&lt;p>Les requêtes ou &lt;a href="https://en.wikipedia.org/wiki/Prepared_statement">instructions préparées&lt;/a> sont un mécanisme proposé par la
+plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
+au précédent. On parle d&amp;rsquo;un &lt;em>template&lt;/em> de requête qu&amp;rsquo;il est nécessaire de
+préparer avant d&amp;rsquo;exécuter. Les principaux bénéfices que nous lui connaissons
+méritent un article afin de mieux comprendre leur implémentation.&lt;/p></description></item><item><title>Écrire ses tests unitaires en SQL</title><link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link><pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid><description>&lt;p>Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
+réalité, ce n&amp;rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
+curiosité m&amp;rsquo;a mené à découvrir bien tardivement la mouvance &lt;a href="https://fr.wikipedia.org/wiki/Test_driven_development">TDD&lt;/a> dans la
+conception logicielle et la rigueur d&amp;rsquo;écrire chaque test avant l&amp;rsquo;implémentation
+d&amp;rsquo;une fonctionnalité.&lt;/p>
+&lt;p>Ce fut par hasard et avec grand étonnement, que je suis tombé sur l&amp;rsquo;extension
+&lt;a href="https://pgtap.org/">pgTAP&lt;/a> il y a plusieurs mois, et l&amp;rsquo;idée de la mettre en application sur une
+instance PostgreSQL me hantait. Je vous propose dans cet article d&amp;rsquo;aborder ce
+&lt;em>framework&lt;/em> de tests avec un cas d&amp;rsquo;usage amusant.&lt;/p></description></item><item><title>Gestion des signaux internes</title><link>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</link><pubDate>Fri, 17 Jan 2020 20:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</guid><description>&lt;p>Je voulais m&amp;rsquo;attarder sur une notion que je n&amp;rsquo;avais pas exploré à l&amp;rsquo;époque où
+j&amp;rsquo;apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l&amp;rsquo;école et
+où l&amp;rsquo;on usait de commandes apprises par cœur : les signaux !&lt;/p>
+&lt;p>Les signaux les plus connus et les plus utilisés sont les numéros 6 &lt;code>SIGABRT&lt;/code> et
+9 &lt;code>SIGKILL&lt;/code>, ça vous revient ? Pourquoi en existe-t-il autant, dans quels
+contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons
+le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !&lt;/p></description></item></channel></rss>

@@ -1,0 +1,304 @@
+<!doctype html><html lang=fr>
+<head>
+<title>Compiler et patcher avec pgenv</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small>
+</h3>
+</header>
+<main>
+<article class=post>
+<h1 class=post-title>Compiler et patcher avec pgenv</a></h1>
+<p class=post-date>
+<time datetime=2020-12-21>21 déc 2020</time>
+- 7 minutes de lecture
+</p>
+<p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
+efficace répondant au nom de <a href=https://github.com/theory/pgenv>pgenv</a>, un gestionnaire des versions PostgreSQL.
+Ce projet est publié sous licence MIT par David E. Wheeler, auteur de l&rsquo;extension
+pgTAP dont j&rsquo;avais déjà vanté les mérites dans un <a href=/2020/05/14/ecrire-ses-tests-unitaires-en-sql>autre article</a>.</p>
+<p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
+quelques DBA féru⋅es d&rsquo;expérimentations, car <code>pgenv</code> permet de compiler et
+d&rsquo;exécuter toutes les versions majeures et mineures du système de base de données
+open-source le plus avancé du monde.</p>
+<hr>
+<h2 id=à-lépreuve-de-la-compilation>À l&rsquo;épreuve de la compilation</h2>
+<p>PostgreSQL est particulièrement simple à compiler. Avec un poste de travail
+sous Unix, GNU/Linux ou BSD et quelques dépendances, à savoir <code>gcc</code>, <code>make</code>,
+<code>patch</code> et <code>git</code>, il est facile d&rsquo;exécuter une instance dans la version cible de son
+choix.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ git clone git://git.postgresql.org/git/postgresql.git
+$ <span class=nb>cd</span> postgresql
+$ git checkout REL_13_1
+
+$ <span class=nb>export</span> <span class=nv>PREFIX</span><span class=o>=</span>/tmp/postgres/devel
+$ ./configure --prefix<span class=o>=</span><span class=nv>$PREFIX</span>
+$ make <span class=o>&amp;&amp;</span> make install
+
+$ <span class=nb>cd</span> contrib
+$ make <span class=o>&amp;&amp;</span> make install
+</code></pre></div><p>Dès lors que les librairies et les binaires sont disponibles, il est très aisé
+de contruire sa première instance et de s&rsquo;y connecter !</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ <span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PREFIX</span>/bin:<span class=nv>$PATH</span>
+$ <span class=nb>export</span> <span class=nv>LD_LIBRARY_PATH</span><span class=o>=</span><span class=nv>$PREFIX</span>/lib:<span class=nv>$LD_LIBRARY_PATH</span>
+$ <span class=nb>export</span> <span class=nv>PGDATA</span><span class=o>=</span>/tmp/postgres/data
+
+$ initdb --username <span class=k>$(</span>whoami<span class=k>)</span> --auth<span class=o>=</span>peer --data-checksums
+$ pg_ctl start --log<span class=o>=</span><span class=nv>$PGDATA</span>/server.log
+
+$ createdb <span class=k>$(</span>whoami<span class=k>)</span>
+$ psql -tc <span class=s2>&#34;select version()&#34;</span>
+ PostgreSQL 13.1 on x86_64-pc-linux-gnu, compiled by gcc <span class=o>(</span>GCC<span class=o>)</span> 10.2.0, 64-bit
+
+$ pg_ctl stop
+</code></pre></div><p>Le faire à la main m&rsquo;a amusé quelques minutes et écrire un script pour automatiser
+le déploiement des versions mineures à la demande m&rsquo;a vite traversé l&rsquo;esprit.
+Ne réinventons pas la roue et voyons ce que propose <code>pgenv</code> !</p>
+<hr>
+<h2 id=un-script-pour-les-compiler-tous>Un script pour les compiler tous</h2>
+<p>La <a href=https://github.com/theory/pgenv>page d&rsquo;accueil</a> du projet reprend l&rsquo;installation rapide du script dans votre
+sous-répertoire <code>~/.pgenv</code>. Téléchargeons et compilons la version qui nous interesse.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ pgenv available
+             Available PostgreSQL Versions
+================================================
+                      ...
+                  PostgreSQL 10
+------------------------------------------------
+  10.0    10.1    10.2    10.3    10.4    10.5  
+  10.6    10.7    10.8    10.9    10.10   10.11 
+  10.12   10.13   10.14   10.15  
+
+                  PostgreSQL 11
+------------------------------------------------
+  11.0    11.1    11.2    11.3    11.4    11.5  
+  11.6    11.7    11.8    11.9    11.10  
+
+                  PostgreSQL 12
+------------------------------------------------
+  12.0    12.1    12.2    12.3    12.4    12.5  
+
+                  PostgreSQL 13
+------------------------------------------------
+  13beta1  13beta2  13beta3  13rc1   13.0  13.1
+</code></pre></div><p>Comme pour mon précédent exemple, je réinstalle une version 13.1 avec <code>pgenv</code>
+à l&rsquo;aide de l&rsquo;option <code>build</code>. Le script déploie également les librairies de <em>contrib</em>
+et la documentation.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ <span class=nb>export</span> <span class=nv>PGENV_ROOT</span><span class=o>=</span>/var/lib/pgenv
+$ <span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PGENV_ROOT</span>/pgsql/bin:<span class=nv>$PATH</span>
+$ <span class=nb>export</span> <span class=nv>LD_LIBRARY_PATH</span><span class=o>=</span><span class=nv>$PGENV_ROOT</span>/pgsql/lib:<span class=nv>$LD_LIBRARY_PATH</span>
+
+$ pgenv build 13.1
+PostgreSQL, contrib, and documentation installation complete.
+pgenv configuration written to file /var/lib/pgenv/.pgenv.13.1.conf
+PostgreSQL 13.1 built
+</code></pre></div><p>On retrouve dans l&rsquo;arborescence <code>$PGENV_ROOT</code>, la présence de l&rsquo;archive <code>.tar.bz2</code>
+du projet, requise pour l&rsquo;étape de compilation. Le <code>$PREFIX</code> quant à lui, est
+automatiquement positionné sur le répertoire <code>$PGENV_ROOT/pgsql-13.1</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>/var/lib/pgenv
+├── .pgenv.13.1.conf
+├── pgsql-13.1
+│   ├── bin
+│   ├── include
+│   ├── lib
+│   └── share
+└── src
+    ├── postgresql-13.1
+    └── postgresql-13.1.tar.bz2
+</code></pre></div><p>Pour être fidèle à ma première partie, je vais configurer correctement les
+paramètres de la commande <code>initdb</code> dans le fichier de configuration dédié à la
+version 13.1.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ pgenv config edit 13.1
+<span class=c1># Path to the cluster log file (mandatory)</span>
+<span class=nv>PGENV_LOG</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$PGENV_ROOT</span><span class=s2>/pgsql/data/server.log&#34;</span>
+
+<span class=c1># Initdb flags</span>
+<span class=nv>PGENV_INITDB_OPTS</span><span class=o>=</span><span class=s2>&#34;--username </span><span class=k>$(</span>whoami<span class=k>)</span><span class=s2> --auth=peer --data-checksums&#34;</span>
+</code></pre></div><p>Ainsi, lors de la première utilisation de cette version 13.1, <code>pgenv</code> va lancer
+la commande <code>initdb</code> pour alimenter le répertoire de données avec mon compte
+comme propriétaire et démarrer le processus <code>postgres</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ pgenv use 13.1
+Using PGENV_ROOT /var/lib/pgenv
+Data page checksums are enabled.
+Success. You can now start the database server using:
+  /var/lib/pgenv/pgsql/bin/pg_ctl -D /var/lib/pgenv/pgsql/data -l logfile start
+
+PostgreSQL 13.1 started
+Logging to /var/lib/pgenv/pgsql/data/server.log
+
+$ createdb <span class=k>$(</span>whoami<span class=k>)</span>
+$ psql -tc <span class=s2>&#34;select version()&#34;</span>
+ PostgreSQL 13.1 on x86_64-pc-linux-gnu, compiled by gcc <span class=o>(</span>GCC<span class=o>)</span> 10.2.0, 64-bit
+</code></pre></div><hr>
+<h2 id=et-avec-ceci>Et avec ceci ?</h2>
+<p>Comme indiqué en introduction, l&rsquo;intérêt d&rsquo;un tel gestionnaire réside dans sa
+capacité d&rsquo;installer plusieurs versions différentes dans la même arborescence
+et de basculer de l&rsquo;une à l&rsquo;autre.</p>
+<p>Imaginons que nous souhaitons disposer d&rsquo;une version 10 de PostgreSQL avec le
+même genre de configuration que la version 13 précédente. <code>pgenv</code> supporte un
+fichier d&rsquo;environnement global, nommé <code>.pgenv.conf</code>, que je reconstruis à
+partir de mon précédent fichier d&rsquo;instance 13.1.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ cp <span class=nv>$PGENV_ROOT</span>/.pgenv.13.1.conf <span class=nv>$PGENV_ROOT</span>/.pgenv.conf
+$ pgenv build 10.15
+$ pgenv use latest <span class=m>10</span>
+
+$ createdb <span class=k>$(</span>whoami<span class=k>)</span>
+$ psql -c <span class=s2>&#34;show data_checksums&#34;</span>
+
+ data_checksums 
+ ----------------
+  on
+ <span class=o>(</span><span class=m>1</span> row<span class=o>)</span>
+</code></pre></div><p>Nous nous retrouvons bien avec un instance dont les sommes de contrôle ont été
+activées, grâce à l&rsquo;option <code>PGENV_INITDB_OPTS</code> citée plus haut.</p>
+<p>Je m&rsquo;étais questionné sur la capacité de <code>pgenv</code> de lancer simultanément deux
+environnements pour mettre en place de la réplication logique, par exemple.
+Conclusion, il s&rsquo;agit d&rsquo;une des limites de l&rsquo;outil, puisque ce n&rsquo;est pas
+son but premier. Et pour cause, à chaque fois que l&rsquo;on appelle la commande
+<code>pgenv use</code>, le script arrête l&rsquo;instance courante avant de basculer sur la
+deuxième.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ pgenv use latest <span class=m>10</span>
+Using PGENV_ROOT /var/lib/pgenv
+PostgreSQL 13.1 stopped
+PostgreSQL 10.15 started
+Logging to /var/lib/pgenv/pgsql/data/server.log
+</code></pre></div><p>En complément, <code>pgenv</code> met en place un lien symbolique dans la racine <code>$PGENV_ROOT</code>
+à chaque changement de version courante. Ce lien a été ajouté au préalable
+dans la variable <code>$PATH</code> pour garantir la bonne compatibilité des binaires avec
+les données.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>/var/lib/pgenv
+├── .pgenv.13.1.conf
+├── .pgenv.conf
+├── pgsql -&gt; pgsql-10.15
+├── pgsql-10.15
+├── pgsql-13.1
+└── src
+</code></pre></div><p>Ce lien symbolique nous oblige à manipuler toutes les autres instances avec des
+chemins absolus, une surcharge de leurs paramètres <code>port</code> ou <code>listen_addresses</code>
+et de faire appel à la bonne version de la commande <code>pg_ctl</code>. Il est donc possible
+de faire de la réplication, mais oubliez <code>pgenv</code> pour la gestion des processus
+d&rsquo;instances.</p>
+<hr>
+<h2 id=dans-la-cour-des-grands>Dans la cour des grands</h2>
+<p>Nous sommes en décembre 2020 à l&rsquo;heure de la rédaction de cet article, et la
+communauté PostgreSQL travaille activement sur le développement de la prochaine
+version 14 du logiciel. Chaque année, les contributeur⋅rices du monde entier
+se retrouvent en ligne autour du <em><a href=https://commitfest.postgresql.org/>Commitfest</a></em> pour étudier les nouvelles
+propositions de fonctionnalités ou de correction de bogues.</p>
+<p>En août dernier, Tatsuro Yamada proposait d'<a href=https://www.postgresql.org/message-id/flat/c027a541-5856-75a5-0868-341301e1624b@nttcom.co.jp_1>enrichir</a> les méta-commandes de
+l&rsquo;invite <code>psql</code> afin de lister les <a href=https://www.postgresql.org/docs/12/planner-stats.html#PLANNER-STATS-EXTENDED>statistiques étendues</a> rattachées aux
+tables de la base courante. Cette fonctionnalité est donc étudiée à travers les
+échanges électroniques et suivie sur <a href=https://commitfest.postgresql.org/31/2801/>une page dédiée</a> du <em>Commitfest</em>.</p>
+<p>Le contributeur produit alors un fichier <code>.patch</code> qu&rsquo;il obtient avec la commande
+<code>git diff</code> et dont le résultat est compatible avec la commande <a href=https://www.man7.org/linux/man-pages/man1/patch.1.html>patch</a>. Ainsi,
+n&rsquo;importe quel relecteur peut l&rsquo;intégrer dans son projet et dérouler ses tests sur
+la nouvelle instance compilée.</p>
+<p>C&rsquo;est là qu&rsquo;intervient une chouette fonctionnalité de l&rsquo;outil <code>pgenv</code>. Ce dernier
+propose d&rsquo;appliquer une série de patchs dans une phase préliminaire dès lors qu&rsquo;on
+lui présente un fichier d&rsquo;index pour la version associée, qui contiendra le chemin
+absolu des fichiers à parcourir.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>/var/lib/pgenv
+└── patch
+    ├── 13
+    │   └── 0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch
+    └── index
+        └── patch.13
+</code></pre></div><p>Comme on le voit dans mon arborescence, j&rsquo;ai téléchargé la dernière version
+communiquée par le développeur et je l&rsquo;ai déclarée dans le fichier <code>index.13</code>.
+Lors de la recompilation de la version concernée, on constate que le patch
+est bien pris en compte.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ <span class=nb>export</span> <span class=nv>PGENV_DEBUG</span><span class=o>=</span><span class=m>1</span>
+$ pgenv clear
+$ pgenv rebuild 13.1
+Using PGENV_ROOT /var/lib/pgenv
+<span class=o>[</span>DEBUG<span class=o>]</span> Patch index file <span class=o>[</span>/var/lib/pgenv/patch/index/patch.13<span class=o>]</span>
+<span class=o>[</span>DEBUG<span class=o>]</span> Applying patch <span class=o>[</span>0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch<span class=o>]</span>
+        into <span class=nb>source</span> tree /var/lib/pgenv/src/postgresql-13.1
+Applied patch 0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch 
+PostgreSQL 13.1 built
+</code></pre></div><p>Et la fonctionnalité devient disponible sur l&rsquo;instance !</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>florent=# \dX
+                    List of extended statistics
+ Schema | Name  |  Definition  | Ndistinct | Dependencies |   MCV   
+--------+-------+--------------+-----------+--------------+---------
+ public | stts1 | a, b FROM t1 |           | defined      | 
+ public | stts2 | a, b FROM t1 | defined   | defined      | 
+ public | stts3 | a, b FROM t1 | defined   | defined      | defined
+ public | stts4 | b, c FROM t2 | defined   | defined      | defined
+(4 rows)
+</code></pre></div><p>Le retrait des patchs n&rsquo;est pas supporté par <code>pgenv</code> mais l&rsquo;opération reste
+triviale avec la commande <code>patch</code> et son option <code>--reverse</code>. Cela nous permet
+de conserver les sources sans devoir les télécharger à nouveau !</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>$ <span class=nb>cd</span> <span class=nv>$PGENV_ROOT</span>/src/postgresql-13.1
+$ <span class=nv>index</span><span class=o>=</span><span class=nv>$PGENV_ROOT</span>/patch/index/patch.13
+$ <span class=k>for</span> f in <span class=k>$(</span>cat <span class=nv>$index</span><span class=k>)</span><span class=p>;</span> <span class=k>do</span> patch --reverse -p1 &lt; <span class=nv>$f</span><span class=p>;</span> <span class=k>done</span>
+
+patching file doc/src/sgml/ref/psql-ref.sgml
+Hunk <span class=c1>#1 succeeded at 1903 (offset -15 lines).</span>
+patching file src/bin/psql/command.c
+Hunk <span class=c1>#1 succeeded at 929 (offset 1 line).</span>
+patching file src/bin/psql/describe.c
+Hunk <span class=c1>#1 succeeded at 4377 (offset -24 lines).</span>
+patching file src/bin/psql/describe.h
+patching file src/bin/psql/help.c
+patching file src/bin/psql/tab-complete.c
+Hunk <span class=c1>#1 succeeded at 1479 (offset -21 lines).</span>
+Hunk <span class=c1>#2 succeeded at 3771 (offset -127 lines).</span>
+</code></pre></div><hr>
+<h2 id=conclusion>Conclusion</h2>
+<p>Pour tout vous dire, je ne sais plus me séparer de <code>pgenv</code> sauf en de rares
+exceptions où mes tests nécessitent une distribution GNU/Linux spécifique, comme
+CentOS ou Debian. Une machine virtuelle fournie par <a href=https://www.vagrantup.com/docs/boxes>Vagrant</a> est tout aussi
+fiable, notamment lorsqu&rsquo;il s&rsquo;agit de déboguer un paquet d&rsquo;installation ou
+une dépendance particulière.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ sudo vagrant box list
+centos/7         (libvirt, 2004.01)
+debian/buster64  (libvirt, 10.4.0)
+debian/stretch64 (libvirt, 9.12.0)
+</code></pre></div>
+</article>
+<aside class=related>
+<h3>Suggestion d'articles</h3>
+<ul class=related-posts>
+<li>
+<a href=https://fljd.in/2020/11/18/quelques-outils-meconnus/>Quelques outils méconnus
+<small><time datetime=2020-11-18>18 nov 2020</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/>Jette ton instance à la poubelle
+<small><time datetime=2019-06-20>20 juin 2019</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2020/12/09/de-jekyll-a-hugo/>De Jekyll à Hugo
+<small><time datetime=2020-12-09>9 déc 2020</time></small>
+</a>
+</li>
+</ul>
+</aside>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

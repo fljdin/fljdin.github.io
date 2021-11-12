@@ -1,0 +1,201 @@
+<!doctype html><html lang=fr>
+<head>
+<title>La boîte à outils du DBA</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small>
+</h3>
+</header>
+<main>
+<article class=post>
+<h1 class=post-title>La boîte à outils du DBA</a></h1>
+<p class=post-date>
+<time datetime=2019-06-24>24 juin 2019</time>
+- 6 minutes de lecture
+</p>
+<p>J&rsquo;aimerais qu&rsquo;on s&rsquo;arrête un instant sur un aspect méconnu du travail de DBA.</p>
+<p>L&rsquo;inestimable fichier qui contient la totalité des requêtes SQL indispensables à
+la survie (et crédibilité) du susnommé et qui ne le quitte jamais.</p>
+<p>Vous savez ? Ce fichier qui se passe de main en main, qu&rsquo;on alimente de missions
+en missions, selon les demandes ou les incidents rencontrés au cours d&rsquo;une vie
+longue et palpitante. Ce fichier, que même l&rsquo;Internet entier ne pourra remplacer
+car il s&rsquo;est avéré être la mémoire, le trésor de l&rsquo;administrateur lorsqu&rsquo;il en a
+le plus besoin. Sans lui, c&rsquo;est comme s&rsquo;il se retrouvait nu dans l&rsquo;arène.</p>
+<p>Accrochez-vous, j&rsquo;ai encore beaucoup de choses à dire à son sujet !</p>
+<hr>
+<p>Je me souviens de mes débuts de DBA lorsque je travaillais en binôme ou en équipe
+avec des expérimentés du métier, où l&rsquo;on se demandait sans cesse : « Tu n&rsquo;aurais
+pas une requête pour extraire la taille des tables ? » ou alors « Comment tu fais
+pour obtenir l&rsquo;état de la réplication sur un Dataguard ? ». La réponse évidente
+qui viendrait à l&rsquo;esprit de n&rsquo;importe quel professionnel de l&rsquo;IT, et notamment
+les développeurs, serait « Recherche sur Google ! » ou, sa variante en 2019 :
+« C&rsquo;est certainement sur StackOverflow. » Mais non, entre DBA, on s&rsquo;échange des
+requêtes SQL comme on se raconte des histoires.</p>
+<p>C&rsquo;est volontairement caricatural, et notre beau métier ne s&rsquo;arrête pas à fournir
+une requête SQL dans chaque situation, mais c&rsquo;est une dérive fréquente. Comment
+en est-on arrivé là ?</p>
+<p>L&rsquo;administration d&rsquo;un produit requiert une API (application programming interface)
+ou une CLI (command line interface) pour questionner l&rsquo;état du système, ses
+métriques ou sa configuration. Interragir sur un serveur *nix nécessite pour tout
+néophyte d&rsquo;appréhender les commandes <em>shell</em> usuelles ; idem pour un administrateur
+réseau avec les équipements. En ce qui nous concerne dans cet article, c&rsquo;est le
+langage SQL permettant la projection de données stockées dans une base au format
+tableau ; ainsi, une application ou un être humain peut consolider les réponses
+à ses questions à l&rsquo;aide d&rsquo;une syntaxe universelle et commune à toutes les bases
+de données relationnelles (<em>exit</em> le NoSQL).</p>
+<p>Très bien, c&rsquo;est universel. Le langage est donc le même entre le moteur MySQL et
+SQL Server ? Et bien oui. Mais aucun ne partage le même fonctionnement et l&rsquo;on
+distingue dès lors un référentiel (ou catalogue) propre à chaque moteur. Ce
+référentiel est l&rsquo;élément central, il contient nos fameuses données systèmes :
+les métriques et la configuration.</p>
+<p>Et c&rsquo;est là que ça se complique. ☺</p>
+<p>Selon le besoin exprimé, il y aura donc une requête SQL adaptée à un moteur
+exclusif. Prenons l&rsquo;exemple de la taille de notre base de données, dans sa forme
+la plus simple.</p>
+<table>
+<thead>
+<tr>
+<th>Moteur</th>
+<th>Requête</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Oracle</td>
+<td><code>SELECT SUM(bytes) AS size FROM dba_data_files;</code></td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td><code>SELECT SUM(pg_database_size(datname)) AS size FROM pg_database;</code></td>
+</tr>
+<tr>
+<td>SQL Server</td>
+<td><code>SELECT SUM(size) AS size FROM sys.master_files;</code></td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td><code>SELECT SUM(data_length + index_length) AS size FROM information_schema.tables;</code></td>
+</tr>
+</tbody>
+</table>
+<p>À moins de connaître par cœur les tables du catalogue et leur constitution,
+l&rsquo;interpellé se retrouve très vite sur son moteur de recherche favori. Je vous
+mets donc à contribution un instant, et vous encourage à trouver par vous-même
+la requête permettant d&rsquo;afficher l&rsquo;espace occupé et l&rsquo;espace disponible dans une
+base Oracle, puis de vous rendre compte que son équivalent sous PostgreSQL est
+beaucoup moins évident.</p>
+<p>Blogs, wiki, espaces communautaires, StackOverflow, Github&mldr; Fort d&rsquo;une patience
+admirable et après trois-quatre découvertes passablement hors-sujet, le DBA finit
+invariablement par adapter une des innombrables requêtes pour se l&rsquo;approprier
+avant de l&rsquo;intégrer dans sa boîte à outils personnelle.</p>
+<p>C&rsquo;est à partir de cet instant que j&rsquo;essaie d&rsquo;être pragmatique. Pourquoi ne pas
+avoir une collection commune et participative de requêtes, correctement indexée
+sur les moteurs de recherche, afin de faire gagner du temps au plus grand nombre ?</p>
+<p><a href=https://oracle-base.com/dba/scripts>Certains l&rsquo;ont</a> <a href=https://wiki.postgresql.org/wiki/Category:Snippets>fait</a>.</p>
+<p>Bien que ce soit exemplaire, ce n&rsquo;est malheuresement ni suffisant, ni efficient.
+Trouver les sessions bloquantes et les sessions bloquées ? Onglet Oracle, page
+avec le logo carré, lien du bas pour les performances, ctrl+F « verrou »,
+quatrième bloc de code, copier/coller.</p>
+<p>J&rsquo;insiste et je caricature. Mais il m&rsquo;est véritablement arrivé de procéder ainsi
+sur un wiki d&rsquo;entreprise, lorsque les collègues rangeaient leurs scripts dans un
+dédale de pages. Nous pourrions également parler de la variante au format texte :
+Dossier script, Oracle, version 9i, numéro 115, verrou.sql, copier/coller.
+J&rsquo;épargnerai à l&rsquo;auditoire la version fichier Excel qui m&rsquo;ait été donné de
+rencontrer dans ma carrière.</p>
+<hr>
+<p>L&rsquo;histoire pourrait s&rsquo;en arrêter là et l&rsquo;on pourrait me rétorquer « L&rsquo;essentiel,
+c&rsquo;est le résultat », mais on se retrouve confronter à des délais de réponses
+variables d&rsquo;un DBA à un autre, où même le plus expérimenté pourrait perdre un
+temps considérable à identifier la requête la plus appropriée à la demande et la
+retrouver dans son extension de mémoire, sa fameuse boîte à outils.</p>
+<p>Moi-même, je ne suis pas parfait ; dans un soucis d&rsquo;efficacité et de productivité,
+j&rsquo;ai observé mes propres dérives dans la gestion de mes requêtes, glannées sur
+l&rsquo;Internet ou les wiki d&rsquo;entreprises. Qu&rsquo;aurions-nous besoin pour accélérer notre
+recherche et assurer l&rsquo;ajout permanent de nouvelles requêtes ?</p>
+<p>Liste exhaustive pour ma part :</p>
+<ul>
+<li>Stockage externalisé et disponible, synchronisation avec GitHub</li>
+<li>Indexation des mots-clés ou d&rsquo;une méta-description</li>
+<li>Copier en un clic (<em>copy to clipboard</em>)</li>
+<li>Éditeur intégré</li>
+<li>Colorisation syntaxique</li>
+</ul>
+<p>À cette époque, et très naturellement, je me suis mis à stocker mes propres
+<em>snippets</em> (le mot est lâché !) dans Github avec la très appréciable gestion des
+<em><a href=https://gist.github.com/fljdin>gists</a></em>. L&rsquo;interface, quoique sobre et
+fonctionnelle, ne permet pas la recherche dans son propre inventaire. Il existe
+plusieurs solutions tierces, avec des usages bien différents.</p>
+<ul>
+<li>client web avec offre payante : <a href=https://www.cacher.io/>cacher.io</a></li>
+<li>open-source, client lourd : <a href=https://hackjutsu.com/Lepton/>Lepton</a></li>
+<li>client web, gratuit, blockchain: <a href=https://app.decs.xyz/>DECS</a></li>
+</ul>
+<p>J&rsquo;utile à ce jour la version gratuite de <em>Cacher</em> pour toutes les raisons
+exprimées plus haut, l&rsquo;expérience est très complète et les fonctionnalités de
+bases très suffisantes. Anciennement nommé GistBox, ce service de snippets se
+synchronise très rapidement avec son propre compte GitHub et me permet en quelques
+mots clés d&rsquo;identifier les gists le plus pertinents dans une interface agréable.</p>
+<p>Cependant, l&rsquo;outil n&rsquo;est pas open-source et propose des limitations pour un usage
+gratuit (pas de label, pas de gists privés, peu d&rsquo;extensions IDE et non adapté
+au contexte d&rsquo;équipes en entreprise). J&rsquo;ai donc cherché d&rsquo;autres alternatives,
+avec notamment <a href=https://github.com/hackjutsu/Lepton>Lepton</a> qui propose la même navigation et les mêmes
+fonctionnalités, en mode client lourd basé sur le framework Node.js <a href=https://electronjs.org/>Electron</a>,
+et donc compatible avec Linux et Windows.</p>
+<p>La deuxième alternative, que je n&rsquo;ai pas encore testé, repose sur le réseau
+décentralisé de blockchain <a href=https://blockstack.org/>Blockstack</a> (open-source quant à lui, je ferai
+volontiers un retour sur cette technologie à l&rsquo;avenir).</p>
+<hr>
+<p>A travers cet article, je voulais proposer une autre lecture du métier du DBA,
+tout en conseillant vivement une prise de conscience sur les tâches qui nous font
+perdre du temps et de la productivité au quotidien.</p>
+<p>J&rsquo;invite tous les DBA, notamment s&rsquo;ils se sont reconnus dans la caricature que
+j&rsquo;ai dépeint, à admettre que nos habitudes du passé peuvent nous rendre la vie
+dure. Nous avons la chance, aujourd&rsquo;hui, de disposer de l&rsquo;outil Internet à tout
+moment et dans toutes les situations de production alors, pourquoi s&rsquo;en priver ?</p>
+</article>
+<aside class=related>
+<h3>Suggestion d'articles</h3>
+<ul class=related-posts>
+<li>
+<a href=https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/>Jette ton instance à la poubelle
+<small><time datetime=2019-06-20>20 juin 2019</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
+<small><time datetime=2020-12-21>21 déc 2020</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2020/12/09/de-jekyll-a-hugo/>De Jekyll à Hugo
+<small><time datetime=2020-12-09>9 déc 2020</time></small>
+</a>
+</li>
+</ul>
+</aside>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

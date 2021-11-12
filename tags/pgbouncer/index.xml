@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>pgbouncer on Carnet de découvertes</title><link>https://fljd.in/tags/pgbouncer/</link><description>Recent content in pgbouncer on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 21 Aug 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/pgbouncer/index.xml" rel="self" type="application/rss+xml"/><item><title>Tour d'horizon de PgBouncer</title><link>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</link><pubDate>Fri, 21 Aug 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/</guid><description>&lt;blockquote>
+&lt;p>Les programmes de regroupement de connexions (&lt;em>pooling&lt;/em>) vous permettent de
+réduire la surcharge liée à la base de données lorsque le nombre de connexions
+physiques réduit les performances. Ceci est particulièrement pertinent sous
+Windows, où les limitations du système empêchent un grand nombre de connexions.
+C&amp;rsquo;est également vital pour les applications Web où le nombre de connexions peut
+devenir très important.&lt;/p>
+&lt;p>(Source : &lt;a href="https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration">https://wiki.postgresql.org&lt;/a>)&lt;/p>
+&lt;/blockquote>
+&lt;p>Je n&amp;rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
+projet PostgreSQL pour aborder l&amp;rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
+des deux seuls &lt;em>poolers&lt;/em> de connexions largement répandus. Le produit est
+déconcertant de facilité, sa documentation et la littérature qui gravitent sur
+Internet sont claires et unanimes : PgBouncer améliorera grandement les
+performances de votre instance PostgreSQL !&lt;/p></description></item></channel></rss>

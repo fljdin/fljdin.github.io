@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>opensource on Carnet de découvertes</title><link>https://fljd.in/tags/opensource/</link><description>Recent content in opensource on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 24 Aug 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/opensource/index.xml" rel="self" type="application/rss+xml"/><item><title>BorgBackup ou la sauvegarde facile</title><link>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</link><pubDate>Tue, 24 Aug 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</guid><description>&lt;p>Jusqu&amp;rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
+sauvegardes de fichiers personnels réalisées naïvement avec un script &lt;code>rsync&lt;/code>.
+C&amp;rsquo;est honteux dans nos métiers, mais l&amp;rsquo;adage du cordonnier s&amp;rsquo;est vérifié avec
+moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/ -delete&lt;/code> durant des tests.&lt;/p>
+&lt;p>Après cet épisode et l&amp;rsquo;amertume d&amp;rsquo;avoir perdu quelques travaux, ou la surprise
+de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
+erreur, je me suis tourné vers l&amp;rsquo;outil incontournable dont tous mes collègues me
+parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/">BorgBackup&lt;/a>&lt;/p></description></item><item><title>Compiler et patcher avec pgenv</title><link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link><pubDate>Mon, 21 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</guid><description>&lt;p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
+efficace répondant au nom de &lt;a href="https://github.com/theory/pgenv">pgenv&lt;/a>, un gestionnaire des versions PostgreSQL.
+Ce projet est publié sous licence MIT par David E. Wheeler, auteur de l&amp;rsquo;extension
+pgTAP dont j&amp;rsquo;avais déjà vanté les mérites dans un &lt;a href="https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql">autre article&lt;/a>.&lt;/p>
+&lt;p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
+quelques DBA féru⋅es d&amp;rsquo;expérimentations, car &lt;code>pgenv&lt;/code> permet de compiler et
+d&amp;rsquo;exécuter toutes les versions majeures et mineures du système de base de données
+open-source le plus avancé du monde.&lt;/p></description></item><item><title>Reprenons sérieusement</title><link>https://fljd.in/2019/06/12/reprenons-serieusement/</link><pubDate>Wed, 12 Jun 2019 10:30:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/12/reprenons-serieusement/</guid><description>&lt;p>La série d&amp;rsquo;articles que je souhaite publier dans les mois et années à venir
+s&amp;rsquo;intègre dans un engagement personnel envers un domaine qui accapare mes journées
+de professionnel.&lt;/p></description></item></channel></rss>

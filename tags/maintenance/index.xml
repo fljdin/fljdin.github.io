@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>maintenance on Carnet de découvertes</title><link>https://fljd.in/tags/maintenance/</link><description>Recent content in maintenance on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 23 Apr 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/maintenance/index.xml" rel="self" type="application/rss+xml"/><item><title>Le partitionnement par hachage</title><link>https://fljd.in/2021/04/23/le-partitionnement-par-hachage/</link><pubDate>Fri, 23 Apr 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/04/23/le-partitionnement-par-hachage/</guid><description>&lt;p>Le partitionnement déclaratif a été une véritable révolution à la sortie de la
+version 10 de PostgreSQL en octobre 2017. La gestion des sous-tables devenait
+alors bien plus aisée au quotidien, simplifiant leur mise en place et leur
+maintenance.&lt;/p>
+&lt;p>Sans cesse amélioré au cours des dernières années, je me souviens encore de mon
+émerveillement devant la magie du partitionnement par hachage, &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e">apparu&lt;/a> en
+version 11. Comment le déployer et que permet-il ? J&amp;rsquo;ai voulu m&amp;rsquo;en rendre compte
+dans une rapide démonstration sur le type &lt;a href="https://fr.wikipedia.org/wiki/Universally_unique_identifier">UUID&lt;/a> en étudiant les fonctions
+d&amp;rsquo;appui qui se cachent derrière le hachage des valeurs.&lt;/p></description></item><item><title>Les statistiques au service du plan d'exécution</title><link>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</link><pubDate>Wed, 01 Jul 2020 20:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid><description>&lt;p>La lecture d&amp;rsquo;un plan d&amp;rsquo;exécution fait partie des meilleures armes du développeur
+et de l&amp;rsquo;administrateur de bases de données pour identifier les problèmes de
+performances. Dans &lt;a href="https://fljd.in/2019/09/27/index-decomplexe">un précédent article&lt;/a>, je
+présentais l&amp;rsquo;intérêt de positionner un index sur les colonnes d&amp;rsquo;une table pour
+faciliter les recherches, notamment avec l&amp;rsquo;aide de la commande &lt;code>EXPLAIN&lt;/code>.&lt;/p>
+&lt;p>À cette époque, je ne m&amp;rsquo;étais pas attardé sur la notion des statistiques de
+données, que l&amp;rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
+près ce que propose PostgreSQL pour garantir les performances de vos requêtes.&lt;/p></description></item></channel></rss>

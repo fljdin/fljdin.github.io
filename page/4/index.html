@@ -1,0 +1,117 @@
+<!doctype html><html lang=fr>
+<head>
+<meta name=generator content="Hugo 0.89.2">
+<title>Carnet de découvertes</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=alternate type=application/rss+xml title="Carnet de découvertes" href=https://fljd.in/index.xml>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=https://fljd.in/en/>English</a></small>
+</h3>
+</header>
+<main>
+<div class=posts>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2020/01/17/gestion-des-signaux-internes/>Gestion des signaux internes</a>
+</h1>
+<time datetime=2020-01-17 class=post-date>17 janv 2020</time>
+<p>Je voulais m&rsquo;attarder sur une notion que je n&rsquo;avais pas exploré à l&rsquo;époque où
+j&rsquo;apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l&rsquo;école et
+où l&rsquo;on usait de commandes apprises par cœur : les signaux !</p>
+<p>Les signaux les plus connus et les plus utilisés sont les numéros 6 <code>SIGABRT</code> et
+9 <code>SIGKILL</code>, ça vous revient ? Pourquoi en existe-t-il autant, dans quels
+contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons
+le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !</p>
+<small>» <a href=https://fljd.in/2020/01/17/gestion-des-signaux-internes/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2019/12/19/le-jour-ou-tout-bascule/>Le jour où tout bascule</a>
+</h1>
+<time datetime=2019-12-19 class=post-date>19 déc 2019</time>
+<p>Lorsque l&rsquo;on exploite une plateforme PostgreSQL avec de la réplication, il est
+exceptionnel de devoir déclencher le plan de bascule, rédigé par un ancien
+collègue ou un prestataire oublié. Ce genre de décision se prend lorsque
+l&rsquo;ensemble des experts ont individuellement déterminé qu&rsquo;aucune autre solution
+n&rsquo;était envisageable.</p>
+<p>Quels moyens a-t-on avec une architecture PostgreSQL dans son plus simple appareil
+pour réaliser une bascule des rôles et raccrocher les instances secondaires au
+nouveau primaire fraîchement élu ?</p>
+<small>» <a href=https://fljd.in/2019/12/19/le-jour-ou-tout-bascule/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/>La conviction du dimanche soir</a>
+</h1>
+<time datetime=2019-12-15 class=post-date>15 déc 2019</time>
+<p>Il y a parfois des projets qui émergent de nulle part, d&rsquo;autres qui mûrissent
+d&rsquo;années en années. Certains mêmes peuvent être déclenchés par l&rsquo;heureuse
+rencontre de deux inconnus, ou alors par la simple volonté de combler un vide.
+Aussi, dimanche dernier, je me suis plongé dans la lecture d&rsquo;un <a href=https://www.oreilly.com/library/view/learn-c-the/9780133124385/>livre technique</a>
+sans raison apparente et me suis donné pour nouvel objectif de réapprendre le
+langage C.</p>
+<p>Incongru, n&rsquo;est-ce pas ? Pourtant, l&rsquo;idée n&rsquo;est pas nouvelle, elle a germée
+paisiblement jusqu&rsquo;à plusieurs récents épisodes de mon quotidien. Et si ce langage
+informatique, très bas niveau, dont font l&rsquo;impasse de nombreux étudiants (dont
+moi durant ma licence), avait des choses à m&rsquo;apprendre pour progresser dans ma
+compréhension du logiciel libre ?</p>
+<p>Je ne sais pas, mais j&rsquo;ai eu comme la conviction d&rsquo;être passer à côté d&rsquo;une
+évidence…</p>
+<small>» <a href=https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Construire une instance standby avec pgBackRest</a>
+</h1>
+<time datetime=2019-11-07 class=post-date>7 nov 2019</time>
+<p>Pour cette démonstration, j&rsquo;utilise le système Debian et dispose de deux instances
+en version 12, d&rsquo;un serveur de sauvegarde et du paquet <code>pgbackrest</code> pour mettre
+en place une réplication et observer les nouveautés concernant la <a href=https://paquier.xyz/postgresql-2/postgres-12-recovery-change/>disparition</a>
+du fichier <code>recovery.conf</code>.</p>
+<small>» <a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Lire la suite</a></small>
+</article>
+<article class=post>
+<h1 class=post-title>
+<a href=https://fljd.in/2019/09/27/index-decomplexe/>Index décomplexé</a>
+</h1>
+<time datetime=2019-09-27 class=post-date>27 sept 2019</time>
+<blockquote>
+<p><u>Index terminologique</u> : permet au lecteur de localiser
+rapidement un élément dans l&rsquo;ouvrage, sans être contraint de le lire intégralement.
+(<a href=https://fr.wikipedia.org/wiki/Index_terminologique>Wikipédia</a>)</p>
+<p><u>Index de base de données</u> : structure de données qui
+permet de retrouver rapidement les données. (<a href=https://fr.wikipedia.org/wiki/Index_(base_de_donn%C3%A9es)>Wikipédia</a>)</p>
+</blockquote>
+<small>» <a href=https://fljd.in/2019/09/27/index-decomplexe/>Lire la suite</a></small>
+</article>
+</div>
+<div class=pagination>
+<a class="pagination-item older" href=/page/5/>Page précédente</a>
+<a class="pagination-item newer" href=/page/3/>Page suivante</a>
+</div>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

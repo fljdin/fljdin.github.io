@@ -1,0 +1,279 @@
+<!doctype html><html lang=fr>
+<head>
+<title>De Jekyll à Hugo</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small>
+</h3>
+</header>
+<main>
+<article class=post>
+<h1 class=post-title>De Jekyll à Hugo</a></h1>
+<p class=post-date>
+<time datetime=2020-12-09>9 déc 2020</time>
+- 7 minutes de lecture
+</p>
+<p>Dans l&rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
+plusieurs <em>frameworks</em> depuis quelques années. Vous avez peut-être entendu parler
+de <a href=https://github.com/jekyll/jekyll>Jekyll</a>, <a href=https://github.com/vercel/next.js>Next.js</a>, <a href=https://github.com/gatsbyjs/gatsby>Gastby</a> ou <a href=https://github.com/gohugoio/hugo>Hugo</a> ? Je ne cite que les plus
+sollicités par la communauté sur GitHub, mais il en existe des centaines.</p>
+<p>Pourquoi cet engouement ? Cet article n&rsquo;en parlera pas.</p>
+<hr>
+<p>Pour de louables raisons, je m&rsquo;étais engagé <a href=/2019/06/12/reprenons-serieusement>l&rsquo;année dernière</a> à auto-héberger
+mon nouvel espace d&rsquo;expression personnel. J&rsquo;y ai découvert avec intérêt et amusement
+de nombreuses technologies que j&rsquo;ai pliées, réinstallées, transformées pour les
+adapter à mon besoin. Sans trop rentrer dans les détails, j&rsquo;ai fini par avoir :</p>
+<ul>
+<li>un serveur VPS chez OVH pour un coût de 3,99€ par mois</li>
+<li>une routine mensuelle de renouvellement de certificat avec <a href=https://pypi.org/project/certbot/>certbot</a></li>
+<li>une instance <a href=https://github.com/eclipse-theia/theia>Theia</a> dans un conteneur Docker</li>
+<li>une image Jekyll 4.1.0 que j&rsquo;invoquais dans Docker</li>
+<li>deux dépôts GitHub privés pour les articles (<em>posts</em>) et les brouillons (<em>drafts</em>)</li>
+<li>le thème <a href=https://github.com/poole/poole>Poole</a>, léger et modulable… que j&rsquo;ai modulé</li>
+</ul>
+<p>Alors que la question de conserver ou non le serveur VPS se pose pour la nouvelle
+année qui démarre bientôt (il devient agé, limité, pour ne pas dire sénil), j&rsquo;ai
+remis récemment en cause mon attachement pour le <em>framework</em> <strong>Jekyll</strong>, si élégant
+à l&rsquo;époque.</p>
+<p>Le machin repose sur des dépendances Ruby. Aussi nombreuses (ou presque) qu&rsquo;un
+nouveau projet en Node.js. J&rsquo;ai mangé du <code>Gemfile</code> par le passé, aussi je n&rsquo;ai eu
+aucune réelle difficulté à installer les quelques modules nécessaires à la
+concrétisation de mon projet. En voici le contenu :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-ruby data-lang=ruby><span class=n>source</span> <span class=s2>&#34;https://rubygems.org&#34;</span>
+
+<span class=n>gem</span> <span class=s2>&#34;jekyll&#34;</span><span class=p>,</span> <span class=s2>&#34;~&gt; 4.1.0&#34;</span>
+<span class=n>gem</span> <span class=s2>&#34;classifier-reborn&#34;</span>
+
+<span class=c1># If you have any plugins, put them here!</span>
+<span class=n>group</span> <span class=ss>:jekyll_plugins</span> <span class=k>do</span>
+  <span class=n>gem</span> <span class=s2>&#34;jekyll-paginate-v2&#34;</span>
+  <span class=n>gem</span> <span class=s1>&#39;jekyll-target-blank&#39;</span><span class=p>,</span> <span class=s2>&#34;~&gt; 2.0&#34;</span>
+  <span class=n>gem</span> <span class=s1>&#39;jekyll-time-to-read&#39;</span>
+<span class=k>end</span>
+</code></pre></div><p>Et c&rsquo;est tout.</p>
+<p>Je n&rsquo;avais besoin que de la pagination et de l&rsquo;estimation du temps de lecture par
+article. Mine de rien, ça me semblait un peu grossier d&rsquo;exiger que ces simples
+modules ne soient pas intégrés nativement. J&rsquo;ai donc engagé mes recherches et le
+portage du présent site sur l&rsquo;une des autres solutions, à savoir <strong>Hugo</strong>.</p>
+<hr>
+<h2 id=migre-moi-ça-pti-con>Migre moi ça, p&rsquo;ti con</h2>
+<p>Et les développeurs de Hugo n&rsquo;y sont pas allé de main morte pour asseoir leur
+logiciel dans ce paysage turbulent : ils intègrent un assistant de migration
+spécialement pour un projet Jekyll en récupérant ses fichiers <code>.md</code> et ses
+ressources statiques. En soit, la chose n&rsquo;est pas complexe et le résultat est
+au rendez-vous. Mais…</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ hugo import jekyll blog blog_hugo
+Importing...
+Congratulations! 128 post(s) imported!
+Now, start Hugo by yourself:
+$ cd blog_hugo
+$ git clone https://github.com/spf13/herring-cove.git themes/herring-cove
+$ hugo server --theme=herring-cove
+</code></pre></div><p>Bien sûr, l&rsquo;assistant propose un thème pour embellir le projet en lieu et place
+d&rsquo;une transposition du language <a href=https://jekyllrb.com/docs/liquid/>Liquid</a> sur lequel repose les fichiers
+modèles de Jekyll. C&rsquo;est plus simple mais… ce n&rsquo;est pas réellement ce que je
+souhaitais.</p>
+<p><img src=/img/fr/2020-12-09-hugo-import-from-jekyll.png alt="Un thème par défaut pas sans défaut"></p>
+<p>Autant le rendu des articles est impeccable avec ce thème, autant la navigation
+est assez pauvre à mon goût. Bien évidemment, c&rsquo;est bien suffisant pour n&rsquo;importe
+qui. Mais voilà. Mon thème principal me manquait et malheureusement pour moi,
+il n&rsquo;existait pas pour Hugo.</p>
+<hr>
+<h2 id=de-longues-soirées-dhiver>De longues soirées d&rsquo;hiver</h2>
+<p>J&rsquo;aime les choses simples. Et j&rsquo;aime encore plus les comprendre en profondeur.
+C&rsquo;est pour cette raison que je me suis lancé plusieurs heures dans la lecture
+assidue de la documentation très riche sur <a href=https://gohugo.io/documentation/>gohugo.io</a>. Les concepts sont
+assez différents et le passage n&rsquo;a pas été si évident que cela. Je vous propose
+un florilège des astuces qu&rsquo;il m&rsquo;a fallu découvrir pour proposer le portage
+intégral de mon site.</p>
+<h3 id=les-permaliens>Les permaliens</h3>
+<p>Jekyll et Hugo proposent une gestion fine des URL à l&rsquo;aide du paramètre
+<code>permalinks</code> pour reconstruire l&rsquo;adresse d&rsquo;une page ou d&rsquo;un article et favoriser
+son référencement. Cependant, leur paramètrage par défaut diffère et il est
+nécessaire de retrouver le comportement de <a href=https://jekyllrb.com/docs/permalinks/>l&rsquo;un</a> avec <a href=https://gohugo.io/content-management/urls/#permalinks>l&rsquo;autre</a>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>permalinks</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>posts</span><span class=p>:</span><span class=w> </span><span class=l>/:year/:month/:day/:slug</span><span class=w>
+</span></code></pre></div><p>Pour ma part, j&rsquo;ai privilégié le dérivé <code>:slug</code> pour être en mesure de surcharger
+la dernière portion de l&rsquo;URL dans les rares cas où le titre était malformé entre
+Jekyll et Hugo. Par exemple pour mon article « <a href=/2020/08/21/tour-d-horizon-de-pgbouncer/>Tour d&rsquo;horizon de PgBouncer</a> »
+où l&rsquo;apostrophe n&rsquo;était pas remplacée par le tiret et où je ne voulais pas
+perdre le référencement, j&rsquo;ai pu contourner le problème avec l&rsquo;ajout d&rsquo;une simple
+ligne en en-tête du fichier Markdown.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nn>---</span><span class=w>
+</span><span class=w></span><span class=nt>title</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;Tour d&#39;horizon de PgBouncer&#34;</span><span class=w>
+</span><span class=w></span><span class=nt>slug</span><span class=p>:</span><span class=w> </span><span class=l>tour-d-horizon-de-pgbouncer</span><span class=w>
+</span><span class=w></span><span class=nn>---</span><span class=w>
+</span></code></pre></div><p>Il m&rsquo;a également fallu découvrir un paramètre particulier pour ne pas prendre en
+compte les accents présents dans les titres lors de la génération du <em>slug</em>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>removePathAccents</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></code></pre></div><h3 id=syndication-automatique-du-contenu>Syndication automatique du contenu</h3>
+<p>Pour le coup, j&rsquo;ai bénéficié d&rsquo;une simplification dans mon projet grâce au support
+natif et avancé des flux RSS. Alors qu&rsquo;avec Jekyll, je devais maintenir mes
+fichiers <code>feed.xml</code> et <code>atom.xml</code> à la racine du projet, j&rsquo;ai découvert avec Hugo
+la notion de <em><a href=https://gohugo.io/content-management/taxonomies/>taxonomie</a></em> qui permet la classification des articles. La
+taxonomie regroupe autant les sections, les catégories et les <em>tags</em>, et je trouve
+ça astucieux.</p>
+<p>Imaginons une arborescence très simple avec une page et un article :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>content/
+├── pages
+│   └── a-propos.md
+└── posts
+    └── 2020-11-18-quelques-outils-meconnus.md
+</code></pre></div><p>Sans configuration supplémentaire, Hugo générera le contenu statique pour chacun
+des éléments du projet, en consultant notamment les en-têtes pour extraire les
+informations <code>categories</code> et <code>tags</code> des articles.</p>
+<p>La magie opère avec un ensemble de fichiers <code>index.xml</code> regroupant les éléments
+d&rsquo;une même taxonomie.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>public/
+├── 2020
+│   └── 11
+│       └── 18
+│           └── quelques-outils-meconnus
+│               └── index.html
+├── categories
+│   ├── index.html
+│   ├── index.xml
+│   └── postgresql
+│       ├── index.html
+│       └── index.xml
+├── index.html
+├── index.xml
+├── pages
+│   ├── a-propos
+│   │   └── index.html
+│   ├── index.html
+│   └── index.xml
+└── tags
+    └── administration
+        ├── index.html
+        └── index.xml
+</code></pre></div><h3 id=la-colorisation-syntaxique>La colorisation syntaxique</h3>
+<p>À ce sujet, j&rsquo;ai eu une petite surprise avec les balises HTML jusqu&rsquo;à ce que je
+me penche sur la <a href=https://gohugo.io/content-management/syntax-highlighting/#generate-syntax-highlighter-css>documentation</a>. En effet, par défaut, Hugo transforme un
+bloc de code Markdown en série de balises stylisées.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=p>&lt;</span><span class=nt>div</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;highlight&#34;</span><span class=p>&gt;</span>
+<span class=p>&lt;</span><span class=nt>pre</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#f8f8f2;background-color:#272822;
+</span><span class=s>            -moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;</span><span class=p>&gt;</span>
+<span class=p>&lt;</span><span class=nt>code</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;language-sql&#34;</span> <span class=na>data-lang</span><span class=o>=</span><span class=s>&#34;sql&#34;</span><span class=p>&gt;</span>
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#66d9ef&#34;</span><span class=p>&gt;</span>CREATE<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#66d9ef&#34;</span><span class=p>&gt;</span>TABLE<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> people (
+    id BIGINT 
+    <span class=p>&lt;</span><span class=nt>span</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#66d9ef&#34;</span><span class=p>&gt;</span>GENERATED<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+    ALWAYS <span class=p>&lt;</span><span class=nt>span</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#66d9ef&#34;</span><span class=p>&gt;</span>AS<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+    <span class=p>&lt;</span><span class=nt>span</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#66d9ef&#34;</span><span class=p>&gt;</span>IDENTITY<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span>,
+    details jsonb,
+    <span class=p>&lt;</span><span class=nt>span</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#66d9ef&#34;</span><span class=p>&gt;</span>PRIMARY<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+    <span class=p>&lt;</span><span class=nt>span</span> <span class=na>style</span><span class=o>=</span><span class=s>&#34;color:#66d9ef&#34;</span><span class=p>&gt;</span>KEY<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> (id)
+  );
+<span class=p>&lt;/</span><span class=nt>code</span><span class=p>&gt;</span>
+<span class=p>&lt;/</span><span class=nt>pre</span><span class=p>&gt;</span>
+<span class=p>&lt;/</span><span class=nt>div</span><span class=p>&gt;</span>
+</code></pre></div><p>Puisque mon thème original proposait une feuille de style au format <a href=https://sass-lang.com/>SASS</a>
+spécfiquement pour la colorisation syntaxique, j&rsquo;ai tenté d&rsquo;activer l&rsquo;un des
+paramètres de Hugo pour utiliser les classes de style plutôt que le comportement
+ci-dessus.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>pygmentsUseClasses</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></code></pre></div><p>Le résultat était inespéré avec les classes reconnus par mes règles CSS.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=p>&lt;</span><span class=nt>div</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;highlight&#34;</span><span class=p>&gt;</span>
+<span class=p>&lt;</span><span class=nt>pre</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;chroma&#34;</span><span class=p>&gt;</span>
+<span class=p>&lt;</span><span class=nt>code</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;language-sql&#34;</span> <span class=na>data-lang</span><span class=o>=</span><span class=s>&#34;sql&#34;</span><span class=p>&gt;</span>
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;k&#34;</span><span class=p>&gt;</span>CREATE<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;k&#34;</span><span class=p>&gt;</span>TABLE<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;n&#34;</span><span class=p>&gt;</span>people<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;p&#34;</span><span class=p>&gt;</span>(<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span>
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;n&#34;</span><span class=p>&gt;</span>id<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;nb&#34;</span><span class=p>&gt;</span>BIGINT<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;k&#34;</span><span class=p>&gt;</span>GENERATED<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;n&#34;</span><span class=p>&gt;</span>ALWAYS<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;k&#34;</span><span class=p>&gt;</span>AS<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;k&#34;</span><span class=p>&gt;</span>IDENTITY<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;p&#34;</span><span class=p>&gt;</span>,<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span>
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;n&#34;</span><span class=p>&gt;</span>details<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;n&#34;</span><span class=p>&gt;</span>jsonb<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span>
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;p&#34;</span><span class=p>&gt;</span>,<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span>
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;k&#34;</span><span class=p>&gt;</span>PRIMARY<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;k&#34;</span><span class=p>&gt;</span>KEY<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span> 
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;p&#34;</span><span class=p>&gt;</span>(<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;n&#34;</span><span class=p>&gt;</span>id<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;p&#34;</span><span class=p>&gt;</span>)<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span>
+  <span class=p>&lt;</span><span class=nt>span</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;p&#34;</span><span class=p>&gt;</span>);<span class=p>&lt;/</span><span class=nt>span</span><span class=p>&gt;</span>
+<span class=p>&lt;/</span><span class=nt>code</span><span class=p>&gt;</span>
+<span class=p>&lt;/</span><span class=nt>pre</span><span class=p>&gt;</span>
+<span class=p>&lt;/</span><span class=nt>div</span><span class=p>&gt;</span>
+</code></pre></div><h3 id=les-balises-html-dans-le-markdown>Les balises HTML dans le Markdown</h3>
+<p>Mes fichiers Markdown contenaient des balises HTML pour quelques effets visuels,
+à savoir des encarts d&rsquo;avertissement <code>&lt;div></code>, du surlignage <code>&lt;u></code> et de très
+(trop) nombreux exposants <code>&lt;sup></code> pour mes sources d&rsquo;articles. Pour cet aspect,
+Hugo est plus restrictif que Jekyll et ignore tout bonnement les balises dans le
+rendu de ses pages.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=c>&lt;!-- raw HTML omitted --&gt;</span>
+</code></pre></div><p>Pour le coup, je n&rsquo;ai pas chercher s&rsquo;il existait un paramètre de configuration
+qui me permettrait de lever la restriction. Ma solution de contournement fut
+d&rsquo;utiliser les composants <em>shortcodes</em> pour mes quelques exceptions et la
+<a href=https://gohugo.io/templates/shortcode-templates/>documentation</a> était bien suffisante pour y parvenir sereinement.</p>
+<p>Par exemple pour mes encarts, j&rsquo;ai gagné en facilité de rédaction avec la méthode
+<code>markdownify</code> fourni par le système de rendu, et je n&rsquo;écris plus que du Markdown
+dans mes fichiers !</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=c>&lt;!-- layout/shortcodes/message.html --&gt;</span>
+<span class=p>&lt;</span><span class=nt>div</span> <span class=na>class</span><span class=o>=</span><span class=s>&#34;message&#34;</span><span class=p>&gt;</span>{{ .Inner | markdownify }}<span class=p>&lt;/</span><span class=nt>div</span><span class=p>&gt;</span>
+
+<span class=c>&lt;!-- content/posts/exemple.md --&gt;</span>
+{\{<span class=p>&lt;</span> <span class=nt>message</span> <span class=p>&gt;</span>}\}
+Exemple de rendu avec un lien de [documentation][17].
+{\{<span class=p>&lt;</span> <span class=p>/</span><span class=nt>message</span> <span class=p>&gt;</span>}\}
+</code></pre></div><p><em>Ne pas s&rsquo;attarder sur les <code>\</code> qui ne servent qu&rsquo;à échapper les accolades.</em></p>
+<hr>
+<h2 id=en-bref>En bref</h2>
+<p>Au-delà des quelques paramètrages ou réécriture Markdown qui m&rsquo;ont fait perdre
+du temps, Hugo présente bien plus de fonctionnalités natives que ne le fait
+Jekyll. Je dresse une liste non exhausitive des apports qui m&rsquo;ont convaincu à
+passer le cap.</p>
+<ul>
+<li><a href=https://gohugo.io/templates/pagination/>Pagination</a> simple et intégrée</li>
+<li><a href=https://gohugo.io/variables/page/#page-variables>Temps estimé de lecture</a> avec la variable <code>.ReadingTime</code></li>
+<li>Génération des pages <a href=https://forestry.io/blog/hugo-vs-jekyll-benchmark/>nettement plus rapide</a></li>
+<li>Portabilité du logiciel avec <strong>zéro</strong> dépendance système</li>
+</ul>
+<p>Pour conclure, je me suis résolu à héberger le projet et le rendu des pages sur
+GitHub, en suivant les <a href=https://gohugo.io/hosting-and-deployment/hosting-on-github/>instructions</a> détaillées. La <a href=https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site>bascule</a> du nom de
+domaine a ainsi été opérée ce midi et je n&rsquo;ai plus à me préoccuper de mon ancienne
+instance VPS ni du certificat à renouveller auprès de Let&rsquo;s Encrypt.</p>
+</article>
+<aside class=related>
+<h3>Suggestion d'articles</h3>
+<ul class=related-posts>
+<li>
+<a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
+<small><time datetime=2020-12-21>21 déc 2020</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2020/11/18/quelques-outils-meconnus/>Quelques outils méconnus
+<small><time datetime=2020-11-18>18 nov 2020</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2019/06/24/la-boite-a-outils-du-dba/>La boîte à outils du DBA
+<small><time datetime=2019-06-24>24 juin 2019</time></small>
+</a>
+</li>
+</ul>
+</aside>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

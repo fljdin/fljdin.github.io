@@ -1,0 +1,158 @@
+<!doctype html><html lang=fr>
+<head>
+<title>De la sécurité pour vos mots de passe</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small>
+</h3>
+</header>
+<main>
+<article class=post>
+<h1 class=post-title>De la sécurité pour vos mots de passe</a></h1>
+<p class=post-date>
+<time datetime=2020-03-20>20 mars 2020</time>
+- 4 minutes de lecture
+</p>
+<p>La sécurité d&rsquo;un système d&rsquo;information prend une multitude de forme. Aussi,
+j&rsquo;aimerai m&rsquo;attarder sur une évolution apparue en version 10 de PostgreSQL,
+devenue depuis lors une bonne pratique, bien que très absente dans les
+déploiements des systèmes courants.</p>
+<p>Depuis la version 8.1 de PostgreSQL, les mots de passe de connexion sont hachés
+dans une table système nommée <a href=https://www.postgresql.org/docs/current/catalog-pg-authid.html>pg_authid</a> avec l&rsquo;algorithme MD5. La chaîne
+encodée sur 32 caractères héxadécimaux est le résultat du hachage du mot de passe
+en clair avec le nom de l&rsquo;utilisateur.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>u</span><span class=p>,</span><span class=w> </span><span class=n>md5</span><span class=p>(</span><span class=s1>&#39;secret&#39;</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>u</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>hash</span><span class=w> 
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=s1>&#39;tom&#39;</span><span class=p>,</span><span class=s1>&#39;jerry&#39;</span><span class=p>])</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>u</span><span class=p>;</span><span class=w>
+</span><span class=w>   
+</span><span class=w></span><span class=c1>--    u   |               hash               
+</span><span class=c1>-- -------+----------------------------------
+</span><span class=c1>--  tom   | c85e6c670e521155c2823ddaa761c1be
+</span><span class=c1>--  jerry | df96e7fb3e9b25fda78387096d19aca6
+</span></code></pre></div><p>Ainsi, pour tout utilisateur présent dans l&rsquo;instance, il est possible d&rsquo;obtenir
+le <em>hash</em> avec la requête suivante :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>rolname</span><span class=p>,</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w>
+</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c1>--  rolname |             rolpassword             
+</span><span class=c1>-- ---------+-------------------------------------
+</span><span class=c1>--  tom     | md5c85e6c670e521155c2823ddaa761c1be
+</span><span class=c1>--  jerry   | md5df96e7fb3e9b25fda78387096d19aca6
+</span></code></pre></div><p>C&rsquo;est là que le bât blesse. Depuis plus d&rsquo;une décennie, nous savons que ce bel
+algorithme n&rsquo;est <a href=https://fr.wikipedia.org/wiki/MD5>plus assez robuste</a> pour les machines de calcul modernes. Il
+devient possible de retrouver le mot de passe en clair avec des attaques par
+dictionnaire ou de force brute (<em>brute-forcing</em>).</p>
+<blockquote>
+<p>The method md5 uses a custom less secure challenge-response mechanism. It
+prevents password sniffing and avoids storing passwords on the server in plain
+text but provides no protection if an attacker manages to steal the password
+hash from the server. Also, the MD5 hash algorithm is nowadays no longer
+considered secure against determined attacks.</p>
+<p><em>Source : <a href=https://www.postgresql.org/docs/10/auth-methods.html>Authentication Methods</a></em></p>
+</blockquote>
+<p>Je vois venir de loin les autres barrages à ce type d&rsquo;attaque, comme la restriction
+des adresses et plages IP dans le fichier <code>pg_hba.conf</code> ou la segmentation des
+réseaux qui mitigent parfaitement le scénario de connexion en provenance d&rsquo;un tier
+non habilité. Mais comme pour toute faille de sécurité, il convient d&rsquo;étudier
+les faiblesse d&rsquo;un système pour ensuite décider de les corriger ou de les ignorer.</p>
+<hr>
+<p>La communauté a ainsi travaillé à la refonte de l&rsquo;architecture de l&rsquo;authentification
+dans le cœur de PostgreSQL pour supporter de nouvelles normes de sécurité avec
+l&rsquo;implémentation de la couche <a href=https://fr.wikipedia.org/wiki/Simple_Authentication_and_Security_Layer>SASL</a> et a rendu possible l&rsquo;ajout d&rsquo;une nouvelle
+méthode de hachage : le SCRAM-SHA-256.</p>
+<p>Le mot de passe de l&rsquo;utilisateur sera toujours stocké dans la table <code>pg_authid</code>
+mais sous un format plus robuste, rendant le risque de la captation de la chaîne
+bien moins élevé que précédemment. La transformation de cette chaîne nécessite
+de modifier le paramètre <code>password_encryption</code> et de resaisir le mot de passe
+d&rsquo;un utilisateur.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=c1>-- Surchage de la méthode pour la session en cours
+</span><span class=c1></span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c1>-- Surcharge de la méthode les prochaines connexions de l&#39;utilisateur
+</span><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>jerry</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c1>-- Surcharge de la méthode pour toute l&#39;instance après rechargement
+</span><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
+</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_reload_conf</span><span class=p>();</span><span class=w>
+</span></code></pre></div><p>Avec l&rsquo;outil <code>psql</code>, il est recommandé de saisir un mot de passe <em>via</em> la commande
+<code>\password</code> qui se chargera de hacher la saisie avec l&rsquo;algorithme défini
+précédemment et ainsi limiter le transport du mot de passe en clair sur le réseau
+et dans les traces associées à l&rsquo;activité de l&rsquo;instance.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SET</span><span class=w> </span><span class=n>log_min_duration_statement</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>;</span><span class=w>
+</span><span class=w></span><span class=err>\</span><span class=n>password</span><span class=w> </span><span class=n>jerry</span><span class=w>
+</span><span class=w></span><span class=c1>-- Enter new password: secret
+</span><span class=c1>-- Enter it again: secret
+</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-r data-lang=r><span class=c1># Extrain du journal postgresql.log</span>
+<span class=m>2020-03-20</span> <span class=m>10</span><span class=o>:</span><span class=m>26</span><span class=o>:</span><span class=m>25.286</span> <span class=n>CET</span> <span class=n>[13500]</span> <span class=n>LOG</span><span class=o>:</span>
+  <span class=n>duration</span><span class=o>:</span> <span class=m>0.187</span> <span class=n>ms</span>  
+  <span class=n>statement</span><span class=o>:</span> <span class=n>SET</span> <span class=n>log_min_duration_statement</span> <span class=o>=</span> <span class=m>0</span><span class=p>;</span>
+<span class=m>2020-03-20</span> <span class=m>10</span><span class=o>:</span><span class=m>26</span><span class=o>:</span><span class=m>46.802</span> <span class=n>CET</span> <span class=n>[13500]</span> <span class=n>LOG</span><span class=o>:</span>  
+  <span class=n>duration</span><span class=o>:</span> <span class=m>58.877</span> <span class=n>ms</span>  
+  <span class=n>statement</span><span class=o>:</span> <span class=n>ALTER</span> <span class=n>USER</span> <span class=n>jerry</span> <span class=n>PASSWORD</span> 
+   <span class=s>&#39;SCRAM-SHA-256$4096:PX5tZa/Z6JpAqz+BamwBsw==$F
+</span><span class=s>    wjepTBG4JK3WnW574IMvujq0FLzfm+yBdz6PORI5dY=:9
+</span><span class=s>    vx8y36/ervWsOqnYsaZQrm49tIy5b8IpgFu3RIyTyg=&#39;</span>
+</code></pre></div><p>La génération du <em>hash</em> repose sur le principe <a href=https://fr.wikipedia.org/wiki/Keyed-hash_message_authentication_code>HMAC</a> (norme RFC2104) avec une
+série d&rsquo;itérations où le mot de passe est mélangé avec plusieurs chaînes (<em>salt</em>)
+qui produit un résultat pseudo-aléatoire. L&rsquo;implémentation avec PostgreSQL peut
+être consultée dans le fichier <code>src/common/scram-common.c</code>.</p>
+<p>Enfin, la requête suivante pourrait nous permettre de suivre la migration vers
+l&rsquo;adoption de la nouvelle méthode pour l&rsquo;ensemble des utilisateurs de l&rsquo;instance :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=k>lower</span><span class=p>(</span><span class=n>regexp_replace</span><span class=p>(</span><span class=n>rolpassword</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;(md5|SCRAM-SHA-256)(.*)&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;\1&#39;</span><span class=p>))</span><span class=w>
+</span><span class=w>       </span><span class=k>AS</span><span class=w> </span><span class=k>method</span><span class=p>,</span><span class=w> </span><span class=k>count</span><span class=p>(</span><span class=n>oid</span><span class=p>),</span><span class=w> </span><span class=n>string_agg</span><span class=p>(</span><span class=n>rolname</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;,&#39;</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>roles</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=w>
+</span><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=k>method</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=k>method</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c1>--     method     | count | roles 
+</span><span class=c1>-- ---------------+-------+-------
+</span><span class=c1>--  md5           |     1 | tom
+</span><span class=c1>--  scram-sha-256 |     1 | jerry
+</span></code></pre></div><hr>
+<p>SCRAM signifie <em>Salted Challenge Response Authentication Mechanism</em>. Ce mécanisme
+de « <a href=https://fr.wikipedia.org/wiki/Authentification_d%C3%A9fi-r%C3%A9ponse>défi-réponse</a> » repose sur l&rsquo;implémentation côté client <u>et</u>
+côté serveur d&rsquo;un des algorithmes afin qu&rsquo;ils puissent se mettre d&rsquo;accord sur la
+comparaison du <em>hash</em> de mot de passe saisi par l&rsquo;utilisateur à sa connexion
+avec celui stocké en base de données.</p>
+<p>À l&rsquo;heure de la rédaction de cette article, plus de deux années se sont écoulées
+depuis la sortie en octobre 2017 de la version 10 de PostgreSQL et la plupart des
+<a href=https://wiki.postgresql.org/wiki/List_of_drivers>pilotes de connexions</a> supportent parfaitement la méthode d&rsquo;authentication
+SCRAM. L&rsquo;adoption de cette bonne pratique ne sera globale que le jour où la
+communauté de développeurs l&rsquo;activera par défaut avec le paramètre
+<code>password_encryption</code> positionné à <code>scram-sha-256</code> au lieu du <code>md5</code> actuellement.</p>
+<p>Si d&rsquo;aventure l&rsquo;une de vos applications ne serait pas encore compatible, il reste
+toujours la possibilité de surcharger le paramètrage de l&rsquo;instance au niveau de
+la base ou au niveau de l&rsquo;utilisateur et de conserver un <em>hash</em> en MD5.</p>
+<p>De plus, les règles d&rsquo;authentication dans le fichier <code>pg_hba.conf</code> peuvent vous
+aider à définir des exceptions pour les mauvais élèves.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># pg_hba.conf</span>
+<span class=c1># TYPE  DATABASE   USER        ADDRESS             METHOD</span>
+<span class=c1># IPv4 local connections:</span>
+<span class=na>host    all        tom         192.168.1.0/24      md5</span>
+<span class=na>host    all        all         192.168.1.0/24      scram-sha-256</span>
+</code></pre></div>
+</article>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

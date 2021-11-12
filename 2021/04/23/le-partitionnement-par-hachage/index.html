@@ -1,0 +1,298 @@
+<!doctype html><html lang=fr>
+<head>
+<title>Le partitionnement par hachage</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small>
+</h3>
+</header>
+<main>
+<article class=post>
+<h1 class=post-title>Le partitionnement par hachage</a></h1>
+<p class=post-date>
+<time datetime=2021-04-23>23 avr 2021</time>
+- 7 minutes de lecture
+</p>
+<p>Le partitionnement déclaratif a été une véritable révolution à la sortie de la
+version 10 de PostgreSQL en octobre 2017. La gestion des sous-tables devenait
+alors bien plus aisée au quotidien, simplifiant leur mise en place et leur
+maintenance.</p>
+<p>Sans cesse amélioré au cours des dernières années, je me souviens encore de mon
+émerveillement devant la magie du partitionnement par hachage, <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e">apparu</a> en
+version 11. Comment le déployer et que permet-il ? J&rsquo;ai voulu m&rsquo;en rendre compte
+dans une rapide démonstration sur le type <a href=https://fr.wikipedia.org/wiki/Universally_unique_identifier>UUID</a> en étudiant les fonctions
+d&rsquo;appui qui se cachent derrière le hachage des valeurs.</p>
+<hr>
+<h2 id=un-très-bon-choix-de-repli>Un très bon choix de repli</h2>
+<p>Dès lors qu&rsquo;une ou plusieurs tables dépasse le milliard de lignes, il y a fort
+à parier que les problèmes de performance ou de maintenance soient au rendez-vous :
+index volumineux, fragmentation importante, gel de l&rsquo;activité pour cause de
+<a href=https://blog.crunchydata.com/blog/managing-transaction-id-wraparound-in-postgresql>rebouclage des identifiants de transactions</a>, difficultés à purger les données.
+L&rsquo;apparition du partitionnement déclaratif dans PostgreSQL a permis d&rsquo;y adresser
+des solutions avec un minimum de complexité.</p>
+<p>La clé de partitionnement peut être définie par trois méthodes (<em>range</em>, <em>list</em>,
+<em>hash</em>) qui présentent chacunes des réponses appropriées aux besoins d&rsquo;une table
+ou d&rsquo;une fonctionnalité. Nous privilégierons une clé répartie sur un intervalle
+de temps pour l&rsquo;archivage de données sur une date, ou bien une clé dont les valeurs
+sont régulées dans une liste lorsque l&rsquo;on souhaite maîtriser la répartition et
+pouvoir la faire évoluer simplement.</p>
+<p>La dernière méthode <em>hash</em> est intéressante à plusieurs égards par la confusion
+de la clé primaire avec la clé de partionnement et par une répartition équilibrée
+des données sur l&rsquo;ensemble des sous-tables définies à l&rsquo;avance. De manière générale,
+si vous n&rsquo;avez pas idée de votre clé de partitionnement et que vous lisez
+principalement vos données sur leur clé primaire, la méthode par hachage peut être
+un très bon choix de repli.</p>
+<p>Prenons une table très simple que nous découpons en cinq partitions à partir des
+valeurs de la clé primaire dont le type est <code>uuid</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1</span><span class=w> </span><span class=p>(</span><span class=w>
+</span><span class=w>  </span><span class=n>tid</span><span class=w> </span><span class=n>uuid</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=p>,</span><span class=w>
+</span><span class=w>  </span><span class=n>tchar</span><span class=w> </span><span class=nb>text</span><span class=p>,</span><span class=w> 
+</span><span class=w>  </span><span class=n>tdate</span><span class=w> </span><span class=k>timestamp</span><span class=w> </span><span class=k>without</span><span class=w> </span><span class=n>time</span><span class=w> </span><span class=k>zone</span><span class=w>
+</span><span class=w></span><span class=p>)</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>HASH</span><span class=w> </span><span class=p>(</span><span class=n>tid</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_0_5</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>5</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>0</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_1_5</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>5</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_2_5</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>5</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>2</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_3_5</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>5</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>3</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_4_5</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>5</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>4</span><span class=p>);</span><span class=w>
+</span></code></pre></div><p>Avec cette configuration, l&rsquo;identifiant de chaque ligne sera haché et réduit
+par l&rsquo;opérateur modulo pour obtenir une valeur entière comprise entre <code>0</code> et <code>4</code>.
+Insérons un petit million de lignes et observons leur répartition.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>gen_random_uuid</span><span class=p>(),</span><span class=w> </span><span class=n>md5</span><span class=p>(</span><span class=k>g</span><span class=p>::</span><span class=nb>varchar</span><span class=p>),</span><span class=w>
+</span><span class=w>       </span><span class=k>current_timestamp</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=k>g</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=nb>interval</span><span class=w> </span><span class=s1>&#39;1 hour&#39;</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>generate_series</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=mi>1</span><span class=n>e6</span><span class=p>)</span><span class=w> </span><span class=k>g</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c1>-- INSERT 0 1000000
+</span></code></pre></div><div class=message>À partir de la version 13 de PostgreSQL, la fonction <code>gen_random_uuid()</code> est
+intégrée dans le catalogue et il n&rsquo;est plus nécessaire de passer par des
+extensions comme <code>pgcrypto</code> ou <code>uuid-ossp</code> pour générer un <code>uuid</code> aléatoire.</div>
+<p>La vue <code>pg_stat_user_tables</code> nous indique bien un nombre de tuples équitablement
+insérés dans les partitions.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=k>SUM</span><span class=p>(</span><span class=n>n_live_tup</span><span class=p>)</span><span class=w> </span><span class=n>n_live_tup</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w>
+</span><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=k>cube</span><span class=p>(</span><span class=n>relname</span><span class=p>)</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>relname</span><span class=p>;</span><span class=w>
+</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> relname | n_live_tup 
+---------+------------
+ t1_0_5  |     200148
+ t1_1_5  |     200123
+ t1_2_5  |     199964
+ t1_3_5  |     200184
+ t1_4_5  |     199581
+         |    1000000
+</code></pre></div><hr>
+<p>Le nombre de partitions est un choix crucial lors de l&rsquo;initialisation de
+la table, ou lors de sa transformation en table partitionnée, car l&rsquo;ajout de
+nouvelles partitions nécessite de remplacer une des sous-tables existantes par
+un nouvel ensemble de partitions dont le diviseur doit être un multiple du
+précédent.</p>
+<p>Voyons comment scinder l&rsquo;une des partitions en deux.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>BEGIN</span><span class=p>;</span><span class=w>
+</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1</span><span class=w> </span><span class=n>DETACH</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=n>t1_0_5</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_0_10</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>10</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>0</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_5_10</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t1</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>10</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>5</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>t1</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>t1_0_5</span><span class=p>;</span><span class=w>
+</span><span class=w></span><span class=c1>-- INSERT 0 200148
+</span><span class=c1></span><span class=w>
+</span><span class=w></span><span class=k>DROP</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t1_0_5</span><span class=p>;</span><span class=w>
+</span><span class=w></span><span class=k>COMMIT</span><span class=p>;</span><span class=w>
+</span></code></pre></div><p>Le contenu de l&rsquo;ancienne partition <code>t1_0_5</code> est déversé dans la table partitionnée
+et l&rsquo;opérateur modulus <code>10</code> permet la redistribution des lignes dans les deux
+nouvelles partitions, respectivement celles dont les restes de la division sont <code>0</code>
+et <code>5</code>. On garantit ainsi que les autres partitions ne deviennent pas leur nouvelle
+destination.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=k>SUM</span><span class=p>(</span><span class=n>n_live_tup</span><span class=p>)</span><span class=w> </span><span class=n>n_live_tup</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=k>like</span><span class=w> </span><span class=s1>&#39;t1%10&#39;</span><span class=w> 
+</span><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=k>cube</span><span class=p>(</span><span class=n>relname</span><span class=p>)</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>relname</span><span class=p>;</span><span class=w>
+</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> relname | n_live_tup 
+---------+------------
+ t1_0_10 |      99960
+ t1_5_10 |     100188
+         |     200148
+</code></pre></div><p>Cette opération est lourde sur des données vivantes, avec des verrous de type
+<code>Access Exclusive</code> qui interdisent toutes consultations ou modifications de la
+table partitionnée. Les sous-tables non impliquées dans la transformation restent
+accessibles en lecture, pour peu qu&rsquo;on puisse réaliser les <code>SELECT</code> sur leur
+nom exact de partition.</p>
+<hr>
+<h2 id=les-fonctions-dappui>Les fonctions d&rsquo;appui</h2>
+<p>La plupart des types de données sont supportés par la méthode <code>hash</code> à l&rsquo;aide
+notamment des classes d&rsquo;opérateur et des fonctions d&rsquo;appui fournies par PostgreSQL.
+Par exemple, pour connaître la liste de types compatibles avec le partitionnement
+par hachage, il suffit de consulter le catalogue.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>demo=# \dAc hash
+                         List of operator classes
+  AM  |       Input type      | Storage type |   Operator class    | Default? 
+------+-----------------------+--------------+---------------------+----------
+ hash | aclitem               |              | aclitem_ops         | yes
+ hash | anyarray              |              | array_ops           | yes
+ hash | anyenum               |              | enum_ops            | yes
+ hash | anyrange              |              | range_ops           | yes
+ ...
+ hash | uuid                  |              | uuid_ops            | yes
+ hash | xid                   |              | xid_ops             | yes
+ hash | xid8                  |              | xid8_ops            | yes
+(46 rows)
+</code></pre></div><p>Lors de l&rsquo;élaboration du partitionnement par hachage, la communauté a étendu les
+fonctions d&rsquo;appui en <a href=https://www.postgresql.org/message-id/CA%2BTgmoZSTkD8ZazeXefmHFMKNG8U8sap-DbKkwVM%2BBw223mkVQ%40mail.gmail.com>proposant</a> que la valeur hachée soit encodée sur 64 bits
+(<code>bigint</code>) et mélangée par <a href=https://fr.wikipedia.org/wiki/Salage_(cryptographie)>salage</a>. Dans le cas du type <code>uuid</code>, la fonction
+d&rsquo;appui est <code>uuid_hash_extended</code> pour laquelle le deuxième argument vaut
+<code>HASH_PARTITION_SEED</code> en dur <a href=https://github.com/postgres/postgres/blob/REL_13_2/src/backend/partitioning/partbounds.c#L4560>dans le code</a> de PostgreSQL.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>demo=# \dAp hash uuid*
+                List of support functions of operator families
+  AM  | Operator family | Left type | Right type | Number |      Function      
+------+-----------------+-----------+------------+--------+--------------------
+ hash | uuid_ops        | uuid      | uuid       |      1 | uuid_hash
+ hash | uuid_ops        | uuid      | uuid       |      2 | uuid_hash_extended
+
+demo=# \df uuid_hash*
+                               List of functions
+   Schema   |           Name     | Result data type | Argument data types | Type 
+------------+--------------------+------------------+---------------------+------
+ pg_catalog | uuid_hash          | integer          | uuid                | func
+ pg_catalog | uuid_hash_extended | bigint           | uuid, bigint        | func
+</code></pre></div><p>Pour bien me rendre compte de la bonne utilisation d&rsquo;une fonction d&rsquo;appui pour
+le hachage d&rsquo;une colonne particulière, j&rsquo;ajoute à mon catalogue une nouvelle
+fonction <code>uuid_hash_noseed</code> qui repose sur la méthode classique <code>uuid_hash</code> sans
+salage.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>uuid_hash_noseed</span><span class=p>(</span><span class=n>value</span><span class=w> </span><span class=n>uuid</span><span class=p>,</span><span class=w> </span><span class=n>seed</span><span class=w> </span><span class=nb>bigint</span><span class=p>)</span><span class=w>
+</span><span class=w>  </span><span class=k>RETURNS</span><span class=w> </span><span class=nb>bigint</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
+</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=k>abs</span><span class=p>(</span><span class=n>uuid_hash</span><span class=p>(</span><span class=n>value</span><span class=p>));</span><span class=w>
+</span><span class=w></span><span class=err>$$</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=k>sql</span><span class=w> </span><span class=k>IMMUTABLE</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>OPERATOR</span><span class=w> </span><span class=k>CLASS</span><span class=w> </span><span class=n>uuid_noseed_ops</span><span class=w> </span><span class=k>FOR</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=n>uuid</span><span class=w> 
+</span><span class=w> </span><span class=k>USING</span><span class=w> </span><span class=n>hash</span><span class=w> </span><span class=k>AS</span><span class=w>
+</span><span class=w>  </span><span class=k>OPERATOR</span><span class=w> </span><span class=mi>1</span><span class=w> </span><span class=o>=</span><span class=p>,</span><span class=w>
+</span><span class=w>  </span><span class=k>FUNCTION</span><span class=w> </span><span class=mi>2</span><span class=w> </span><span class=n>uuid_hash_noseed</span><span class=p>(</span><span class=n>uuid</span><span class=p>,</span><span class=w> </span><span class=nb>bigint</span><span class=p>);</span><span class=w>
+</span></code></pre></div><p>Le nouvel opérateur <code>uuid_noseed_ops</code> est défini pour utiliser la fonction créée
+précédemment en spécifiant le numéro d&rsquo;appui <code>2</code>, correspondant à la génération
+d&rsquo;un <em>hash</em> encodé sur 64 bits (<a href=https://www.postgresql.org/docs/current/xindex.html#XINDEX-HASH-SUPPORT-TABLE>doc</a>) requis pour le partitionnement. Pour
+valider mes hypothèses sur la distribution des lignes en fonction de leur reste
+de division, je crée une table <code>t2</code> avec une clé primaire au format <code>uuid</code> dans
+laquelle je sépare les valeurs de <em>hash</em> paires et impaires.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t2</span><span class=w> </span><span class=p>(</span><span class=w>
+</span><span class=w>  </span><span class=n>tid</span><span class=w> </span><span class=n>uuid</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w>
+</span><span class=w></span><span class=p>)</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>HASH</span><span class=w> </span><span class=p>(</span><span class=n>tid</span><span class=w> </span><span class=n>uuid_noseed_ops</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t2_0_2</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t2</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>0</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t2_1_2</span><span class=w> </span><span class=n>PARTITION</span><span class=w> </span><span class=k>OF</span><span class=w> </span><span class=n>t2</span><span class=w>
+</span><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=k>VALUES</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=p>(</span><span class=n>modulus</span><span class=w> </span><span class=mi>2</span><span class=p>,</span><span class=w> </span><span class=n>remainder</span><span class=w> </span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>t2</span><span class=w>
+</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>gen_random_uuid</span><span class=p>()</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>generate_series</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=mi>1</span><span class=n>e6</span><span class=p>)</span><span class=w> </span><span class=k>g</span><span class=p>;</span><span class=w>
+</span><span class=w></span><span class=c1>-- INSERT 0 1000000
+</span></code></pre></div><p>La suite de mon expérience m&rsquo;a mené un peu plus loin que ce que j&rsquo;imaginais à
+l&rsquo;origine. Même en l&rsquo;absence d&rsquo;un salage avec la constante <code>HASH_PARTITION_SEED</code>,
+une <a href=https://github.com/postgres/postgres/blob/REL_13_2/src/include/common/hashfn.h#L80>autre opération</a> au cœur de la méthode de hachage survient :
+<code>hash_combine64()</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=cm>/*
+</span><span class=cm> * Combine two 64-bit hash values, resulting in another hash value, using the
+</span><span class=cm> * same kind of technique as hash_combine().  Testing shows that this also
+</span><span class=cm> * produces good bit mixing.
+</span><span class=cm> */</span>
+<span class=k>static</span> <span class=kr>inline</span> <span class=n>uint64</span>
+<span class=nf>hash_combine64</span><span class=p>(</span><span class=n>uint64</span> <span class=n>a</span><span class=p>,</span> <span class=n>uint64</span> <span class=n>b</span><span class=p>)</span>
+<span class=p>{</span>
+    <span class=cm>/* 0x49a0f4dd15e5a8e3 is 64bit random data */</span>
+    <span class=n>a</span> <span class=o>^=</span> <span class=n>b</span> <span class=o>+</span> <span class=n>UINT64CONST</span><span class=p>(</span><span class=mh>0x49a0f4dd15e5a8e3</span><span class=p>)</span> <span class=o>+</span> <span class=p>(</span><span class=n>a</span> <span class=o>&lt;&lt;</span> <span class=mi>54</span><span class=p>)</span> <span class=o>+</span> <span class=p>(</span><span class=n>a</span> <span class=o>&gt;&gt;</span> <span class=mi>7</span><span class=p>);</span>
+    <span class=k>return</span> <span class=n>a</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></div><p>Ce salage supplémentaire est fiable pour le sous-partitionnement, où l&rsquo;on souhaite
+obtenir un hachage de plusieurs colonnes pour établir la distribution des lignes
+dans les partitions. Dans mon cas de test, puisque ma clé de partitionnement est
+seule, l&rsquo;opération ne fait que commuter les bits du résultat. Ce constat avait été
+partagé entre <a href=https://www.postgresql.org/message-id/CAMG7%3DyUde-E%2B4Fd0w%3DVU7VsgiL0yqpVB6uCi5drs5KLDyOCzFQ%40mail.gmail.com>deux développeurs</a>, ce qui m&rsquo;a donné la requête finale
+ci-dessous afin de retrouver le reste de division et de le comparer avec les noms
+de partitions de ma table <code>t2</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>tid</span><span class=p>,</span><span class=w> </span><span class=n>tableoid</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=n>partname</span><span class=p>,</span><span class=w> 
+</span><span class=w>       </span><span class=p>(</span><span class=n>uuid_hash_noseed</span><span class=p>(</span><span class=n>tid</span><span class=p>,</span><span class=w> </span><span class=mi>0</span><span class=p>)::</span><span class=nb>bit</span><span class=p>(</span><span class=mi>64</span><span class=p>)</span><span class=w> </span><span class=o>#</span><span class=w> </span><span class=n>x</span><span class=s1>&#39;49a0f4dd15e5a8e3&#39;</span><span class=p>)::</span><span class=nb>bigint</span><span class=w> </span><span class=o>%</span><span class=w> </span><span class=mi>2</span><span class=w> 
+</span><span class=w>         </span><span class=k>AS</span><span class=w> </span><span class=n>remainder</span><span class=w>
+</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>t2</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>tid</span><span class=w> </span><span class=k>LIMIT</span><span class=w> </span><span class=mi>10</span><span class=p>;</span><span class=w>
+</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>                 tid                  | partname | remainder 
+--------------------------------------+----------+-----------
+ 000012e3-bf3e-4895-8dc4-adf25649680a | t2_0_2   |         0
+ 00003fd4-b941-4c49-afcb-6449f2ddd169 | t2_1_2   |         1
+ 000068b2-ce2d-4e13-9586-1ad986d31737 | t2_0_2   |         0
+ 00006999-696e-4c15-ac94-d1de23b89c73 | t2_1_2   |         1
+ 000085cb-e666-4ecb-a886-09ae86fc7d55 | t2_1_2   |         1
+ 00008675-2291-4c49-afd1-4b55ccbd50c1 | t2_0_2   |         0
+ 0000c8a1-a0fb-4e53-882d-ed9c11aba44c | t2_1_2   |         1
+ 0000d1fd-759a-47c5-8e87-284455b36478 | t2_0_2   |         0
+ 0000d3af-64da-427c-815d-b7d32f62d7a6 | t2_1_2   |         1
+ 0000f608-f4a2-43dd-8483-94bb317e0c95 | t2_0_2   |         0
+</code></pre></div><hr>
+<h2 id=conclusion>Conclusion</h2>
+<p>Avec l&rsquo;apparition du partitionnement par hachage, PostgreSQL s&rsquo;est doté d&rsquo;une
+nouvelle méthode permettant de bénéficier de tous les avantages du partitionnement
+déclaratif sans se soucier de la distribution logique des valeurs de la clé de
+partitionnement.</p>
+<p>Bien que l&rsquo;élagage de partition lors de la planification ne soit pas l&rsquo;objectif
+de la manœuvre puisque la clé de partitionnement est par nature indexée, il
+devient très intéressant de bénéficier notamment d&rsquo;une maintenance par <code>VACUUM</code>
+accélérée en subdivisant les données et les index sur le disque. La distribution
+des opérations de lecture et d&rsquo;écriture sur plusieurs disques à l&rsquo;aide des
+tablespaces est également possible <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=ca4103025dfe26eaaf6a500dec9170fbb176eebc">depuis la version 12</a> et apporte son lot
+de solutions pour les tables très volumineuses.</p>
+</article>
+<aside class=related>
+<h3>Suggestion d'articles</h3>
+<ul class=related-posts>
+<li>
+<a href=https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/>Les statistiques au service du plan d'exécution
+<small><time datetime=2020-07-01>1 juil 2020</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
+<small><time datetime=2021-03-30>30 mars 2021</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Tour d'horizon de PgBouncer
+<small><time datetime=2020-08-21>21 août 2020</time></small>
+</a>
+</li>
+</ul>
+</aside>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

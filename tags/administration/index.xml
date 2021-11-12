@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>administration on Carnet de découvertes</title><link>https://fljd.in/tags/administration/</link><description>Recent content in administration on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 21 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/administration/index.xml" rel="self" type="application/rss+xml"/><item><title>Compiler et patcher avec pgenv</title><link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link><pubDate>Mon, 21 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</guid><description>&lt;p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
+efficace répondant au nom de &lt;a href="https://github.com/theory/pgenv">pgenv&lt;/a>, un gestionnaire des versions PostgreSQL.
+Ce projet est publié sous licence MIT par David E. Wheeler, auteur de l&amp;rsquo;extension
+pgTAP dont j&amp;rsquo;avais déjà vanté les mérites dans un &lt;a href="https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql">autre article&lt;/a>.&lt;/p>
+&lt;p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
+quelques DBA féru⋅es d&amp;rsquo;expérimentations, car &lt;code>pgenv&lt;/code> permet de compiler et
+d&amp;rsquo;exécuter toutes les versions majeures et mineures du système de base de données
+open-source le plus avancé du monde.&lt;/p></description></item><item><title>De Jekyll à Hugo</title><link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link><pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid><description>&lt;p>Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
+plusieurs &lt;em>frameworks&lt;/em> depuis quelques années. Vous avez peut-être entendu parler
+de &lt;a href="https://github.com/jekyll/jekyll">Jekyll&lt;/a>, &lt;a href="https://github.com/vercel/next.js">Next.js&lt;/a>, &lt;a href="https://github.com/gatsbyjs/gatsby">Gastby&lt;/a> ou &lt;a href="https://github.com/gohugoio/hugo">Hugo&lt;/a> ? Je ne cite que les plus
+sollicités par la communauté sur GitHub, mais il en existe des centaines.&lt;/p>
+&lt;p>Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p></description></item><item><title>Quelques outils méconnus</title><link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link><pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/11/18/quelques-outils-meconnus/</guid><description>&lt;p>Cette semaine, passait sur &lt;a href="https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments">mon fil d&amp;rsquo;actualité Twitter&lt;/a> une simple URL
+pointant sur le site &lt;a href="https://pgpedia.info">https://pgpedia.info&lt;/a>. Non loin d&amp;rsquo;être le seul à l&amp;rsquo;avoir
+remarqué, nous en parlions entre collègues pour constater avec surprise que nous
+ne connaissions pas cette mine d&amp;rsquo;or d&amp;rsquo;informations sur PostgreSQL. Après y avoir
+perdu plusieurs heures, je me suis dit qu&amp;rsquo;un article sur les quelques utilitaires
+que j&amp;rsquo;estime méconnus, pourrait être une bonne conclusion de la semaine.&lt;/p></description></item><item><title>La boîte à outils du DBA</title><link>https://fljd.in/2019/06/24/la-boite-a-outils-du-dba/</link><pubDate>Mon, 24 Jun 2019 12:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/24/la-boite-a-outils-du-dba/</guid><description>&lt;p>J&amp;rsquo;aimerais qu&amp;rsquo;on s&amp;rsquo;arrête un instant sur un aspect méconnu du travail de DBA.&lt;/p>
+&lt;p>L&amp;rsquo;inestimable fichier qui contient la totalité des requêtes SQL indispensables à
+la survie (et crédibilité) du susnommé et qui ne le quitte jamais.&lt;/p>
+&lt;p>Vous savez ? Ce fichier qui se passe de main en main, qu&amp;rsquo;on alimente de missions
+en missions, selon les demandes ou les incidents rencontrés au cours d&amp;rsquo;une vie
+longue et palpitante. Ce fichier, que même l&amp;rsquo;Internet entier ne pourra remplacer
+car il s&amp;rsquo;est avéré être la mémoire, le trésor de l&amp;rsquo;administrateur lorsqu&amp;rsquo;il en a
+le plus besoin. Sans lui, c&amp;rsquo;est comme s&amp;rsquo;il se retrouvait nu dans l&amp;rsquo;arène.&lt;/p>
+&lt;p>Accrochez-vous, j&amp;rsquo;ai encore beaucoup de choses à dire à son sujet !&lt;/p></description></item><item><title>Jette ton instance à la poubelle</title><link>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</link><pubDate>Thu, 20 Jun 2019 13:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</guid><description>&lt;p>À des fins de qualité ou de formation, il est très souvent nécessaire d&amp;rsquo;avoir
+une instance PostgreSQL d&amp;rsquo;une version particulière sur un environnement non
+critique, que l&amp;rsquo;on peut malmener à souhait et à l&amp;rsquo;infini. La communauté Debian
+propose l&amp;rsquo;outil &lt;code>pg_virtualenv&lt;/code> (&lt;a href="https://manpages.debian.org/testing/postgresql-common/pg_virtualenv.1.en.html">manpage&lt;/a>) pour démarrer
+une instance jettable, tout à fait compatible avec des tests de régression ou
+l&amp;rsquo;exécution de scripts lors d&amp;rsquo;une démonstration.&lt;/p></description></item></channel></rss>

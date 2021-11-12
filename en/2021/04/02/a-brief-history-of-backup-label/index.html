@@ -1,0 +1,343 @@
+<!doctype html><html lang=en>
+<head>
+<title>A brief history of backup label</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/en title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/en/about>About me</a>&nbsp;&nbsp;<a href=/en/archives>Archives</a>&nbsp;&nbsp;<a href=https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/>Français</a></small>
+</h3>
+</header>
+<main>
+<article class=post>
+<h1 class=post-title>A brief history of backup label</a></h1>
+<p class=post-date>
+<time datetime=2021-04-02>2 apr 2021</time>
+- 12 minutes to read
+</p>
+<p>For a long time, I remained ignorant about <a href=http://www.interdb.jp/pg/pgsql09.html>transaction logging mechanisms</a>
+and PITR in PostgreSQL, although they were crucial in data durability. A better
+understanding of these concepts would have helped me in a previous life, to be
+more confident during a backup configuration and, well, during after-crash
+intervention!</p>
+<p>By reading this post, I will come back to an amusing file that used to be a
+topic of discussion over the past decade : the backup label file. What is it and
+what is it used for? How has it be enhanced from its origin with PostgreSQL 8.0
+and what could be expected from him over the next years?</p>
+<hr>
+<h2 id=once-upon-a-time-there-was-transaction-logging>Once upon a time there was transaction logging</h2>
+<p>As an introduction and to better understand this post, it seems good to me to
+explain that each changing operation in PostgreSQL, like an <code>UPDATE</code> or an <code>INSERT</code>,
+is written a first time on <code>COMMIT</code> in a group of files, which is called <em>WAL</em>
+or <strong>transaction logs</strong>. Taken together, these changes represent a low cost to
+disk activity compared to random writings of others processes at work in PostgreSQL.</p>
+<p>Among them, the <code>checkpointer</code> process ensures that new data in memory is permanently
+synchronized in the data files and that at regular times called <code>CHECKPOINT</code>. This
+on-disk two-step writing provides excellent performance and ensures that modified
+blocks are not lost when a transaction ends successfully.</p>
+<p><img src=/img/posts/2021-01-19-ecriture-differee-sur-disque.png alt="Asynchroneous writes on disks"></p>
+<p>Par ce mécanisme de journalisation, les fichiers de données de notre instance
+sont constamment en retard sur la véritable activité transactionnelle, et ce,
+jusqu&rsquo;au prochain <code>CHECKPOINT</code>. En cas d&rsquo;arrêt brutal du système, les blocs en
+attente de synchronisation (<em>dirty pages</em>) présents dans la mémoire <em>Shared Buffer</em>
+sont perdus et les fichiers de données sont dit <strong>inconsistants</strong> car ils mixent
+des données de transactions anciennes, nouvelles, valides ou invalides.</p>
+<p>Dans pareilles situations, il est possible de redémarrer l&rsquo;instance afin qu&rsquo;elle
+<em>rejoue</em> les modifications dans l&rsquo;ordre des transactions telles qu&rsquo;elles avaient
+été écrites dans les <em>WAL</em>. Cette reconstruction des fichiers de données pour
+retrouver leur état consistant est sobrement appelée la <strong>récupération des données</strong>
+ou <em>crash recovery</em>.</p>
+<div class=message>En version 8.0 et supérieures, ce mécanisme a permis l&rsquo;émergence des solutions
+de restauration dans le temps (<em>Point In Time Recovery</em>) et de réplication par
+récupération des journaux (<em>Log Shipping</em>) sur une instance secondaire.</div>
+<p>Que ce soit à la suite d&rsquo;un crash ou dans le cadre d&rsquo;une restauration de
+sauvegarde, les fichiers de données doivent être cohérents pour assurer le retour
+du service et l&rsquo;accès en écriture aux données. Quelle mauvaise surprise n&rsquo;a-t-on
+pas lorsqu&rsquo;une instance PostgreSQL interrompt son démarrage avec le message
+suivant :</p>
+<p><code>PANIC: could not locate a valid checkpoint record</code></p>
+<p>Il indique que l&rsquo;instance a détecté une inconsistance dans les fichiers au moment
+de son démarrage et qu&rsquo;elle échoue à trouver le <em>point de reprise</em> le plus proche
+de son état. Sans les journaux, la récupération échoue et s&rsquo;arrête. À cet instant
+précis, vos nerfs et votre politique de sauvegarde sont mis à rude épreuve.</p>
+<p>Pour le dire encore autrement :
+en l&rsquo;absence des journaux de transactions ou de leurs archives, <u>vos plus
+récentes données sont perdues</u>.</p>
+<p>… Et l&rsquo;outil <a href=https://pgpedia.info/p/pg_resetwal.html>pg_resetwal</a> ne les
+récuperera pas pour vous.</p>
+<hr>
+<h2 id=entre-en-scène-le-backup_label>Entre en scène le backup_label</h2>
+<p>Après ce charmant avertissement, on considèrera que l&rsquo;archivage des journaux
+de transactions n&rsquo;est plus une option dans vos plans de sauvegarde. Assurez-vous
+que ces archives soient stockées sur un espace sécurisé, voire une zone
+décentralisée pour qu&rsquo;elles soient accessibles par toutes les instances secondaires
+lorsque vous devez déclencher votre <a href=https://fljd.in/2019/12/19/le-jour-ou-tout-bascule>plan de bascule</a>.</p>
+<p>Pour ceux ayant atteint cette partie de l&rsquo;article, vous ne devriez pas être
+trop perdus si je vous annonce que le fichier <code>backup_label</code> est un composant
+d&rsquo;un plus large concept, à savoir : la sauvegarde.</p>
+<blockquote>
+<p>Le fichier historique de sauvegarde est un simple fichier texte. Il contient
+le label que vous avez attribué à l&rsquo;opération <code>pg_basebackup</code>, ainsi que les
+dates de début, de fin et la liste des segments WAL de la sauvegarde. Si vous
+avez utilisé le label pour identifier le fichier de sauvegarde associé, alors
+le fichier historique vous permet de savoir quel fichier de sauvegarde vous
+devez utiliser pour la restauration.</p>
+<p>Source : <a href=https://docs.postgresql.fr/13/continuous-archiving.html#BACKUP-BASE-BACKUP>Réaliser une sauvegarde de base</a></p>
+</blockquote>
+<p>Prenons une instance classique en cours d&rsquo;exécution et réalisons une sauvegarde
+avec l&rsquo;outil <a href=https://www.postgresql.org/docs/13/app-pgbasebackup.html>pg_basebackup</a> que nous vante la documentation. Observons son
+comportement le plus simple avec la génération d&rsquo;une archive au format <code>tar</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ pg_basebackup --label=demo --pgdata=backups --format=tar \
+    --checkpoint=fast --verbose
+pg_basebackup: initiating base backup, waiting for checkpoint to complete
+pg_basebackup: checkpoint completed
+pg_basebackup: write-ahead log start point: 0/16000028 on timeline 1
+pg_basebackup: starting background WAL receiver
+pg_basebackup: created temporary replication slot &#34;pg_basebackup_15594&#34;
+pg_basebackup: write-ahead log end point: 0/16000100
+pg_basebackup: waiting for background process to finish streaming ...
+pg_basebackup: syncing data to disk ...
+pg_basebackup: renaming backup_manifest.tmp to backup_manifest
+pg_basebackup: base backup completed
+</code></pre></div><p>Depuis la version 10, l&rsquo;option <code>--wal-method</code> est définie
+sur <code>stream</code> par défaut, ce qui indique que tous les journaux de transactions
+présents et à venir dans le sous-répertoire <code>pg_wal</code> de l&rsquo;instance seront
+également sauvegardés dans une archive dédiée, notamment grâce à la création
+d&rsquo;un slot de réplication temporaire.</p>
+<p>Depuis la version 13, l&rsquo;outil embarque le fichier manifeste dans la sauvegarde
+afin de pouvoir contrôler l&rsquo;intégrité de la copie par la commande
+<a href=https://fljd.in/2020/11/18/quelques-outils-meconnus/#pg_verifybackup>pg_verifybackup</a>. Contrôlons le contenu du répertoire de sauvegarde et
+recherchons le tant attendu <code>backup_label</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ tree backups/
+backups/
+├── backup_manifest
+├── base.tar
+└── pg_wal.tar
+</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ tar -xf backups/base.tar --to-stdout backup_label
+START WAL LOCATION: 0/16000028 (file 000000010000000000000016)
+CHECKPOINT LOCATION: 0/16000060
+BACKUP METHOD: streamed
+BACKUP FROM: master
+START TIME: 2021-01-18 15:22:52 CET
+LABEL: demo
+START TIMELINE: 1
+</code></pre></div><p>Ce dernier se trouve à la racine de notre archive et joue un rôle très
+particulier dans le processus de démarrage <code>startup</code> puisqu&rsquo;il renseigne le point
+de reprise à partir duquel rejouer les journaux. Dans notre exemple, il s&rsquo;agit
+de la position <code>0/16000060</code> présente dans le journal <code>000000010000000000000016</code>.
+En cas d&rsquo;absence du <code>backup_label</code>, le processus de démarrage consultera à la
+place le <a href=https://pgpedia.info/p/pg_control.html>fichier de contrôle</a> afin de déterminer le plus récent point de
+reprise sans garantie qu&rsquo;il soit le bon.</p>
+<hr>
+<h2 id=lheure-de-gloire>L&rsquo;heure de gloire</h2>
+<p>Vous conviendrez que la forme et l&rsquo;intérêt du fichier <code>backup_label</code> sont
+anecdotiques (bien qu&rsquo;essentiels) dans l&rsquo;architecture de sauvegarde avec PostgreSQL.
+Il ne s&rsquo;agit que d&rsquo;un fichier texte de quelques lignes, requis exclusivement pour
+assurer certains contrôles lors d&rsquo;une restauration.</p>
+<p>Et pourtant, la petite révolution que provoqua la version 8.0 en janvier 2005
+avec l&rsquo;archivage continu et la restauration PITR suscita naturellement la
+créativité de l&rsquo;équipe de développement au cours des années qui suivirent. Le
+fichier <code>backup_label</code> évolua pour gagner en modularité et en stabilité.</p>
+<p>À l&rsquo;origine, l&rsquo;outil <code>pg_basebackup</code> n&rsquo;était pas encore disponible et seul l&rsquo;appel
+à la méthode <a href=https://pgpedia.info/p/pg_start_backup.html>pg_start_backup()</a> permettait de générer le fichier dans lequel
+se trouvaient les quatres informations <a href=https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411>suivantes</a> pour accompagner la
+sauvegarde à chaud :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=cp># backend/access/transam/xlog.c
+</span><span class=cp></span><span class=n>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;START WAL LOCATION: %X/%X (file %s)</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
+        <span class=n>startpoint</span><span class=p>.</span><span class=n>xlogid</span><span class=p>,</span> <span class=n>startpoint</span><span class=p>.</span><span class=n>xrecoff</span><span class=p>,</span> <span class=n>xlogfilename</span><span class=p>);</span>
+<span class=n>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;CHECKPOINT LOCATION: %X/%X</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
+        <span class=n>checkpointloc</span><span class=p>.</span><span class=n>xlogid</span><span class=p>,</span> <span class=n>checkpointloc</span><span class=p>.</span><span class=n>xrecoff</span><span class=p>);</span>
+<span class=n>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;START TIME: %s</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span> <span class=n>strfbuf</span><span class=p>);</span>
+<span class=n>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;LABEL: %s</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span> <span class=n>backupidstr</span><span class=p>);</span>
+</code></pre></div><p>Les versions majeures se sont enchaînées avec son lot de corrections ou
+d&rsquo;améliorations. Parmi les contributions notables, j&rsquo;ai relevé pour vous :</p>
+<ul>
+<li>
+<p><a href=https://www.postgresql.org/message-id/flat/D960CB61B694CF459DCFB4B0128514C201ED284B%40exadv11.host.magwien.gv.at>Contribution</a> de Laurenz Albe (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c979a1fefafcc83553bf218c7f2270cad77ea31d">c979a1fe</a>)</p>
+<p>Publié avec la version 8.4, le code <code>xlog.c</code> se voit enrichir d&rsquo;une méthode
+interne pour annuler la sauvegarde en cours. L&rsquo;exécution de la commande
+<code>pg_ctl stop</code> en mode <em>fast</em> renomme le fichier en <code>backup_label.old</code> ;</p>
+</li>
+<li>
+<p><a href=https://www.postgresql.org/message-id/flat/20120624213341.GA90986%40mr-paradox.net>Contribution</a> de Dave Kerr (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=0f04fc67f71f7cb29ccedb2e7ddf443b9e52b958">0f04fc67</a>)</p>
+<p>Apparue avec la version mineure 9.0.9, la méthode <code>pg_start_backup()</code> inclut
+un appel <code>fsync()</code> pour forcer l&rsquo;écriture sur disque du fichier <code>backup_label</code>.
+Cette sécurité garantit la consistance d&rsquo;un instantané matériel ;</p>
+</li>
+<li>
+<p><a href=https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com>Contribution</a> de Heikki Linnakangas (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c">41f9ffd9</a>)</p>
+<p>Proposé en version 9.2, ce patch corrige des comportements anormaux de
+restauration à partir de la nouvelle méthode de sauvegarde par flux. Le fichier
+<code>backup_label</code> précise la méthode employée entre <code>pg_start_backup</code> ou <code>streamed</code> ;</p>
+</li>
+<li>
+<p><a href=https://www.postgresql.org/message-id/flat/201108050646.p756kHC5023570%40ccmds32.silk.ntts.co.jp>Contribution</a> de Jun Ishizuka et Fujii Masao (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=8366c7803ec3d0591cf2d1226fea1fee947d56c3">8366c780</a>)</p>
+<p>Depuis la version 9.2, la méthode <code>pg_start_backup()</code> peut être exécutée sur
+une instance secondaire. Le rôle de l&rsquo;instance d&rsquo;où provient la sauvegarde est
+renseignée dans le fichier <code>backup_label</code> ;</p>
+</li>
+<li>
+<p><a href=https://www.postgresql.org/message-id/flat/CAB7nPqRosJNapKVW2QPwkN9%2BypfL4yiR4mcNFZcjxS2c8m%2BVkw%40mail.gmail.com>Contribution</a> de Michael Paquier (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=6271fceb8a4f07dafe9d67dcf7e849b319bb2647">6271fceb</a>)</p>
+<p>Ajoutée en version 11, l&rsquo;information <em>timeline</em> dans le fichier <code>backup_label</code>
+rejoint les précédentes pour comparer sa valeur avec celles des journaux à
+rejouer lors d&rsquo;une récupération de données ;</p>
+</li>
+</ul>
+<p>Vous l&rsquo;aurez compris, pendant de nombreuses années, la capacité de faire une
+sauvegarde dite consistante, reposait sur les deux méthodes vues précédemment.
+La fonction historique <code>pg_start_backup()</code> fut particulièrement touchée
+par d&rsquo;incessantes critiques au sujet d&rsquo;un comportement non souhaité, notamment
+son mode « exclusif ».</p>
+<p>Voyons cela ensemble sur une instance récente en version 13 :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
+</span><span class=w></span><span class=c1>--  pg_start_backup 
+</span><span class=c1>-- -----------------
+</span><span class=c1>--  0/1D000028
+</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ kill -ABRT $(head -1 data/postmaster.pid)
+$ cat data/backup_label
+START WAL LOCATION: 0/1D000028 (file 00000001000000000000001D)
+CHECKPOINT LOCATION: 0/1D000060
+BACKUP METHOD: pg_start_backup
+BACKUP FROM: master
+START TIME: 2021-01-18 16:49:57 CET
+LABEL: demo
+START TIMELINE: 1
+</code></pre></div><p>Le signal <code>ABRT</code> interrompt sans préavis le processus <code>postmaster</code> de l&rsquo;instance
+et la routine d&rsquo;arrêt <code>CancelBackup</code> n&rsquo;est pas appelée pour renommer le fichier
+en <code>backup_label.old</code>. Avec une activité classique de production, les journaux
+sont recyclés et archivés à mesure que les transactions s&rsquo;enchaînent. Au démarrage
+de l&rsquo;instance, le fichier <code>backup_label</code> présent dans le répertoire de données
+est lu par erreur et n&rsquo;indique plus le bon point de reprise pour la récupération
+des données.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>LOG:  database system was shut down at 2021-01-18 17:08:43 CET
+LOG:  invalid checkpoint record
+FATAL:  could not locate required checkpoint record
+HINT:  If you are restoring from a backup, touch &#34;data/recovery.signal&#34; 
+		and add required recovery options.
+	If you are not restoring from a backup, try removing the file
+		&#34;data/backup_label&#34;.
+	Be careful: removing &#34;data/backup_label&#34; will result in a corrupt
+		cluster if restoring from a backup.
+LOG:  startup process (PID 19320) exited with exit code 1
+LOG:  aborting startup due to startup process failure
+LOG:  database system is shut down
+</code></pre></div><p>Ce message complet n&rsquo;est apparu qu&rsquo;à partir de la version 12 avec un <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c900c15269f0f900d666bd1b0c6df3eff5098678">avertissement</a>
+plus prononcé dans la documentation au sujet du fichier, faisant suite à de longs
+échanges sur la possibilité de se séparer ou non de cette méthode. Dans l&rsquo;un
+d&rsquo;eux, on peut lire la remarquable <a href="https://www.postgresql.org/message-id/CA+TgmoaGvpybE=xvJeg9Jc92c-9ikeVz3k-_Hg9=mdG05u=e=g@mail.gmail.com">intervention</a> de Robert Haas qui revient
+sur le succès de cette fonctionnalité depuis ses débuts et la confusion fréquente
+que rencontrent les utilisateurs qui ne comprennent ni la complexité ni les
+instructions claires de la documentation.</p>
+<p>À présent, une note y clarifie les choses.</p>
+<blockquote>
+<p>Ce type de sauvegarde peut seulement être réalisé sur un serveur primaire et
+ne permet pas des sauvegardes concurrentes. De plus, le fichier backup_label
+créé sur un serveur primaire peut empêcher le redémarrage de celui-ci en cas
+de crash. D&rsquo;un autre côté, la suppression à tord de ce fichier d&rsquo;une sauvegarde
+ou d&rsquo;un serveur secondaire est une erreur fréquente qui peut mener à de
+sérieuses corruptions de données.</p>
+<p>Source : <a href=https://docs.postgresql.fr/12/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-EXCLUSIVE>Créer une sauvegarde exclusive de bas niveau</a></p>
+</blockquote>
+<hr>
+<h2 id=place-à-la-relève>Place à la relève</h2>
+<p>Cette limitation était connue de longue date et l&rsquo;équipe de développement
+proposa une <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=7117685461af50f50c03f43e6a622284c8d54694">alternative</a> en septembre 2016 avec la sortie de la version 9.6
+et l&rsquo;introduction de la sauvegarde dite « concurrente ». Depuis ce jour, la
+sauvegarde exclusive est annoncée obsolète par les développeurs et pourrait être
+supprimée dans les versions à venir.</p>
+<p>Le fichier <code>backup_label</code> ne disparaît pas en soi. Ses informations sont toujours
+requises pour la restauration PITR mais le fichier n&rsquo;a plus d&rsquo;état transitoire sur
+le disque et n&rsquo;est plus écrit dans le répertoire de l&rsquo;instance par la méthode
+<code>pg_start_backup()</code>. En remplacement, l&rsquo;administrateur ou le script de sauvegarde
+doit être en capacité d&rsquo;exécuter la commande <code>pg_stop_backup()</code> dans la même
+connexion à l&rsquo;instance pour y récupérer les éléments et reconstruire le fichier
+au moment de la restauration.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=n>label</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>,</span><span class=w> </span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>,</span><span class=w> </span><span class=n>fast</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>true</span><span class=p>);</span><span class=w>
+</span><span class=w></span><span class=c1>--  pg_start_backup 
+</span><span class=c1>-- -----------------
+</span><span class=c1>--  0/42000028
+</span><span class=c1></span><span class=w>
+</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
+</span><span class=w></span><span class=c1>--                            labelfile                            
+</span><span class=c1>-- ----------------------------------------------------------------
+</span><span class=c1>-- START WAL LOCATION: 0/42000028 (file 000000010000000000000042)+
+</span><span class=c1>-- CHECKPOINT LOCATION: 0/42000060                               +
+</span><span class=c1>-- BACKUP METHOD: streamed                                       +
+</span><span class=c1>-- BACKUP FROM: master                                           +
+</span><span class=c1>-- START TIME: 2021-01-18 18:17:16 CET                           +
+</span><span class=c1>-- LABEL: demo                                                   +
+</span><span class=c1>-- START TIMELINE: 1                                             +
+</span></code></pre></div><p>Une autre méthode nous permet de retrouver facilement le contenu du fichier,
+d&rsquo;autant plus si l&rsquo;archivage est en place sur l&rsquo;instance. En effet, à l&rsquo;annonce
+de la fin d&rsquo;une sauvegarde, les éléments précédents sont écrits dans un fichier
+d&rsquo;historique <code>.backup</code> au sein des journaux de transactions et un fichier <code>.ready</code>
+est ajouté dans le répertoire <code>archive_status</code> à destination du processus
+d&rsquo;archivage. Une recherche rapide sur le dépôt des archives plus tard, et nous
+sommes en possession du fichier prêt à l&rsquo;emploi pour une restauration.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ find archives -type f -not -size 16M
+archives/000000010000000000000016.00000028.backup
+
+$ grep -iv ^stop archives/000000010000000000000016.00000028.backup 
+START WAL LOCATION: 0/42000028 (file 000000010000000000000042)
+CHECKPOINT LOCATION: 0/42000060
+BACKUP METHOD: streamed
+BACKUP FROM: master
+START TIME: 2021-01-18 18:17:16 CET
+LABEL: demo
+START TIMELINE: 1
+</code></pre></div><p>La venue d&rsquo;une brique complète pour la sauvegarde concurrente a permis l&rsquo;émergence
+de nouvelles solutions de sauvegardes, plus performantes et plus modulaires que
+<code>pg_basebackup</code>. Dans le paysage des outils tiers, vous entendriez peut-être parler
+de <a href=https://pgbackrest.org/>pgBackRest</a> écrit en C, <a href=https://www.pgbarman.org/>Barman</a> écrit en Python ou <a href=https://dalibo.github.io/pitrery/>pitrery</a> écrit en Bash.
+En outre, ces outils soulagent l&rsquo;administrateur de la rédaction de scripts devenus
+trop complexes et loin d&rsquo;être immuable dans les années à venir.</p>
+<h2 id=morale-de-lhistoire>Morale de l&rsquo;histoire</h2>
+<p>Au fil des versions, le fichier <code>backup_label</code> a enduré de nombreuses tempêtes
+et rebondissements pour aboutir à une forme plus aboutie de la sauvegarde et de
+la restauration physique dans PostgreSQL.</p>
+<p>Si vous êtes responsable de la maintenance d&rsquo;instances, particulièrement dans
+un environnement virtualisé, je ne peux que vous recommander de contrôler vos
+politiques de sauvegarde et l&rsquo;outillage associé. Il n&rsquo;est pas rare de voir des
+hyperviseurs réaliser des instantanées des machines virtuelles avec des appels de
+la méthode <code>pg_start_backup()</code> en mode exclusif.</p>
+<p>Les outils spécialisés cités plus haut peuvent/doivent être étudiés. S&rsquo;ils ne
+correspondent pas très bien à vos besoins, il est toujours possible de
+bénéficier des mécanismes de la sauvegarde concurrente à l&rsquo;aide d&rsquo;un <a href=https://www.commandprompt.com/blog/postgresql-non-exclusive-base-Backup-bash/>fichier
+temporaire</a> sous Linux et sa commande <code>mkfifo</code>.</p>
+<p>La décision de supprimer définitivement la sauvegarde exclusive n&rsquo;est actuellement
+plus débattue et a été retirée du <em>backlog</em> de développement lors du Commitfest
+de <a href=https://commitfest.postgresql.org/28/1913/>juillet 2020</a>. Lors des derniers échanges, le contributeur David Steele
+(auteur de pgBackRest notamment) <a href=https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0bd4bf0d%40pgmasters.net>annonçait</a> qu&rsquo;une sauvegarde exclusive pourrait
+stocker son fichier <code>backup_label</code> directement en mémoire partagée plutôt que sur
+le disque et ainsi corriger sa principale faiblesse :</p>
+<blockquote>
+<p>It might be easier/better to just keep the one exclusive slot in shared
+memory and store the backup label in it. We only allow one exclusive
+backup now so it wouldn&rsquo;t be a loss in functionality.</p>
+</blockquote>
+<p>La suite au prochain épisode !</p>
+</article>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>

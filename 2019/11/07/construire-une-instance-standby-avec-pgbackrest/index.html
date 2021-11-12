@@ -1,0 +1,220 @@
+<!doctype html><html lang=fr>
+<head>
+<title>Construire une instance standby avec pgBackRest</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css>
+<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
+<link rel=manifest href=/ico/site.webmanifest>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta charset=utf-8>
+</head>
+<body>
+<div class="container content">
+<header class=homepage>
+<h3 class=homepage-title>
+<a href=/ title="Florent Jardin">Florent Jardin</a>
+<small>
+<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small>
+</h3>
+</header>
+<main>
+<article class=post>
+<h1 class=post-title>Construire une instance standby avec pgBackRest</a></h1>
+<p class=post-date>
+<time datetime=2019-11-07>7 nov 2019</time>
+- 4 minutes de lecture
+</p>
+<p>Pour cette démonstration, j&rsquo;utilise le système Debian et dispose de deux instances
+en version 12, d&rsquo;un serveur de sauvegarde et du paquet <code>pgbackrest</code> pour mettre
+en place une réplication et observer les nouveautés concernant la <a href=https://paquier.xyz/postgresql-2/postgres-12-recovery-change/>disparition</a>
+du fichier <code>recovery.conf</code>.</p>
+<p>Pour faciliter le transfert des WAL et des sauvegardes PITR, j&rsquo;ajoute un compte
+utilisateur <code>pgbr</code> sur le serveur de sauvegarde, accessible à partir des deux
+instances avec un partage de clé SSH. <em>(Conseil : toujours externaliser les
+sauvegardes de bases de données sur un système et un stockage indépendant de
+l&rsquo;infrastructure de production PostgreSQL…)</em></p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sudo useradd -s /bin/bash -md /etc/pgbackrest pgbr
+sudo mv /etc/pgbackrest.conf /etc/pgbackrest/
+sudo chown pgbr: /etc/pgbackrest/pgbackrest.conf <span class=se>\
+</span><span class=se></span>  /var/log/pgbackrest /var/lib/pgbackrest
+</code></pre></div><p>La réplication par flux (<em>streaming</em>) est assurée par un compte dédié nommé
+<code>streamer</code>, autorisé à se connecter sur les instances PostgreSQL du sous-réseau
+grâce à l&rsquo;ajout d&rsquo;une entrée dans le fichier <code>pg_hba.conf</code>.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sudo -u postgres createuser --replication --pwprompt streamer
+</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># pg_hba.conf</span>
+<span class=c1># Allow replication connections from trusted subnet, by a user with the</span>
+<span class=c1># replication privilege.</span>
+<span class=na>host    replication     streamer        10.1.0.0/28             md5</span>
+</code></pre></div><p><em>Le fichier <code>.pgpass</code> est déposé sur chaque serveur pour le compte <code>postgres</code>,
+afin d&rsquo;assurer la connexion du compte <code>streamer</code> sans saisie de mot de passe.</em></p>
+<hr>
+<p>Dans ce scénario, les archives générées par l&rsquo;instance primaire seront déplacées
+sur le serveur de sauvegarde et l&rsquo;instance standby les consultera au besoin. La
+planification des sauvegardes sera sous la responsabilité de l&rsquo;utilisateur <code>pgbr</code>
+avec une administration distante. La configuration fine se découpe dans les
+fichiers suivants.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># /etc/pgbackrest/bkp1.conf</span>
+<span class=k>[lab]</span>
+<span class=na>pg1-host</span><span class=o>=</span><span class=s>lab1</span>
+<span class=na>pg2-host</span><span class=o>=</span><span class=s>lab2</span>
+<span class=na>pg1-host-user</span><span class=o>=</span><span class=s>postgres</span>
+<span class=na>pg2-host-user</span><span class=o>=</span><span class=s>postgres</span>
+<span class=na>pg1-path</span><span class=o>=</span><span class=s>/var/lib/postgresql/12/lab1</span>
+<span class=na>pg2-path</span><span class=o>=</span><span class=s>/var/lib/postgresql/12/lab2</span>
+<span class=na>pg1-host-config</span><span class=o>=</span><span class=s>/etc/pgbackrest/lab1.conf</span>
+<span class=na>pg2-host-config</span><span class=o>=</span><span class=s>/etc/pgbackrest/lab2.conf</span>
+
+<span class=k>[global]</span>
+<span class=na>start-fast</span><span class=o>=</span><span class=s>y</span>
+<span class=na>log-level-console</span><span class=o>=</span><span class=s>info</span>
+<span class=na>repo1-retention-full</span><span class=o>=</span><span class=s>2</span>
+<span class=na>repo1-path</span><span class=o>=</span><span class=s>/var/lib/pgbackrest</span>
+
+<span class=c1># /etc/pgbackrest/lab1.conf</span>
+<span class=k>[lab]</span>
+<span class=na>pg1-path</span><span class=o>=</span><span class=s>/var/lib/postgresql/12/lab1</span>
+
+<span class=k>[global]</span>
+<span class=na>repo1-host</span><span class=o>=</span><span class=s>bkp1</span>
+<span class=na>repo1-host-user</span><span class=o>=</span><span class=s>pgbr</span>
+
+<span class=c1># /etc/pgbackrest/lab2.conf</span>
+<span class=k>[lab]</span>
+<span class=na>pg1-path</span><span class=o>=</span><span class=s>/var/lib/postgresql/12/lab2</span>
+<span class=na>recovery-option</span><span class=o>=</span><span class=s>recovery_target_timeline=latest</span>
+<span class=na>recovery-option</span><span class=o>=</span><span class=s>primary_conninfo=host=lab1 port=5432 user=streamer</span>
+
+<span class=k>[global]</span>
+<span class=na>repo1-host</span><span class=o>=</span><span class=s>bkp1</span>
+<span class=na>repo1-host-user</span><span class=o>=</span><span class=s>pgbr</span>
+</code></pre></div><p>Avant de pouvoir créer la stanza, il est nécessaire de démarrer l&rsquo;instance standby
+en mode <code>recovery</code> ; il suffit de positionner un fichier <code>standby.signal</code> dans
+le répertoire de données et de redémarrer l&rsquo;instance :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sudo pg_ctlcluster stop <span class=m>12</span> lab2
+sudo -u postgres touch /var/lib/postgresql/12/lab1/standby.signal
+sudo pg_ctlcluster start <span class=m>12</span> lab2
+</code></pre></div><p>À partir de ce moment, et même si les deux instances ne partagent pas les mêmes
+données, je peux créer la stanza avec l&rsquo;outil <code>pgbackrest</code> sur mon serveur de
+sauvegarde avec l&rsquo;utilisateur dédié.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sudo -u pgbr pgbackrest stanza-create <span class=se>\
+</span><span class=se></span>  --stanza<span class=o>=</span>lab --config<span class=o>=</span>/etc/pgbackrest/bkp1.conf
+</code></pre></div><p>Dès ce moment, mon instance, consciente de l&rsquo;espace de stockage distant, peut
+envoyer ses archives de WAL <em>via</em> la commande <code>archive-push</code> de <code>pgbackrest</code>.
+Un redémarrage est requis pour activer le mode archive.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>archive_mode</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>on</span><span class=p>;</span><span class=w>
+</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>archive_command</span><span class=w> </span><span class=o>=</span><span class=w> 
+</span><span class=w>  </span><span class=s1>&#39;pgbackrest archive-push %p --stanza=lab --config=/etc/pgbackrest/lab1.conf&#39;</span><span class=p>;</span><span class=w>
+</span></code></pre></div><p>Et pour finir, une première sauvegarde complète peut être lancée sur le serveur
+de sauvegarde pour assurer la construction de l&rsquo;instance standby.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sudo -u pgbr pgbackrest backup --stanza<span class=o>=</span>lab --config<span class=o>=</span>/etc/pgbackrest/bkp1.conf
+sudo -u pgbr pgbackrest info
+
+<span class=c1># stanza: lab</span>
+<span class=c1>#  status: ok</span>
+<span class=c1>#  cipher: none</span>
+<span class=c1>#</span>
+<span class=c1>#  db (current)</span>
+<span class=c1>#   wal archive min/max (12-1): 000000010000000000000008/000000010000000000000008</span>
+<span class=c1>#</span>
+<span class=c1>#   full backup: 20191107-103443F</span>
+<span class=c1>#    timestamp start/stop: 2019-11-07 10:34:43 / 2019-11-07 10:35:09</span>
+<span class=c1>#    wal start/stop: 000000010000000000000008 / 000000010000000000000008</span>
+<span class=c1>#    database size: 23.5MB, backup size: 23.5MB</span>
+<span class=c1>#    repository size: 2.8MB, repository backup size: 2.8MB</span>
+</code></pre></div><p>La sauvegarde de l&rsquo;instance primaire peut être restaurée sur la seconde instance
+avec les options <code>--delta</code> et <code>--type=standby</code> pour écraser les fichiers erronés
+et ajouter le descripteur <code>standby.signal</code> dans le répertoire de données. pgBackRest
+se charge de configurer les options de réplication dans le fichier
+<code>postgresql.auto.conf</code></p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sudo pg_ctlcluster stop <span class=m>12</span> lab2
+sudo -u postgres pgbackrest restore --stanza<span class=o>=</span>lab <span class=se>\
+</span><span class=se></span>  --delta --type<span class=o>=</span>standby --config<span class=o>=</span>/etc/pgbackrest/lab2.conf 
+sudo pg_ctlcluster start <span class=m>12</span> lab2
+</code></pre></div><p>Tadaa ! Une connexion est alors établie entre les deux nœuds et l&rsquo;on constate
+que l&rsquo;utilisateur <code>streamer</code> rejoue en asynchrone les transactions de l&rsquo;instance
+primaire vers l&rsquo;instance standby.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>select</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>from</span><span class=w> </span><span class=n>pg_stat_replication</span><span class=p>;</span><span class=w>
+</span><span class=w>
+</span><span class=w></span><span class=c1>-- -[ RECORD 1 ]----+------------------------------
+</span><span class=c1>-- pid              | 8893
+</span><span class=c1>-- usesysid         | 16384
+</span><span class=c1>-- usename          | streamer
+</span><span class=c1>-- application_name | 12/lab2
+</span><span class=c1>-- client_addr      | 10.1.0.1
+</span><span class=c1>-- client_hostname  | 
+</span><span class=c1>-- client_port      | 38820
+</span><span class=c1>-- backend_start    | 2019-11-07 10:50:22.424464+00
+</span><span class=c1>-- backend_xmin     | 
+</span><span class=c1>-- state            | streaming
+</span><span class=c1>-- sent_lsn         | 0/A000060
+</span><span class=c1>-- write_lsn        | 0/A000060
+</span><span class=c1>-- flush_lsn        | 0/A000060
+</span><span class=c1>-- replay_lsn       | 0/A000060
+</span><span class=c1>-- write_lag        | 00:00:00.001095
+</span><span class=c1>-- flush_lag        | 00:00:00.004415
+</span><span class=c1>-- replay_lag       | 00:00:00.004696
+</span><span class=c1>-- sync_priority    | 0
+</span><span class=c1>-- sync_state       | async
+</span><span class=c1>-- reply_time       | 2019-11-07 12:39:59.595595+00
+</span></code></pre></div><div class=message><p>Pour la rédaction de cet article, je n&rsquo;ai pas véritablement utilisé trois serveurs,
+mais bien un seul en réalité. L&rsquo;astuce pour faire tourner deux instances sur le
+même port 5432 consiste à ajouter des IP virtuelles sur l&rsquo;interface du serveur
+et de faire résoudre les noms de machines par le fichier <code>/etc/hosts</code> local.</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>sudo ip add add 10.1.0.1/28 dev ens6
+sudo ip add add 10.1.0.2/28 dev ens6
+sudo ip add add 10.1.0.3/28 dev ens6
+</code></pre></div><p>Les instances doivent ensuite être installées/configurées avec les bons paramètres
+<code>listen_addresses</code> et <code>unix_socket_directories</code> comme suivent :</p>
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>sudo apt-get install -y postgresql-common
+sudo vim /etc/postgresql-common/createcluster.conf
+sudo apt-get install -y postgresql-12
+
+sudo -u postgres mkdir -p /var/run/postgresql/lab{1,2}
+sudo pg_createcluster 12 lab1 \
+  --pgoption listen_addresses=10.1.0.1 --pgoption port=5432 \
+  --pgoption unix_socket_directories=/var/run/postgresql/lab1
+sudo pg_createcluster 12 lab2 \
+  --pgoption listen_addresses=10.1.0.2 --pgoption port=5432 \
+  --pgoption unix_socket_directories=/var/run/postgresql/lab2
+
+sudo pg_ctlcluster start 12 lab1
+sudo pg_ctlcluster start 12 lab2
+</code></pre></div><p>Quelques ajustements de droits sur le répertoire <code>/tmp/pgbackrest</code> pour les
+fichiers de verrous (paramètre <code>--lock-path</code>) et le tour est joué !</p>
+</div>
+</article>
+<aside class=related>
+<h3>Suggestion d'articles</h3>
+<ul class=related-posts>
+<li>
+<a href=https://fljd.in/2019/12/19/le-jour-ou-tout-bascule/>Le jour où tout bascule
+<small><time datetime=2019-12-19>19 déc 2019</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/>La brêve histoire du fichier backup_label
+<small><time datetime=2021-01-19>19 janv 2021</time></small>
+</a>
+</li>
+<li>
+<a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
+<small><time datetime=2021-08-24>24 août 2021</time></small>
+</a>
+</li>
+</ul>
+</aside>
+</main>
+<footer class=footer>
+<small>
+&copy; 2019-<time datetime=2021-11-12>2021</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
+</small>
+</footer>
+</div>
+</body>
+</html>
