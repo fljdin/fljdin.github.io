@@ -156,12 +156,6 @@ pg_basebackup: renaming backup_manifest.tmp to backup_manifest
 pg_basebackup: base backup completed
 ```
 
-Depuis la version 10, l'option `--wal-method` est définie 
-sur `stream` par défaut, ce qui indique que tous les journaux de transactions 
-présents et à venir dans le sous-répertoire `pg_wal` de l'instance seront 
-également sauvegardés dans une archive dédiée, notamment grâce à la création
-d'un slot de réplication temporaire.
-
 Since version 10, option `--wal-method` is setted on `stream` by default, which
 means that all present and future WAL segments in subdirectory `pg_wal` will be
 written in a dedicated archive next to the backup, thanks to a temporary
@@ -201,11 +195,18 @@ En cas d'absence du `backup_label`, le processus de démarrage consultera à la
 place le [fichier de contrôle][7] afin de déterminer le plus récent point de
 reprise sans garantie qu'il soit le bon.
 
+This file is located in root's archive and will be usefull in startup process of
+our cluster, since it contains the checkpoint information needed on a recovery
+situation. In above example, the sequence number (LSN) is `0/16000060` and will
+be found in WAL `000000010000000000000016`. In a lack of a backup label file,
+startup process will only have the [control file][7] to obtain the most recent
+checkpoint, with no guarantee that it is the right one.
+
 [7]: https://pgpedia.info/p/pg_control.html
 
 ---
 
-## L'heure de gloire
+## The glory age
 
 Vous conviendrez que la forme et l'intérêt du fichier `backup_label` sont
 anecdotiques (bien qu'essentiels) dans l'architecture de sauvegarde avec PostgreSQL.
