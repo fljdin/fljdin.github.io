@@ -1,6 +1,7 @@
 ---
 title: "A brief history of backup label"
 date: 2021-04-02
+draft: true
 categories: [postgresql]
 tags: [backup]
 translationKey: "la-breve-histoire-du-fichier-backup_label"
