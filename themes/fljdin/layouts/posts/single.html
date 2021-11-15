@@ -6,6 +6,16 @@
     <time datetime="{{ .Date.Format "2006-01-02" }}">{{ i18n "abrDate" . }}</time>
     - {{ i18n "readingTime" .ReadingTime }}
   </p>
+
+  {{- if .IsTranslated -}}
+    {{ range .Translations -}}
+    <div class="message translation">
+      {{ i18n "transRedirect" . }} <a href="{{ .Permalink }}">{{ .Title }}</a>
+        <small>({{ .Date.Format "2006-01-02" }})</small>
+    </div>
+    {{- end }}
+  {{- end -}}
+
   {{ .Content }}
 </article>
 

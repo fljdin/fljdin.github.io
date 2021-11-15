@@ -6,5 +6,6 @@
 - { id: suggestedPosts, other: "Suggested posts" }
 - { id: readMore, other: "Read more" }
 - { id: noPage, other: "Sorry, the page you're looking for doesn't exist." }
-- { id: goHome, other: "Revenir à la page d'accueil." }
+- { id: goHome, other: "Return to home page." }
 - { id: abrDate, other: "{{ .Date.Day }} {{ index $.Site.Data.months.en (printf `%d` .Date.Month) }} {{ .Date.Year }}" }
+- { id: transRedirect, other: "Cet article a été traduit en Français :" }

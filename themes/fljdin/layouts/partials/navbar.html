@@ -13,11 +13,6 @@
       {{ range $.Site.Menus.navigation -}}
         &nbsp;&nbsp;<a href="{{ .URL }}">{{ .Title  }}</a>
       {{- end }}
-      {{- if .IsTranslated -}}
-        {{ range .Translations -}}
-          &nbsp;&nbsp;<a href="{{ .Permalink }}">{{ .Language.LanguageName }}</a>
-        {{- end }}
-      {{- end -}}
     </small>
   </h3>
 </header>
