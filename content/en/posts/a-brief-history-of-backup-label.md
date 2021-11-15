@@ -187,14 +187,6 @@ LABEL: demo
 START TIMELINE: 1
 ```
 
-Ce dernier se trouve à la racine de notre archive et joue un rôle très
-particulier dans le processus de démarrage `startup` puisqu'il renseigne le point
-de reprise à partir duquel rejouer les journaux. Dans notre exemple, il s'agit
-de la position `0/16000060` présente dans le journal `000000010000000000000016`.
-En cas d'absence du `backup_label`, le processus de démarrage consultera à la 
-place le [fichier de contrôle][7] afin de déterminer le plus récent point de
-reprise sans garantie qu'il soit le bon.
-
 This file is located in root's archive and will be usefull in startup process of
 our cluster, since it contains the checkpoint information needed on a recovery
 situation. In above example, the sequence number (LSN) is `0/16000060` and will
@@ -208,15 +200,14 @@ checkpoint, with no guarantee that it is the right one.
 
 ## The glory age
 
-Vous conviendrez que la forme et l'intérêt du fichier `backup_label` sont
-anecdotiques (bien qu'essentiels) dans l'architecture de sauvegarde avec PostgreSQL.
-Il ne s'agit que d'un fichier texte de quelques lignes, requis exclusivement pour
-assurer certains contrôles lors d'une restauration.
+You will agree with me that content and interest of the backup label file are
+anecdotal (though essential) in backup architecture with PostgreSQL. It is (just)
+a few-lines text file, only needed in some recovery processes.
 
-Et pourtant, la petite révolution que provoqua la version 8.0 en janvier 2005
-avec l'archivage continu et la restauration PITR suscita naturellement la
-créativité de l'équipe de développement au cours des années qui suivirent. Le
-fichier `backup_label` évolua pour gagner en modularité et en stabilité.
+And yet, this small revolution caused by version 8.0 in January 2005 with its 
+new functionnality, continuous archiving and PITR mecanism, aroused the
+creativity of development team in the years that followed. The backup label
+evolved to gain modularity and stability.
 
 À l'origine, l'outil `pg_basebackup` n'était pas encore disponible et seul l'appel
 à la méthode [pg_start_backup()][9] permettait de générer le fichier dans lequel
@@ -239,7 +230,7 @@ fprintf(fp, "LABEL: %s\n", backupidstr);
 Les versions majeures se sont enchaînées avec son lot de corrections ou 
 d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
-- [Contribution][10] de Laurenz Albe (commit [c979a1fe])
+- [Contribution][10] from Laurenz Albe (commit [c979a1fe])
 
   [10]: https://www.postgresql.org/message-id/flat/D960CB61B694CF459DCFB4B0128514C201ED284B%40exadv11.host.magwien.gv.at
   [c979a1fe]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c979a1fefafcc83553bf218c7f2270cad77ea31d
@@ -248,10 +239,14 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
   interne pour annuler la sauvegarde en cours. L'exécution de la commande 
   `pg_ctl stop` en mode _fast_ renomme le fichier en `backup_label.old` ;
 
-- [Contribution][11] de Dave Kerr (commit [0f04fc67])
+- [Contribution][11] from Dave Kerr (commit [0f04fc67])
 
   [11]: https://www.postgresql.org/message-id/flat/20120624213341.GA90986%40mr-paradox.net
   [0f04fc67]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=0f04fc67f71f7cb29ccedb2e7ddf443b9e52b958
+  
+  Appeared with 9.0.9 minor version, the `pg_start_backup()` method includes a
+  `fsync()` call ensures the backup label to be written to disk. This commit 
+  guarantees the consistency of the backup during an external snapshot;
 
   Apparue avec la version mineure 9.0.9, la méthode `pg_start_backup()` inclut
   un appel `fsync()` pour forcer l'écriture sur disque du fichier `backup_label`.
@@ -266,7 +261,7 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
   [12]: https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com
   [41f9ffd9]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c
 
-- [Contribution][13] de Jun Ishizuka et Fujii Masao (commit [8366c780])
+- [Contribution][13] from Jun Ishizuka and Fujii Masao (commit [8366c780])
 
   [13]: https://www.postgresql.org/message-id/flat/201108050646.p756kHC5023570%40ccmds32.silk.ntts.co.jp
   [8366c780]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=8366c7803ec3d0591cf2d1226fea1fee947d56c3
