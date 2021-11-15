@@ -200,7 +200,7 @@ evolved to gain modularity and stability.
 
 At this time, `pg_backbackup` was not yet available, and only an explicit call
 to the function [pg_start_backup()][9] allowed you to generate the `backup_label` 
-file in which were the [following][8] four information to support hot backup:
+file in which were the [following][8] four entries to support hot backup:
 
 [8]: https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411
 [9]: https://pgpedia.info/p/pg_start_backup.html
@@ -263,13 +263,12 @@ contributions, I selected for you:
   previous informations to compare its value with thoses contained in WAL needed
   by a data recovery;
 
-Vous l'aurez compris, pendant de nombreuses années, la capacité de faire une
-sauvegarde dite consistante, reposait sur les deux méthodes vues précédemment.
-La fonction historique `pg_start_backup()` fut particulièrement touchée
-par d'incessantes critiques au sujet d'un comportement non souhaité, notamment
-son mode « exclusif ».
+As you may understand, during an amount of years, the ability to take a consistent
+backup leaded on two distinct ways: `pg_start_backup()` and `pg_basebackup`. The
+first and historical one was deeply impacted by regular commentaries about an
+unwanted behavior with it "exclusive" mode.
 
-Voyons cela ensemble sur une instance récente en version 13 :
+Let us look at an example with PostgreSQL 13:
 
 ```sql
 SELECT pg_start_backup('demo');
@@ -289,13 +288,13 @@ LABEL: demo
 START TIMELINE: 1
 ```
 
-Le signal `ABRT` interrompt sans préavis le processus `postmaster` de l'instance
-et la routine d'arrêt `CancelBackup` n'est pas appelée pour renommer le fichier
-en `backup_label.old`. Avec une activité classique de production, les journaux 
-sont recyclés et archivés à mesure que les transactions s'enchaînent. Au démarrage
-de l'instance, le fichier `backup_label` présent dans le répertoire de données
-est lu par erreur et n'indique plus le bon point de reprise pour la récupération 
-des données.
+The `ABRT` signal interrupts the `postmaster` process of the cluster in the
+violent way and an internal routine, called `CancelBackup`, won't be triggered
+correctly in order to rename our backup label to `backup_label.old`. On a normal
+production workload, all transactions logs are recycled or even archived as
+activity involves more new transactions. On restart of our interrupted instance,
+the backup label inside data directory will be read by mistake with an errouneous
+checkpoint record requested by the recovery process.
 
 ```text
 LOG:  database system was shut down at 2021-01-18 17:08:43 CET
@@ -312,29 +311,28 @@ LOG:  aborting startup due to startup process failure
 LOG:  database system is shut down
 ```
 
-Ce message complet n'est apparu qu'à partir de la version 12 avec un [avertissement][15]
-plus prononcé dans la documentation au sujet du fichier, faisant suite à de longs
-échanges sur la possibilité de se séparer ou non de cette méthode. Dans l'un 
-d'eux, on peut lire la remarquable [intervention][16] de Robert Haas qui revient
-sur le succès de cette fonctionnalité depuis ses débuts et la confusion fréquente 
-que rencontrent les utilisateurs qui ne comprennent ni la complexité ni les
-instructions claires de la documentation.
+The complete message only appeared with PostgreSQL 12 as an [explicite warning][15]
+in documentation of the backup label, following long discussions on throwing away
+this particular mode or not. In one of theses threads, we can read a remarquable
+[advocacy][16] written by Robert Haas who looks back on the success of this
+feature since its creation and points out the frequent confusion encountered by
+users who do not understand either complexity or clear instructions from the
+documentation.
 
 [15]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c900c15269f0f900d666bd1b0c6df3eff5098678
 [16]: https://www.postgresql.org/message-id/CA+TgmoaGvpybE=xvJeg9Jc92c-9ikeVz3k-_Hg9=mdG05u=e=g@mail.gmail.com
 
-À présent, une note y clarifie les choses.
+From these days of darkness, a dedicated note has been added.
 
-> Ce type de sauvegarde peut seulement être réalisé sur un serveur primaire et 
-> ne permet pas des sauvegardes concurrentes. De plus, le fichier backup_label 
-> créé sur un serveur primaire peut empêcher le redémarrage de celui-ci en cas 
-> de crash. D'un autre côté, la suppression à tord de ce fichier d'une sauvegarde 
-> ou d'un serveur secondaire est une erreur fréquente qui peut mener à de 
-> sérieuses corruptions de données.
+> This type of backup can only be taken on a primary and does not allow concurrent
+> backups. Moreover, because it creates a backup label file, as described below,
+> it can block automatic restart of the master server after a crash. On the other
+> hand, the erroneous removal of this file from a backup or standby is a common
+> mistake, which can result in serious data corruption.
 >
-> Source : [Créer une sauvegarde exclusive de bas niveau][17]
+> Source: [Making an Exclusive Low-Level Backup][17]
 
-[17]: https://docs.postgresql.fr/12/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-EXCLUSIVE
+[17]: https://www.postgresql.org/docs/12/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-EXCLUSIVE
 
 ---
 
