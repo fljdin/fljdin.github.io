@@ -238,7 +238,7 @@ contributions, I selected for you:
 
 - [Contribution][12] from Heikki Linnakangas (commit [41f9ffd9])
 
-  Proposed in 9.2 version, this patch fix abnormal behaviors on restauration from
+  Proposed in 9.2, this patch fix abnormal behaviors on restauration from
   the streaming backup functionnality. Backup label contains a new line that
   specify the method used between `pg_start_backup` or `streamed`;
 
@@ -250,7 +250,7 @@ contributions, I selected for you:
   [13]: https://www.postgresql.org/message-id/flat/201108050646.p756kHC5023570%40ccmds32.silk.ntts.co.jp
   [8366c780]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=8366c7803ec3d0591cf2d1226fea1fee947d56c3
 
-  With 9.2 version and above, `pg_start_backup()` can be executed on a secondary
+  With 9.2 and above, `pg_start_backup()` can be executed on a secondary
   cluster. The role (`standby` or `master`) of the instance from which the backup
   comes is retained in the backup label; 
 
@@ -259,8 +259,8 @@ contributions, I selected for you:
   [14]: https://www.postgresql.org/message-id/flat/CAB7nPqRosJNapKVW2QPwkN9%2BypfL4yiR4mcNFZcjxS2c8m%2BVkw%40mail.gmail.com
   [6271fceb]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=6271fceb8a4f07dafe9d67dcf7e849b319bb2647
 
-  Added in 11 version, a new _timeline_ entry in backup label file joined the
-  previous informations to compare its value with thoses contained in WAL needed
+  Added in 11, a new _timeline_ entry in backup label file joined the
+  previous information to compare its value with thoses contained in WAL needed
   by a data recovery;
 
 As you may understand, during an amount of years, the ability to take a consistent
