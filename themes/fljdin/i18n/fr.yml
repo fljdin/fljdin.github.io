@@ -8,4 +8,4 @@
 - { id: noPage, other: "Désolé, cette page a été supprimée ou n'existe pas." }
 - { id: goHome, other: "Revenir à la page d'accueil." }
 - { id: abrDate, other: "{{ .Date.Day }} {{ index $.Site.Data.months.fr (printf `%d` .Date.Month) }} {{ .Date.Year }}" }
-- { id: transRedirect, other: "This article has been translated in English:" }
+- { id: transRedirect, other: "This article is available in English:" }
