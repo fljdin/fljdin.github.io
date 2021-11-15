@@ -8,40 +8,37 @@ translationKey: "la-breve-histoire-du-fichier-backup_label"
 trad: https://pad.education/p/a-brief-history-of-backup-label
 ---
 
-Je suis resté longtemps ignorant des mécanismes de [journalisation][1] et de _PITR_ 
-avec PostgreSQL alors même qu'il s'agit d'un des fonctionnements critiques pour
-la durabilité des données d'une instance. Mieux comprendre ces concepts m'aurait
-permis à une époque, d'être plus serein lors de la mise en place de sauvegardes
-et surtout au moment de leur restauration !
+For a long time, I remained ignorant about [transaction logging mechanisms][1] 
+and PITR in PostgreSQL, although they were crucial in data durability. A better
+understanding of these concepts would have helped me in a previous life, to be
+more confident during a backup configuration and, well, during after-crash
+intervention!
 
-[1]: https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf
+[1]: http://www.interdb.jp/pg/pgsql09.html
 
-Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
-fait parlé de lui pendant plusieurs années : le fichier `backup_label`. 
-Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en 
-version 8.0 de PostgreSQL et qu'adviendra-t-il de lui dans les prochaines années ?
+By reading this post, I will come back to an amusing file that used to be a
+topic of discussion over the past decade: the backup label file. What is it and
+what is it used for? How has it be enhanced from its origin with PostgreSQL 8.0
+and what could be expected from him over the next years?
 
 <!--more-->
 
 ---
 
-## Il était une fois la journalisation
+## Once upon a time there was transaction logging
 
-En guise d'introduction pour mieux comprendre cet article, il est bon d'expliquer 
-que chaque opération d'écriture dans PostgreSQL comme un `UPDATE` ou un `INSERT`,
-est écrite une première fois au moment du `COMMIT` de la transaction dans un groupe 
-de fichiers, que l'on appelle _WAL_ ou **journaux de transactions**. Ajoutées les
-unes à la suite des autres, ces modifications représentent un faible coût pour
-l'activité des disques par rapport aux écritures aléatoires d'autres processus
-de synchronisation à l'œuvre dans PostgreSQL.
+As an introduction and to better understand this post, it seems good to me to 
+explain that each changing operation in PostgreSQL, like an `UPDATE` or an `INSERT`, 
+is written a first time on `COMMIT` in a group of files, which is called _WAL_ 
+or **transaction logs**. Taken together, these changes represent a low cost to 
+disk activity compared to random writings of others processes at work in PostgreSQL.
 
-Parmi l'un d'eux, le processus `checkpointer` s'assure que les nouvelles données
-en mémoire soient définitivement synchronisées dans les fichiers de données à des
-moments réguliers que l'on appelle `CHECKPOINT`. Cette écriture en deux temps sur 
-les disques apporte d'excellentes performances et garantit qu'aucun bloc modifié 
-ne soit perdu lorsqu'une transaction se termine correctement.
+Among them, the `checkpointer` process ensures that new data in memory is permanently 
+synchronized in the data files and that at regular times called `CHECKPOINT`. This 
+on-disk two-step writing provides excellent performance and ensures that modified 
+blocks are not lost when a transaction ends successfully.
 
-![Écriture différée sur les disques](/img/fr/2021-01-19-ecriture-differee-sur-disque.png)
+![Asynchroneous writes on disks](/img/en/2021-04-asynchronous-writes.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 sequenceDiagram
@@ -73,12 +70,10 @@ sequenceDiagram
     end
 -->
 
-Par ce mécanisme de journalisation, les fichiers de données de notre instance
-sont constamment en retard sur la véritable activité transactionnelle, et ce, 
-jusqu'au prochain `CHECKPOINT`. En cas d'arrêt brutal du système, les blocs en 
-attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_
-sont perdus et les fichiers de données sont dit **incohérents** car ils mixent 
-des données de transactions anciennes, nouvelles, valides ou invalides.
+Because of transaction logging, all data files of our cluster are late on real
+transactional workload, until the next `CHECKPOINT` moment. In case of an unexpected
+interruption (like a memory crash), dirty pages will be lost and data files are
+called **inconsistents**, as they contain data that can be too old or uncommitted.
 
 In such situations, cluster service will be able to restart by applying losted
 changes thanks to transaction logs written in WAL files. This rebuilding process
@@ -90,11 +85,9 @@ functionalities, like Point In Time Recovery or standby replication with Log
 Shipping to a secondary cluster.
 {{< /message >}}
 
-Que ce soit à la suite d'un crash ou dans le cadre d'une restauration de 
-sauvegarde, les fichiers de données doivent être cohérents pour assurer le retour
-du service et l'accès en écriture aux données. Quelle mauvaise surprise n'a-t-on 
-pas lorsqu'une instance PostgreSQL interrompt son démarrage avec le message
-suivant :
+Whether after a crash or data restoration, data files must be consistent during
+the startup stage in order to accept write access to data again. What a terrible
+surprise when the startup fails with the following error:
 
 ```PANIC: could not locate a valid checkpoint record```
 
@@ -103,10 +96,10 @@ between data files and fails to look after the nearest checkpoint record. Withou
 transactions logs, crash recovery fails and stops. At this point, your nerves and 
 your backup policy are put to the test.
 
-Pour le dire encore autrement : en l'absence des journaux de transactions ou de 
-leurs archives, {{< u >}}vos plus récentes données sont perdues{{< /u >}}.
+To put it another way: in lacks of WAL or theirs archives, {{< u >}}your most 
+recent data are losts{{< /u >}}.
 
-… Et l'outil [pg_resetwal][2] ne les récuperera pas pour vous.
+… And [pg_resetwal][2] will not bring them back to you.
 
 [2]: https://pgpedia.info/p/pg_resetwal.html
 
@@ -119,20 +112,17 @@ is no longer an option when you are making backups. Make sure that these archive
 are stored in a secure place, or even a decentralized area so that they are 
 accessible by all standby clusters when you need to trigger your failover plan.
 
-[3]: /2019/12/19/le-jour-ou-tout-bascule
+For those who have reached this part of the post, you should not be too lost if 
+I tell you that the _backup label_ file is a component of a larger concept called:
+backup.
 
-Pour ceux ayant atteint cette partie de l'article, vous ne devriez pas être
-trop perdus si je vous annonce que le fichier `backup_label` est un composant
-d'un plus large concept, à savoir : la sauvegarde.
-
-> Le fichier historique de sauvegarde est un simple fichier texte. Il contient 
-> le label que vous avez attribué à l'opération `pg_basebackup`, ainsi que les
-> dates de début, de fin et la liste des segments WAL de la sauvegarde. Si vous
-> avez utilisé le label pour identifier le fichier de sauvegarde associé, alors
-> le fichier historique vous permet de savoir quel fichier de sauvegarde vous
-> devez utiliser pour la restauration.
+> The backup history file is just a small text file. It contains the label string
+> you gave to `pg_basebackup`, as well as the starting and ending times and WAL 
+> segments of the backup. If you used the label to identify the associated dump 
+> file, then the archived history file is enough to tell you which dump file to 
+> restore.
 > 
-> Source : [Réaliser une sauvegarde de base][4]
+> Source: [Making a Base Backup][4]
 
 [4]: https://www.postgresql.org/docs/13/continuous-archiving.html#BACKUP-BASE-BACKUP
 
@@ -161,12 +151,11 @@ means that all present and future WAL segments in subdirectory `pg_wal` will be
 written in a dedicated archive next to the backup, thanks to a temporary
 replication slot.
 
-Depuis la version 13, l'outil embarque le fichier manifeste dans la sauvegarde
-afin de pouvoir contrôler l'intégrité de la copie par la commande
-[pg_verifybackup][6]. Contrôlons le contenu du répertoire de sauvegarde et
-recherchons le tant attendu `backup_label`.
+Since version 13, this tool creates a new manifest backup file in order to verify 
+the integrity of our backup with [pg_verifybackup][6]. Let's explore our working
+directory to find our long awaited backup label.
 
-[6]: /2020/11/18/quelques-outils-meconnus/#pg_verifybackup
+[6]: https://pgpedia.info/p/pg_verifybackup.html
 
 ```text
 $ tree backups/
@@ -209,10 +198,9 @@ new functionnality, continuous archiving and PITR mecanism, aroused the
 creativity of development team in the years that followed. The backup label
 evolved to gain modularity and stability.
 
-À l'origine, l'outil `pg_basebackup` n'était pas encore disponible et seul l'appel
-à la méthode [pg_start_backup()][9] permettait de générer le fichier dans lequel
-se trouvaient les quatres informations [suivantes][8] pour accompagner la
-sauvegarde à chaud :
+At this time, `pg_backbackup` was not yet available, and only an explicit call
+to the function [pg_start_backup()][9] allowed you to generate the `backup_label` 
+file in which were the [following][8] four information to support hot backup:
 
 [8]: https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411
 [9]: https://pgpedia.info/p/pg_start_backup.html
@@ -227,17 +215,17 @@ fprintf(fp, "START TIME: %s\n", strfbuf);
 fprintf(fp, "LABEL: %s\n", backupidstr);
 ```
 
-Les versions majeures se sont enchaînées avec son lot de corrections ou 
-d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
+All next versions brought various fixes or enhancements. Among the notable
+contributions, I selected for you:
 
 - [Contribution][10] from Laurenz Albe (commit [c979a1fe])
 
   [10]: https://www.postgresql.org/message-id/flat/D960CB61B694CF459DCFB4B0128514C201ED284B%40exadv11.host.magwien.gv.at
   [c979a1fe]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c979a1fefafcc83553bf218c7f2270cad77ea31d
 
-  Publié avec la version 8.4, le code `xlog.c` se voit enrichir d'une méthode 
-  interne pour annuler la sauvegarde en cours. L'exécution de la commande 
-  `pg_ctl stop` en mode _fast_ renomme le fichier en `backup_label.old` ;
+  Published with 8.4 version, `xlog.c` codefile is extended with an internal
+  method to cancel a running backup. Calling the `pg_ctl stop` command in _fast_
+  mode renames the file to `backup_label.old`;
 
 - [Contribution][11] from Dave Kerr (commit [0f04fc67])
 
@@ -248,15 +236,11 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
   `fsync()` call ensures the backup label to be written to disk. This commit 
   guarantees the consistency of the backup during an external snapshot;
 
-  Apparue avec la version mineure 9.0.9, la méthode `pg_start_backup()` inclut
-  un appel `fsync()` pour forcer l'écriture sur disque du fichier `backup_label`.
-  Cette sécurité garantit la consistance d'un instantané matériel ;
+- [Contribution][12] from Heikki Linnakangas (commit [41f9ffd9])
 
-- [Contribution][12] de Heikki Linnakangas (commit [41f9ffd9])
-
-  Proposé en version 9.2, ce patch corrige des comportements anormaux de
-  restauration à partir de la nouvelle méthode de sauvegarde par flux. Le fichier
-  `backup_label` précise la méthode employée entre `pg_start_backup` ou `streamed` ;
+  Proposed in 9.2 version, this patch fix abnormal behaviors on restauration from
+  the streaming backup functionnality. Backup label contains a new line that
+  specify the method used between `pg_start_backup` or `streamed`;
 
   [12]: https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com
   [41f9ffd9]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c
@@ -266,18 +250,18 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
   [13]: https://www.postgresql.org/message-id/flat/201108050646.p756kHC5023570%40ccmds32.silk.ntts.co.jp
   [8366c780]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=8366c7803ec3d0591cf2d1226fea1fee947d56c3
 
-  Depuis la version 9.2, la méthode `pg_start_backup()` peut être exécutée sur
-  une instance secondaire. Le rôle de l'instance d'où provient la sauvegarde est
-  renseignée dans le fichier `backup_label` ;
+  With 9.2 version and above, `pg_start_backup()` can be executed on a secondary
+  cluster. The role (`standby` or `master`) of the instance from which the backup
+  comes is retained in the backup label; 
 
-- [Contribution][14] de Michael Paquier (commit [6271fceb])
+- [Contribution][14] from Michael Paquier (commit [6271fceb])
 
   [14]: https://www.postgresql.org/message-id/flat/CAB7nPqRosJNapKVW2QPwkN9%2BypfL4yiR4mcNFZcjxS2c8m%2BVkw%40mail.gmail.com
   [6271fceb]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=6271fceb8a4f07dafe9d67dcf7e849b319bb2647
 
-  Ajoutée en version 11, l'information _timeline_ dans le fichier `backup_label`
-  rejoint les précédentes pour comparer sa valeur avec celles des journaux à 
-  rejouer lors d'une récupération de données ;
+  Added in 11 version, a new _timeline_ entry in backup label file joined the
+  previous informations to compare its value with thoses contained in WAL needed
+  by a data recovery;
 
 Vous l'aurez compris, pendant de nombreuses années, la capacité de faire une
 sauvegarde dite consistante, reposait sur les deux méthodes vues précédemment.
