@@ -8,37 +8,40 @@ translationKey: "la-breve-histoire-du-fichier-backup_label"
 trad: https://pad.education/p/a-brief-history-of-backup-label
 ---
 
-For a long time, I remained ignorant about [transaction logging mechanisms][1] 
-and PITR in PostgreSQL, although they were crucial in data durability. A better
-understanding of these concepts would have helped me in a previous life, to be
-more confident during a backup configuration and, well, during after-crash
-intervention!
+Je suis resté longtemps ignorant des mécanismes de [journalisation][1] et de _PITR_ 
+avec PostgreSQL alors même qu'il s'agit d'un des fonctionnements critiques pour
+la durabilité des données d'une instance. Mieux comprendre ces concepts m'aurait
+permis à une époque, d'être plus serein lors de la mise en place de sauvegardes
+et surtout au moment de leur restauration !
 
-[1]: http://www.interdb.jp/pg/pgsql09.html
+[1]: https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf
 
-By reading this post, I will come back to an amusing file that used to be a
-topic of discussion over the past decade : the backup label file. What is it and
-what is it used for? How has it be enhanced from its origin with PostgreSQL 8.0
-and what could be expected from him over the next years?
+Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
+fait parlé de lui pendant plusieurs années : le fichier `backup_label`. 
+Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en 
+version 8.0 de PostgreSQL et qu'adviendra-t-il de lui dans les prochaines années ?
 
 <!--more-->
 
 ---
 
-## Once upon a time there was transaction logging
+## Il était une fois la journalisation
 
-As an introduction and to better understand this post, it seems good to me to 
-explain that each changing operation in PostgreSQL, like an `UPDATE` or an `INSERT`, 
-is written a first time on `COMMIT` in a group of files, which is called _WAL_ 
-or **transaction logs**. Taken together, these changes represent a low cost to 
-disk activity compared to random writings of others processes at work in PostgreSQL.
+En guise d'introduction pour mieux comprendre cet article, il est bon d'expliquer 
+que chaque opération d'écriture dans PostgreSQL comme un `UPDATE` ou un `INSERT`,
+est écrite une première fois au moment du `COMMIT` de la transaction dans un groupe 
+de fichiers, que l'on appelle _WAL_ ou **journaux de transactions**. Ajoutées les
+unes à la suite des autres, ces modifications représentent un faible coût pour
+l'activité des disques par rapport aux écritures aléatoires d'autres processus
+de synchronisation à l'œuvre dans PostgreSQL.
 
-Among them, the `checkpointer` process ensures that new data in memory is permanently 
-synchronized in the data files and that at regular times called `CHECKPOINT`. This 
-on-disk two-step writing provides excellent performance and ensures that modified 
-blocks are not lost when a transaction ends successfully.
+Parmi l'un d'eux, le processus `checkpointer` s'assure que les nouvelles données
+en mémoire soient définitivement synchronisées dans les fichiers de données à des
+moments réguliers que l'on appelle `CHECKPOINT`. Cette écriture en deux temps sur 
+les disques apporte d'excellentes performances et garantit qu'aucun bloc modifié 
+ne soit perdu lorsqu'une transaction se termine correctement.
 
-![Asynchroneous writes on disks](/img/posts/2021-01-19-ecriture-differee-sur-disque.png)
+![Écriture différée sur les disques](/img/fr/2021-01-19-ecriture-differee-sur-disque.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 sequenceDiagram
@@ -73,8 +76,8 @@ sequenceDiagram
 Par ce mécanisme de journalisation, les fichiers de données de notre instance
 sont constamment en retard sur la véritable activité transactionnelle, et ce, 
 jusqu'au prochain `CHECKPOINT`. En cas d'arrêt brutal du système, les blocs en 
-attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_
-sont perdus et les fichiers de données sont dit **inconsistants** car ils mixent 
+attente de synchronisation (_dirty pages_) présents dans la mémoire _Shared Buffer_
+sont perdus et les fichiers de données sont dit **incohérents** car ils mixent 
 des données de transactions anciennes, nouvelles, valides ou invalides.
 
 Dans pareilles situations, il est possible de redémarrer l'instance afin qu'elle
@@ -93,7 +96,7 @@ Que ce soit à la suite d'un crash ou dans le cadre d'une restauration de
 sauvegarde, les fichiers de données doivent être cohérents pour assurer le retour
 du service et l'accès en écriture aux données. Quelle mauvaise surprise n'a-t-on 
 pas lorsqu'une instance PostgreSQL interrompt son démarrage avec le message
-suivant :
+suivant :
 
 ```PANIC: could not locate a valid checkpoint record```
 
@@ -102,12 +105,10 @@ de son démarrage et qu'elle échoue à trouver le _point de reprise_ le plus pr
 de son état. Sans les journaux, la récupération échoue et s'arrête. À cet instant
 précis, vos nerfs et votre politique de sauvegarde sont mis à rude épreuve.
 
-Pour le dire encore autrement :
-en l'absence des journaux de transactions ou de leurs archives, {{< u >}}vos plus
-récentes données sont perdues{{< /u >}}.
+Pour le dire encore autrement : en l'absence des journaux de transactions ou de 
+leurs archives, {{< u >}}vos plus récentes données sont perdues{{< /u >}}.
 
-… Et l'outil [pg_resetwal][2] ne les 
-récuperera pas pour vous.
+… Et l'outil [pg_resetwal][2] ne les récuperera pas pour vous.
 
 [2]: https://pgpedia.info/p/pg_resetwal.html
 
@@ -121,11 +122,11 @@ que ces archives soient stockées sur un espace sécurisé, voire une zone
 décentralisée pour qu'elles soient accessibles par toutes les instances secondaires
 lorsque vous devez déclencher votre [plan de bascule][3].
 
-[3]: https://fljd.in/2019/12/19/le-jour-ou-tout-bascule
+[3]: /2019/12/19/le-jour-ou-tout-bascule
 
 Pour ceux ayant atteint cette partie de l'article, vous ne devriez pas être
 trop perdus si je vous annonce que le fichier `backup_label` est un composant
-d'un plus large concept, à savoir : la sauvegarde.
+d'un plus large concept, à savoir : la sauvegarde.
 
 > Le fichier historique de sauvegarde est un simple fichier texte. Il contient 
 > le label que vous avez attribué à l'opération `pg_basebackup`, ainsi que les
@@ -134,7 +135,7 @@ d'un plus large concept, à savoir : la sauvegarde.
 > le fichier historique vous permet de savoir quel fichier de sauvegarde vous
 > devez utiliser pour la restauration.
 > 
-> Source : [Réaliser une sauvegarde de base][4]
+> Source : [Réaliser une sauvegarde de base][4]
 
 [4]: https://docs.postgresql.fr/13/continuous-archiving.html#BACKUP-BASE-BACKUP
 
@@ -170,7 +171,7 @@ afin de pouvoir contrôler l'intégrité de la copie par la commande
 [pg_verifybackup][6]. Contrôlons le contenu du répertoire de sauvegarde et
 recherchons le tant attendu `backup_label`.
 
-[6]: https://fljd.in/2020/11/18/quelques-outils-meconnus/#pg_verifybackup
+[6]: /2020/11/18/quelques-outils-meconnus/#pg_verifybackup
 
 ```text
 $ tree backups/
@@ -218,7 +219,7 @@ fichier `backup_label` évolua pour gagner en modularité et en stabilité.
 À l'origine, l'outil `pg_basebackup` n'était pas encore disponible et seul l'appel
 à la méthode [pg_start_backup()][9] permettait de générer le fichier dans lequel
 se trouvaient les quatres informations [suivantes][8] pour accompagner la
-sauvegarde à chaud :
+sauvegarde à chaud :
 
 [8]: https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411
 [9]: https://pgpedia.info/p/pg_start_backup.html
@@ -234,7 +235,7 @@ fprintf(fp, "LABEL: %s\n", backupidstr);
 ```
 
 Les versions majeures se sont enchaînées avec son lot de corrections ou 
-d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
+d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
 - [Contribution][10] de Laurenz Albe (commit [c979a1fe])
 
@@ -243,7 +244,7 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Publié avec la version 8.4, le code `xlog.c` se voit enrichir d'une méthode 
   interne pour annuler la sauvegarde en cours. L'exécution de la commande 
-  `pg_ctl stop` en mode _fast_ renomme le fichier en `backup_label.old` ;
+  `pg_ctl stop` en mode _fast_ renomme le fichier en `backup_label.old` ;
 
 - [Contribution][11] de Dave Kerr (commit [0f04fc67])
 
@@ -252,13 +253,13 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Apparue avec la version mineure 9.0.9, la méthode `pg_start_backup()` inclut
   un appel `fsync()` pour forcer l'écriture sur disque du fichier `backup_label`.
-  Cette sécurité garantit la consistance d'un instantané matériel ;
+  Cette sécurité garantit la consistance d'un instantané matériel ;
 
 - [Contribution][12] de Heikki Linnakangas (commit [41f9ffd9])
 
   Proposé en version 9.2, ce patch corrige des comportements anormaux de
   restauration à partir de la nouvelle méthode de sauvegarde par flux. Le fichier
-  `backup_label` précise la méthode employée entre `pg_start_backup` ou `streamed` ;
+  `backup_label` précise la méthode employée entre `pg_start_backup` ou `streamed` ;
 
   [12]: https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com
   [41f9ffd9]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c
@@ -270,7 +271,7 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Depuis la version 9.2, la méthode `pg_start_backup()` peut être exécutée sur
   une instance secondaire. Le rôle de l'instance d'où provient la sauvegarde est
-  renseignée dans le fichier `backup_label` ;
+  renseignée dans le fichier `backup_label` ;
 
 - [Contribution][14] de Michael Paquier (commit [6271fceb])
 
@@ -279,15 +280,15 @@ d'améliorations. Parmi les contributions notables, j'ai relevé pour vous :
 
   Ajoutée en version 11, l'information _timeline_ dans le fichier `backup_label`
   rejoint les précédentes pour comparer sa valeur avec celles des journaux à 
-  rejouer lors d'une récupération de données ;
+  rejouer lors d'une récupération de données ;
 
 Vous l'aurez compris, pendant de nombreuses années, la capacité de faire une
 sauvegarde dite consistante, reposait sur les deux méthodes vues précédemment.
 La fonction historique `pg_start_backup()` fut particulièrement touchée
 par d'incessantes critiques au sujet d'un comportement non souhaité, notamment
-son mode « exclusif ».
+son mode « exclusif ».
 
-Voyons cela ensemble sur une instance récente en version 13 :
+Voyons cela ensemble sur une instance récente en version 13 :
 
 ```sql
 SELECT pg_start_backup('demo');
@@ -350,7 +351,7 @@ instructions claires de la documentation.
 > ou d'un serveur secondaire est une erreur fréquente qui peut mener à de 
 > sérieuses corruptions de données.
 >
-> Source : [Créer une sauvegarde exclusive de bas niveau][17]
+> Source : [Créer une sauvegarde exclusive de bas niveau][17]
 
 [17]: https://docs.postgresql.fr/12/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-EXCLUSIVE
 
@@ -360,7 +361,7 @@ instructions claires de la documentation.
 
 Cette limitation était connue de longue date et l'équipe de développement
 proposa une [alternative][18] en septembre 2016 avec la sortie de la version 9.6 
-et l'introduction de la sauvegarde dite « concurrente ». Depuis ce jour, la 
+et l'introduction de la sauvegarde dite « concurrente ». Depuis ce jour, la 
 sauvegarde exclusive est annoncée obsolète par les développeurs et pourrait être
 supprimée dans les versions à venir.
 
@@ -425,6 +426,8 @@ trop complexes et loin d'être immuable dans les années à venir.
 [Barman]: https://www.pgbarman.org/
 [pitrery]: https://dalibo.github.io/pitrery/
 
+---
+
 ##  Morale de l'histoire
 
 Au fil des versions, le fichier `backup_label` a enduré de nombreuses tempêtes
@@ -449,7 +452,7 @@ plus débattue et a été retirée du _backlog_ de développement lors du Commit
 de [juillet 2020][20]. Lors des derniers échanges, le contributeur David Steele
 (auteur de pgBackRest notamment) [annonçait][21] qu'une sauvegarde exclusive pourrait
 stocker son fichier `backup_label` directement en mémoire partagée plutôt que sur 
-le disque et ainsi corriger sa principale faiblesse :
+le disque et ainsi corriger sa principale faiblesse :
 
 [20]: https://commitfest.postgresql.org/28/1913/
 [21]: https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0bd4bf0d%40pgmasters.net
@@ -458,4 +461,4 @@ le disque et ainsi corriger sa principale faiblesse :
 > memory and store the backup label in it. We only allow one exclusive 
 > backup now so it wouldn't be a loss in functionality.
 
-La suite au prochain épisode !
+La suite au prochain épisode !
