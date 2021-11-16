@@ -261,7 +261,7 @@ contributions, I selected for you:
 
   Added in 11, a new _timeline_ entry in backup label file joined the
   previous information to compare its value with thoses contained in WAL needed
-  by a data recovery;
+  by recovery process;
 
 As you may understand, during an amount of years, the ability to take a consistent
 backup leaded on two distinct ways: `pg_start_backup()` and `pg_basebackup`. The
@@ -336,23 +336,21 @@ From these days of darkness, a dedicated note has been added.
 
 ---
 
-## Place à la relève
+## Next generation
 
-Cette limitation était connue de longue date et l'équipe de développement
-proposa une [alternative][18] en septembre 2016 avec la sortie de la version 9.6 
-et l'introduction de la sauvegarde dite « concurrente ». Depuis ce jour, la 
-sauvegarde exclusive est annoncée obsolète par les développeurs et pourrait être
-supprimée dans les versions à venir.
+This well-known drawback [has been addressed][18] by the development team in
+september 2016 when releasing PostgreSQL 9.6 with "non-exclusive" backups. Since
+then, exclusive backup mode is tagged as obsolete by developers and could be
+removed in future versions.
 
 [18]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=7117685461af50f50c03f43e6a622284c8d54694
 
-Le fichier `backup_label` ne disparaît pas en soi. Ses informations sont toujours
-requises pour la restauration PITR mais le fichier n'a plus d'état transitoire sur
-le disque et n'est plus écrit dans le répertoire de l'instance par la méthode
-`pg_start_backup()`. En remplacement, l'administrateur ou le script de sauvegarde
-doit être en capacité d'exécuter la commande `pg_stop_backup()` dans la même
-connexion à l'instance pour y récupérer les éléments et reconstruire le fichier
-au moment de la restauration.
+Backup label file has not been removed. Its content is still relevant in case of
+point-in-time recovery, but it loses that transitory state on disk and won't be
+written in data directory on `pg_start_backup()` call. Instead, administrator or
+backup script must keep session opened until `pg_stop_backup()` call in order to
+collect backup's metadata and rebuild backup label file needed by restauration
+process.
 
 ```sql
 SELECT pg_start_backup(label => 'demo', exclusive => false, fast => true);
@@ -372,13 +370,11 @@ SELECT labelfile FROM pg_stop_backup(exclusive => false);
 -- START TIMELINE: 1                                             +
 ```
 
-Une autre méthode nous permet de retrouver facilement le contenu du fichier, 
-d'autant plus si l'archivage est en place sur l'instance. En effet, à l'annonce
-de la fin d'une sauvegarde, les éléments précédents sont écrits dans un fichier
-d'historique `.backup` au sein des journaux de transactions et un fichier `.ready`
-est ajouté dans le répertoire `archive_status` à destination du processus 
-d'archivage. Une recherche rapide sur le dépôt des archives plus tard, et nous 
-sommes en possession du fichier prêt à l'emploi pour une restauration.
+There is another easy way to retrieve this content, especially if archiving is
+configured. At the end of backup, metadata are written in a history file `.backup`
+inside `pg_wal` and a `.ready` file is added in `archive_status` directory, 
+waiting for archiving. A quick search into our WAL repository can lead us to a
+ready-to-use file.
 
 ```text
 $ find archives -type f -not -size 16M
@@ -394,12 +390,12 @@ LABEL: demo
 START TIMELINE: 1
 ```
 
-La venue d'une brique complète pour la sauvegarde concurrente a permis l'émergence
-de nouvelles solutions de sauvegardes, plus performantes et plus modulaires que
-`pg_basebackup`. Dans le paysage des outils tiers, vous entendriez peut-être parler
-de [pgBackRest] écrit en C, [Barman] écrit en Python ou [pitrery] écrit en Bash.
-En outre, ces outils soulagent l'administrateur de la rédaction de scripts devenus 
-trop complexes et loin d'être immuable dans les années à venir.
+With a fresh new architecture for non-exclusive concurrent backup system, various
+backup tools have emerged, more powerful and modular than `pg_basebackup`. Among
+well-known third-party tools, you might hear of [pgBackRest] written in C, 
+[Barman] written in Python, or even [pitrery] written in Bash. Moreover, these
+tools do a pretty well-done job, avoiding a painful effort for every administrator
+in maintaining their complex scripts.
 
 [pgBackrest]: https://pgbackrest.org/
 [Barman]: https://www.pgbarman.org/
@@ -407,31 +403,27 @@ trop complexes et loin d'être immuable dans les années à venir.
 
 ---
 
-##  Morale de l'histoire
+## Moral of the story
 
-Au fil des versions, le fichier `backup_label` a enduré de nombreuses tempêtes
-et rebondissements pour aboutir à une forme plus aboutie de la sauvegarde et de
-la restauration physique dans PostgreSQL.
+Over releases, backup label file has endured many storms and twists to result in
+a more elegant way to perform physical backup and restoration with PostgreSQL.
 
-Si vous êtes responsable de la maintenance d'instances, particulièrement dans
-un environnement virtualisé, je ne peux que vous recommander de contrôler vos 
-politiques de sauvegarde et l'outillage associé. Il n'est pas rare de voir des 
-hyperviseurs réaliser des instantanées des machines virtuelles avec des appels de 
-la méthode `pg_start_backup()` en mode exclusif.
+If you are administrating database cluster, especially in virtualized engine,
+I warmly recommend you to check your backup policies and associated tools. It is
+not so uncommon for hypervisors to take a system snapshot in exclusive mode 
+with `pg_start_backup()` as a pre-hook.
 
-Les outils spécialisés cités plus haut peuvent/doivent être étudiés. S'ils ne
-correspondent pas très bien à vos besoins, il est toujours possible de
-bénéficier des mécanismes de la sauvegarde concurrente à l'aide d'un [fichier 
-temporaire][19] sous Linux et sa commande `mkfifo`. 
+Above specialized third-party softwares could/must be tested. If they do not fit
+your needs, you may study others tricks to make our backups in a concurrent way,
+as this [example][19] with a temporary file made by `mkfifo` command. 
 
 [19]: https://www.commandprompt.com/blog/postgresql-non-exclusive-base-Backup-bash/
 
-La décision de supprimer définitivement la sauvegarde exclusive n'est actuellement
-plus débattue et a été retirée du _backlog_ de développement lors du Commitfest
-de [juillet 2020][20]. Lors des derniers échanges, le contributeur David Steele
-(auteur de pgBackRest notamment) [annonçait][21] qu'une sauvegarde exclusive pourrait
-stocker son fichier `backup_label` directement en mémoire partagée plutôt que sur 
-le disque et ainsi corriger sa principale faiblesse :
+Old-fashion exclusive backup is deprecated but not removed (yet). It is a real 
+concern that remains in a standstill, since last Commitfest in [July 2020][20].
+In a [thread][21], contributor David Steele (who made pgBackRest, by the way) 
+suggested that backup label content could be stored in memory to fix its main 
+wickness:
 
 [20]: https://commitfest.postgresql.org/28/1913/
 [21]: https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0bd4bf0d%40pgmasters.net
@@ -440,4 +432,4 @@ le disque et ainsi corriger sa principale faiblesse :
 > memory and store the backup label in it. We only allow one exclusive 
 > backup now so it wouldn't be a loss in functionality.
 
-La suite au prochain épisode !
+To be continued!
