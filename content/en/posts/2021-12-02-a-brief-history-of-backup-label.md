@@ -338,7 +338,7 @@ From these days of darkness, a dedicated note has been added.
 
 This well-known drawback [has been addressed][18] by the development team in
 september 2016 when releasing PostgreSQL 9.6 with "non-exclusive" backups. Since
-then, exclusive backup mode is tagged as obsolete by developers and could be
+then, exclusive backup mode is tagged as deprecated by developers and could be
 removed in future versions.
 
 [18]: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=7117685461af50f50c03f43e6a622284c8d54694
