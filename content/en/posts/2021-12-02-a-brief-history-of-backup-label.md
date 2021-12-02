@@ -1,11 +1,9 @@
 ---
 title: "A brief history of backup label"
-date: 2021-04-02
-draft: true
+date: 2021-12-02
 categories: [postgresql]
 tags: [backup]
 translationKey: "la-breve-histoire-du-fichier-backup_label"
-trad: https://pad.education/p/a-brief-history-of-backup-label
 ---
 
 For a long time, I remained ignorant about [transaction logging mechanisms][1] 
@@ -38,7 +36,7 @@ synchronized in the data files and that at regular times called `CHECKPOINT`. Th
 on-disk two-step writing provides excellent performance and ensures that modified 
 blocks are not lost when a transaction ends successfully.
 
-![Asynchroneous writes on disks](/img/en/2021-04-asynchronous-writes.png)
+![Asynchroneous writes on disks](/img/en/2021-12-asynchronous-writes.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 sequenceDiagram
