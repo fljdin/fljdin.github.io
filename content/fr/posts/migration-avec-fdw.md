@@ -18,10 +18,6 @@ ce mouvement vers le logiciel libre dans les autres pays.
 
 <!--more-->
 
-<!--
-https://www.migops.com/blog/2021/07/01/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/
--->
-
 ---
 
 ## Une transition à marche forcée
@@ -107,12 +103,20 @@ vertigineux sur le temps de copie des données.
 [7]: /2021/07/16/parlons-un-peu-des-donnees-externes/
 [8]: https://www.migops.com/blog/2021/07/01/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/
 
-L'installation des deux outils n'est pas triviale. Le connecteur `oracle_fdw`
-nécessite d'être compilé à partir des [sources du projet][9] pour prendre en
-compte les bibliothèques propriétaires d'Oracle pour l'interface client, garante
-des connexions et des échange de données. Dans l'exemple ci-dessous, je dispose
-d'un serveur CentOS 7 avec une instance PostgreSQL 14 et j'ai installé
-l'_InstantClient_ 19, [disponible][10] sur la plateforme de téléchargement d'Oracle.
+Ni une ni deux, j'ai souhaité comprendre et découvrir les dessous d'un tel 
+procédé en manipulant moi-même les tables externes pour réaliser une migration
+de schémas et de données sans utiliser l'outil Ora2Pg. Cette procédure s'inspire
+d'un [autre article][9] de MigOps, publié plus tôt cette année.
+
+[9]: https://www.migops.com/blog/2021/02/15/role-of-foreign-data-wrappers-in-migrations-to-postgresql/
+
+### 1. Compiler le wrapper communautaire
+
+Le connecteur `oracle_fdw` nécessite d'être compilé à partir des [sources du projet][9]
+pour prendre en compte les bibliothèques propriétaires d'Oracle pour l'interface 
+client, garante des connexions et des échange de données. Dans l'exemple ci-dessous,
+je dispose d'un serveur CentOS 7 avec une instance PostgreSQL 14 et j'ai installé
+l'_Instant Client_ 19, [disponible][10] sur la plateforme de téléchargement d'Oracle.
 
 [9]: https://github.com/laurenz/oracle_fdw/
 [10]: https://www.oracle.com/database/technologies/instant-client/downloads.html
@@ -126,71 +130,71 @@ export PATH=$PATH:$ORACLE_HOME/bin
 cd ORACLE_FDW_2_4_0/
 make PG_CONFIG=/usr/pgsql-14/bin/pg_config
 make PG_CONFIG=/usr/pgsql-14/bin/pg_config install
-ln -s $LD_LIBRARY_PATH/libclntsh.so.19.13 /usr/pgsql-14/lib/
 ```
 
-Pour résoudre des éventuels problèmes de détection des librairies, il peut être
-requis de propager les variables d'environnement pour l'instance PostgreSQL au
-niveau de son service :
+Pour résoudre [d'éventuels problèmes][11] de détection de la librairie Oracle
+_Instant Client_ et permettre la création de l'extension, il est nécessaire de
+renseigner la variable `$LD_LIBRARY_PATH` pour l'instance PostgreSQL au niveau
+de son service :
+
+[11]: https://github.com/laurenz/oracle_fdw/issues/312
 
 ```bash
 systemctl edit postgresql-14
 ```
 ```ini
 [Service]
-Environment=ORACLE_HOME=/usr/lib/oracle/19.13/client64
-Environment=LB_LIBRARY_PATH=$ORACLE_HOME/lib
-Environment=PATH=$PATH:$ORACLE_HOME/bin
+Environment="ORACLE_HOME=/usr/lib/oracle/19.13/client64"
+Environment="LD_LIBRARY_PATH=/usr/lib/oracle/19.13/client64/lib"
 ```
 
-L'extension peut ainsi être créée dans la base qui accueillera les données finale.
+L'extension peut ainsi être créée avec les privilèges d'un super-utilisateur
+dans la base qui accueillera les données finale. Le privilège `USAGE` peut ensuite
+être octroyé au propriétaire de la base pour préparer le schéma.
 
-```bash
-createdb --owner=hr hr
-psql -c "CREATE EXTENSION oracle_fdw" hr
-psql -c "GRANT USAGE ON FOREIGN DATA WRAPPER oracle_fdw TO hr" hr
+```sql
+CREATE EXTENSION oracle_fdw;
+GRANT USAGE ON FOREIGN DATA WRAPPER oracle_fdw TO hr;
 ```
 
----
+### 2. Importer les tables externes
 
-Concernant Ora2Pg, l'outil repose sur plusieurs dépendances Perl, notamment le
-pilotes `DBD::Perl` et `DBD::Oracle`, avec un passage obligé par une compilation
-des sources ou grâce à l'utilitaire `cpan`.
+```sql
+CREATE SERVER orcl_hr FOREIGN DATA WRAPPER oracle_fdw
+  OPTIONS (dbserver '//centos7:1521/hr');
+CREATE USER MAPPING FOR hr SERVER orcl_hr
+  OPTIONS (user 'hr', password 'phoenix');
 
-```bash
-yum install -y cpan perl-DBD-Pg
-export ORACLE_HOME=/usr/lib/oracle/19.13/client64
-export LD_LIBRARY_PATH=$ORACLE_HOME/lib
-cpan install DBD::Oracle
+CREATE SCHEMA orcl_hr;
+IMPORT FOREIGN SCHEMA "HR" FROM SERVER orcl_hr INTO orcl_hr;
 
-cd ora2pg-23.0/
-unset PERL_MM_OPT
-perl Makefile.PL
-make
-make install
+SET search_path = orcl_hr;
+\d
+```
+```text
+                 List of relations
+ Schema  |       Name       |     Type      | Owner 
+---------+------------------+---------------+-------
+ orcl_hr | countries        | foreign table | hr
+ orcl_hr | departments      | foreign table | hr
+ orcl_hr | emp_details_view | foreign table | hr
+ orcl_hr | employees        | foreign table | hr
+ orcl_hr | job_history      | foreign table | hr
+ orcl_hr | jobs             | foreign table | hr
+ orcl_hr | locations        | foreign table | hr
+ orcl_hr | regions          | foreign table | hr
 ```
 
-```bash
-ORACLE_HOME   /opt/oracle/product/18c/dbhomeXE
-ORACLE_DSN    dbi:Oracle://centos7:1521/hr
-ORA2PG_USER   hr
-ORA2PG_PASSWD hr
-SCHEMA        HR
-
-PG_DSN        dbi:Pg:dbname=hr;host=localhost;port=5432
-PG_USER       hr
-PG_PWD        hr
-PG_VERSION    14
-
-FDW_SERVER          hr_fdw
-DROP_FOREIGN_SCHEMA 0
+```text
+    Column    |         Type          
+--------------+-----------------------
+ country_id   | character(2)
+ country_name | character varying(40)
+ region_id    | numeric
+Server: orcl_hr
+FDW options: (schema 'HR', "table" 'COUNTRIES')
 ```
 
-```bash
-ora2pg --conf hr.conf --type TABLE --out tables.sql
-ora2pg --conf hr.conf --type SEQUENCE --out sequences.sql
-ora2pg --conf hr.conf --type FDW --out foreign-tables.sql
+### 3. Importer les données
 
-# désactiver les contraintes
-ora2pg -d --conf hr.conf --type COPY
-```
+### 4. Créer les index et les contraintes
