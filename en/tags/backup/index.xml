@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>backup on Discovery notebook</title><link>https://fljd.in/en/tags/backup/</link><description>Recent content in backup on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 02 Dec 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/en/tags/backup/index.xml" rel="self" type="application/rss+xml"/><item><title>A brief history of backup label</title><link>https://fljd.in/en/2021/12/02/a-brief-history-of-backup-label/</link><pubDate>Thu, 02 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2021/12/02/a-brief-history-of-backup-label/</guid><description>&lt;p>For a long time, I remained ignorant about &lt;a href="http://www.interdb.jp/pg/pgsql09.html">transaction logging mechanisms&lt;/a>
+and PITR in PostgreSQL, although they were crucial in data durability. A better
+understanding of these concepts would have helped me in a previous life, to be
+more confident during a backup configuration and, well, during after-crash
+intervention!&lt;/p>
+&lt;p>By reading this post, I will come back to an amusing file that used to be a
+topic of discussion over the past decade: the backup label file. What is it and
+what is it used for? How has it be enhanced from its origin with PostgreSQL 8.0
+and what could be expected from him over the next years?&lt;/p></description></item></channel></rss>
