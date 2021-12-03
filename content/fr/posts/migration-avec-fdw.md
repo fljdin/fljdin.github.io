@@ -13,6 +13,12 @@ de rédaction au sein de différents ministères. Il y a quelques semaines, une
 version internationale est [sortie des cartons][2] pour promouvoir davantage
 ce mouvement vers le logiciel libre dans les autres pays.
 
+Je trouvais intéressant de profiter de cette actualité pour partager mes 
+réflexions du moment, entre ma vision du marché français et l'approche technique
+pour engager les migrations de données vers PostgreSQL. Dans la deuxième partie 
+de cet article, je parlerai du connecteur `oracle_fdw` pour illuster une migration
+simplifiée.
+
 [1]: https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf
 [2]: https://twitter.com/nthonynowocien/status/1458065335387578382
 
@@ -159,42 +165,215 @@ GRANT USAGE ON FOREIGN DATA WRAPPER oracle_fdw TO hr;
 
 ### 2. Importer les tables externes
 
+L'unique configuration repose sur la création d'un objet `SERVER` et l'attribution
+d'un mot de passe pour l'utilisateur courant, afin d'ouvrir un pont entre les
+deux systèmes.
+
 ```sql
-CREATE SERVER orcl_hr FOREIGN DATA WRAPPER oracle_fdw
-  OPTIONS (dbserver '//centos7:1521/hr');
+CREATE SERVER orcl_hr FOREIGN DATA WRAPPER oracle_fdw 
+  OPTIONS (dbserver '//localhost:1521/hr');
+
 CREATE USER MAPPING FOR hr SERVER orcl_hr
-  OPTIONS (user 'hr', password 'phoenix');
-
-CREATE SCHEMA orcl_hr;
-IMPORT FOREIGN SCHEMA "HR" FROM SERVER orcl_hr INTO orcl_hr;
-
-SET search_path = orcl_hr;
-\d
+  OPTIONS (user 'hr', password 'demo');
 ```
+
+La magie du _wrapper_ opère lors de l'inspection de la base de données externe
+et de la création des relations dans un schéma PostgreSQL. Dans mon exemple, je
+dispose d'une base Oracle XE avec le [schéma prédéfini HR][12] contenant une
+variété de tables, de vues, d'index et de contraintes d'intégrité. 
+
+[12]: https://github.com/oracle/db-sample-schemas/tree/master/human_resources
+
+```sql
+CREATE SCHEMA source;
+SET search_path = source,public;
+IMPORT FOREIGN SCHEMA "HR" FROM SERVER orcl_hr INTO source;
+```
+
+Avec `psql` et la méta-commande `\dE`, il est dès lors possible de consulter les
+tables externes importées dans le schéma `source`. L'une des huits tables est en
+réalité une vue, car l'extension consulte le catalogue `ALL_TAB_COLUMNS` de la
+base Oracle distante. Dans la phase d'étude de la migration, ce point doit être
+correctement identifié pour récupérer l'ordre de création de la vue, en adaptant
+la requête SQL si besoin.
+
 ```text
                  List of relations
- Schema  |       Name       |     Type      | Owner 
----------+------------------+---------------+-------
- orcl_hr | countries        | foreign table | hr
- orcl_hr | departments      | foreign table | hr
- orcl_hr | emp_details_view | foreign table | hr
- orcl_hr | employees        | foreign table | hr
- orcl_hr | job_history      | foreign table | hr
- orcl_hr | jobs             | foreign table | hr
- orcl_hr | locations        | foreign table | hr
- orcl_hr | regions          | foreign table | hr
+ Schema |       Name       |     Type      | Owner 
+--------+------------------+---------------+-------
+ source | countries        | foreign table | hr
+ source | departments      | foreign table | hr
+ source | emp_details_view | foreign table | hr
+ source | employees        | foreign table | hr
+ source | job_history      | foreign table | hr
+ source | jobs             | foreign table | hr
+ source | locations        | foreign table | hr
+ source | regions          | foreign table | hr
 ```
 
-```text
-    Column    |         Type          
---------------+-----------------------
- country_id   | character(2)
- country_name | character varying(40)
- region_id    | numeric
-Server: orcl_hr
-FDW options: (schema 'HR', "table" 'COUNTRIES')
+### 3. Créer les tables et les vues
+
+Pour chacune de ces tables externes, il faut créer leur équivalent dans la base
+PostgreSQL, plus précisement dans le schéma `public` traditionnel. L'une des
+méthodes les plus rapides repose sur l'option `LIKE` de l'instruction `CREATE
+TABLE`.
+
+```sql
+CREATE TABLE public.countries (LIKE source.countries);
+CREATE TABLE public.departments (LIKE source.departments);
+CREATE TABLE public.employees (LIKE source.employees);
+CREATE TABLE public.job_history (LIKE source.job_history);
+CREATE TABLE public.jobs (LIKE source.jobs);
+CREATE TABLE public.locations (LIKE source.locations);
+CREATE TABLE public.regions (LIKE source.regions);
 ```
 
-### 3. Importer les données
+À partir de cette étape, il est judicieux d'apporter quelques modifications aux
+types de colonnes. En effet, les types `DATE` et `NUMBER` en provenance d'Oracle
+ont des équivalences bien plus riches et efficientes avec PostgreSQL. Pour aller
+plus loin, l'un des chapitres de la formation Dalibo « [Migrer d’Oracle à
+PostgreSQL][13] » revient sur les différences notables entre les deux systèmes.
 
-### 4. Créer les index et les contraintes
+[13]: https://public.dalibo.com/exports/formation/manuels/modules/n3/n3.handout.html#types-de-donn%C3%A9es
+
+```sql
+ALTER TABLE public.regions ALTER region_id TYPE smallint;
+ALTER TABLE public.countries ALTER region_id TYPE smallint;
+ALTER TABLE public.employees ALTER hire_date TYPE date;
+ALTER TABLE public.job_history 
+  ALTER start_date TYPE date, 
+  ALTER end_date TYPE date;
+```
+
+La vue, quant à elle, peut être reportée selon les besoins de l'application.
+
+```sql
+CREATE OR REPLACE VIEW public.emp_details_view (
+  employee_id, job_id, manager_id, department_id, location_id, country_id,
+  first_name, last_name, salary, commission_pct, department_name, job_title,
+  city, state_province, country_name, region_name
+) AS
+SELECT e.employee_id, e.job_id, e.manager_id, e.department_id, d.location_id,
+       l.country_id, e.first_name, e.last_name, e.salary, e.commission_pct,
+       d.department_name, j.job_title, l.city, l.state_province,
+       c.country_name, r.region_name
+  FROM public.employees e
+  JOIN public.departments d ON e.department_id = d.department_id
+  JOIN public.jobs j ON j.job_id = e.job_id 
+  JOIN public.locations l ON d.location_id = l.location_id
+  JOIN public.countries c ON l.country_id = c.country_id
+  JOIN public.regions r ON c.region_id = r.region_id;
+```
+
+### 4. Importer les données
+
+La méthode la plus simple pour importer les données reste la copie table à table
+avec l'instruction `INSERT INTO`. Avec PostgreSQL, la commande `TABLE` est
+équivalente à un `SELECT * FROM`, raison pour laquelle on peut la privilégier
+dans l'exemple ci-dessous.
+
+```sql
+INSERT INTO public.countries TABLE source.countries;
+INSERT INTO public.departments TABLE source.departments;
+INSERT INTO public.employees TABLE source.employees;
+INSERT INTO public.job_history TABLE source.job_history;
+INSERT INTO public.jobs TABLE source.jobs;
+INSERT INTO public.locations TABLE source.locations;
+INSERT INTO public.regions TABLE source.regions;
+```
+
+Dans le cas de tables hautement volumineuses, cette méthode montrera très vite
+des faiblesses de performance, car les instructions sont exécutées les unes après
+les autres et que le parcours d'une table distante n'est réalisé que par un seul
+processus.
+
+À moins de développer son propre système de distribution de requêtes et de
+lectures parallélisées, sachez que l'outil Ora2Pg propose parfaitement des pistes
+d'optimisation pour accélérer grandement les insertions lors de cette phase de
+chargement.
+
+### 5. Créer les séquences, les index et les contraintes
+
+Cette dernière étape est indispensable pour maintenir la cohérence du modèle et
+des performances similaires à l'ancien système, il ne faut donc pas mésestimer
+la phase d'étude qui permettra d'inventorier les séquences, les index et les
+contraintes à recréer dans la base PostgreSQL. Pour aller jusqu'au bout de ma
+démonstration, voici les instructions à exécuter pour finaliser la migration.
+
+```sql
+-- regions
+ALTER TABLE regions 
+  ADD CONSTRAINT reg_id_pk PRIMARY KEY (region_id);
+
+-- countries
+ALTER TABLE countries 
+  ADD CONSTRAINT country_c_id_pk PRIMARY KEY (country_id),
+  ADD CONSTRAINT countr_reg_fk FOREIGN KEY (region_id) 
+    REFERENCES regions(region_id);
+
+-- locations
+CREATE SEQUENCE locations_seq
+ START WITH 3300 INCREMENT BY 100 MAXVALUE 9900;
+
+ALTER TABLE locations
+  ALTER location_id SET DEFAULT nextval('locations_seq'::regclass),
+  ADD CONSTRAINT loc_id_pk PRIMARY KEY (location_id),
+  ADD CONSTRAINT loc_c_id_fk FOREIGN KEY (country_id)
+    REFERENCES countries(country_id);
+
+-- departments
+CREATE SEQUENCE departments_seq
+ START WITH 280 INCREMENT BY 10 MAXVALUE 9990;
+
+ALTER TABLE departments
+  ALTER department_id SET DEFAULT nextval('departments_seq'::regclass),
+  ADD CONSTRAINT dept_id_pk PRIMARY KEY (department_id),
+  ADD CONSTRAINT dept_loc_fk FOREIGN KEY (location_id)
+    REFERENCES locations (location_id);
+
+-- jobs
+ALTER TABLE jobs
+  ADD CONSTRAINT job_id_pk PRIMARY KEY(job_id);
+
+-- employees
+CREATE SEQUENCE employees_seq
+ START WITH 207 INCREMENT BY 1;
+
+ALTER TABLE employees
+  ALTER employee_id SET DEFAULT nextval('employees_seq'::regclass),
+  ADD CONSTRAINT emp_emp_id_pk PRIMARY KEY (employee_id),
+  ADD CONSTRAINT emp_dept_fk FOREIGN KEY (department_id)
+    REFERENCES departments,
+  ADD CONSTRAINT emp_job_fk FOREIGN KEY (job_id)
+    REFERENCES jobs (job_id),
+  ADD CONSTRAINT emp_manager_fk FOREIGN KEY (manager_id)
+    REFERENCES employees;
+
+ALTER TABLE departments
+  ADD CONSTRAINT dept_mgr_fk FOREIGN KEY (manager_id)
+    REFERENCES employees (employee_id);
+
+-- job_history
+ALTER TABLE job_history
+  ADD CONSTRAINT jhist_emp_id_st_date_pk PRIMARY KEY (employee_id, start_date),
+  ADD CONSTRAINT jhist_job_fk FOREIGN KEY (job_id)
+    REFERENCES jobs,
+  ADD CONSTRAINT jhist_emp_fk FOREIGN KEY (employee_id)
+    REFERENCES employees,
+  ADD CONSTRAINT jhist_dept_fk FOREIGN KEY (department_id)
+    REFERENCES departments;
+```
+
+## Conclusion
+
+Dans des situations particulièrement simples, la migration vers PostgreSQL peut
+être intégralement réalisée à l'aide du langage SQL et d'une extension de la
+famille des _foreign data wrappers_. Cependant, le temps de copie restera très
+dépendant de l'ordonnancement que l'on peut en faire, et du débit de transfert
+entre les deux systèmes.
+
+Pour ce que je connais le mieux, les limites avec une migration d'Oracle vers
+PostgreSQL surviennent rapidement lorsque la base de données à migrer embarque
+du code PL/SQL qui nécessite bien plus de travail manuel. Dans le milieu du 
+logiciel libre, l'outil Ora2Pg se distingue largement avec l'extraction et la
+conversion automatique du code procédurale.
