@@ -1,4 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 28 Sep 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Les corruptions silencieuses</title><link>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</link><pubDate>Tue, 28 Sep 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</guid><description>&lt;p>Parmi les drames universellement reconnus, les corruptions de données sont des
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 06 Dec 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Migrer vers PostgreSQL</title><link>https://fljd.in/2021/12/06/migrer-vers-postgresql/</link><pubDate>Mon, 06 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/12/06/migrer-vers-postgresql/</guid><description>&lt;p>Le marché de la migration en France est intense. Le Groupe de Travail
+Inter-Entreprises PostgreSQL (PGGTIE) a même publié un &lt;a href="https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf">guide de transition&lt;/a>
+à PostgreSQL à destination des entreprises françaises. Ce dernier est le fruit
+de près de cinq années de travaux au sein de plusieurs organismes publics et a
+pour ambition de démontrer l&amp;rsquo;intérêt de PostgreSQL aux décideurs techniques en
+présentant les forces et les faiblesse du moteur.&lt;/p>
+&lt;p>Le mois dernier, une traduction en anglais est &lt;a href="https://twitter.com/nthonynowocien/status/1458065335387578382">sortie des cartons&lt;/a> pour
+promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
+Je trouvais intéressant de profiter de cette actualité pour partager mes
+réflexions du moment, entre ma vision du marché français et l&amp;rsquo;approche technique
+pour engager les migrations de données vers PostgreSQL.&lt;/p></description></item><item><title>Les corruptions silencieuses</title><link>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</link><pubDate>Tue, 28 Sep 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</guid><description>&lt;p>Parmi les drames universellement reconnus, les corruptions de données sont des
 événements mécaniques ou logiques qui surviennent à des moments imprévisibles.
 Tantôt il s&amp;rsquo;agira de l&amp;rsquo;âge avancé des secteurs disques, tantôt il s&amp;rsquo;agira d&amp;rsquo;une
 extinction inopinée d&amp;rsquo;un composant électrique ou d&amp;rsquo;une perte de paquet dans les
@@ -24,12 +34,4 @@ la norme SQL/MED, sous-partie du langage SQL tel que défini par le standard
 des cas d&amp;rsquo;usage assez fréquents qui mettent en scène des types temporels, notamment
 les intervalles de dates. Ce sera l&amp;rsquo;occasion également de revenir sur l&amp;rsquo;implémentation
 très originale qu&amp;rsquo;en a fait PostgreSQL avec les types d&amp;rsquo;intervalle de valeurs, ou
-&lt;em>&lt;a href="https://www.postgresql.org/docs/13/rangetypes.html">range types&lt;/a>&lt;/em> dans la documentation.&lt;/p></description></item><item><title>Le partitionnement par hachage</title><link>https://fljd.in/2021/04/23/le-partitionnement-par-hachage/</link><pubDate>Fri, 23 Apr 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/04/23/le-partitionnement-par-hachage/</guid><description>&lt;p>Le partitionnement déclaratif a été une véritable révolution à la sortie de la
-version 10 de PostgreSQL en octobre 2017. La gestion des sous-tables devenait
-alors bien plus aisée au quotidien, simplifiant leur mise en place et leur
-maintenance.&lt;/p>
-&lt;p>Sans cesse amélioré au cours des dernières années, je me souviens encore de mon
-émerveillement devant la magie du partitionnement par hachage, &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e">apparu&lt;/a> en
-version 11. Comment le déployer et que permet-il ? J&amp;rsquo;ai voulu m&amp;rsquo;en rendre compte
-dans une rapide démonstration sur le type &lt;a href="https://fr.wikipedia.org/wiki/Universally_unique_identifier">UUID&lt;/a> en étudiant les fonctions
-d&amp;rsquo;appui qui se cachent derrière le hachage des valeurs.&lt;/p></description></item></channel></rss>
+&lt;em>&lt;a href="https://www.postgresql.org/docs/13/rangetypes.html">range types&lt;/a>&lt;/em> dans la documentation.&lt;/p></description></item></channel></rss>
