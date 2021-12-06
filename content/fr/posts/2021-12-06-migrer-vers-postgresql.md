@@ -3,7 +3,6 @@ title: "Migrer vers PostgreSQL"
 categories: [postgresql]
 tags: [migration, sqlmed, opensource]
 date: 2021-12-06
-draft: true
 ---
 
 Le marché de la migration en France est intense. Le Groupe de Travail 
