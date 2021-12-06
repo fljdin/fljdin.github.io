@@ -189,7 +189,7 @@ la version 10 de PostgreSQL. A titre d'exemple, durant la [PG Day 2016][15],
 j'avais été surpris par l'appropriation du produit au sein de la Gendarmerie 
 Nationale avec un retour d'expérience agréable.
 
-[13]: http://references.modernisation.gouv.fr/socle-logiciels-libres
+[13]: https://sill.etalab.gouv.fr/rf/software
 [14]: https://disic.github.io/sill/2019/sill-diff-2018-2019.pdf
 [15]: https://www.youtube.com/watch?v=emH6lPXOLf0
 
