@@ -10,7 +10,7 @@ Inter-Entreprises PostgreSQL (PGGTIE) a même publié un [guide de transition][1
 à PostgreSQL à destination des entreprises françaises. Ce dernier est le fruit
 de près de cinq années de travaux au sein de plusieurs organismes publics et a
 pour ambition de démontrer l'intérêt de PostgreSQL aux décideurs techniques en
-présentant les forces et les faiblesse du moteur.
+présentant les forces et les faiblesses du moteur.
 
 Le mois dernier, une traduction en anglais est [sortie des cartons][2] pour
 promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
