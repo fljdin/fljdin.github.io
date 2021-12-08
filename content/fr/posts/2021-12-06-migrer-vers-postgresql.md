@@ -39,7 +39,7 @@ structurants engagés sur le territoire français.
 La publication d'un guide de transition pour PostgreSQL aspire à rassurer les 
 équipes opérationnelles et décisionnelles en apportant un grand nombre de conseils
 et de comparaisons sur ce qu'il est aujourd'hui possible de faire avec PostgreSQL.
-Il est mention des trois grandes étapes pour réaliser la migration des données
+Il mentionne les trois grandes étapes pour réaliser la migration des données
 d'une application vers le moteur open-source :
 
 - migration des données ;
@@ -53,7 +53,7 @@ Les coûts de formation et de prestations externes ne sont également pas
 négligeables…
 
 En 2018, la société française [Dalibo](https://dalibo.com) avait publié un
-[livre blanc][4] dans ce même esprit de démagogie sur l'importance des coûts 
+[livre blanc][4] dans ce même esprit de pédagogie sur l'importance des coûts 
 d'investissement et de possession. Dans un scénario de migration, acté sur cinq
 années de transition, l'étude montre que l'analyse de portabilité vers PostgreSQL
 est la principale dépense au cours de la première année, suivie par un 
