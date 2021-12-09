@@ -188,7 +188,7 @@ IMPORT FOREIGN SCHEMA "HR" FROM SERVER orcl_hr INTO source;
 ```
 
 Avec `psql` et la méta-commande `\dE`, il est dès lors possible de consulter les
-tables externes importées dans le schéma `source`. L'une des huits tables est en
+tables externes importées dans le schéma `source`. L'une des huit tables est en
 réalité une vue, car l'extension consulte le catalogue `ALL_TAB_COLUMNS` dans
 lequel figurent les tables et vues accessibles par l'utilisateur connecté. Dans
 la phase d'étude de la migration, ce point doit être correctement identifié pour
