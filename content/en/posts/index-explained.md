@@ -3,18 +3,19 @@ title: "Index explained"
 date: 2021-12-13
 categories: [postgresql]
 tags: [performance]
+translationKey: "index-decomplexe"
 draft: yes
 ---
 
-> {{< u >}}Index terminologique{{< /u >}} : permet au lecteur de localiser 
-> rapidement un élément dans l'ouvrage, sans être contraint de le lire intégralement.
-> ([Wikipédia][1])
+> {{< u >}}Back-of-the-book index{{< /u >}}: includes names of people, places, 
+> events, and concepts selected by the indexer as being relevant and of interest
+> to a possible reader of the book. ([Wikipedia][1])
 >
-> {{< u >}}Index de base de données{{< /u >}} : structure de données qui 
-> permet de retrouver rapidement les données. ([Wikipédia][2])
+> {{< u >}}Database index{{< /u >}}: data structure that improves the speed of
+> data retrieval operations on a database table. ([Wikipedia][2])
 
-[1]: https://fr.wikipedia.org/wiki/Index_terminologique
-[2]: https://fr.wikipedia.org/wiki/Index_(base_de_donn%C3%A9es)
+[1]: https://en.wikipedia.org/wiki/Index_(publishing)
+[2]: https://en.wikipedia.org/wiki/Database_index
 
 <!--more-->
 

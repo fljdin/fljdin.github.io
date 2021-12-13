@@ -3,6 +3,7 @@ title: "Index décomplexé"
 date: 2019-09-27 16:00:00 +0200
 categories: [postgresql]
 tags: [performance]
+translationKey: "index-decomplexe"
 ---
 
 > {{< u >}}Index terminologique{{< /u >}} : permet au lecteur de localiser 
