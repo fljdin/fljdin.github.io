@@ -60,7 +60,7 @@ m'intéresse particulièrement ces temps-ci : la norme ISO/IEC 9075-9, _Managem
 of External Data_, aussi appelée **SQL/MED**.
 
 Ce [chapitre][3] de la norme propose les concepts de _datalink_ et de _foreign-data
-wrapper_, ainsi les différentes syntaxes pour les manipuler. Ces éléments peuvent
+wrapper_, ainsi que les différentes syntaxes pour les manipuler. Ces éléments peuvent
 déjà vous paraître familiers, il s'agit de la même terminologie qu'emploie PostgreSQL
 pour répondre à la norme. Ce standard impliquerait que les données d'un système 
 soient dites externes, si elles sont disponibles et gérés par un autre système de 
