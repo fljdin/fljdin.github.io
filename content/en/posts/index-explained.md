@@ -19,23 +19,21 @@ draft: yes
 
 <!--more-->
 
-L'usage du même mot n'est pas fortuit. Chacun de ces usages désigne la capacité 
-d'identifier rapidement un mot, un terme (ou plus largement, une donnée) à l'aide 
-d'une adresse, comme un numéro de page, ou l'emplacement de la donnée sur un disque 
-ou un volume. D'une façon purement scolaire, prenons le mécanisme d'indexation le 
-plus simple : celui basé sur le tri alphanumérique. Lorsque l'on parcoure l'index 
-pour retrouver un concept dans un livre, les propositions sont classiquement 
-dressées dans l'ordre alphanumérique de haut en bas, de la page de gauche à la 
-page de droite (pour de la littérature occidentale).
+Introducing a blog post with two definitions of the same word is not accidental.
+Each of these provide a quick way to find a word or a term (or more broadly, a
+piece of data) using an normalized address, such as a page number in a book or
+the location of underligned data on a harddisk. In a purely academic way, just
+let us take the simplest indexing mechanism: when browsing an index to find a
+concept within a book, all references are arranged in alphanumeric order from
+top to bottom, from the left page to the right one (in Western literature).
 
-Ainsi, le lecteur peut démarrer sa recherche à partir de la première lettre de 
-son mot, le comparer aux termes triés, recommencer avec la deuxième lettre, etc. 
-jusqu'à identifier le terme voulu ou la racine la plus proche. Le résultat est 
-alors accompagné d'une liste de numéros de pages, dans lesquelles l'auteur du 
-livre a reférencé de lui-même les concepts-clés nécessaires à la recherche par 
-index.
+Thus, readers can start their search from the first letter of their word, compare
+it to the sorted terms, start over with the second one, etc. until they find the
+correct term or the nearest related word. The result is then followed by a list
+of page numbers, in wich the author of the book has self-referenced the key
+concepts needed by the index search.
 
-![Exemple d'un index terminologique](/img/fr/2019-09-27-index-terminologique.png)
+![A back-of-the-book index example](/img/en/back-of-the-book-index.png)
 
 ---
 
