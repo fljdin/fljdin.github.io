@@ -282,7 +282,7 @@ rendu de ses pages.
 <!-- raw HTML omitted -->
 ```
 
-Pour le coup, je n'ai pas chercher s'il existait un paramètre de configuration
+Pour le coup, je n'ai pas cherché s'il existait un paramètre de configuration
 qui me permettrait de lever la restriction. Ma solution de contournement fut
 d'utiliser les composants _shortcodes_ pour mes quelques exceptions et la
 [documentation][17] était bien suffisante pour y parvenir sereinement.
