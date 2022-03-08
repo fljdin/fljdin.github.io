@@ -37,26 +37,24 @@ concepts needed by the index search.
 
 ---
 
-Pour ce qui est d'une base de données dite relationnelle, les informations 
-relatives à une entité (ou objet), seront réparties dans les colonnes d'une ou
-de plusieurs tables. L'accès aux données est similaire à la recherche d'un mot 
-dans un livre : critère de sélection (un nom de famille, une époque, une jointure, 
-etc.) et un chemin d'accès (le tri alphanumérique pour faire simple).
+When talking about relational database system, entity (or object) related data
+are spread into columns owned by one or several tables. Looking at these data is
+similar to searching a word in a book: you need a search criteria (a surname, a
+date or even a join condition for example) and a access path (alphanumeric sort
+is the simplest one).
 
-En SQL, pour obtenir une portion de données non indexées d'une table (la liste 
-des pages mentionnant un mathématicien, par exemple), nous demandons au moteur 
-de parcourir la totalité des lignes et de ne retourner que la sélection voulue. 
-Cette recherche est aussi efficace que de feuilleter un livre intégralement avant 
-de tomber sur l'information.
+Reading a part of unindexed table content with SQL (like mentions in a book to a
+specific mathematician, for example) forces query executor to parse pages of the
+entire table (so called a _full scan_) and filter out all unneeded rows. This 
+search is as effective as flipping through a book before coming across the 
+information.
 
-La méthode d'accès pour récupérer la liste des mathématiciens ayant fait partie
-de la famille Gauss peut être obtenue avec l'ordre `EXPLAIN` suivie de la requête 
-`SELECT` :
+`EXPLAIN` statement can help us to determine which access method will be used by
+PostgreSQL to find mathematicians who belong to Gauss familly:
 
 ```sql
 EXPLAIN (ANALYZE,BUFFERS) 
- SELECT firstname, lastname
-   FROM mathematicians
+ SELECT firstname, lastname FROM mathematicians
   WHERE lastname = 'Gauss';
 ```
 
