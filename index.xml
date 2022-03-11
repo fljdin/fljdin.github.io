@@ -1,10 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 06 Dec 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Migrer vers PostgreSQL</title><link>https://fljd.in/2021/12/06/migrer-vers-postgresql/</link><pubDate>Mon, 06 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/12/06/migrer-vers-postgresql/</guid><description>&lt;p>Le marché de la migration en France est intense. Le Groupe de Travail
-Inter-Entreprises PostgreSQL (PGGTIE) a même publié un &lt;a href="https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf">guide de transition&lt;/a>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 11 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Conversions implicites</title><link>https://fljd.in/2022/03/11/conversions-implicites/</link><pubDate>Fri, 11 Mar 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/03/11/conversions-implicites/</guid><description>&lt;p>À l&amp;rsquo;image d&amp;rsquo;un langage de programmation classique, le SQL manipule des données
+typées, comme les chaînes de caractères, les dates ou des entiers numériques.
+Les opérations de transformations ou de comparaison diffèrent en fonction du
+type de données ; il ne sera pas possible de comparer le caractère &lt;code>A&lt;/code> avec le
+chiffre &lt;code>4&lt;/code> mais l&amp;rsquo;opérateur &lt;code>||&lt;/code> permettra la concaténation des deux éléments.&lt;/p>
+&lt;p>Dans cet article, je souhaite partager quelques anecdotes et problématiques de
+terrain concernant cette particularité logicielle et comprendre les effets de
+bord pour mieux les appréhender. Je prendrais un exemple assez spécifique du type
+&lt;code>oid&lt;/code> et d&amp;rsquo;un risque de transtypage pouvant perturber le stockage de &lt;em>Large
+Objects&lt;/em> dans une table, voire leur destruction non désirée.&lt;/p></description></item><item><title>Migrer vers PostgreSQL</title><link>https://fljd.in/2021/12/06/migrer-vers-postgresql/</link><pubDate>Mon, 06 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/12/06/migrer-vers-postgresql/</guid><description>&lt;p>Le marché de la migration en France est intense. Le Groupe de Travail
+Inter-Entreprises PostgreSQL (PGGTIE) a même publié un &lt;a href="https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf" target="_blank" rel="noopener">guide de transition&lt;/a>
 à PostgreSQL à destination des entreprises françaises. Ce dernier est le fruit
 de près de cinq années de travaux au sein de plusieurs organismes publics et a
 pour ambition de démontrer l&amp;rsquo;intérêt de PostgreSQL aux décideurs techniques en
 présentant les forces et les faiblesses du moteur.&lt;/p>
-&lt;p>Le mois dernier, une traduction en anglais est &lt;a href="https://twitter.com/nthonynowocien/status/1458065335387578382">sortie des cartons&lt;/a> pour
+&lt;p>Le mois dernier, une traduction en anglais est &lt;a href="https://twitter.com/nthonynowocien/status/1458065335387578382" target="_blank" rel="noopener">sortie des cartons&lt;/a> pour
 promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
 Je trouvais intéressant de profiter de cette actualité pour partager mes
 réflexions du moment, entre ma vision du marché français et l&amp;rsquo;approche technique
@@ -25,13 +34,9 @@ moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/
 &lt;p>Après cet épisode et l&amp;rsquo;amertume d&amp;rsquo;avoir perdu quelques travaux, ou la surprise
 de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
 erreur, je me suis tourné vers l&amp;rsquo;outil incontournable dont tous mes collègues me
-parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/">BorgBackup&lt;/a>&lt;/p></description></item><item><title>Parlons un peu des données externes</title><link>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</guid><description>&lt;p>Depuis plusieurs semaines, j&amp;rsquo;étudie les nouveautés de la &lt;a href="https://www.postgresql.org/docs/14/release-14.html">prochaine version majeure&lt;/a>
-de PostgreSQL avec un intérêt grandissant pour le connecteur &lt;a href="https://www.postgresql.org/docs/13/postgres-fdw.html">postgres_fdw&lt;/a>.
+parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p></description></item><item><title>Parlons un peu des données externes</title><link>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</guid><description>&lt;p>Depuis plusieurs semaines, j&amp;rsquo;étudie les nouveautés de la &lt;a href="https://www.postgresql.org/docs/14/release-14.html" target="_blank" rel="noopener">prochaine version majeure&lt;/a>
+de PostgreSQL avec un intérêt grandissant pour le connecteur &lt;a href="https://www.postgresql.org/docs/13/postgres-fdw.html" target="_blank" rel="noopener">postgres_fdw&lt;/a>.
 Cette extension assez folle n&amp;rsquo;a pas son équivalent sur les autres systèmes de
 bases de données du marché, et pour cause, PostgreSQL est l&amp;rsquo;un des rares à respecter
 la norme SQL/MED, sous-partie du langage SQL tel que défini par le standard
-&lt;a href="https://www.iso.org/standard/63476.html">ISO/IEC 9075-9&lt;/a>.&lt;/p></description></item><item><title>Les intervalles de valeurs</title><link>https://fljd.in/2021/06/09/les-intervalles-de-valeurs/</link><pubDate>Wed, 09 Jun 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/06/09/les-intervalles-de-valeurs/</guid><description>&lt;p>Ce mois-ci, je vous propose de réviser un peu le langage SQL en l&amp;rsquo;appliquant pour
-des cas d&amp;rsquo;usage assez fréquents qui mettent en scène des types temporels, notamment
-les intervalles de dates. Ce sera l&amp;rsquo;occasion également de revenir sur l&amp;rsquo;implémentation
-très originale qu&amp;rsquo;en a fait PostgreSQL avec les types d&amp;rsquo;intervalle de valeurs, ou
-&lt;em>&lt;a href="https://www.postgresql.org/docs/13/rangetypes.html">range types&lt;/a>&lt;/em> dans la documentation.&lt;/p></description></item></channel></rss>
+&lt;a href="https://www.iso.org/standard/63476.html" target="_blank" rel="noopener">ISO/IEC 9075-9&lt;/a>.&lt;/p></description></item></channel></rss>

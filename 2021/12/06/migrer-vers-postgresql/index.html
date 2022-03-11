@@ -1,341 +1,241 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Migrer vers PostgreSQL</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Migrer vers PostgreSQL</a></h1>
-<p class=post-date>
-<time datetime=2021-12-06>6 déc 2021</time>
-- 8 minutes de lecture
-</p><p>Le marché de la migration en France est intense. Le Groupe de Travail
-Inter-Entreprises PostgreSQL (PGGTIE) a même publié un <a href=https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf>guide de transition</a>
+<!doctype html><html lang=fr><head><title>Migrer vers PostgreSQL</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Migrer vers PostgreSQL</a></h1><p class=post-date><time datetime=2021-12-06>6 déc 2021</time>
+- 8 minutes de lecture</p><p>Le marché de la migration en France est intense. Le Groupe de Travail
+Inter-Entreprises PostgreSQL (PGGTIE) a même publié un <a href=https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf target=_blank rel=noopener>guide de transition</a>
 à PostgreSQL à destination des entreprises françaises. Ce dernier est le fruit
 de près de cinq années de travaux au sein de plusieurs organismes publics et a
 pour ambition de démontrer l&rsquo;intérêt de PostgreSQL aux décideurs techniques en
-présentant les forces et les faiblesses du moteur.</p>
-<p>Le mois dernier, une traduction en anglais est <a href=https://twitter.com/nthonynowocien/status/1458065335387578382>sortie des cartons</a> pour
+présentant les forces et les faiblesses du moteur.</p><p>Le mois dernier, une traduction en anglais est <a href=https://twitter.com/nthonynowocien/status/1458065335387578382 target=_blank rel=noopener>sortie des cartons</a> pour
 promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
 Je trouvais intéressant de profiter de cette actualité pour partager mes
 réflexions du moment, entre ma vision du marché français et l&rsquo;approche technique
-pour engager les migrations de données vers PostgreSQL.</p>
-<hr>
-<h2 id=une-transition-à-marche-forcée>Une transition à marche forcée</h2>
-<p>La démarche n&rsquo;est pas anodine, car depuis 2012, l&rsquo;État français au travers de ses
+pour engager les migrations de données vers PostgreSQL.</p><hr><h2 id=une-transition-à-marche-forcée>Une transition à marche forcée</h2><p>La démarche n&rsquo;est pas anodine, car depuis 2012, l&rsquo;État français au travers de ses
 différents ministères, tente de contrer l&rsquo;imposant marché des logiciels
 propriétaires en favorisant leurs remplacements systématiques par une alternative
-Open Source. Depuis quelques années, le <a href=https://www.numerique.gouv.fr/actualites/socle-interministeriel-des-logiciels-libres-sill-2020/>Socle Interministériel de Logiciels Libres</a>
+Open Source. Depuis quelques années, le <a href=https://www.numerique.gouv.fr/actualites/socle-interministeriel-des-logiciels-libres-sill-2020/ target=_blank rel=noopener>Socle Interministériel de Logiciels Libres</a>
 (SILL) est mis à jour par un groupe de travail pour faire un bilan des choix
-structurants engagés sur le territoire français.</p>
-<p>La publication d&rsquo;un guide de transition pour PostgreSQL aspire à rassurer les
+structurants engagés sur le territoire français.</p><p>La publication d&rsquo;un guide de transition pour PostgreSQL aspire à rassurer les
 équipes opérationnelles et décisionnelles en apportant un grand nombre de conseils
 et de comparaisons sur ce qu&rsquo;il est aujourd&rsquo;hui possible de faire avec PostgreSQL.
 Il mentionne les trois grandes étapes pour réaliser la migration des données
-d&rsquo;une application vers le moteur open-source :</p>
-<ul>
-<li>migration des données ;</li>
-<li>correction et réécriture des requêtes SQL et des procédures embarquées ;</li>
-<li>recette du système pour écarter les régressions fonctionnelles.</li>
-</ul>
-<p>Chacune de ces étapes a un coût, qu&rsquo;il sera nécessaire de pondérer durant le
+d&rsquo;une application vers le moteur open-source :</p><ul><li>migration des données ;</li><li>correction et réécriture des requêtes SQL et des procédures embarquées ;</li><li>recette du système pour écarter les régressions fonctionnelles.</li></ul><p>Chacune de ces étapes a un coût, qu&rsquo;il sera nécessaire de pondérer durant le
 chantier de migration. Les logiciels Open Source sont libres, mais ne sont pas
 gratuits et c&rsquo;est un rappel essentiel que proposent les conclusions de ce guide.
 Les coûts de formation et de prestations externes ne sont également pas
-négligeables…</p>
-<p>En 2018, la société française <a href=https://dalibo.com>Dalibo</a> avait publié un
-<a href=https://public.dalibo.com/archives/marketing/livres_blancs/18.10/DLB01_Migrer_Oracle_Postgresql.pdf>livre blanc</a> dans ce même esprit de pédagogie sur l&rsquo;importance des coûts
+négligeables…</p><p>En 2018, la société française <a href=https://dalibo.com target=_blank rel=noopener>Dalibo</a> avait publié un
+<a href=https://public.dalibo.com/archives/marketing/livres_blancs/18.10/DLB01_Migrer_Oracle_Postgresql.pdf target=_blank rel=noopener>livre blanc</a> dans ce même esprit de pédagogie sur l&rsquo;importance des coûts
 d&rsquo;investissement et de possession. Dans un scénario de migration, acté sur cinq
 années de transition, l&rsquo;étude montre que l&rsquo;analyse de portabilité vers PostgreSQL
 est la principale dépense au cours de la première année, suivie par un
 investissement important pour la recherche et le développement d&rsquo;un socle d&rsquo;outils
-dédiés aux déploiements, la maintenance et l&rsquo;administration du parc PostgreSQL.</p>
-<p><img src=/img/fr/2021-12-06-cout-d-investissement.png alt="Plan d&rsquo;investissement"></p>
-<p><img src=/img/fr/2021-12-06-cout-de-possession.png alt="Plan de possession"></p>
-<p>La seconde courbe peut paraître surprenante pour du logiciel libre, mais la
+dédiés aux déploiements, la maintenance et l&rsquo;administration du parc PostgreSQL.</p><p><img src=/img/fr/2021-12-06-cout-d-investissement.png alt="Plan d&amp;rsquo;investissement"></p><p><img src=/img/fr/2021-12-06-cout-de-possession.png alt="Plan de possession"></p><p>La seconde courbe peut paraître surprenante pour du logiciel libre, mais la
 nécessité de contracter une offre de support reste d&rsquo;actualité, car trop peu de
 services informatiques disposent des compétences internes pour assurer la
 disponibilité et la maintenance des instances. Un effort initial de formation est
 requis pour aider les administrateurs en poste à faire également leur transition
-vers cette autre technologie.</p>
-<p>Pour cette raison, de nombreux acteurs se positionnent depuis des décennies pour
+vers cette autre technologie.</p><p>Pour cette raison, de nombreux acteurs se positionnent depuis des décennies pour
 proposer de l&rsquo;accompagnement opérationnel et technique auprès des entreprises
 de toutes tailles qui souhaitent (principalement) réduire les coûts de licence
 de logiciels propriétaires. Et bien que la transition pouvait être pénible il y
 a dix ans, les dernières versions de PostgreSQL et la prolifération d&rsquo;outils
 communautaires apportent leur lot de fonctionnalités qui ne rougissent plus
-devant les atouts phares de certains mastodontes historiques du marché.</p>
-<hr>
-<h2 id=sarmer-doutils-et-de-courage>S&rsquo;armer d&rsquo;outils et de courage</h2>
-<p>Réaliser une migration impose de s&rsquo;équiper d&rsquo;un panel d&rsquo;outils pour simplifier
+devant les atouts phares de certains mastodontes historiques du marché.</p><hr><h2 id=sarmer-doutils-et-de-courage>S&rsquo;armer d&rsquo;outils et de courage</h2><p>Réaliser une migration impose de s&rsquo;équiper d&rsquo;un panel d&rsquo;outils pour simplifier
 les grandes lignes de la migration et bien sûr, économiser du temps et de l&rsquo;argent.
-Parmi les contributions libres, nous retrouverons l&rsquo;incontournable <a href=https://ora2pg.darold.net/>Ora2pg</a>,
+Parmi les contributions libres, nous retrouverons l&rsquo;incontournable <a href=https://ora2pg.darold.net/ target=_blank rel=noopener>Ora2pg</a>,
 spécialisé dans la conversion d&rsquo;un schéma Oracle et la migration de son contenu
 vers une instance PostgreSQL. Pour une base de type SQL Server de Microsoft,
-<a href=https://pgloader.io/>pgloader</a> sera privilégié. Les deux outils supportent également les données
-en provenance de MySQL.</p>
-<p>En <a href=/2021/07/16/parlons-un-peu-des-donnees-externes/>juillet dernier</a>, je partageais mes réflexions sur l&rsquo;implémentation de la
+<a href=https://pgloader.io/ target=_blank rel=noopener>pgloader</a> sera privilégié. Les deux outils supportent également les données
+en provenance de MySQL.</p><p>En <a href=/2021/07/16/parlons-un-peu-des-donnees-externes/>juillet dernier</a>, je partageais mes réflexions sur l&rsquo;implémentation de la
 norme SQL/MED et des <em>foreign data wrappers</em>, ou connecteurs. L&rsquo;actualité fut
-particulièrement riche cet été, avec la sortie de la <a href=https://www.migops.com/blog/2021/07/01/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/>version 22.0</a> du projet
+particulièrement riche cet été, avec la sortie de la <a href=https://www.migops.com/blog/2021/07/01/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/ target=_blank rel=noopener>version 22.0</a> du projet
 Ora2Pg, dont le nouveau support de l&rsquo;extension <code>oracle_fdw</code> annonçait des gains
-vertigineux sur le temps de copie des données.</p>
-<p>Ni une ni deux, j&rsquo;ai souhaité comprendre et découvrir les dessous d&rsquo;un tel
+vertigineux sur le temps de copie des données.</p><p>Ni une ni deux, j&rsquo;ai souhaité comprendre et découvrir les dessous d&rsquo;un tel
 procédé en manipulant moi-même les tables externes pour réaliser une migration
 de schémas et de données d&rsquo;une base Oracle vers PostgreSQL, sans utiliser l&rsquo;outil
-Ora2Pg. Cette procédure s&rsquo;inspire d&rsquo;un <a href=https://www.migops.com/blog/2021/02/15/role-of-foreign-data-wrappers-in-migrations-to-postgresql/>autre article</a> de MigOps, publié plus
-tôt cette année.</p>
-<h3 id=1-compiler-le-wrapper-communautaire>1. Compiler le wrapper communautaire</h3>
-<p>Le connecteur <code>oracle_fdw</code> nécessite d&rsquo;être compilé à partir des <a href=https://github.com/laurenz/oracle_fdw/>sources du projet</a>
+Ora2Pg. Cette procédure s&rsquo;inspire d&rsquo;un <a href=https://www.migops.com/blog/2021/02/15/role-of-foreign-data-wrappers-in-migrations-to-postgresql/ target=_blank rel=noopener>autre article</a> de MigOps, publié plus
+tôt cette année.</p><h3 id=1-compiler-le-wrapper-communautaire>1. Compiler le wrapper communautaire</h3><p>Le connecteur <code>oracle_fdw</code> nécessite d&rsquo;être compilé à partir des <a href=https://github.com/laurenz/oracle_fdw/ target=_blank rel=noopener>sources du projet</a>
 pour prendre en compte les bibliothèques propriétaires d&rsquo;Oracle, garantes du
 protocole de connexion et des échanges de données. Dans l&rsquo;exemple ci-dessous, je
 dispose d&rsquo;un serveur CentOS 7 avec une instance PostgreSQL 14 et j&rsquo;ai installé
-l'<em>Instant Client</em> 19, <a href=https://www.oracle.com/database/technologies/instant-client/downloads.html>disponible</a> sur la plateforme de téléchargement d&rsquo;Oracle.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>yum install -y postgresql14-devel
-<span class=nb>export</span> <span class=nv>ORACLE_HOME</span><span class=o>=</span>/usr/lib/oracle/19.13/client64
-<span class=nb>export</span> <span class=nv>LD_LIBRARY_PATH</span><span class=o>=</span><span class=nv>$ORACLE_HOME</span>/lib
-<span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PATH</span>:<span class=nv>$ORACLE_HOME</span>/bin
-
-<span class=nb>cd</span> ORACLE_FDW_2_4_0/
-make <span class=nv>PG_CONFIG</span><span class=o>=</span>/usr/pgsql-14/bin/pg_config
-make <span class=nv>PG_CONFIG</span><span class=o>=</span>/usr/pgsql-14/bin/pg_config install
-</code></pre></div><p>Pour résoudre <a href=https://github.com/laurenz/oracle_fdw/issues/312>d&rsquo;éventuels problèmes</a> de détection de la librairie Oracle
+l&rsquo;<em>Instant Client</em> 19, <a href=https://www.oracle.com/database/technologies/instant-client/downloads.html target=_blank rel=noopener>disponible</a> sur la plateforme de téléchargement d&rsquo;Oracle.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>yum install -y postgresql14-devel
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>ORACLE_HOME</span><span class=o>=</span>/usr/lib/oracle/19.13/client64
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>LD_LIBRARY_PATH</span><span class=o>=</span><span class=nv>$ORACLE_HOME</span>/lib
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=nv>$PATH</span>:<span class=nv>$ORACLE_HOME</span>/bin
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>cd</span> ORACLE_FDW_2_4_0/
+</span></span><span class=line><span class=cl>make <span class=nv>PG_CONFIG</span><span class=o>=</span>/usr/pgsql-14/bin/pg_config
+</span></span><span class=line><span class=cl>make <span class=nv>PG_CONFIG</span><span class=o>=</span>/usr/pgsql-14/bin/pg_config install
+</span></span></code></pre></div><p>Pour résoudre <a href=https://github.com/laurenz/oracle_fdw/issues/312 target=_blank rel=noopener>d&rsquo;éventuels problèmes</a> de détection de la librairie Oracle
 <em>Instant Client</em> et permettre la création de l&rsquo;extension, il est nécessaire de
 renseigner la variable <code>$LD_LIBRARY_PATH</code> pour l&rsquo;instance PostgreSQL au niveau
-de son service :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>systemctl edit postgresql-14
-</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=k>[Service]</span>
-<span class=na>Environment</span><span class=o>=</span><span class=s>&#34;ORACLE_HOME=/usr/lib/oracle/19.13/client64&#34;</span>
-<span class=na>Environment</span><span class=o>=</span><span class=s>&#34;LD_LIBRARY_PATH=/usr/lib/oracle/19.13/client64/lib&#34;</span>
-</code></pre></div><p>L&rsquo;extension peut ainsi être créée avec les privilèges d&rsquo;un super-utilisateur
+de son service :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>systemctl edit postgresql-14
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=k>[Service]</span>
+</span></span><span class=line><span class=cl><span class=na>Environment</span><span class=o>=</span><span class=s>&#34;ORACLE_HOME=/usr/lib/oracle/19.13/client64&#34;</span>
+</span></span><span class=line><span class=cl><span class=na>Environment</span><span class=o>=</span><span class=s>&#34;LD_LIBRARY_PATH=/usr/lib/oracle/19.13/client64/lib&#34;</span>
+</span></span></code></pre></div><p>L&rsquo;extension peut ainsi être créée avec les privilèges d&rsquo;un super-utilisateur
 dans la base qui accueillera les données finales. Le privilège <code>USAGE</code> peut ensuite
-être octroyé au propriétaire de la base pour préparer le schéma.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=n>EXTENSION</span><span class=w> </span><span class=n>oracle_fdw</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>USAGE</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>oracle_fdw</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>hr</span><span class=p>;</span><span class=w>
-</span></code></pre></div><h3 id=2-importer-les-tables-externes>2. Importer les tables externes</h3>
-<p>L&rsquo;unique configuration repose sur la création d&rsquo;un objet <code>SERVER</code> et l&rsquo;attribution
+être octroyé au propriétaire de la base pour préparer le schéma.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=n>EXTENSION</span><span class=w> </span><span class=n>oracle_fdw</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>USAGE</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>oracle_fdw</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>hr</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><h3 id=2-importer-les-tables-externes>2. Importer les tables externes</h3><p>L&rsquo;unique configuration repose sur la création d&rsquo;un objet <code>SERVER</code> et l&rsquo;attribution
 d&rsquo;un mot de passe pour l&rsquo;utilisateur courant, afin d&rsquo;ouvrir un pont entre les
-deux systèmes.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>orcl_hr</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>oracle_fdw</span><span class=w> 
-</span><span class=w>  </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=n>dbserver</span><span class=w> </span><span class=s1>&#39;//localhost:1521/hr&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>MAPPING</span><span class=w> </span><span class=k>FOR</span><span class=w> </span><span class=n>hr</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>orcl_hr</span><span class=w>
-</span><span class=w>  </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=k>user</span><span class=w> </span><span class=s1>&#39;hr&#39;</span><span class=p>,</span><span class=w> </span><span class=n>password</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
-</span></code></pre></div><p>La magie du <em>wrapper</em> opère lors de l&rsquo;inspection de la base de données externe
+deux systèmes.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>orcl_hr</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>oracle_fdw</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=n>dbserver</span><span class=w> </span><span class=s1>&#39;//localhost:1521/hr&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>MAPPING</span><span class=w> </span><span class=k>FOR</span><span class=w> </span><span class=n>hr</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>orcl_hr</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=k>user</span><span class=w> </span><span class=s1>&#39;hr&#39;</span><span class=p>,</span><span class=w> </span><span class=n>password</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><p>La magie du <em>wrapper</em> opère lors de l&rsquo;inspection de la base de données externe
 et de la création des relations dans un schéma PostgreSQL. Dans mon exemple, je
-dispose d&rsquo;une base Oracle XE avec le <a href=https://github.com/oracle/db-sample-schemas/tree/master/human_resources>schéma prédéfini HR</a> contenant une
-variété de tables, de vues, d&rsquo;index et de contraintes d&rsquo;intégrité.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>SCHEMA</span><span class=w> </span><span class=k>source</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>SET</span><span class=w> </span><span class=n>search_path</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>source</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=n>IMPORT</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>SCHEMA</span><span class=w> </span><span class=s2>&#34;HR&#34;</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>orcl_hr</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>source</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>Avec <code>psql</code> et la méta-commande <code>\dE</code>, il est dès lors possible de consulter les
+dispose d&rsquo;une base Oracle XE avec le <a href=https://github.com/oracle/db-sample-schemas/tree/master/human_resources target=_blank rel=noopener>schéma prédéfini HR</a> contenant une
+variété de tables, de vues, d&rsquo;index et de contraintes d&rsquo;intégrité.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>SCHEMA</span><span class=w> </span><span class=k>source</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SET</span><span class=w> </span><span class=n>search_path</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>source</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>IMPORT</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>SCHEMA</span><span class=w> </span><span class=s2>&#34;HR&#34;</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>orcl_hr</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>source</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Avec <code>psql</code> et la méta-commande <code>\dE</code>, il est dès lors possible de consulter les
 tables externes importées dans le schéma <code>source</code>. L&rsquo;une des huit tables est en
 réalité une vue, car l&rsquo;extension consulte le catalogue <code>ALL_TAB_COLUMNS</code> dans
 lequel figurent les tables et vues accessibles par l&rsquo;utilisateur connecté. Dans
 la phase d&rsquo;étude de la migration, ce point doit être correctement identifié pour
-récupérer l&rsquo;ordre de création de la vue, en adaptant la requête SQL si besoin.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>                 List of relations
- Schema |       Name       |     Type      | Owner 
---------+------------------+---------------+-------
- source | countries        | foreign table | hr
- source | departments      | foreign table | hr
- source | emp_details_view | foreign table | hr
- source | employees        | foreign table | hr
- source | job_history      | foreign table | hr
- source | jobs             | foreign table | hr
- source | locations        | foreign table | hr
- source | regions          | foreign table | hr
-</code></pre></div><h3 id=3-créer-les-tables-et-les-vues>3. Créer les tables et les vues</h3>
-<p>Pour chacune de ces tables externes, il faut créer leur équivalent dans la base
+récupérer l&rsquo;ordre de création de la vue, en adaptant la requête SQL si besoin.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>                 List of relations
+</span></span><span class=line><span class=cl> Schema |       Name       |     Type      | Owner 
+</span></span><span class=line><span class=cl>--------+------------------+---------------+-------
+</span></span><span class=line><span class=cl> source | countries        | foreign table | hr
+</span></span><span class=line><span class=cl> source | departments      | foreign table | hr
+</span></span><span class=line><span class=cl> source | emp_details_view | foreign table | hr
+</span></span><span class=line><span class=cl> source | employees        | foreign table | hr
+</span></span><span class=line><span class=cl> source | job_history      | foreign table | hr
+</span></span><span class=line><span class=cl> source | jobs             | foreign table | hr
+</span></span><span class=line><span class=cl> source | locations        | foreign table | hr
+</span></span><span class=line><span class=cl> source | regions          | foreign table | hr
+</span></span></code></pre></div><h3 id=3-créer-les-tables-et-les-vues>3. Créer les tables et les vues</h3><p>Pour chacune de ces tables externes, il faut créer leur équivalent dans la base
 PostgreSQL. Pour mon exemple, je choisis le schéma <code>public</code> comme destination.
 L&rsquo;une des méthodes les plus rapides repose sur l&rsquo;option <code>LIKE</code> de l&rsquo;instruction
-<code>CREATE TABLE</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>countries</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>departments</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>departments</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>employees</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>job_history</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>job_history</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>jobs</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>jobs</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>locations</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>locations</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>regions</span><span class=p>);</span><span class=w>
-</span></code></pre></div><p>À partir de cette étape, il est judicieux d&rsquo;apporter quelques modifications aux
+<code>CREATE TABLE</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>countries</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>departments</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>departments</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>employees</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>job_history</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>job_history</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>jobs</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>jobs</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>locations</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>locations</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>regions</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><p>À partir de cette étape, il est judicieux d&rsquo;apporter quelques modifications aux
 types de colonnes. En effet, les types <code>DATE</code> et <code>NUMBER</code> en provenance d&rsquo;Oracle
 ont des équivalences bien plus riches et efficientes avec PostgreSQL. Pour aller
-plus loin, l&rsquo;un des chapitres de la formation Dalibo « <a href=https://public.dalibo.com/exports/formation/manuels/modules/n3/n3.handout.html#types-de-donn%C3%A9es>Migrer d’Oracle à
-PostgreSQL</a> » revient sur les différences notables entre les deux systèmes.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=n>region_id</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>smallint</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=n>region_id</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>smallint</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=n>hire_date</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>date</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>job_history</span><span class=w> 
-</span><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>start_date</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>date</span><span class=p>,</span><span class=w> 
-</span><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>end_date</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>date</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>La vue, quant à elle, doit être recréée pour les besoins de l&rsquo;application.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>VIEW</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>emp_details_view</span><span class=w> </span><span class=p>(</span><span class=w>
-</span><span class=w>  </span><span class=n>employee_id</span><span class=p>,</span><span class=w> </span><span class=n>job_id</span><span class=p>,</span><span class=w> </span><span class=n>manager_id</span><span class=p>,</span><span class=w> </span><span class=n>department_id</span><span class=p>,</span><span class=w> </span><span class=n>location_id</span><span class=p>,</span><span class=w> </span><span class=n>country_id</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=n>first_name</span><span class=p>,</span><span class=w> </span><span class=n>last_name</span><span class=p>,</span><span class=w> </span><span class=n>salary</span><span class=p>,</span><span class=w> </span><span class=n>commission_pct</span><span class=p>,</span><span class=w> </span><span class=n>department_name</span><span class=p>,</span><span class=w> </span><span class=n>job_title</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=n>city</span><span class=p>,</span><span class=w> </span><span class=n>state_province</span><span class=p>,</span><span class=w> </span><span class=n>country_name</span><span class=p>,</span><span class=w> </span><span class=n>region_name</span><span class=w>
-</span><span class=w></span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>employee_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>job_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>manager_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>department_id</span><span class=p>,</span><span class=w> </span><span class=n>d</span><span class=p>.</span><span class=n>location_id</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>l</span><span class=p>.</span><span class=n>country_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>first_name</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>last_name</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>salary</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>commission_pct</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>d</span><span class=p>.</span><span class=n>department_name</span><span class=p>,</span><span class=w> </span><span class=n>j</span><span class=p>.</span><span class=n>job_title</span><span class=p>,</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>city</span><span class=p>,</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>state_province</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=k>c</span><span class=p>.</span><span class=n>country_name</span><span class=p>,</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=n>region_name</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=n>e</span><span class=w>
-</span><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>departments</span><span class=w> </span><span class=n>d</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>department_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>d</span><span class=p>.</span><span class=n>department_id</span><span class=w>
-</span><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>jobs</span><span class=w> </span><span class=n>j</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>j</span><span class=p>.</span><span class=n>job_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>job_id</span><span class=w> 
-</span><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>locations</span><span class=w> </span><span class=n>l</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>d</span><span class=p>.</span><span class=n>location_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>location_id</span><span class=w>
-</span><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=k>c</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>country_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>country_id</span><span class=w>
-</span><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=n>r</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>region_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=n>region_id</span><span class=p>;</span><span class=w>
-</span></code></pre></div><h3 id=4-importer-les-données>4. Importer les données</h3>
-<p>La méthode la plus simple pour importer les données reste la copie table à table
+plus loin, l&rsquo;un des chapitres de la formation Dalibo « <a href=https://public.dalibo.com/exports/formation/manuels/modules/n3/n3.handout.html#types-de-donn%C3%A9es target=_blank rel=noopener>Migrer d’Oracle à
+PostgreSQL</a> » revient sur les différences notables entre les deux systèmes.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=n>region_id</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>smallint</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=n>region_id</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>smallint</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=n>hire_date</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>date</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>job_history</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>start_date</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>date</span><span class=p>,</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>end_date</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=nb>date</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>La vue, quant à elle, doit être recréée pour les besoins de l&rsquo;application.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>VIEW</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>emp_details_view</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>employee_id</span><span class=p>,</span><span class=w> </span><span class=n>job_id</span><span class=p>,</span><span class=w> </span><span class=n>manager_id</span><span class=p>,</span><span class=w> </span><span class=n>department_id</span><span class=p>,</span><span class=w> </span><span class=n>location_id</span><span class=p>,</span><span class=w> </span><span class=n>country_id</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>first_name</span><span class=p>,</span><span class=w> </span><span class=n>last_name</span><span class=p>,</span><span class=w> </span><span class=n>salary</span><span class=p>,</span><span class=w> </span><span class=n>commission_pct</span><span class=p>,</span><span class=w> </span><span class=n>department_name</span><span class=p>,</span><span class=w> </span><span class=n>job_title</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>city</span><span class=p>,</span><span class=w> </span><span class=n>state_province</span><span class=p>,</span><span class=w> </span><span class=n>country_name</span><span class=p>,</span><span class=w> </span><span class=n>region_name</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>employee_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>job_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>manager_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>department_id</span><span class=p>,</span><span class=w> </span><span class=n>d</span><span class=p>.</span><span class=n>location_id</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>l</span><span class=p>.</span><span class=n>country_id</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>first_name</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>last_name</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>salary</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>commission_pct</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>d</span><span class=p>.</span><span class=n>department_name</span><span class=p>,</span><span class=w> </span><span class=n>j</span><span class=p>.</span><span class=n>job_title</span><span class=p>,</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>city</span><span class=p>,</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>state_province</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=k>c</span><span class=p>.</span><span class=n>country_name</span><span class=p>,</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=n>region_name</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=n>e</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>departments</span><span class=w> </span><span class=n>d</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>department_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>d</span><span class=p>.</span><span class=n>department_id</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>jobs</span><span class=w> </span><span class=n>j</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>j</span><span class=p>.</span><span class=n>job_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>e</span><span class=p>.</span><span class=n>job_id</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>locations</span><span class=w> </span><span class=n>l</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>d</span><span class=p>.</span><span class=n>location_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>location_id</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=k>c</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>l</span><span class=p>.</span><span class=n>country_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>country_id</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=n>r</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>region_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=n>region_id</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><h3 id=4-importer-les-données>4. Importer les données</h3><p>La méthode la plus simple pour importer les données reste la copie table à table
 avec l&rsquo;instruction <code>INSERT INTO</code>. Avec PostgreSQL, la commande <code>TABLE</code> est
 équivalente à un <code>SELECT * FROM</code>, que j&rsquo;utilise pour alléger les requêtes dans
-l&rsquo;exemple ci-dessous.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>countries</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>departments</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>departments</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>employees</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>job_history</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>job_history</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>jobs</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>jobs</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>locations</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>locations</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>regions</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>Dans le cas de tables hautement volumineuses, cette méthode montrera très vite
+l&rsquo;exemple ci-dessous.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>countries</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>countries</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>departments</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>departments</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>employees</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>employees</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>job_history</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>job_history</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>jobs</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>jobs</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>locations</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>locations</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>regions</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>source</span><span class=p>.</span><span class=n>regions</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Dans le cas de tables hautement volumineuses, cette méthode montrera très vite
 des faiblesses de performance, car les instructions sont exécutées les unes après
 les autres et que le parcours d&rsquo;une table distante n&rsquo;est réalisé que par un seul
-processus.</p>
-<p>À moins de développer son propre système de distribution de requêtes et de
+processus.</p><p>À moins de développer son propre système de distribution de requêtes et de
 lectures parallélisées, sachez que l&rsquo;outil Ora2Pg propose parfaitement des pistes
 d&rsquo;optimisation pour accélérer grandement les insertions lors de cette phase de
-chargement.</p>
-<h3 id=5-créer-les-séquences-les-index-et-les-contraintes>5. Créer les séquences, les index et les contraintes</h3>
-<p>Cette dernière étape est indispensable pour maintenir la cohérence du modèle et
+chargement.</p><h3 id=5-créer-les-séquences-les-index-et-les-contraintes>5. Créer les séquences, les index et les contraintes</h3><p>Cette dernière étape est indispensable pour maintenir la cohérence du modèle et
 pour garantir des performances similaires, il ne faut donc pas mésestimer la
 phase d&rsquo;étude qui permettra d&rsquo;inventorier les séquences, les index et les
 contraintes à recréer dans la base PostgreSQL. Pour aller jusqu&rsquo;au bout de ma
-démonstration, voici les instructions à exécuter pour finaliser la migration.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=c1>-- regions
-</span><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>regions</span><span class=w> 
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>reg_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>region_id</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- countries
-</span><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>countries</span><span class=w> 
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>country_c_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>country_id</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>countr_reg_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>region_id</span><span class=p>)</span><span class=w> 
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>regions</span><span class=p>(</span><span class=n>region_id</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- locations
-</span><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=n>SEQUENCE</span><span class=w> </span><span class=n>locations_seq</span><span class=w>
-</span><span class=w> </span><span class=k>START</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=mi>3300</span><span class=w> </span><span class=k>INCREMENT</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=mi>100</span><span class=w> </span><span class=k>MAXVALUE</span><span class=w> </span><span class=mi>9900</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>locations</span><span class=w>
-</span><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>location_id</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>DEFAULT</span><span class=w> </span><span class=n>nextval</span><span class=p>(</span><span class=s1>&#39;locations_seq&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>loc_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>location_id</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>loc_c_id_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>country_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>countries</span><span class=p>(</span><span class=n>country_id</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- departments
-</span><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=n>SEQUENCE</span><span class=w> </span><span class=n>departments_seq</span><span class=w>
-</span><span class=w> </span><span class=k>START</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=mi>280</span><span class=w> </span><span class=k>INCREMENT</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=mi>10</span><span class=w> </span><span class=k>MAXVALUE</span><span class=w> </span><span class=mi>9990</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>departments</span><span class=w>
-</span><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>department_id</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>DEFAULT</span><span class=w> </span><span class=n>nextval</span><span class=p>(</span><span class=s1>&#39;departments_seq&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>dept_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>dept_loc_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>location_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>locations</span><span class=w> </span><span class=p>(</span><span class=n>location_id</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- jobs
-</span><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>jobs</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>job_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=p>(</span><span class=n>job_id</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- employees
-</span><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=n>SEQUENCE</span><span class=w> </span><span class=n>employees_seq</span><span class=w>
-</span><span class=w> </span><span class=k>START</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=mi>207</span><span class=w> </span><span class=k>INCREMENT</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>employees</span><span class=w>
-</span><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>employee_id</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>DEFAULT</span><span class=w> </span><span class=n>nextval</span><span class=p>(</span><span class=s1>&#39;employees_seq&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_emp_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_dept_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>departments</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_job_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>job_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>jobs</span><span class=w> </span><span class=p>(</span><span class=n>job_id</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_manager_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>manager_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>employees</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>departments</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>dept_mgr_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>manager_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>employees</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- job_history
-</span><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>job_history</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_emp_id_st_date_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>,</span><span class=w> </span><span class=n>start_date</span><span class=p>),</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_job_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>job_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>jobs</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_emp_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>employees</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_dept_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>departments</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>Dans des situations particulièrement simples, la migration vers PostgreSQL peut
+démonstration, voici les instructions à exécuter pour finaliser la migration.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- regions
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>regions</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>reg_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>region_id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- countries
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>countries</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>country_c_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>country_id</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>countr_reg_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>region_id</span><span class=p>)</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>regions</span><span class=p>(</span><span class=n>region_id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- locations
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=n>SEQUENCE</span><span class=w> </span><span class=n>locations_seq</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>START</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=mi>3300</span><span class=w> </span><span class=k>INCREMENT</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=mi>100</span><span class=w> </span><span class=k>MAXVALUE</span><span class=w> </span><span class=mi>9900</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>locations</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>location_id</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>DEFAULT</span><span class=w> </span><span class=n>nextval</span><span class=p>(</span><span class=s1>&#39;locations_seq&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>loc_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>location_id</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>loc_c_id_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>country_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>countries</span><span class=p>(</span><span class=n>country_id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- departments
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=n>SEQUENCE</span><span class=w> </span><span class=n>departments_seq</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>START</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=mi>280</span><span class=w> </span><span class=k>INCREMENT</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=mi>10</span><span class=w> </span><span class=k>MAXVALUE</span><span class=w> </span><span class=mi>9990</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>departments</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>department_id</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>DEFAULT</span><span class=w> </span><span class=n>nextval</span><span class=p>(</span><span class=s1>&#39;departments_seq&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>dept_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>dept_loc_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>location_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>locations</span><span class=w> </span><span class=p>(</span><span class=n>location_id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- jobs
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>jobs</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>job_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=p>(</span><span class=n>job_id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- employees
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=n>SEQUENCE</span><span class=w> </span><span class=n>employees_seq</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>START</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=mi>207</span><span class=w> </span><span class=k>INCREMENT</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>employees</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ALTER</span><span class=w> </span><span class=n>employee_id</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>DEFAULT</span><span class=w> </span><span class=n>nextval</span><span class=p>(</span><span class=s1>&#39;employees_seq&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_emp_id_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_dept_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>departments</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_job_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>job_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>jobs</span><span class=w> </span><span class=p>(</span><span class=n>job_id</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>emp_manager_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>manager_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>employees</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>departments</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>dept_mgr_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>manager_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>employees</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- job_history
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>job_history</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_emp_id_st_date_pk</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>,</span><span class=w> </span><span class=n>start_date</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_job_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>job_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>jobs</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_emp_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>employee_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>employees</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>CONSTRAINT</span><span class=w> </span><span class=n>jhist_dept_fk</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>departments</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Dans des situations particulièrement simples, la migration vers PostgreSQL peut
 être intégralement réalisée à l&rsquo;aide du langage SQL et d&rsquo;une extension de la
 famille des <em>foreign data wrappers</em>. Cependant, le temps de copie restera très
 dépendant de l&rsquo;ordonnancement que l&rsquo;on peut en faire, et du débit de transfert
-entre les deux systèmes.</p>
-<hr>
-<h2 id=conclusion>Conclusion</h2>
-<p>La migration deviendra complexe lorsque la base de données à migrer embarque du
+entre les deux systèmes.</p><hr><h2 id=conclusion>Conclusion</h2><p>La migration deviendra complexe lorsque la base de données à migrer embarque du
 code PL/SQL stratégique. À moins d&rsquo;extraire la logique métier et de l&rsquo;implémenter
 dans une application dédiée, la conversion du code en routines PL/pgSQL méritera
 toute votre attention. Bien qu&rsquo;Ora2Pg puisse simplifier le travail de portage
 avec une conversion automatique tout à fait honorable, il sera indispensable de
-tester la non-régression fonctionnelle.</p>
-<p>Un outil comme <a href=/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>pgTAP</a> peut aider à rédiger des tests unitaires ou de bout
+tester la non-régression fonctionnelle.</p><p>Un outil comme <a href=/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>pgTAP</a> peut aider à rédiger des tests unitaires ou de bout
 en bout pour couvrir le code et vous accompagner dans le portage des procédures.
-L&rsquo;année dernière, j&rsquo;avais pris plaisir à rédiger un <a href=https://blog.dalibo.com/2020/12/21/migration_oracle_vers_postgresql.html>atelier complet</a> sur la
+L&rsquo;année dernière, j&rsquo;avais pris plaisir à rédiger un <a href=https://blog.dalibo.com/2020/12/21/migration_oracle_vers_postgresql.html target=_blank rel=noopener>atelier complet</a> sur la
 traduction des procédures PL/SQL fournies avec le schéma HR présenté aujourd&rsquo;hui.
-N&rsquo;hésitez pas à le consulter !</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
-<small><time datetime=2021-07-16>16 juil 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
-<small><time datetime=2020-12-21>21 déc 2020</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/>Les liens physiques avec pg_upgrade
-<small><time datetime=2020-04-23>23 avr 2020</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+N&rsquo;hésitez pas à le consulter !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
+<small><time datetime=2021-07-16>16 juil 2021</time></small></a></li><li><a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
+<small><time datetime=2020-12-21>21 déc 2020</time></small></a></li><li><a href=https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/>Les liens physiques avec pg_upgrade
+<small><time datetime=2020-04-23>23 avr 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

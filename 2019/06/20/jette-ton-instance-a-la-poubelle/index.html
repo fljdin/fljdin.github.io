@@ -1,201 +1,139 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Jette ton instance à la poubelle</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Jette ton instance à la poubelle</a></h1>
-<p class=post-date>
-<time datetime=2019-06-20>20 juin 2019</time>
-- 4 minutes de lecture
-</p><p>À des fins de qualité ou de formation, il est très souvent nécessaire d&rsquo;avoir
+<!doctype html><html lang=fr><head><title>Jette ton instance à la poubelle</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Jette ton instance à la poubelle</a></h1><p class=post-date><time datetime=2019-06-20>20 juin 2019</time>
+- 4 minutes de lecture</p><p>À des fins de qualité ou de formation, il est très souvent nécessaire d&rsquo;avoir
 une instance PostgreSQL d&rsquo;une version particulière sur un environnement non
 critique, que l&rsquo;on peut malmener à souhait et à l&rsquo;infini. La communauté Debian
-propose l&rsquo;outil <code>pg_virtualenv</code> (<a href=https://manpages.debian.org/testing/postgresql-common/pg_virtualenv.1.en.html>manpage</a>) pour démarrer
+propose l&rsquo;outil <code>pg_virtualenv</code> (<a href=https://manpages.debian.org/testing/postgresql-common/pg_virtualenv.1.en.html target=_blank rel=noopener>manpage</a>) pour démarrer
 une instance jettable, tout à fait compatible avec des tests de régression ou
-l&rsquo;exécution de scripts lors d&rsquo;une démonstration.</p>
-<p>Le package <code>postgresql-common</code> est une des dépendances du package postgresql toutes
+l&rsquo;exécution de scripts lors d&rsquo;une démonstration.</p><p>Le package <code>postgresql-common</code> est une des dépendances du package postgresql toutes
 versions confondues. Par exemple, sur un Ubuntu 16.04 pour la version 11, on peut
-lister les packages qui seront installés en plus de notre instance :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ sudo apt-cache depends postgresql-11
-  ...
-  Depends: postgresql-client-11
-    postgresql-client-11:i386
-  Depends: postgresql-common
-  Depends: ssl-cert
-  ...
-</code></pre></div><p>Ce package met donc à disposition une série de scripts – dont le préfixe est
+lister les packages qui seront installés en plus de notre instance :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ sudo apt-cache depends postgresql-11
+</span></span><span class=line><span class=cl>  ...
+</span></span><span class=line><span class=cl>  Depends: postgresql-client-11
+</span></span><span class=line><span class=cl>    postgresql-client-11:i386
+</span></span><span class=line><span class=cl>  Depends: postgresql-common
+</span></span><span class=line><span class=cl>  Depends: ssl-cert
+</span></span><span class=line><span class=cl>  ...
+</span></span></code></pre></div><p>Ce package met donc à disposition une série de scripts – dont le préfixe est
 <code>pg_</code> – qui s&rsquo;appuie sur la détection automatique des binaires de la version la
 plus récente installée, en parcourant le répertoire <code>/usr/lib/postgresql</code>. On
 retrouve ainsi les script Perl de gestion de clusters propres aux installations
-sous Debian/Ubuntu : <code>pg_lscluster</code>, <code>pg_upgradecluster</code> ou <code>pg_ctlcluster</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ sudo dpkg-query -L postgresql-common
-...
-/usr/bin/pg_virtualenv
-/usr/bin/pg_upgradecluster
-/usr/bin/pg_renamecluster
-/usr/bin/pg_lsclusters
-/usr/bin/pg_dropcluster
-/usr/bin/pg_ctlcluster
-/usr/bin/pg_createcluster
-/usr/bin/pg_conftool
-/usr/bin/pg_config
-package diverts others to: /usr/bin/pg_config.libpq-dev
-...
-</code></pre></div><p>Le script <code>pg_virtualenv</code> est la seule exception dans cette série. Il est écrit
-en bash et s&rsquo;appuie sur la commande <code>mktemp</code> (<a href=https://manpages.debian.org/testing/coreutils/mktemp.1.en.html>manpage</a>) pour isoler l&rsquo;utilisateur afin
+sous Debian/Ubuntu : <code>pg_lscluster</code>, <code>pg_upgradecluster</code> ou <code>pg_ctlcluster</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ sudo dpkg-query -L postgresql-common
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>/usr/bin/pg_virtualenv
+</span></span><span class=line><span class=cl>/usr/bin/pg_upgradecluster
+</span></span><span class=line><span class=cl>/usr/bin/pg_renamecluster
+</span></span><span class=line><span class=cl>/usr/bin/pg_lsclusters
+</span></span><span class=line><span class=cl>/usr/bin/pg_dropcluster
+</span></span><span class=line><span class=cl>/usr/bin/pg_ctlcluster
+</span></span><span class=line><span class=cl>/usr/bin/pg_createcluster
+</span></span><span class=line><span class=cl>/usr/bin/pg_conftool
+</span></span><span class=line><span class=cl>/usr/bin/pg_config
+</span></span><span class=line><span class=cl>package diverts others to: /usr/bin/pg_config.libpq-dev
+</span></span><span class=line><span class=cl>...
+</span></span></code></pre></div><p>Le script <code>pg_virtualenv</code> est la seule exception dans cette série. Il est écrit
+en bash et s&rsquo;appuie sur la commande <code>mktemp</code> (<a href=https://manpages.debian.org/testing/coreutils/mktemp.1.en.html target=_blank rel=noopener>manpage</a>) pour isoler l&rsquo;utilisateur afin
 qu&rsquo;il n&rsquo;interfère avec aucune instance présente sur le serveur. Pour cela, l&rsquo;outil
 surchage plusieurs variables d&rsquo;environnement (<code>PG_CLUSTER_CONF_ROOT</code>, <code>PGSYSCONFDIR</code>,
 <code>LOGDIR</code>, <code>PWFILE</code>, <code>PGUSER</code>, <code>PGPASSWORD</code>) avant d&rsquo;initialiser une nouvelle
-instance via le script <code>pg_createcluster</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ bash -x /usr/bin/pg_virtualenv
-...
-++ mktemp -d -t pg_virtualenv.XXXXXX 
-+ WORKDIR=/tmp/pg_virtualenv.XjpJku
-+ PG_CLUSTER_CONF_ROOT=/tmp/pg_virtualenv.XjpJku/postgresql
-+ PGUSER=fjardin
-+ PGSYSCONFDIR=/tmp/pg_virtualenv.XjpJku/postgresql-common
-+ mkdir /tmp/pg_virtualenv.XjpJku/postgresql-common /tmp/pg_virtualenv.XjpJku/log
-+ PWFILE=/tmp/pg_virtualenv.XjpJku/postgresql-common/pwfile
-+ LOGDIR=/tmp/pg_virtualenv.XjpJku/log
-++ pwgen 20 1
-+ PGPASSWORD=giul8aih3ieviFeef1sh
-+ echo giul8aih3ieviFeef1sh
-+ pg_createcluster -d /tmp/pg_virtualenv.XjpJku/data/11/regress 
-  -l /tmp/pg_virtualenv.XjpJku/log/postgresql-11-regress.log 
-  --pgoption fsync=off --start 11 regress -- 
-  --username=fjardin --pwfile=/tmp/pg_virtualenv.XjpJku/postgresql-common/pfile 
-  --nosync
-
-Creating new PostgreSQL cluster 11/regress ...
-/usr/lib/postgresql/11/bin/initdb --data-checksums --encoding=UTF8 
-  --username=postgres --pwfile=/var/lib/postgresql/.pwfile
-  -D /tmp/pg_virtualenv.XjpJku/data/11/regress --auth-local peer --auth-host md5 
-  --username=fjardin --pwfile=/tmp/pg_virtualenv.XjpJku/postgresql-common/pwfile
-  --nosync
-The files belonging to this database system will be owned by user &#34;fjardin&#34;.
-This user must also own the server process.
-
-The database cluster will be initialized with locale &#34;en_US.UTF-8&#34;.
-The default text search configuration will be set to &#34;english&#34;.
-
-Data page checksums are enabled.
-
-fixing permissions on existing directory 
-  /tmp/pg_virtualenv.XjpJku/data/11/regress ... ok
-creating subdirectories ... ok
-selecting default max_connections ... 100
-selecting default shared_buffers ... 128MB
-selecting dynamic shared memory implementation ... posix
-creating configuration files ... ok
-running bootstrap script ... ok
-performing post-bootstrap initialization ... ok
-
-Sync to disk skipped.
-The data directory might become corrupt if the operating system crashes.
-
-Success. You can now start the database server using:
-
-    pg_ctlcluster 11 regress start
-
-Ver Cluster Port Status Owner   Data directory
-11  regress 5432 online fjardin /tmp/pg_virtualenv.PEkXHz/data/11/regress
-
-Log file
-/tmp/pg_virtualenv.PEkXHz/log/postgresql-11-regress.log
-</code></pre></div><p>Et voilà ! Tous les éléments suffisants à l&rsquo;administration de ce cluster temporaire
+instance via le script <code>pg_createcluster</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ bash -x /usr/bin/pg_virtualenv
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>++ mktemp -d -t pg_virtualenv.XXXXXX 
+</span></span><span class=line><span class=cl>+ WORKDIR=/tmp/pg_virtualenv.XjpJku
+</span></span><span class=line><span class=cl>+ PG_CLUSTER_CONF_ROOT=/tmp/pg_virtualenv.XjpJku/postgresql
+</span></span><span class=line><span class=cl>+ PGUSER=fjardin
+</span></span><span class=line><span class=cl>+ PGSYSCONFDIR=/tmp/pg_virtualenv.XjpJku/postgresql-common
+</span></span><span class=line><span class=cl>+ mkdir /tmp/pg_virtualenv.XjpJku/postgresql-common /tmp/pg_virtualenv.XjpJku/log
+</span></span><span class=line><span class=cl>+ PWFILE=/tmp/pg_virtualenv.XjpJku/postgresql-common/pwfile
+</span></span><span class=line><span class=cl>+ LOGDIR=/tmp/pg_virtualenv.XjpJku/log
+</span></span><span class=line><span class=cl>++ pwgen 20 1
+</span></span><span class=line><span class=cl>+ PGPASSWORD=giul8aih3ieviFeef1sh
+</span></span><span class=line><span class=cl>+ echo giul8aih3ieviFeef1sh
+</span></span><span class=line><span class=cl>+ pg_createcluster -d /tmp/pg_virtualenv.XjpJku/data/11/regress 
+</span></span><span class=line><span class=cl>  -l /tmp/pg_virtualenv.XjpJku/log/postgresql-11-regress.log 
+</span></span><span class=line><span class=cl>  --pgoption fsync=off --start 11 regress -- 
+</span></span><span class=line><span class=cl>  --username=fjardin --pwfile=/tmp/pg_virtualenv.XjpJku/postgresql-common/pfile 
+</span></span><span class=line><span class=cl>  --nosync
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Creating new PostgreSQL cluster 11/regress ...
+</span></span><span class=line><span class=cl>/usr/lib/postgresql/11/bin/initdb --data-checksums --encoding=UTF8 
+</span></span><span class=line><span class=cl>  --username=postgres --pwfile=/var/lib/postgresql/.pwfile
+</span></span><span class=line><span class=cl>  -D /tmp/pg_virtualenv.XjpJku/data/11/regress --auth-local peer --auth-host md5 
+</span></span><span class=line><span class=cl>  --username=fjardin --pwfile=/tmp/pg_virtualenv.XjpJku/postgresql-common/pwfile
+</span></span><span class=line><span class=cl>  --nosync
+</span></span><span class=line><span class=cl>The files belonging to this database system will be owned by user &#34;fjardin&#34;.
+</span></span><span class=line><span class=cl>This user must also own the server process.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>The database cluster will be initialized with locale &#34;en_US.UTF-8&#34;.
+</span></span><span class=line><span class=cl>The default text search configuration will be set to &#34;english&#34;.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Data page checksums are enabled.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>fixing permissions on existing directory 
+</span></span><span class=line><span class=cl>  /tmp/pg_virtualenv.XjpJku/data/11/regress ... ok
+</span></span><span class=line><span class=cl>creating subdirectories ... ok
+</span></span><span class=line><span class=cl>selecting default max_connections ... 100
+</span></span><span class=line><span class=cl>selecting default shared_buffers ... 128MB
+</span></span><span class=line><span class=cl>selecting dynamic shared memory implementation ... posix
+</span></span><span class=line><span class=cl>creating configuration files ... ok
+</span></span><span class=line><span class=cl>running bootstrap script ... ok
+</span></span><span class=line><span class=cl>performing post-bootstrap initialization ... ok
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Sync to disk skipped.
+</span></span><span class=line><span class=cl>The data directory might become corrupt if the operating system crashes.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Success. You can now start the database server using:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    pg_ctlcluster 11 regress start
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Ver Cluster Port Status Owner   Data directory
+</span></span><span class=line><span class=cl>11  regress 5432 online fjardin /tmp/pg_virtualenv.PEkXHz/data/11/regress
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Log file
+</span></span><span class=line><span class=cl>/tmp/pg_virtualenv.PEkXHz/log/postgresql-11-regress.log
+</span></span></code></pre></div><p>Et voilà ! Tous les éléments suffisants à l&rsquo;administration de ce cluster temporaire
 <code>regress</code> se situent soit dans les variables d&rsquo;environnement, soit dans le fichier
 <code>pg_service.conf</code> de l&rsquo;espace temporaire. Les bases sont donc disponibles par
 l&rsquo;utilisateur courant jusqu&rsquo;à ce que ce dernier quitte l&rsquo;environnement d&rsquo;exécution
-par la commande <code>exit</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ env | grep PG
-PGPORT=5432
-PGUSER=fjardin
-PGPASSWORD=oChuaWa8cho6uK5Goono
-PGDATABASE=postgres
-PGHOST=localhost
-PGSYSCONFDIR=/tmp/pg_virtualenv.PEkXHz/postgresql-common
-PG_CLUSTER_CONF_ROOT=/tmp/pg_virtualenv.PEkXHz/postgresql
-PG_CONFIG=/usr/lib/postgresql/11/bin/pg_config
-
-$ cat $PGSYSCONFDIR/pg_service.conf
-[11]
-host=localhost
-port=5432
-dbname=postgres
-user=fjardin
-password=oChuaWa8cho6uK5Goono
-
-$ exit
-Dropping cluster 11/regress ...
-</code></pre></div><p>N&rsquo;étant pas (encore) un féru de développement et du <a href=https://fr.wikipedia.org/wiki/Test_driven_development>TDD</a> pour employer l&rsquo;outil
+par la commande <code>exit</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ env | grep PG
+</span></span><span class=line><span class=cl>PGPORT=5432
+</span></span><span class=line><span class=cl>PGUSER=fjardin
+</span></span><span class=line><span class=cl>PGPASSWORD=oChuaWa8cho6uK5Goono
+</span></span><span class=line><span class=cl>PGDATABASE=postgres
+</span></span><span class=line><span class=cl>PGHOST=localhost
+</span></span><span class=line><span class=cl>PGSYSCONFDIR=/tmp/pg_virtualenv.PEkXHz/postgresql-common
+</span></span><span class=line><span class=cl>PG_CLUSTER_CONF_ROOT=/tmp/pg_virtualenv.PEkXHz/postgresql
+</span></span><span class=line><span class=cl>PG_CONFIG=/usr/lib/postgresql/11/bin/pg_config
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ cat $PGSYSCONFDIR/pg_service.conf
+</span></span><span class=line><span class=cl>[11]
+</span></span><span class=line><span class=cl>host=localhost
+</span></span><span class=line><span class=cl>port=5432
+</span></span><span class=line><span class=cl>dbname=postgres
+</span></span><span class=line><span class=cl>user=fjardin
+</span></span><span class=line><span class=cl>password=oChuaWa8cho6uK5Goono
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ exit
+</span></span><span class=line><span class=cl>Dropping cluster 11/regress ...
+</span></span></code></pre></div><p>N&rsquo;étant pas (encore) un féru de développement et du <a href=https://fr.wikipedia.org/wiki/Test_driven_development target=_blank rel=noopener>TDD</a> pour employer l&rsquo;outil
 dans des tests de régressions, j&rsquo;utilise la commande sur un poste Debian/Ubuntu
 ou sur Windows WSL de la même famille pour disposer d&rsquo;une instance prête en
 quelques secondes. Pour obtenir un tel résultat, il suffit d&rsquo;ajouter le bon
-<em>repository</em> officiel et de lancer l&rsquo;installation dans cet ordre.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sudo apt-get install -y postgresql-common
-
-sudo mkdir /etc/postgresql-common/createcluster.d
-<span class=nb>echo</span> <span class=nv>create_main_cluster</span> <span class=o>=</span> <span class=nb>false</span> <span class=p>|</span> <span class=se>\
-</span><span class=se></span> sudo tee /etc/postgresql-common/createcluster.d/ignore_create_cluster.conf
-
-sudo apt-get install -y postgresql-10 postgresql-11
-sudo systemctl disable postgresql.service
-</code></pre></div><p>De cette façon, nous disposons rapidement des packages à jour pour les versions
+<em>repository</em> officiel et de lancer l&rsquo;installation dans cet ordre.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>sudo apt-get install -y postgresql-common
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>sudo mkdir /etc/postgresql-common/createcluster.d
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=nv>create_main_cluster</span> <span class=o>=</span> <span class=nb>false</span> <span class=p>|</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span> sudo tee /etc/postgresql-common/createcluster.d/ignore_create_cluster.conf
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>sudo apt-get install -y postgresql-10 postgresql-11
+</span></span><span class=line><span class=cl>sudo systemctl disable postgresql.service
+</span></span></code></pre></div><p>De cette façon, nous disposons rapidement des packages à jour pour les versions
 10 et 11 sur notre distribution. Les possibilités sont donc nombreuses, comme
 illustrer ses propos lors de présentations ou de formations devant un public,
 valider le contenu d&rsquo;un script SQL livré par son client sur une version spécifique
 ou simplement découvrir les nouvelles fonctionnalités d&rsquo;une version majeure
-fraîchement compilée ou disponible sur le <em>repository</em> !</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2021/09/28/les-corruptions-silencieuses/>Les corruptions silencieuses
-<small><time datetime=2021-09-28>28 sept 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
-<small><time datetime=2020-12-21>21 déc 2020</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/11/18/quelques-outils-meconnus/>Quelques outils méconnus
-<small><time datetime=2020-11-18>18 nov 2020</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+fraîchement compilée ou disponible sur le <em>repository</em> !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/09/28/les-corruptions-silencieuses/>Les corruptions silencieuses
+<small><time datetime=2021-09-28>28 sept 2021</time></small></a></li><li><a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
+<small><time datetime=2020-12-21>21 déc 2020</time></small></a></li><li><a href=https://fljd.in/2020/11/18/quelques-outils-meconnus/>Quelques outils méconnus
+<small><time datetime=2020-11-18>18 nov 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

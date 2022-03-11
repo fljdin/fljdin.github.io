@@ -1,334 +1,203 @@
-<!doctype html><html lang=fr>
-<head>
-<title>La meilleure chose depuis le pain en tranches</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>La meilleure chose depuis le pain en tranches</a></h1>
-<p class=post-date>
-<time datetime=2020-10-12>12 oct 2020</time>
-- 9 minutes de lecture
-</p><p>Je me souviens de cette époque où j&rsquo;ai été confronté pour la première fois à la
+<!doctype html><html lang=fr><head><title>La meilleure chose depuis le pain en tranches</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>La meilleure chose depuis le pain en tranches</a></h1><p class=post-date><time datetime=2020-10-12>12 oct 2020</time>
+- 9 minutes de lecture</p><p>Je me souviens de cette époque où j&rsquo;ai été confronté pour la première fois à la
 notion de TOAST avec PostgreSQL. Je trouvais la dénomination amusante, bien
 qu&rsquo;étrange, pour nommer le mécanisme de stockage étendu « <em>The Oversized-Attribute
 Storage Technique</em> ». Bien que l&rsquo;acronyme ne fasse pas de référence culinaire,
-on peut retrouver dans la <a href=https://www.postgresql.org/docs/13/storage-toast.html>documentation officielle</a> qu&rsquo;il s&rsquo;agissait d&rsquo;une
-petite révolution et de la meilleure chose depuis le pain en tranches.</p>
-<p><img src=/img/fr/2020-10-12-toasted-bread.jpg alt="Envie d&rsquo;une tranche de pain ?"></p>
-<hr>
-<h2 id=le-seuil-de-dépassement>Le seuil de dépassement</h2>
-<p>Depuis le tout début du projet PostgreSQL, les lignes (ou <em>tuples</em>) d&rsquo;une table
+on peut retrouver dans la <a href=https://www.postgresql.org/docs/13/storage-toast.html target=_blank rel=noopener>documentation officielle</a> qu&rsquo;il s&rsquo;agissait d&rsquo;une
+petite révolution et de la meilleure chose depuis le pain en tranches.</p><p><img src=/img/fr/2020-10-12-toasted-bread.jpg alt="Envie d&amp;rsquo;une tranche de pain ?"></p><hr><h2 id=le-seuil-de-dépassement>Le seuil de dépassement</h2><p>Depuis le tout début du projet PostgreSQL, les lignes (ou <em>tuples</em>) d&rsquo;une table
 sont ajoutées dans un ensemble de pages qui composent une table dès qu&rsquo;un espace
 libre est disponible. Un tuple de données ne peut être écrit dans plusieurs pages,
 en opposition à ce que propose Oracle avec la notion de chaînage de lignes
-(<em><a href=http://www.orafaq.com/wiki/Chained_row>row chaining</a></em>).</p>
-<p>En version 8.0 apparaît la technique TOAST. Celle-ci est transparente et garantit
+(<em><a href=http://www.orafaq.com/wiki/Chained_row target=_blank rel=noopener>row chaining</a></em>).</p><p>En version 8.0 apparaît la technique TOAST. Celle-ci est transparente et garantit
 que les champs de tailles variables comme <code>text</code>, <code>jsonb</code>, <code>hstore</code> ou <code>bytea</code>
 puissent être écrits en dehors des pages de 8 ko afin de lever la contrainte de
-stockage. On peut résumer les quelques éléments théoriques :</p>
-<ul>
-<li>La taille d&rsquo;un tel champ peut atteindre la taille maximale de 1 Go ;</li>
-<li>Une <a href=https://fr.wikipedia.org/wiki/LZ77_et_LZ78>compression LZ</a> est éventuellement réalisée pour éviter de <em>toaster</em>
-la donnée en dehors de la relation principale ;</li>
-<li>PostgreSQL découpe la donnée en morceaux de taille équivalente, appelés <em>chunks</em> 
-et les écrit dans une table <code>pg_toast_xxxxx</code> indexée ;</li>
-<li>Un pointeur vers l&rsquo;adresse des <em>chunks</em> est renseigné dans la ligne principale
-en lieu et place de la donnée.</li>
-</ul>
-<p>Prenons une table <code>people</code> avec une clé primaire et une colonne <code>jsonb</code> pour y
-stocker des données dénormalisées. (Oui. Le NoSQL est partout.)</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=p>(</span><span class=w>
-</span><span class=w>  </span><span class=n>id</span><span class=w> </span><span class=nb>BIGINT</span><span class=w> </span><span class=k>GENERATED</span><span class=w> </span><span class=n>ALWAYS</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=k>IDENTITY</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=n>details</span><span class=w> </span><span class=n>jsonb</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>id</span><span class=p>)</span><span class=w>
-</span><span class=w></span><span class=p>);</span><span class=w>
-</span></code></pre></div><p>Plus haut, je précisais que la compression est éventuelle : il s&rsquo;agit de la
+stockage. On peut résumer les quelques éléments théoriques :</p><ul><li>La taille d&rsquo;un tel champ peut atteindre la taille maximale de 1 Go ;</li><li>Une <a href=https://fr.wikipedia.org/wiki/LZ77_et_LZ78 target=_blank rel=noopener>compression LZ</a> est éventuellement réalisée pour éviter de <em>toaster</em>
+la donnée en dehors de la relation principale ;</li><li>PostgreSQL découpe la donnée en morceaux de taille équivalente, appelés <em>chunks</em> 
+et les écrit dans une table <code>pg_toast_xxxxx</code> indexée ;</li><li>Un pointeur vers l&rsquo;adresse des <em>chunks</em> est renseigné dans la ligne principale
+en lieu et place de la donnée.</li></ul><p>Prenons une table <code>people</code> avec une clé primaire et une colonne <code>jsonb</code> pour y
+stocker des données dénormalisées. (Oui. Le NoSQL est partout.)</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>id</span><span class=w> </span><span class=nb>BIGINT</span><span class=w> </span><span class=k>GENERATED</span><span class=w> </span><span class=n>ALWAYS</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=k>IDENTITY</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>details</span><span class=w> </span><span class=n>jsonb</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><p>Plus haut, je précisais que la compression est éventuelle : il s&rsquo;agit de la
 stratégie par défaut avec un mode <em>extended</em> pour le stockage de la colonne
 <code>details</code>. Dans cet article, je désactive la compression en changeant le
-<a href=https://www.postgresql.org/docs/13/catalog-pg-type.html>typstorage</a> pour m&rsquo;assurer que le mécanisme se déclenche correctement.
+<a href=https://www.postgresql.org/docs/13/catalog-pg-type.html target=_blank rel=noopener>typstorage</a> pour m&rsquo;assurer que le mécanisme se déclenche correctement.
 Dans un cas réel de production, cette option peut apporter un léger gain en
 vitesse d&rsquo;exécution au détriment d&rsquo;une consommation en espace disque plus
-conséquente.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=k>COLUMN</span><span class=w> </span><span class=n>details</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>STORAGE</span><span class=w> </span><span class=k>EXTERNAL</span><span class=p>;</span><span class=w>
-</span></code></pre></div><ul>
-<li><code>p</code> (plain) : la valeur doit être stockée normalement ;</li>
-<li><code>e</code> (external) : la valeur peut être stockée dans une relation « secondaire »</li>
-<li><code>m</code> (main) : la valeur peut être stockée compressée sur place ;</li>
-<li><code>x</code> (extended) : la valeur peut être stockée compressée sur place ou stockée
-dans une relation « secondaire ».</li>
-</ul>
-<p>À la création de la table <code>people</code>, on constate qu&rsquo;une deuxième relation est
+conséquente.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=k>ALTER</span><span class=w> </span><span class=k>COLUMN</span><span class=w> </span><span class=n>details</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=k>STORAGE</span><span class=w> </span><span class=k>EXTERNAL</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><ul><li><code>p</code> (plain) : la valeur doit être stockée normalement ;</li><li><code>e</code> (external) : la valeur peut être stockée dans une relation « secondaire »</li><li><code>m</code> (main) : la valeur peut être stockée compressée sur place ;</li><li><code>x</code> (extended) : la valeur peut être stockée compressée sur place ou stockée
+dans une relation « secondaire ».</li></ul><p>À la création de la table <code>people</code>, on constate qu&rsquo;une deuxième relation est
 automatiquement provisionnée pour accueillir les données larges : il s&rsquo;agit de
-<code>pg_toast_32865</code>, que l&rsquo;on identifie à l&rsquo;aide de la table système <code>pg_class</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>reltoastrelid</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>)</span><span class=w> </span><span class=n>filepath</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_relation_size</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>))</span><span class=w> </span><span class=n>relsize</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--          relname         |     filepath     | relsize 
-</span><span class=c1>-- -------------------------+------------------+-----------
-</span><span class=c1>--  pg_toast.pg_toast_32865 | base/13393/32868 | 0 bytes
-</span></code></pre></div><p>Dans l&rsquo;exemple qui suit, je souhaite démontrer que ce mécanisme ne se déclenche
+<code>pg_toast_32865</code>, que l&rsquo;on identifie à l&rsquo;aide de la table système <code>pg_class</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>reltoastrelid</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>)</span><span class=w> </span><span class=n>filepath</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_relation_size</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>))</span><span class=w> </span><span class=n>relsize</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--          relname         |     filepath     | relsize 
+</span></span></span><span class=line><span class=cl><span class=c1>-- -------------------------+------------------+-----------
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_toast.pg_toast_32865 | base/13393/32868 | 0 bytes
+</span></span></span></code></pre></div><p>Dans l&rsquo;exemple qui suit, je souhaite démontrer que ce mécanisme ne se déclenche
 qu&rsquo;au-delà d&rsquo;un certain seuil. Si une ligne est plus grande que la constante
 interne <code>TOAST_TUPLE_THRESHOLD</code>, le moteur tentera de réduire sa taille à l&rsquo;aide
 de la compression. Si la taille est toujours supérieure à la variable de stockage
 <code>TOAST_TUPLE_TARGET</code>, la donnée sera alors déportée dans une table secondaire.
-Par défaut, ces deux seuils valent à peu près 2 ko.</p>
-<p>J&rsquo;utilise l&rsquo;extension <a href=https://gitlab.com/dalibo/postgresql_faker>postgresql_faker</a> pour alimenter ma table avec des
+Par défaut, ces deux seuils valent à peu près 2 ko.</p><p>J&rsquo;utilise l&rsquo;extension <a href=https://gitlab.com/dalibo/postgresql_faker target=_blank rel=noopener>postgresql_faker</a> pour alimenter ma table avec des
 noms et des prénoms aléatoires au format JSON. Une idée originale de Damien
-Clochard, contributeur de l&rsquo;incroyable extension <a href=https://labs.dalibo.com/postgresql_anonymizer>pg_anonymizer</a>. C&rsquo;est fun,
-rapide et prend en considération la langue de son choix.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>faker</span><span class=p>.</span><span class=n>faker</span><span class=p>(</span><span class=s1>&#39;FR_fr&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=p>(</span><span class=n>details</span><span class=p>)</span><span class=w> 
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>format</span><span class=p>(</span><span class=w>
-</span><span class=w>         </span><span class=s1>&#39;{&#34;firstname&#34;:&#34;%s&#34;,&#34;lastname&#34;:&#34;%s&#34;}&#39;</span><span class=p>,</span><span class=w> 
-</span><span class=w>         </span><span class=n>faker</span><span class=p>.</span><span class=n>first_name</span><span class=p>(),</span><span class=w> </span><span class=n>faker</span><span class=p>.</span><span class=n>last_name</span><span class=p>()</span><span class=w>
-</span><span class=w>       </span><span class=p>)::</span><span class=n>json</span><span class=w> 
-</span><span class=w></span><span class=k>FROM</span><span class=w> </span><span class=n>generate_series</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>10</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>ctid</span><span class=p>,</span><span class=w> </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_column_size</span><span class=p>(</span><span class=n>details</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>colsize</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;lastname&#39;</span><span class=w> </span><span class=n>lastname</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;firstname&#39;</span><span class=w> </span><span class=n>firstname</span><span class=w>       
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>people</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--   ctid  | colsize  | id | lastname  | firstname  
-</span><span class=c1>-- --------+----------+----+-----------+------------
-</span><span class=c1>--  (0,1)  | 51 bytes |  1 | Godard    | Jacques
-</span><span class=c1>--  (0,2)  | 52 bytes |  2 | Richard   | Martine
-</span><span class=c1>--  (0,3)  | 57 bytes |  3 | Lemonnier | Théophile
-</span><span class=c1>--  (0,4)  | 51 bytes |  4 | Perrin    | Gérard
-</span><span class=c1>--  (0,5)  | 50 bytes |  5 | Alves     | Gilbert
-</span><span class=c1>--  (0,6)  | 49 bytes |  6 | Aubry     | Louise
-</span><span class=c1>--  (0,7)  | 52 bytes |  7 | Garnier   | Gérard
-</span><span class=c1>--  (0,8)  | 49 bytes |  8 | Ruiz      | Cécile
-</span><span class=c1>--  (0,9)  | 53 bytes |  9 | Herve     | Stéphanie
-</span><span class=c1>--  (0,10) | 51 bytes | 10 | Jacques   | Pierre
-</span></code></pre></div><p>Les données de la colonne <code>details</code> au format JSON ont une taille moyenne de
+Clochard, contributeur de l&rsquo;incroyable extension <a href=https://labs.dalibo.com/postgresql_anonymizer target=_blank rel=noopener>pg_anonymizer</a>. C&rsquo;est fun,
+rapide et prend en considération la langue de son choix.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>faker</span><span class=p>.</span><span class=n>faker</span><span class=p>(</span><span class=s1>&#39;FR_fr&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=p>(</span><span class=n>details</span><span class=p>)</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>format</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=s1>&#39;{&#34;firstname&#34;:&#34;%s&#34;,&#34;lastname&#34;:&#34;%s&#34;}&#39;</span><span class=p>,</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=n>faker</span><span class=p>.</span><span class=n>first_name</span><span class=p>(),</span><span class=w> </span><span class=n>faker</span><span class=p>.</span><span class=n>last_name</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=p>)::</span><span class=n>json</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w> </span><span class=n>generate_series</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>10</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>ctid</span><span class=p>,</span><span class=w> </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_column_size</span><span class=p>(</span><span class=n>details</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>colsize</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;lastname&#39;</span><span class=w> </span><span class=n>lastname</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;firstname&#39;</span><span class=w> </span><span class=n>firstname</span><span class=w>       
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>people</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--   ctid  | colsize  | id | lastname  | firstname  
+</span></span></span><span class=line><span class=cl><span class=c1>-- --------+----------+----+-----------+------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,1)  | 51 bytes |  1 | Godard    | Jacques
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,2)  | 52 bytes |  2 | Richard   | Martine
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,3)  | 57 bytes |  3 | Lemonnier | Théophile
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,4)  | 51 bytes |  4 | Perrin    | Gérard
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,5)  | 50 bytes |  5 | Alves     | Gilbert
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,6)  | 49 bytes |  6 | Aubry     | Louise
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,7)  | 52 bytes |  7 | Garnier   | Gérard
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,8)  | 49 bytes |  8 | Ruiz      | Cécile
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,9)  | 53 bytes |  9 | Herve     | Stéphanie
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,10) | 51 bytes | 10 | Jacques   | Pierre
+</span></span></span></code></pre></div><p>Les données de la colonne <code>details</code> au format JSON ont une taille moyenne de
 52 octets. C&rsquo;est bien inférieure à la limite de 2 ko, il est juste de penser
 qu&rsquo;aucune de ces valeurs n&rsquo;ait été <em>toastée</em> dans la relation secondaire. La
 requête plus haut m&rsquo;indique que la taille de la relation secondaire est toujours
-nulle.</p>
-<p>Procédons à l&rsquo;ajout d&rsquo;un commentaire volontairement volumineux pour l&rsquo;un des
+nulle.</p><p>Procédons à l&rsquo;ajout d&rsquo;un commentaire volontairement volumineux pour l&rsquo;un des
 tuples de ma table. Disons une succession de 1000 mots aléatoires. Nous observons
-à l&rsquo;aide de la méthode <code>pg_column_size</code> que la donnée présente une taille de 10 ko.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>UPDATE</span><span class=w> </span><span class=n>people</span><span class=w> 
-</span><span class=w>   </span><span class=k>SET</span><span class=w> </span><span class=n>details</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>details</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>jsonb_build_object</span><span class=p>(</span><span class=w>
-</span><span class=w>         </span><span class=s1>&#39;comment&#39;</span><span class=p>,</span><span class=w> </span><span class=n>faker</span><span class=p>.</span><span class=nb>text</span><span class=p>(</span><span class=mi>1</span><span class=n>e4</span><span class=p>::</span><span class=nb>int</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=p>)</span><span class=w>
-</span><span class=w>       </span><span class=p>)</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>VACUUM</span><span class=w> </span><span class=n>people</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>ctid</span><span class=p>,</span><span class=w> </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_column_size</span><span class=p>(</span><span class=n>details</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>colsize</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;lastname&#39;</span><span class=w> </span><span class=n>lastname</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;firstname&#39;</span><span class=w> </span><span class=n>firstname</span><span class=w>       
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--   ctid  | colsize  | id | lastname  | firstname  
-</span><span class=c1>-- --------+----------+----+-----------+------------
-</span><span class=c1>--  (0,11) | 10 kB    |  1 | Godard    | Jacques
-</span></code></pre></div><p>À l&rsquo;issue de l&rsquo;ordre <code>UPDATE</code>, la ligne dont l&rsquo;adresse physique était <code>(0,1)</code>
+à l&rsquo;aide de la méthode <code>pg_column_size</code> que la donnée présente une taille de 10 ko.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>UPDATE</span><span class=w> </span><span class=n>people</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>SET</span><span class=w> </span><span class=n>details</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>details</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>jsonb_build_object</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=s1>&#39;comment&#39;</span><span class=p>,</span><span class=w> </span><span class=n>faker</span><span class=p>.</span><span class=nb>text</span><span class=p>(</span><span class=mi>1</span><span class=n>e4</span><span class=p>::</span><span class=nb>int</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>VACUUM</span><span class=w> </span><span class=n>people</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>ctid</span><span class=p>,</span><span class=w> </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_column_size</span><span class=p>(</span><span class=n>details</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>colsize</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;lastname&#39;</span><span class=w> </span><span class=n>lastname</span><span class=p>,</span><span class=w> </span><span class=n>details</span><span class=o>-&gt;&gt;</span><span class=s1>&#39;firstname&#39;</span><span class=w> </span><span class=n>firstname</span><span class=w>       
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>people</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--   ctid  | colsize  | id | lastname  | firstname  
+</span></span></span><span class=line><span class=cl><span class=c1>-- --------+----------+----+-----------+------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,11) | 10 kB    |  1 | Godard    | Jacques
+</span></span></span></code></pre></div><p>À l&rsquo;issue de l&rsquo;ordre <code>UPDATE</code>, la ligne dont l&rsquo;adresse physique était <code>(0,1)</code>
 a été dupliquée dans un nouvel emplacement du même bloc <code>(0,11)</code>. Je force un
 <code>VACUUM</code> pour nettoyer le bloc afin que la précédente version ne soit plus
-visible par la suite.</p>
-<p>Si je consulte la table système <code>pg_class</code>, j&rsquo;observe que le fichier secondaire
+visible par la suite.</p><p>Si je consulte la table système <code>pg_class</code>, j&rsquo;observe que le fichier secondaire
 rattaché à notre table a pris du poids. Pour accueillir le commentaire au sujet
-de M. Godard, PostgreSQL a alloué deux blocs de 8 ko, soit 16 ko en tout.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>reltoastrelid</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>)</span><span class=w> </span><span class=n>filepath</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_relation_size</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>))</span><span class=w> </span><span class=n>relsize</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--          relname         |     filepath     | relsize 
-</span><span class=c1>-- -------------------------+------------------+-----------
-</span><span class=c1>--  pg_toast.pg_toast_32865 | base/13393/32868 | 16 kB
-</span></code></pre></div><p>Nous nous retrouvons avec un fichier de dépassement, réservé aux données
+de M. Godard, PostgreSQL a alloué deux blocs de 8 ko, soit 16 ko en tout.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>reltoastrelid</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>)</span><span class=w> </span><span class=n>filepath</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=n>pg_relation_size</span><span class=p>(</span><span class=n>reltoastrelid</span><span class=p>))</span><span class=w> </span><span class=n>relsize</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--          relname         |     filepath     | relsize 
+</span></span></span><span class=line><span class=cl><span class=c1>-- -------------------------+------------------+-----------
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_toast.pg_toast_32865 | base/13393/32868 | 16 kB
+</span></span></span></code></pre></div><p>Nous nous retrouvons avec un fichier de dépassement, réservé aux données
 volumineuses. PostgreSQL parvient à reconstruire silencieusement la ligne
 complète en mettant bout à bout les données stockées dans le fichier principal
 et celles du fichier secondaire. On parle alors de <em>detoasting</em>. Une requête
 <code>SELECT</code> sur la colonne <code>people.details</code> fournira la donnée réelle sans que
-l&rsquo;utilisateur n&rsquo;ait connaissance de l&rsquo;emplacement physique des informations.</p>
-<hr>
-<h2 id=structure-du-pointeur-de-toast>Structure du pointeur de TOAST</h2>
-<p>Comme présenté dans l&rsquo;introduction, PostgreSQL va devoir maintenir un lien entre
+l&rsquo;utilisateur n&rsquo;ait connaissance de l&rsquo;emplacement physique des informations.</p><hr><h2 id=structure-du-pointeur-de-toast>Structure du pointeur de TOAST</h2><p>Comme présenté dans l&rsquo;introduction, PostgreSQL va devoir maintenir un lien entre
 une ligne et son contenu <em>toasté</em>, notamment grâce à un pointeur dont la structure
-est encodé sur 18 octets, comme le précise la documentation.</p>
-<blockquote>
-<p>Allowing for the varlena header bytes, the total size of an on-disk TOAST
+est encodé sur 18 octets, comme le précise la documentation.</p><blockquote><p>Allowing for the varlena header bytes, the total size of an on-disk TOAST
 pointer datum is therefore 18 bytes regardless of the actual size of the
-represented value.</p>
-</blockquote>
-<p>Ni une ni deux, je saute sur l&rsquo;extension <a href=https://www.postgresql.org/docs/13/pageinspect.html>pageinspect</a> afin de décoder le
+represented value.</p></blockquote><p>Ni une ni deux, je saute sur l&rsquo;extension <a href=https://www.postgresql.org/docs/13/pageinspect.html target=_blank rel=noopener>pageinspect</a> afin de décoder le
 contenu de la nouvelle ligne <code>(0,11)</code> et de voir la représentation de ce fameux
 pointeur. Pour cela, je joins la table système <code>pg_attribute</code> et le tableau
-<code>t_attrs</code> fourni par la méthode <code>heap_page_item_attrs()</code> de l&rsquo;extension.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SET</span><span class=w> </span><span class=n>bytea_output</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;hex&#39;</span><span class=w> </span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>p</span><span class=p>.</span><span class=n>t_ctid</span><span class=p>,</span><span class=w> </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=k>length</span><span class=p>(</span><span class=n>r</span><span class=p>.</span><span class=k>data</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>colsize</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>a</span><span class=p>.</span><span class=n>attname</span><span class=p>,</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=k>data</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>heap_page_item_attrs</span><span class=p>(</span><span class=n>get_raw_page</span><span class=p>(</span><span class=s1>&#39;people&#39;</span><span class=p>,</span><span class=w> </span><span class=mi>0</span><span class=p>),</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>)</span><span class=w> </span><span class=n>p</span><span class=w>
-</span><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>LATERAL</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=n>p</span><span class=p>.</span><span class=n>t_attrs</span><span class=p>)</span><span class=w> 
-</span><span class=w>  </span><span class=k>WITH</span><span class=w> </span><span class=k>ORDINALITY</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>r</span><span class=p>(</span><span class=k>data</span><span class=p>,</span><span class=w> </span><span class=n>attnum</span><span class=p>)</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=k>true</span><span class=w>
-</span><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=n>pg_attribute</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>attnum</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=n>attnum</span><span class=w> 
-</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>attrelid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>attnum</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=mi>0</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>t_ctid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;(0,11)&#39;</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--  t_ctid | colsize  | attname |                  data                  
-</span><span class=c1>-- --------+----------+---------+----------------------------------------
-</span><span class=c1>--  (0,11) | 8 bytes  | id      | \x0100000000000000
-</span><span class=c1>--  (0,11) | 18 bytes | details | \x011225280000212800006980000064800000
-</span></code></pre></div><p>La donnée <code>details</code> est bien encodée sur 18 octets. Dans le cas qui nous concerne,
+<code>t_attrs</code> fourni par la méthode <code>heap_page_item_attrs()</code> de l&rsquo;extension.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>bytea_output</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;hex&#39;</span><span class=w> </span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>p</span><span class=p>.</span><span class=n>t_ctid</span><span class=p>,</span><span class=w> </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=k>length</span><span class=p>(</span><span class=n>r</span><span class=p>.</span><span class=k>data</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>colsize</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>a</span><span class=p>.</span><span class=n>attname</span><span class=p>,</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=k>data</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>heap_page_item_attrs</span><span class=p>(</span><span class=n>get_raw_page</span><span class=p>(</span><span class=s1>&#39;people&#39;</span><span class=p>,</span><span class=w> </span><span class=mi>0</span><span class=p>),</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>)</span><span class=w> </span><span class=n>p</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=k>LATERAL</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=n>p</span><span class=p>.</span><span class=n>t_attrs</span><span class=p>)</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>WITH</span><span class=w> </span><span class=k>ORDINALITY</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>r</span><span class=p>(</span><span class=k>data</span><span class=p>,</span><span class=w> </span><span class=n>attnum</span><span class=p>)</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=k>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>JOIN</span><span class=w> </span><span class=n>pg_attribute</span><span class=w> </span><span class=n>a</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>attnum</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>r</span><span class=p>.</span><span class=n>attnum</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>attrelid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;people&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>a</span><span class=p>.</span><span class=n>attnum</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=mi>0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>t_ctid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;(0,11)&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  t_ctid | colsize  | attname |                  data                  
+</span></span></span><span class=line><span class=cl><span class=c1>-- --------+----------+---------+----------------------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,11) | 8 bytes  | id      | \x0100000000000000
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,11) | 18 bytes | details | \x011225280000212800006980000064800000
+</span></span></span></code></pre></div><p>La donnée <code>details</code> est bien encodée sur 18 octets. Dans le cas qui nous concerne,
 le premier octet <code>0x01</code> indique qu&rsquo;il s&rsquo;agit bien d&rsquo;un pointeur d&rsquo;adresse pour
 une donnée externe, comme l&rsquo;explique un commentaire dans le fichier
 <code>src/include/postgres.h</code> pour la définition de structure <code>varattrib_1b_e</code>
-(<a href=https://doxygen.postgresql.org/structvarattrib__1b__e.html>source</a>).
+(<a href=https://doxygen.postgresql.org/structvarattrib__1b__e.html target=_blank rel=noopener>source</a>).
 Dans cette démonstration, la distribution Linux est un Debian (<em>little endian</em>)
 et la lecture des octets de données est inversée. Je vous renvoie à l&rsquo;explication
-du <a href=https://fr.wikipedia.org/wiki/Boutisme>boutisme</a> (ou <em>endianness</em>) si besoin.</p>
-<p>Pour ne rien vous cacher, mes recherches à ce sujet m&rsquo;ont amené sur des blogs
-chinois récents où les <a href="https://translate.google.com/translate?hl=en&sl=zh-CN&tl=en&u=https%3A%2F%2Fzhmin.github.io%2F2020%2F08%2F30%2Fpostgresql-varlena%2F">explications</a> et <a href="https://translate.google.com/translate?hl=en&sl=auto&tl=en&u=https://www.cnblogs.com/6yuhang/p/12045666.html">démonstrations</a> ont été très
+du <a href=https://fr.wikipedia.org/wiki/Boutisme target=_blank rel=noopener>boutisme</a> (ou <em>endianness</em>) si besoin.</p><p>Pour ne rien vous cacher, mes recherches à ce sujet m&rsquo;ont amené sur des blogs
+chinois récents où les <a href="https://translate.google.com/translate?hl=en&sl=zh-CN&tl=en&u=https%3A%2F%2Fzhmin.github.io%2F2020%2F08%2F30%2Fpostgresql-varlena%2F" target=_blank rel=noopener>explications</a> et <a href="https://translate.google.com/translate?hl=en&sl=auto&tl=en&u=https://www.cnblogs.com/6yuhang/p/12045666.html" target=_blank rel=noopener>démonstrations</a> ont été très
 instructives. Pour en faire la synthèse, le pointeur se découpe donc en 2 octets
-d&rsquo;état (<em>mark bits</em>) et quatres informations de 4 octets chacune.</p>
-<table>
-<thead>
-<tr>
-<th>Taille</th>
-<th>Description</th>
-<th>Représentation</th>
-<th>Valeur</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1 octet</td>
-<td>Bit d&rsquo;état pour un stockage little-endian</td>
-<td>0x01</td>
-<td>1</td>
-</tr>
-<tr>
-<td>1 octet</td>
-<td>Type du pointeur défini par l&rsquo;énumération <code>vartag_external</code></td>
-<td>0x12</td>
-<td>18</td>
-</tr>
-<tr>
-<td>4 octets</td>
-<td>Taille de la donnée avec les en-têtes</td>
-<td>0x25280000</td>
-<td>10277</td>
-</tr>
-<tr>
-<td>4 octets</td>
-<td>Taille de la donnée externe sans les en-têtes</td>
-<td>0x21280000</td>
-<td>10273</td>
-</tr>
-<tr>
-<td>4 octets</td>
-<td>Identifiant unique à l&rsquo;intérieur de la table TOAST</td>
-<td>0x69800000</td>
-<td>32873</td>
-</tr>
-<tr>
-<td>4 octets</td>
-<td>Identifiant de la table TOAST</td>
-<td>0x64800000</td>
-<td>32868</td>
-</tr>
-</tbody>
-</table>
-<p>L&rsquo;ensemble de ces éléments nous fournit à présent l&rsquo;emplacement de la donnée à
+d&rsquo;état (<em>mark bits</em>) et quatres informations de 4 octets chacune.</p><table><thead><tr><th>Taille</th><th>Description</th><th>Représentation</th><th>Valeur</th></tr></thead><tbody><tr><td>1 octet</td><td>Bit d&rsquo;état pour un stockage little-endian</td><td>0x01</td><td>1</td></tr><tr><td>1 octet</td><td>Type du pointeur défini par l&rsquo;énumération <code>vartag_external</code></td><td>0x12</td><td>18</td></tr><tr><td>4 octets</td><td>Taille de la donnée avec les en-têtes</td><td>0x25280000</td><td>10277</td></tr><tr><td>4 octets</td><td>Taille de la donnée externe sans les en-têtes</td><td>0x21280000</td><td>10273</td></tr><tr><td>4 octets</td><td>Identifiant unique à l&rsquo;intérieur de la table TOAST</td><td>0x69800000</td><td>32873</td></tr><tr><td>4 octets</td><td>Identifiant de la table TOAST</td><td>0x64800000</td><td>32868</td></tr></tbody></table><p>L&rsquo;ensemble de ces éléments nous fournit à présent l&rsquo;emplacement de la donnée à
 décoder. Sans surprise, la relation ayant l&rsquo;identifiant <code>32868</code> s&rsquo;avère être le
 fichier secondaire de la table <code>people</code>. Toutes les relations TOAST présentent
 un identifiant, une séquence et une donnée binaire, le tout parfaitement indexé
 pour garantir les meilleures performances d&rsquo;accès lors de la reconstitution de
-la ligne.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>select</span><span class=w> </span><span class=mi>32868</span><span class=p>::</span><span class=n>regclass</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--         regclass
-</span><span class=c1>-- -------------------------
-</span><span class=c1>--  pg_toast.pg_toast_32865
-</span><span class=c1></span><span class=w>
-</span><span class=w></span><span class=err>\</span><span class=n>d</span><span class=w> </span><span class=n>pg_toast</span><span class=p>.</span><span class=n>pg_toast_32865</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- TOAST table &#34;pg_toast.pg_toast_32865&#34;
-</span><span class=c1>--    Column   |  Type   
-</span><span class=c1>-- ------------+---------
-</span><span class=c1>--  chunk_id   | oid
-</span><span class=c1>--  chunk_seq  | integer
-</span><span class=c1>--  chunk_data | bytea
-</span><span class=c1>-- Owning table: &#34;public.people&#34;
-</span><span class=c1>-- Indexes:
-</span><span class=c1>--   &#34;pg_toast_32865_index&#34; PRIMARY KEY, btree (chunk_id, chunk_seq)
-</span><span class=c1></span><span class=w>
-</span></code></pre></div><p>À l&rsquo;aide du deuxième identifiant interne <code>32873</code>, communément appelé <code>chunk_id</code>,
+la ligne.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>select</span><span class=w> </span><span class=mi>32868</span><span class=p>::</span><span class=n>regclass</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--         regclass
+</span></span></span><span class=line><span class=cl><span class=c1>-- -------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_toast.pg_toast_32865
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>\</span><span class=n>d</span><span class=w> </span><span class=n>pg_toast</span><span class=p>.</span><span class=n>pg_toast_32865</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- TOAST table &#34;pg_toast.pg_toast_32865&#34;
+</span></span></span><span class=line><span class=cl><span class=c1>--    Column   |  Type   
+</span></span></span><span class=line><span class=cl><span class=c1>-- ------------+---------
+</span></span></span><span class=line><span class=cl><span class=c1>--  chunk_id   | oid
+</span></span></span><span class=line><span class=cl><span class=c1>--  chunk_seq  | integer
+</span></span></span><span class=line><span class=cl><span class=c1>--  chunk_data | bytea
+</span></span></span><span class=line><span class=cl><span class=c1>-- Owning table: &#34;public.people&#34;
+</span></span></span><span class=line><span class=cl><span class=c1>-- Indexes:
+</span></span></span><span class=line><span class=cl><span class=c1>--   &#34;pg_toast_32865_index&#34; PRIMARY KEY, btree (chunk_id, chunk_seq)
+</span></span></span></code></pre></div><p>À l&rsquo;aide du deuxième identifiant interne <code>32873</code>, communément appelé <code>chunk_id</code>,
 nous sommes libre de consulter le contenu de la relation secondaire avec une
 requête classique. Évidemment, cette relation n&rsquo;est jamais manipulée directement
 mais elle nous permet de diagnostiquer l&rsquo;état d&rsquo;un bloc de données si un message
-de corruption s&rsquo;est jeté à l&rsquo;écran d&rsquo;un utilisateur.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>ctid</span><span class=p>,</span><span class=w> </span><span class=n>chunk_id</span><span class=p>,</span><span class=w> </span><span class=n>chunk_seq</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=k>octet_length</span><span class=p>(</span><span class=n>chunk_data</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>chunk_size</span><span class=p>,</span><span class=w>
-</span><span class=w>       </span><span class=k>substring</span><span class=p>(</span><span class=n>chunk_data</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=mi>10</span><span class=p>)</span><span class=w> </span><span class=n>preview</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_toast</span><span class=p>.</span><span class=n>pg_toast_32865</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>chunk_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>32873</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--  ctid  | chunk_id | chunk_seq | chunk_size |        preview         
-</span><span class=c1>-- -------+----------+-----------+------------+------------------------
-</span><span class=c1>--  (0,1) |    32873 |         0 | 1996 bytes | \x03000020070000800800
-</span><span class=c1>--  (0,2) |    32873 |         1 | 1996 bytes | \x20646f63746575722e20
-</span><span class=c1>--  (0,3) |    32873 |         2 | 1996 bytes | \x656e64656d61696e206c
-</span><span class=c1>--  (0,4) |    32873 |         3 | 1996 bytes | \xa7612070726f6d656e65
-</span><span class=c1>--  (1,1) |    32873 |         4 | 1996 bytes | \x204dc3a96d6f69726520
-</span><span class=c1>--  (1,2) |    32873 |         5 | 293 bytes  | \x6c6572206e6f74652e20
-</span></code></pre></div><p>Une donnée est découpée en petites tranches de 2 ko environ et sa taille complète
+de corruption s&rsquo;est jeté à l&rsquo;écran d&rsquo;un utilisateur.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>ctid</span><span class=p>,</span><span class=w> </span><span class=n>chunk_id</span><span class=p>,</span><span class=w> </span><span class=n>chunk_seq</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>pg_size_pretty</span><span class=p>(</span><span class=k>octet_length</span><span class=p>(</span><span class=n>chunk_data</span><span class=p>)::</span><span class=nb>bigint</span><span class=p>)</span><span class=w> </span><span class=n>chunk_size</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=k>substring</span><span class=p>(</span><span class=n>chunk_data</span><span class=w> </span><span class=k>for</span><span class=w> </span><span class=mi>10</span><span class=p>)</span><span class=w> </span><span class=n>preview</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_toast</span><span class=p>.</span><span class=n>pg_toast_32865</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>chunk_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>32873</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  ctid  | chunk_id | chunk_seq | chunk_size |        preview         
+</span></span></span><span class=line><span class=cl><span class=c1>-- -------+----------+-----------+------------+------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,1) |    32873 |         0 | 1996 bytes | \x03000020070000800800
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,2) |    32873 |         1 | 1996 bytes | \x20646f63746575722e20
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,3) |    32873 |         2 | 1996 bytes | \x656e64656d61696e206c
+</span></span></span><span class=line><span class=cl><span class=c1>--  (0,4) |    32873 |         3 | 1996 bytes | \xa7612070726f6d656e65
+</span></span></span><span class=line><span class=cl><span class=c1>--  (1,1) |    32873 |         4 | 1996 bytes | \x204dc3a96d6f69726520
+</span></span></span><span class=line><span class=cl><span class=c1>--  (1,2) |    32873 |         5 | 293 bytes  | \x6c6572206e6f74652e20
+</span></span></span></code></pre></div><p>Une donnée est découpée en petites tranches de 2 ko environ et sa taille complète
 renseignée au sein du pointeur, permet à PostgreSQL d&rsquo;appliquer un <em>offset</em> de
 lecture au moment de l&rsquo;opération de <em>detoasting</em>. Dans l&rsquo;exemple ci-dessus, la
 somme des six <em>chunks</em> correspond bien à la taille de 10 273 octets maintenue
-par le pointeur.</p>
-<h2 id=conclusion>Conclusion</h2>
-<p>Dans cet article, je voulais comprendre le fonctionnement interne du stockage
+par le pointeur.</p><h2 id=conclusion>Conclusion</h2><p>Dans cet article, je voulais comprendre le fonctionnement interne du stockage
 étendu et ce qui se cachait derrière les fichiers secondaires <code>pg_toast_xxxxx</code>.
 Des outils simples comme le catalogue (<code>pg_class</code>, <code>pg_attribute</code>) et l&rsquo;extension
 <code>pageinspect</code> ont suffi à remonter jusqu&rsquo;au pointeur d&rsquo;une donnée large et de
-retrouver l&rsquo;adresse de son stockage dans une relation TOAST.</p>
-<p>Ce mécanisme encourage l&rsquo;emploi des champs de taille variable, si l&rsquo;on ne connait
+retrouver l&rsquo;adresse de son stockage dans une relation TOAST.</p><p>Ce mécanisme encourage l&rsquo;emploi des champs de taille variable, si l&rsquo;on ne connait
 pas les besoins métiers au début d&rsquo;un projet. On bénéficie des fonctionnalités
 de compression voire de dépassement si le seuil est atteint. Malgré ces avantages,
 nous ne sommes pas à l&rsquo;abri d&rsquo;une forte fragmentation lors de mises à jour
 intensives de ces données <em>toastées</em>. Un <code>VACUUM FULL</code> peut devenir la seule
-solution de maintenance lorsque l&rsquo;on ne maîtrise plus leur taille sur les disques.</p>
-<p>Également, le choix de stocker des données volumineuses apporte son lot de
+solution de maintenance lorsque l&rsquo;on ne maîtrise plus leur taille sur les disques.</p><p>Également, le choix de stocker des données volumineuses apporte son lot de
 complexité avec des algorithmes d&rsquo;indexation à connaître et maîtriser. On peut
-parler du HASH ou du <a href=https://www.postgresql.org/docs/13/gist-implementation.html>GiST</a> pour s&rsquo;assurer des performances adaptées, et aussi
-du <a href=https://www.postgresql.org/docs/13/gin-implementation.html>GIN</a>, dans le cadre de recherche spécialisée JSON ou peut-être pour faire
-de la recherche plein-texte.</p>
-</article>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+parler du HASH ou du <a href=https://www.postgresql.org/docs/13/gist-implementation.html target=_blank rel=noopener>GiST</a> pour s&rsquo;assurer des performances adaptées, et aussi
+du <a href=https://www.postgresql.org/docs/13/gin-implementation.html target=_blank rel=noopener>GIN</a>, dans le cadre de recherche spécialisée JSON ou peut-être pour faire
+de la recherche plein-texte.</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

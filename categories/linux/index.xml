@@ -5,8 +5,8 @@ moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/
 &lt;p>Après cet épisode et l&amp;rsquo;amertume d&amp;rsquo;avoir perdu quelques travaux, ou la surprise
 de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
 erreur, je me suis tourné vers l&amp;rsquo;outil incontournable dont tous mes collègues me
-parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/">BorgBackup&lt;/a>&lt;/p></description></item><item><title>Les liens physiques avec pg_upgrade</title><link>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</link><pubDate>Thu, 23 Apr 2020 15:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</guid><description>&lt;p>La création d&amp;rsquo;un lien sous Unix se réalise avec les commandes &lt;a href="https://www.gnu.org/software/coreutils/ln">ln&lt;/a> ou
-&lt;a href="https://www.gnu.org/software/coreutils/cp">cp&lt;/a>. Cette action permet de &lt;em>lier&lt;/em> deux fichiers vers la même donnée et
+parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p></description></item><item><title>Les liens physiques avec pg_upgrade</title><link>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</link><pubDate>Thu, 23 Apr 2020 15:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</guid><description>&lt;p>La création d&amp;rsquo;un lien sous Unix se réalise avec les commandes &lt;a href="https://www.gnu.org/software/coreutils/ln" target="_blank" rel="noopener">ln&lt;/a> ou
+&lt;a href="https://www.gnu.org/software/coreutils/cp" target="_blank" rel="noopener">cp&lt;/a>. Cette action permet de &lt;em>lier&lt;/em> deux fichiers vers la même donnée et
 de rendre disponible une ressource par l&amp;rsquo;intermédiaire de l&amp;rsquo;un ou de l&amp;rsquo;autre de
 ces fichiers.&lt;/p>
 &lt;p>Cependant, les opérations diffèrent selon le type de ce lien. Le plus connu reste

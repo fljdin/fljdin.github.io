@@ -1,192 +1,101 @@
-<!doctype html><html lang=fr>
-<head>
-<title>BorgBackup ou la sauvegarde facile</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>BorgBackup ou la sauvegarde facile</a></h1>
-<p class=post-date>
-<time datetime=2021-08-24>24 août 2021</time>
-- 5 minutes de lecture
-</p><p>Jusqu&rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
+<!doctype html><html lang=fr><head><title>BorgBackup ou la sauvegarde facile</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>BorgBackup ou la sauvegarde facile</a></h1><p class=post-date><time datetime=2021-08-24>24 août 2021</time>
+- 5 minutes de lecture</p><p>Jusqu&rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
 sauvegardes de fichiers personnels réalisées naïvement avec un script <code>rsync</code>.
 C&rsquo;est honteux dans nos métiers, mais l&rsquo;adage du cordonnier s&rsquo;est vérifié avec
-moi lors de l&rsquo;exécution d&rsquo;un vulgaire <code>find $NOVAR/ -delete</code> durant des tests.</p>
-<p>Après cet épisode et l&rsquo;amertume d&rsquo;avoir perdu quelques travaux, ou la surprise
+moi lors de l&rsquo;exécution d&rsquo;un vulgaire <code>find $NOVAR/ -delete</code> durant des tests.</p><p>Après cet épisode et l&rsquo;amertume d&rsquo;avoir perdu quelques travaux, ou la surprise
 de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
 erreur, je me suis tourné vers l&rsquo;outil incontournable dont tous mes collègues me
-parlaient : <a href=https://borgbackup.readthedocs.io/en/stable/>BorgBackup</a></p>
-<hr>
-<h2 id=des-atouts-séduisants>Des atouts séduisants</h2>
-<p>Cela fait à présent deux années que je travaille au quotidien sur Linux pour mon
+parlaient : <a href=https://borgbackup.readthedocs.io/en/stable/ target=_blank rel=noopener>BorgBackup</a></p><hr><h2 id=des-atouts-séduisants>Des atouts séduisants</h2><p>Cela fait à présent deux années que je travaille au quotidien sur Linux pour mon
 activité professionnelle. Étant responsable de mon matériel et des données que
 je manipule, il n&rsquo;existe pas de politique particulière pour les sauvegardes
-régulières ni le stockage de celles-ci.</p>
-<p>Mon précédent script était passablement trivial, à savoir :</p>
-<ul>
-<li>Sauvegarder une copie unique des documents courants ;</li>
-<li>Sauvegarder une liste des fichiers de configuration, appelés <em>dotfiles</em> ;</li>
-<li>Exclure les projets contenant un répertoire <code>.git</code> ;</li>
-<li>Exclure les fichiers de plus de 200 Mo.</li>
-</ul>
-<p>Le tout sur une clé USB de 8 Go, chiffrée avec le système <a href=https://fr.wikipedia.org/wiki/LUKS>LUKS</a> pour se
-prévenir de la perte ou du vol dans un espace public dudit support.</p>
-<p>Borg (son petit nom), permet de répondre correctement à l&rsquo;ensemble de ces
+régulières ni le stockage de celles-ci.</p><p>Mon précédent script était passablement trivial, à savoir :</p><ul><li>Sauvegarder une copie unique des documents courants ;</li><li>Sauvegarder une liste des fichiers de configuration, appelés <em>dotfiles</em> ;</li><li>Exclure les projets contenant un répertoire <code>.git</code> ;</li><li>Exclure les fichiers de plus de 200 Mo.</li></ul><p>Le tout sur une clé USB de 8 Go, chiffrée avec le système <a href=https://fr.wikipedia.org/wiki/LUKS target=_blank rel=noopener>LUKS</a> pour se
+prévenir de la perte ou du vol dans un espace public dudit support.</p><p>Borg (son petit nom), permet de répondre correctement à l&rsquo;ensemble de ces
 points, et le fait à merveille. En bénéficiant de la déduplication et de la
 compression, j&rsquo;ai pu conserver ma clé USB et m&rsquo;engager dans la rédaction d&rsquo;un
-<a href=https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef>nouveau script</a> plus complet.</p>
-<p><strong>Exclusion de fichiers et de répertoires</strong></p>
-<p>Certains fichiers ou répertoires cachés vivent leur vie sur nos postes, et un
+<a href=https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef target=_blank rel=noopener>nouveau script</a> plus complet.</p><p><strong>Exclusion de fichiers et de répertoires</strong></p><p>Certains fichiers ou répertoires cachés vivent leur vie sur nos postes, et un
 fichier d&rsquo;exclusion peut être transmis à Borg pour ne pas les inclure dans la
 routine de sauvegarde. Le mien est relativement léger pour le moment, et
-pourrait s&rsquo;enrichir avec l&rsquo;expérience.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=c1># ~/.config/borg/exclude.list </span>
-/home/**/.git
-/home/**/.vagrant
-/home/*/.local
-/home/*/.cache
-/home/*/.mozilla
-/home/*/.thunderbird
-/home/*/.config/chromium
-/home/*/.config/discord
-/home/*/.npm
-/home/*/.cpan
-</code></pre></div><p><strong>Déduplication et rétention d&rsquo;une semaine</strong></p>
-<p>Le gain remarquable entre mon script et la nouvelle solution que m&rsquo;offre Borg
+pourrait s&rsquo;enrichir avec l&rsquo;expérience.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># ~/.config/borg/exclude.list </span>
+</span></span><span class=line><span class=cl>/home/**/.git
+</span></span><span class=line><span class=cl>/home/**/.vagrant
+</span></span><span class=line><span class=cl>/home/*/.local
+</span></span><span class=line><span class=cl>/home/*/.cache
+</span></span><span class=line><span class=cl>/home/*/.mozilla
+</span></span><span class=line><span class=cl>/home/*/.thunderbird
+</span></span><span class=line><span class=cl>/home/*/.config/chromium
+</span></span><span class=line><span class=cl>/home/*/.config/discord
+</span></span><span class=line><span class=cl>/home/*/.npm
+</span></span><span class=line><span class=cl>/home/*/.cpan
+</span></span></code></pre></div><p><strong>Déduplication et rétention d&rsquo;une semaine</strong></p><p>Le gain remarquable entre mon script et la nouvelle solution que m&rsquo;offre Borg
 réside dans son algorithme de déduplication, où la version d&rsquo;un fichier n&rsquo;est
 stockée qu&rsquo;une seule fois jusqu&rsquo;à une éventuelle modification, permettant de ne
 conserver qu&rsquo;une copie de mes documents sur une bien plus longue période avec
-un coût de stockage ridiculement faible.</p>
-<p>À chaque exécution, je demande le rapport de sauvegarde avec l&rsquo;option <code>--stats</code>
-dont voici un exemplaire sur l&rsquo;exécution de ce matin.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>------------------------------------------------------------------------------
-Archive name: florent-2021-08-24T08:42:05
-Archive fingerprint: be38707dd52f5a86f8e75fe3ad4997aae58b3016366a988b7cb37ce3b
-Time <span class=o>(</span>start<span class=o>)</span>: Tue, 2021-08-24 08:42:06
-Time <span class=o>(</span>end<span class=o>)</span>:   Tue, 2021-08-24 08:42:06
-Duration: 0.96 seconds
-Number of files: <span class=m>3720</span>
-Utilization of max. archive size: 0%
-------------------------------------------------------------------------------
-                       Original size      Compressed size    Deduplicated size
-This archive:                2.11 GB              1.78 GB            480.51 kB
-All archives:               12.63 GB             10.67 GB              1.75 GB
-                       Unique chunks         Total chunks
-Chunk index:                    <span class=m>3974</span>                <span class=m>25888</span>
-------------------------------------------------------------------------------
-</code></pre></div><p>Pour une semaine de rétention, l&rsquo;espace total consommé sur le montage USB
+un coût de stockage ridiculement faible.</p><p>À chaque exécution, je demande le rapport de sauvegarde avec l&rsquo;option <code>--stats</code>
+dont voici un exemplaire sur l&rsquo;exécution de ce matin.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>------------------------------------------------------------------------------
+</span></span><span class=line><span class=cl>Archive name: florent-2021-08-24T08:42:05
+</span></span><span class=line><span class=cl>Archive fingerprint: be38707dd52f5a86f8e75fe3ad4997aae58b3016366a988b7cb37ce3b
+</span></span><span class=line><span class=cl>Time <span class=o>(</span>start<span class=o>)</span>: Tue, 2021-08-24 08:42:06
+</span></span><span class=line><span class=cl>Time <span class=o>(</span>end<span class=o>)</span>:   Tue, 2021-08-24 08:42:06
+</span></span><span class=line><span class=cl>Duration: 0.96 seconds
+</span></span><span class=line><span class=cl>Number of files: <span class=m>3720</span>
+</span></span><span class=line><span class=cl>Utilization of max. archive size: 0%
+</span></span><span class=line><span class=cl>------------------------------------------------------------------------------
+</span></span><span class=line><span class=cl>                       Original size      Compressed size    Deduplicated size
+</span></span><span class=line><span class=cl>This archive:                2.11 GB              1.78 GB            480.51 kB
+</span></span><span class=line><span class=cl>All archives:               12.63 GB             10.67 GB              1.75 GB
+</span></span><span class=line><span class=cl>                       Unique chunks         Total chunks
+</span></span><span class=line><span class=cl>Chunk index:                    <span class=m>3974</span>                <span class=m>25888</span>
+</span></span><span class=line><span class=cl>------------------------------------------------------------------------------
+</span></span></code></pre></div><p>Pour une semaine de rétention, l&rsquo;espace total consommé sur le montage USB
 n&rsquo;excède pas (encore) les 1,75 Go alors que les images décompressées pèsent au
 total 12,63 Go que ne parvennait pas à stocker mon ancien script sur plusieurs
-jours.</p>
-<p>Au passage, la durée d&rsquo;exécution est significativement réduite chaque jour grâce
-à ce mécanisme, qui ne sélectionne que les nouveautés d&rsquo;une exécution à l&rsquo;autre.</p>
-<p><strong>Un montage virtuel pour naviguer dans le temps</strong></p>
-<p>L&rsquo;outil propose deux options pour la restauration :</p>
-<ul>
-<li><code>extract</code> pour restaurer le contenu d&rsquo;une archive dans le répertoire courant
-(<a href=https://borgbackup.readthedocs.io/en/stable/usage/extract.html>doc</a>) ;</li>
-<li><code>mount</code> pour visualiser les fichiers ou dossiers à restaurer, voire les
+jours.</p><p>Au passage, la durée d&rsquo;exécution est significativement réduite chaque jour grâce
+à ce mécanisme, qui ne sélectionne que les nouveautés d&rsquo;une exécution à l&rsquo;autre.</p><p><strong>Un montage virtuel pour naviguer dans le temps</strong></p><p>L&rsquo;outil propose deux options pour la restauration :</p><ul><li><code>extract</code> pour restaurer le contenu d&rsquo;une archive dans le répertoire courant
+(<a href=https://borgbackup.readthedocs.io/en/stable/usage/extract.html target=_blank rel=noopener>doc</a>) ;</li><li><code>mount</code> pour visualiser les fichiers ou dossiers à restaurer, voire les
 déplacer manuellement dans le répertoire cible avec un outil graphique
-(<a href=https://borgbackup.readthedocs.io/en/stable/usage/mount.html>doc</a>).</li>
-</ul>
-<p>Cette seconde proposition est particulièrement utile pour naviguer d&rsquo;une archive
+(<a href=https://borgbackup.readthedocs.io/en/stable/usage/mount.html target=_blank rel=noopener>doc</a>).</li></ul><p>Cette seconde proposition est particulièrement utile pour naviguer d&rsquo;une archive
 à une autre, à la recherche d&rsquo;un fichier perdu dans le temps. Le montage
-s&rsquo;effectue à l&rsquo;aide du système de fichiers <a href=https://www.kernel.org/doc/html/latest/filesystems/fuse.html>FUSE</a> qui ne nécessite aucun
-droit administrateur.</p>
-<p>Pour être utilisé à partir de Borg, le paquet <code>python-llfuse</code> sera requis selon
-votre distribution.</p>
-<h2 id=planification-avec-systemctl>Planification avec systemctl</h2>
-<p>Ce fut une découverte lors de mes lectures émerveillées de la <a href=https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef>documentation</a>
-et des <a href=https://wiki.archlinux.org/title/Borg_backup_(Fran%C3%A7ais)>ressources</a> de la communauté française d&rsquo;Archlinux. N&rsquo;étant pas
+s&rsquo;effectue à l&rsquo;aide du système de fichiers <a href=https://www.kernel.org/doc/html/latest/filesystems/fuse.html target=_blank rel=noopener>FUSE</a> qui ne nécessite aucun
+droit administrateur.</p><p>Pour être utilisé à partir de Borg, le paquet <code>python-llfuse</code> sera requis selon
+votre distribution.</p><h2 id=planification-avec-systemctl>Planification avec systemctl</h2><p>Ce fut une découverte lors de mes lectures émerveillées de la <a href=https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef target=_blank rel=noopener>documentation</a>
+et des <a href=https://wiki.archlinux.org/title/Borg_backup_%28Fran%C3%A7ais%29 target=_blank rel=noopener>ressources</a> de la communauté française d&rsquo;Archlinux. N&rsquo;étant pas
 particulièrement fan de <code>cron</code> pour un usage personnel, j&rsquo;ai suivi à la lettre
 la configuration d&rsquo;un service utilisateur et du <em>timer</em> associé pour garantir le
 lancement de la sauvegarde chaque jour, 30 minutes après le démarrage de mon
-système.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># .config/systemd/user/borg.service</span>
-<span class=k>[Unit]</span>
-<span class=na>Description</span><span class=o>=</span><span class=s>Borg backup</span>
-
-<span class=k>[Service]</span>
-<span class=na>Type</span><span class=o>=</span><span class=s>oneshot</span>
-<span class=na>ExecStart</span><span class=o>=</span><span class=s>%h/.bin/borg-create.sh</span>
-</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># .config/systemd/user/borg.timer</span>
-<span class=k>[Unit]</span>
-<span class=na>Description</span><span class=o>=</span><span class=s>Daily Borg backup</span>
-<span class=na>Documentation</span><span class=o>=</span><span class=s>man:borg</span>
-
-<span class=k>[Timer]</span>
-<span class=na>OnBootSec</span><span class=o>=</span><span class=s>30min</span>
-<span class=na>OnUnitActiveSec</span><span class=o>=</span><span class=s>1d</span>
-
-<span class=k>[Install]</span>
-<span class=na>WantedBy</span><span class=o>=</span><span class=s>timers.target</span>
-</code></pre></div><p>Une fois le service activé, je n&rsquo;ai qu&rsquo;à attendre chaque matin la notification
-de fin de sauvegarde pour consulter les rapports avec la commande <code>journalctl</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>journalctl --user -xeu borg.service
-</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>août <span class=m>24</span> 08:42:02 florent systemd<span class=o>[</span>877<span class=o>]</span>: Starting Borg backup...
-août <span class=m>24</span> 08:42:27 florent systemd<span class=o>[</span>877<span class=o>]</span>: Finished Borg backup.
-août <span class=m>24</span> 08:42:27 florent systemd<span class=o>[</span>877<span class=o>]</span>: borg.service: Consumed 1.535s CPU time.
-</code></pre></div><h2 id=conclusion>Conclusion</h2>
-<p>De trop nombreux utilisateurs (Windows notamment) comptent sur leur miraculeuse
+système.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># .config/systemd/user/borg.service</span>
+</span></span><span class=line><span class=cl><span class=k>[Unit]</span>
+</span></span><span class=line><span class=cl><span class=na>Description</span><span class=o>=</span><span class=s>Borg backup</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>[Service]</span>
+</span></span><span class=line><span class=cl><span class=na>Type</span><span class=o>=</span><span class=s>oneshot</span>
+</span></span><span class=line><span class=cl><span class=na>ExecStart</span><span class=o>=</span><span class=s>%h/.bin/borg-create.sh</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># .config/systemd/user/borg.timer</span>
+</span></span><span class=line><span class=cl><span class=k>[Unit]</span>
+</span></span><span class=line><span class=cl><span class=na>Description</span><span class=o>=</span><span class=s>Daily Borg backup</span>
+</span></span><span class=line><span class=cl><span class=na>Documentation</span><span class=o>=</span><span class=s>man:borg</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>[Timer]</span>
+</span></span><span class=line><span class=cl><span class=na>OnBootSec</span><span class=o>=</span><span class=s>30min</span>
+</span></span><span class=line><span class=cl><span class=na>OnUnitActiveSec</span><span class=o>=</span><span class=s>1d</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>[Install]</span>
+</span></span><span class=line><span class=cl><span class=na>WantedBy</span><span class=o>=</span><span class=s>timers.target</span>
+</span></span></code></pre></div><p>Une fois le service activé, je n&rsquo;ai qu&rsquo;à attendre chaque matin la notification
+de fin de sauvegarde pour consulter les rapports avec la commande <code>journalctl</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>journalctl --user -xeu borg.service
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>août <span class=m>24</span> 08:42:02 florent systemd<span class=o>[</span>877<span class=o>]</span>: Starting Borg backup...
+</span></span><span class=line><span class=cl>août <span class=m>24</span> 08:42:27 florent systemd<span class=o>[</span>877<span class=o>]</span>: Finished Borg backup.
+</span></span><span class=line><span class=cl>août <span class=m>24</span> 08:42:27 florent systemd<span class=o>[</span>877<span class=o>]</span>: borg.service: Consumed 1.535s CPU time.
+</span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>De trop nombreux utilisateurs (Windows notamment) comptent sur leur miraculeuse
 corbeille, jusqu&rsquo;à ce qu&rsquo;une véritable suppression ne survienne ou qu&rsquo;un disque
 défaillant fasse des siennes. Pour s&rsquo;assurer qu&rsquo;une donnée ne disparaisse pas
 définitivement, la sauvegarde doit être correctement mise en place, idéalement
-sur plusieurs périodes et sur plusieurs supports.</p>
-<p>Le conseil vaut aussi bien pour les bases de données que pour les fichiers
+sur plusieurs périodes et sur plusieurs supports.</p><p>Le conseil vaut aussi bien pour les bases de données que pour les fichiers
 personnels : une sauvegarde n&rsquo;est fiable que si la restauration de son
 contenu est possible. Une corruption de l&rsquo;archive, une erreur dans l&rsquo;exécution
 du script ou une mise à jour majeure de l&rsquo;outil de sauvegarde sont autant de
-situations qui peuvent rendre vos sauvegardes irrécupérables.</p>
-<p>Prenez soin de vos sauvegardes.</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2019/06/12/reprenons-serieusement/>Reprenons sérieusement
-<small><time datetime=2019-06-12>12 juin 2019</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
-<small><time datetime=2021-12-06>6 déc 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/>La brêve histoire du fichier backup_label
-<small><time datetime=2021-01-19>19 janv 2021</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+situations qui peuvent rendre vos sauvegardes irrécupérables.</p><p>Prenez soin de vos sauvegardes.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2019/06/12/reprenons-serieusement/>Reprenons sérieusement
+<small><time datetime=2019-06-12>12 juin 2019</time></small></a></li><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li><li><a href=https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/>La brêve histoire du fichier backup_label
+<small><time datetime=2021-01-19>19 janv 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

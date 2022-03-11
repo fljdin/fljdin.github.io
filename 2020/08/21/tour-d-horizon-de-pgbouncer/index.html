@@ -1,212 +1,127 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Tour d'horizon de PgBouncer</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Tour d'horizon de PgBouncer</a></h1>
-<p class=post-date>
-<time datetime=2020-08-21>21 août 2020</time>
-- 6 minutes de lecture
-</p><blockquote>
-<p>Les programmes de regroupement de connexions (<em>pooling</em>) vous permettent de
+<!doctype html><html lang=fr><head><title>Tour d'horizon de PgBouncer</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Tour d'horizon de PgBouncer</a></h1><p class=post-date><time datetime=2020-08-21>21 août 2020</time>
+- 6 minutes de lecture</p><blockquote><p>Les programmes de regroupement de connexions (<em>pooling</em>) vous permettent de
 réduire la surcharge liée à la base de données lorsque le nombre de connexions
 physiques réduit les performances. Ceci est particulièrement pertinent sous
 Windows, où les limitations du système empêchent un grand nombre de connexions.
 C&rsquo;est également vital pour les applications Web où le nombre de connexions peut
-devenir très important.</p>
-<p>(Source : <a href=https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration>https://wiki.postgresql.org</a>)</p>
-</blockquote>
-<p>Je n&rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
+devenir très important.</p><p>(Source : <a href=https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration target=_blank rel=noopener>https://wiki.postgresql.org</a>)</p></blockquote><p>Je n&rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
 projet PostgreSQL pour aborder l&rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
 des deux seuls <em>poolers</em> de connexions largement répandus. Le produit est
 déconcertant de facilité, sa documentation et la littérature qui gravitent sur
 Internet sont claires et unanimes : PgBouncer améliorera grandement les
-performances de votre instance PostgreSQL !</p>
-<p>Dans cet article, je vous propose un rapide aperçu de PgBouncer avec quelques
+performances de votre instance PostgreSQL !</p><p>Dans cet article, je vous propose un rapide aperçu de PgBouncer avec quelques
 cas possibles d&rsquo;utilisation. Nous parlerons aussi du récent support de
-l&rsquo;authentification SCRAM et comment le configurer sans effort.</p>
-<hr>
-<h2 id=théorie-ma-vieille-amie>Théorie, ma vieille amie</h2>
-<p>Depuis ses origines, le fonctionnement de PostgreSQL repose sur le modèle
-client/serveur <a href=https://docs.postgresql.fr/12/tutorial-arch.html>multi-processus</a>, c&rsquo;est-à-dire que chaque processus aura une
+l&rsquo;authentification SCRAM et comment le configurer sans effort.</p><hr><h2 id=théorie-ma-vieille-amie>Théorie, ma vieille amie</h2><p>Depuis ses origines, le fonctionnement de PostgreSQL repose sur le modèle
+client/serveur <a href=https://docs.postgresql.fr/12/tutorial-arch.html target=_blank rel=noopener>multi-processus</a>, c&rsquo;est-à-dire que chaque processus aura une
 tâche définie et une zone mémoire qui lui est propre. Ce modèle s&rsquo;oppose à
-l&rsquo;architecture <a href=https://fr.wikipedia.org/wiki/Thread_%28informatique%29>multi-thread</a> dans laquelle un processus peut être partagé par
+l&rsquo;architecture <a href=https://fr.wikipedia.org/wiki/Thread_%28informatique%29 target=_blank rel=noopener>multi-thread</a> dans laquelle un processus peut être partagé par
 plusieurs instructions indépendantes et présenterait des risques de
-<a href=https://www.postgresql.org/message-id/flat/3647.130.243.12.138.1098892576.squirrel%40130.243.12.138>corruptions de mémoire</a>.</p>
-<p>Ainsi, pour chaque <a href=https://www.postgresql.org/docs/12/connect-estab.html>demande de connexion</a> vers l&rsquo;instance, le processus
+<a href=https://www.postgresql.org/message-id/flat/3647.130.243.12.138.1098892576.squirrel%40130.243.12.138 target=_blank rel=noopener>corruptions de mémoire</a>.</p><p>Ainsi, pour chaque <a href=https://www.postgresql.org/docs/12/connect-estab.html target=_blank rel=noopener>demande de connexion</a> vers l&rsquo;instance, le processus
 principal <code>postgres</code> se charge de l&rsquo;authentification avant de créer un nouveau
 processus <em>backend</em> qui maintiendra le lien entre les deux parties et assurera
 l&rsquo;aboutissement des commandes du processus client, appelé <em>frontend</em>. Le
 <em>backend</em> ne sera libéré qu&rsquo;à la déconnexion de la session utilisateur, comme
-l&rsquo;illustre le schéma ci-après.</p>
-<p><img src=/img/fr/2020-08-21-architecture-classique.png alt="Architecture simplifiée"></p>
-<p>Cependant, l&rsquo;établissement de la connexion n&rsquo;est pas une opération anodine. Les
+l&rsquo;illustre le schéma ci-après.</p><p><img src=/img/fr/2020-08-21-architecture-classique.png alt="Architecture simplifiée"></p><p>Cependant, l&rsquo;établissement de la connexion n&rsquo;est pas une opération anodine. Les
 coûts des échanges à travers le réseau, de création d&rsquo;un processus, de l&rsquo;allocation
-de sa mémoire et du paramétrage de la session, représenteraient une <a href=https://www.depesz.com/2012/12/02/what-is-the-point-of-bouncing/>poignée de
-millisecondes</a>.</p>
-<p>Comme indiqué en préambule, les applications critiques telles que celles du
+de sa mémoire et du paramétrage de la session, représenteraient une <a href=https://www.depesz.com/2012/12/02/what-is-the-point-of-bouncing/ target=_blank rel=noopener>poignée de
+millisecondes</a>.</p><p>Comme indiqué en préambule, les applications critiques telles que celles du
 e-commerce requièrent des temps de réponses les plus faibles possibles, avec des
 exigences de l&rsquo;ordre d&rsquo;une centaine de millisecondes par appel de page, contenant
 elles-mêmes des centaines de requêtes… C&rsquo;est à ce moment-là que PgBouncer entre
-en jeu.</p>
-<p>Le schéma précédent évolue avec le <em>pooler de connexions</em> entre les connexions
+en jeu.</p><p>Le schéma précédent évolue avec le <em>pooler de connexions</em> entre les connexions
 clientes et l&rsquo;instance de base de données. Le processus <code>pgbouncer</code> est donc
 responsable des demandes entrantes et se comporte comme un proxy, qu&rsquo;il soit sur
 le serveur hébergeant les données, sur les serveurs frontaux ou même sur un
-serveur tiers, dédié à ces redirections.</p>
-<p><img src=/img/fr/2020-08-21-architecture-pgbouncer.png alt="Architecture avec PgBouncer"></p>
-<p>PgBouncer ne présente qu&rsquo;une faible empreinte mémoire équivalente à <a href=https://www.pgbouncer.org/features.html>2 ko par
+serveur tiers, dédié à ces redirections.</p><p><img src=/img/fr/2020-08-21-architecture-pgbouncer.png alt="Architecture avec PgBouncer"></p><p>PgBouncer ne présente qu&rsquo;une faible empreinte mémoire équivalente à <a href=https://www.pgbouncer.org/features.html target=_blank rel=noopener>2 ko par
 connexion</a> et repose sur un binaire et un fichier de configuration. L&rsquo;outil
 gère des <em>pools</em> de connexions par bases de données ou par rôles (ou les deux)
 et maintient un certain nombre de connexions actives vers l&rsquo;instance pour les
-recycler en cas d&rsquo;arrivée de nouveaux <em>frontends</em>.</p>
-<p>La configuration est extrêmement simple et épurée, et ne devrait rebuter personne.
+recycler en cas d&rsquo;arrivée de nouveaux <em>frontends</em>.</p><p>La configuration est extrêmement simple et épurée, et ne devrait rebuter personne.
 Par exemple, en supposant que l&rsquo;instance PostgreSQL écoute localement sur le port
 5433 et dispose d&rsquo;une base <code>data1</code>, nous cherchons à définir un <em>pool</em> de 5 à 50
 <em>backends</em> avec un délai de 30 secondes d&rsquo;inactivité avant la déconnexion réelle
-au serveur. Le fichier de configuration suivant est alors parfaitement adapté :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=k>[pgbouncer]</span>
-<span class=na>listen_addr</span> <span class=o>=</span> <span class=s>demo.priv</span>
-<span class=na>listen_port</span> <span class=o>=</span> <span class=s>5432</span>
-<span class=na>auth_file</span> <span class=o>=</span> <span class=s>userlist.txt</span>
-<span class=na>server_idle_timeout</span> <span class=o>=</span> <span class=s>30</span>
-<span class=na>min_pool_size</span> <span class=o>=</span> <span class=s>5</span>
-
-<span class=k>[database]</span>
-<span class=na>data1</span> <span class=o>=</span> <span class=s>host=localhost port=5433 dbname=data1 pool_size=50</span>
-</code></pre></div><h2 id=chérie-tu-as-les-clés>Chérie, tu as les clés ?</h2>
-<p>Puisque PgBouncer fait office de proxy entre les applications et les bases de
+au serveur. Le fichier de configuration suivant est alors parfaitement adapté :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=k>[pgbouncer]</span>
+</span></span><span class=line><span class=cl><span class=na>listen_addr</span> <span class=o>=</span> <span class=s>demo.priv</span>
+</span></span><span class=line><span class=cl><span class=na>listen_port</span> <span class=o>=</span> <span class=s>5432</span>
+</span></span><span class=line><span class=cl><span class=na>auth_file</span> <span class=o>=</span> <span class=s>userlist.txt</span>
+</span></span><span class=line><span class=cl><span class=na>server_idle_timeout</span> <span class=o>=</span> <span class=s>30</span>
+</span></span><span class=line><span class=cl><span class=na>min_pool_size</span> <span class=o>=</span> <span class=s>5</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>[database]</span>
+</span></span><span class=line><span class=cl><span class=na>data1</span> <span class=o>=</span> <span class=s>host=localhost port=5433 dbname=data1 pool_size=50</span>
+</span></span></code></pre></div><h2 id=chérie-tu-as-les-clés>Chérie, tu as les clés ?</h2><p>Puisque PgBouncer fait office de proxy entre les applications et les bases de
 données en respectant le protocole de connexion, il lui revient d&rsquo;assurer la
 validation des mots de passe de chaque nouvelle demande entrante. L&rsquo;implémentation
 des différentes méthodes telles que <code>md5</code> ou <code>scram-sha-256</code> se trouve dans le
-fichier <code>src/proto.c</code>(<a href=https://github.com/pgbouncer/pgbouncer/blob/master/src/proto.c>source</a>) et garantit qu&rsquo;une demande de connexion réalisée sur
-l&rsquo;interface de PgBouncer soit bien légitime et autorisée auprès de l&rsquo;instance.</p>
-<p><strong>Fichier auth_file</strong></p>
-<p>À ce sujet, l&rsquo;outil propose deux solutions pour vérifier un mot de passe. La plus
+fichier <code>src/proto.c</code>(<a href=https://github.com/pgbouncer/pgbouncer/blob/master/src/proto.c target=_blank rel=noopener>source</a>) et garantit qu&rsquo;une demande de connexion réalisée sur
+l&rsquo;interface de PgBouncer soit bien légitime et autorisée auprès de l&rsquo;instance.</p><p><strong>Fichier auth_file</strong></p><p>À ce sujet, l&rsquo;outil propose deux solutions pour vérifier un mot de passe. La plus
 basique consiste à renseigner un fichier (ou <code>auth_file</code>) avec les couples
 <em>login/password</em> qui seront consultés à chaque demande, et les comparer avec les
 éléments de l&rsquo;utilisateur. Les données doivent être identiques aux informations
 stockées dans l&rsquo;instance PostgreSQL, plus précisément dans la relation système
-<code>pg_authid</code>, ou historiquement <code>pg_shadow</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>ROLE</span><span class=w> </span><span class=n>frontend</span><span class=w> </span><span class=n>PASSWORD</span><span class=w> </span><span class=s1>&#39;pass&#39;</span><span class=w> </span><span class=n>LOGIN</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;frontend&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- -[ RECORD 1 ]----------------------------------------------------
-</span><span class=c1>-- rolpassword | SCRAM-SHA-256$4096:e2iH7Tv/XJrD0bxiSNt4yA==$Pxhbz2…
-</span></code></pre></div><p>L&rsquo;ajout d&rsquo;une nouvelle ligne dans le fichier <code>userlist.txt</code> nécessite uniquement
+<code>pg_authid</code>, ou historiquement <code>pg_shadow</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>ROLE</span><span class=w> </span><span class=n>frontend</span><span class=w> </span><span class=n>PASSWORD</span><span class=w> </span><span class=s1>&#39;pass&#39;</span><span class=w> </span><span class=n>LOGIN</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;frontend&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- -[ RECORD 1 ]----------------------------------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>-- rolpassword | SCRAM-SHA-256$4096:e2iH7Tv/XJrD0bxiSNt4yA==$Pxhbz2…
+</span></span></span></code></pre></div><p>L&rsquo;ajout d&rsquo;une nouvelle ligne dans le fichier <code>userlist.txt</code> nécessite uniquement
 de prendre soin d&rsquo;entourer chaque mot par des guillemets doubles. PgBouncer
 surveillera alors son contenu afin de disposer des bonnes informations à tout
-moment.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># userlist.txt </span>
-<span class=na>&#34;frontend&#34; &#34;SCRAM-SHA-256$4096:e2iH7Tv/XJrD0bxiSNt4yA</span><span class=o>=</span><span class=s>=$Pxhbz2…&#34;</span>
-</code></pre></div><p><strong>Délégation auth_user</strong></p>
-<p>Si la maintenance d&rsquo;un tel fichier s&rsquo;avère complexe pour quelque raison que ce
+moment.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># userlist.txt </span>
+</span></span><span class=line><span class=cl><span class=na>&#34;frontend&#34; &#34;SCRAM-SHA-256$4096:e2iH7Tv/XJrD0bxiSNt4yA</span><span class=o>=</span><span class=s>=$Pxhbz2…&#34;</span>
+</span></span></code></pre></div><p><strong>Délégation auth_user</strong></p><p>Si la maintenance d&rsquo;un tel fichier s&rsquo;avère complexe pour quelque raison que ce
 soit, il est possible de déléguer un rôle à la consultation de la table <code>pg_authid</code>
 directement dans l&rsquo;instance, en précisant le paramètre <code>auth_user</code>. Le paramètre
 <code>auth_query</code> définit la requête à exécuter pour ensuite comparer les résultats
 avec les identifiants de connexion. Cette requête repose sur la vue <code>pg_shadow</code>
 mais de nombreuses variantes sont possibles, comme une requête plus élaborée sur
-<code>pg_authid</code> ou une <a href=https://github.com/CrunchyData/crunchy-containers/blob/master/bin/postgres-ha/sql/pgbouncer/pgbouncer-install.sql#L71>fonction</a> qui dispose des bons droits de consultation avec
-la clause <code>SECURITY DEFINER</code> comme le suggère la <a href=http://www.pgbouncer.org/config.html#auth_query>documentation</a>.</p>
-<p>Le support de la méthode d&rsquo;authentification par SCRAM est arrivé avec la version
+<code>pg_authid</code> ou une <a href=https://github.com/CrunchyData/crunchy-containers/blob/master/bin/postgres-ha/sql/pgbouncer/pgbouncer-install.sql#L71 target=_blank rel=noopener>fonction</a> qui dispose des bons droits de consultation avec
+la clause <code>SECURITY DEFINER</code> comme le suggère la <a href=http://www.pgbouncer.org/config.html#auth_query target=_blank rel=noopener>documentation</a>.</p><p>Le support de la méthode d&rsquo;authentification par SCRAM est arrivé avec la version
 PgBouncer 1.14 en juin 2020. Le mot de passe chiffré avec SCRAM ne peut pas être
-utilisé pour de la <a href=http://www.pgbouncer.org/config.html#authentication-file-format>délégation de connexion</a>, tel que le propose le paramètre
-<code>auth_user</code>. <a href=https://github.com/pgbouncer/pgbouncer/issues/508#issuecomment-678142543>L&rsquo;un des contournements</a> consiste à hacher le mot de passe en <code>md5</code>
-pour le rôle de délégation.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;md5&#39;</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>ROLE</span><span class=w> </span><span class=k>admin</span><span class=w> </span><span class=n>SUPERUSER</span><span class=w> </span><span class=n>PASSWORD</span><span class=w> </span><span class=s1>&#39;pass&#39;</span><span class=w> </span><span class=n>LOGIN</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;admin&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- -[ RECORD 1 ]------------------------------------
-</span><span class=c1>-- rolpassword | md57a25b0bc04e77a2f7453dd021168cdc2
-</span></code></pre></div><p>Le fichier <code>userlist.txt</code> ne contiendra donc qu&rsquo;une seule ligne pour le rôle
-<code>admin</code> défini comme <code>auth_user</code> dans la configuration PgBouncer.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># userlist.txt </span>
-<span class=na>&#34;admin&#34; &#34;md57a25b0bc04e77a2f7453dd021168cdc2&#34;</span>
-</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=k>[pgbouncer]</span>
-<span class=na>listen_addr</span> <span class=o>=</span> <span class=s>demo.priv</span>
-<span class=na>listen_port</span> <span class=o>=</span> <span class=s>5432</span>
-
-<span class=na>auth_type</span> <span class=o>=</span> <span class=s>scram-sha-256</span>
-<span class=na>auth_file</span> <span class=o>=</span> <span class=s>userlist.txt</span>
-<span class=na>auth_user</span> <span class=o>=</span> <span class=s>admin</span>
-<span class=c1>;auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1</span>
-
-<span class=k>[database]</span>
-<span class=na>data1</span> <span class=o>=</span> <span class=s>host=localhost port=5433 dbname=data1</span>
-</code></pre></div><p>Côté client, l&rsquo;illusion est parfaite ! Le rôle <code>frontend</code> se connecte à l&rsquo;instance
-sans besoin d&rsquo;ajouter ses identifiants dans le fichier <code>userlist.txt</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ psql &#34;host=priv.demo dbname=data1 user=frontend&#34;
-Password for user frontend: 
-psql (12.4)
-Type &#34;help&#34; for help.
-
-data1=&gt; \conninfo
-You are connected to database &#34;data1&#34; 
-  as user &#34;frontend&#34; on host &#34;priv.demo&#34; at port &#34;5432&#34;.
-</code></pre></div><h2 id=vers-linfini-et-au-delà>Vers l&rsquo;infini et au-delà</h2>
-<p>PgBouncer est un outil à connaître et à déployer sans modération pour la recherche
+utilisé pour de la <a href=http://www.pgbouncer.org/config.html#authentication-file-format target=_blank rel=noopener>délégation de connexion</a>, tel que le propose le paramètre
+<code>auth_user</code>. <a href=https://github.com/pgbouncer/pgbouncer/issues/508#issuecomment-678142543 target=_blank rel=noopener>L&rsquo;un des contournements</a> consiste à hacher le mot de passe en <code>md5</code>
+pour le rôle de délégation.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;md5&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>ROLE</span><span class=w> </span><span class=k>admin</span><span class=w> </span><span class=n>SUPERUSER</span><span class=w> </span><span class=n>PASSWORD</span><span class=w> </span><span class=s1>&#39;pass&#39;</span><span class=w> </span><span class=n>LOGIN</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;admin&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- -[ RECORD 1 ]------------------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>-- rolpassword | md57a25b0bc04e77a2f7453dd021168cdc2
+</span></span></span></code></pre></div><p>Le fichier <code>userlist.txt</code> ne contiendra donc qu&rsquo;une seule ligne pour le rôle
+<code>admin</code> défini comme <code>auth_user</code> dans la configuration PgBouncer.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># userlist.txt </span>
+</span></span><span class=line><span class=cl><span class=na>&#34;admin&#34; &#34;md57a25b0bc04e77a2f7453dd021168cdc2&#34;</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=k>[pgbouncer]</span>
+</span></span><span class=line><span class=cl><span class=na>listen_addr</span> <span class=o>=</span> <span class=s>demo.priv</span>
+</span></span><span class=line><span class=cl><span class=na>listen_port</span> <span class=o>=</span> <span class=s>5432</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=na>auth_type</span> <span class=o>=</span> <span class=s>scram-sha-256</span>
+</span></span><span class=line><span class=cl><span class=na>auth_file</span> <span class=o>=</span> <span class=s>userlist.txt</span>
+</span></span><span class=line><span class=cl><span class=na>auth_user</span> <span class=o>=</span> <span class=s>admin</span>
+</span></span><span class=line><span class=cl><span class=c1>;auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=$1</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>[database]</span>
+</span></span><span class=line><span class=cl><span class=na>data1</span> <span class=o>=</span> <span class=s>host=localhost port=5433 dbname=data1</span>
+</span></span></code></pre></div><p>Côté client, l&rsquo;illusion est parfaite ! Le rôle <code>frontend</code> se connecte à l&rsquo;instance
+sans besoin d&rsquo;ajouter ses identifiants dans le fichier <code>userlist.txt</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ psql &#34;host=priv.demo dbname=data1 user=frontend&#34;
+</span></span><span class=line><span class=cl>Password for user frontend: 
+</span></span><span class=line><span class=cl>psql (12.4)
+</span></span><span class=line><span class=cl>Type &#34;help&#34; for help.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>data1=&gt; \conninfo
+</span></span><span class=line><span class=cl>You are connected to database &#34;data1&#34; 
+</span></span><span class=line><span class=cl>  as user &#34;frontend&#34; on host &#34;priv.demo&#34; at port &#34;5432&#34;.
+</span></span></code></pre></div><h2 id=vers-linfini-et-au-delà>Vers l&rsquo;infini et au-delà</h2><p>PgBouncer est un outil à connaître et à déployer sans modération pour la recherche
 de performance. Il se couple parfaitement bien avec une configuration HAProxy
 pour une architecture de haute-disponibilité si le besoin se fait sentir. Le
 support de l&rsquo;authentification SCRAM est une excellente avancée, alors que la
-communauté se décide de la définir comme un <a href=https://www.postgresql.org/message-id/flat/d5b0ad33-7d94-bdd1-caac-43a1c782cab2@2ndquadrant.com>standard</a> pour les prochaines versions
-majeures de PostgreSQL.</p>
-<p>D&rsquo;autres fonctionnalités essentielles n&rsquo;ont volontairement pas été abordées dans
+communauté se décide de la définir comme un <a href=https://www.postgresql.org/message-id/flat/d5b0ad33-7d94-bdd1-caac-43a1c782cab2@2ndquadrant.com target=_blank rel=noopener>standard</a> pour les prochaines versions
+majeures de PostgreSQL.</p><p>D&rsquo;autres fonctionnalités essentielles n&rsquo;ont volontairement pas été abordées dans
 cet article, comme le <em>pooling</em> de transactions et le paramètre <code>pool_mode</code>, ou
 simplement la pseudo-base <code>pgbouncer</code> qui joue le rôle de console d&rsquo;administration
 très fournie en informations sur les <em>pools</em> et sessions actives. Gageons que
-j&rsquo;y passe plus de temps à l&rsquo;avenir pour vous les présenter !</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/>Les statistiques au service du plan d'exécution
-<small><time datetime=2020-07-01>1 juil 2020</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
-<small><time datetime=2021-04-23>23 avr 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
-<small><time datetime=2021-03-30>30 mars 2021</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+j&rsquo;y passe plus de temps à l&rsquo;avenir pour vous les présenter !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/>Les statistiques au service du plan d'exécution
+<small><time datetime=2020-07-01>1 juil 2020</time></small></a></li><li><a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
+<small><time datetime=2021-04-23>23 avr 2021</time></small></a></li><li><a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
+<small><time datetime=2021-03-30>30 mars 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

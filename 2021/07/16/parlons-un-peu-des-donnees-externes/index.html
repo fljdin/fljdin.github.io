@@ -1,218 +1,135 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Parlons un peu des données externes</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Parlons un peu des données externes</a></h1>
-<p class=post-date>
-<time datetime=2021-07-16>16 juil 2021</time>
-- 6 minutes de lecture
-</p><p>Depuis plusieurs semaines, j&rsquo;étudie les nouveautés de la <a href=https://www.postgresql.org/docs/14/release-14.html>prochaine version majeure</a>
-de PostgreSQL avec un intérêt grandissant pour le connecteur <a href=https://www.postgresql.org/docs/13/postgres-fdw.html>postgres_fdw</a>.
+<!doctype html><html lang=fr><head><title>Parlons un peu des données externes</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Parlons un peu des données externes</a></h1><p class=post-date><time datetime=2021-07-16>16 juil 2021</time>
+- 6 minutes de lecture</p><p>Depuis plusieurs semaines, j&rsquo;étudie les nouveautés de la <a href=https://www.postgresql.org/docs/14/release-14.html target=_blank rel=noopener>prochaine version majeure</a>
+de PostgreSQL avec un intérêt grandissant pour le connecteur <a href=https://www.postgresql.org/docs/13/postgres-fdw.html target=_blank rel=noopener>postgres_fdw</a>.
 Cette extension assez folle n&rsquo;a pas son équivalent sur les autres systèmes de
 bases de données du marché, et pour cause, PostgreSQL est l&rsquo;un des rares à respecter
 la norme SQL/MED, sous-partie du langage SQL tel que défini par le standard
-<a href=https://www.iso.org/standard/63476.html>ISO/IEC 9075-9</a>.</p>
-<hr>
-<h2 id=un-langage-pour-les-gouverner-tous>Un langage pour les gouverner tous</h2>
-<p>Il y a maintenant plus d&rsquo;un demi-siècle que fut conçu le langage SQL, fruit de
-la collaboration de deux chercheurs, <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6359709">Donald D. Chamberlin et Ray Boyce</a>, dans
+<a href=https://www.iso.org/standard/63476.html target=_blank rel=noopener>ISO/IEC 9075-9</a>.</p><hr><h2 id=un-langage-pour-les-gouverner-tous>Un langage pour les gouverner tous</h2><p>Il y a maintenant plus d&rsquo;un demi-siècle que fut conçu le langage SQL, fruit de
+la collaboration de deux chercheurs, <a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6359709" target=_blank rel=noopener>Donald D. Chamberlin et Ray Boyce</a>, dans
 la lancée des innovations des années 70, tel que le modèle relationnel. Ces deux
 personnages souhaitaient à l&rsquo;époque proposer un outil de requêtage relationnel qui
 pourrait être accessible au plus grand nombre, dans une langue universelle et sans
-formation particulière en mathématique ou en programmation logicielle.</p>
-<p>Alors que Ray Boyce mourut prématurément à l&rsquo;âge de 26 ans, la notoriété de leur
+formation particulière en mathématique ou en programmation logicielle.</p><p>Alors que Ray Boyce mourut prématurément à l&rsquo;âge de 26 ans, la notoriété de leur
 langage s&rsquo;amplifia lors de sa phase de développement chez IBM et le sobrement
 nommé « Sequel » changea de nom en conflit avec une autre marque déposée. Ainsi
 le nom du projet fut raccourci en « SQL » à l&rsquo;aube de l&rsquo;année 1977. La décennie
 qui suivit fut marquée par l&rsquo;émergence des produits comme Oracle Database et DB2,
-implémentant alors les prémices du SQL que l&rsquo;on connait aujourd&rsquo;hui.</p>
-<p>En 1986, le langage évolua sous la forme d&rsquo;un standard, repris par les regroupements
+implémentant alors les prémices du SQL que l&rsquo;on connait aujourd&rsquo;hui.</p><p>En 1986, le langage évolua sous la forme d&rsquo;un standard, repris par les regroupements
 ANSI et ISO, afin de promouvoir les règles d&rsquo;écriture et la conformité auprès des
 différents éditeurs. Les standards ANSI X3.135 et ISO/IEC 9075 étaient nés. À
 partir de ce point précis, et les nombreuses révisions du standard SQL, les
 utilisateurs avaient l&rsquo;assurance de ne pas être dépendants d&rsquo;un unique éditeur
 logiciel, bien que certains ne répondaient pas à la totalité du standard et
-intégraient volontiers des fonctionnalités propriétaires.</p>
-<div class=message>La dernière révision stable de la norme a été proposée en 2016 et <a href=https://www.postgresql.org/docs/13/features.html>PostgreSQL tend
-à couvrir</a> la totalité des fonctionnalités obligatoires de la norme.</div>
-<p>C&rsquo;est lors de la révision de l&rsquo;année 2003 que le standard fut subdivisé en 9 parties
+intégraient volontiers des fonctionnalités propriétaires.</p><div class=message>La dernière révision stable de la norme a été proposée en 2016 et <a href=https://www.postgresql.org/docs/13/features.html target=_blank rel=noopener>PostgreSQL tend
+à couvrir</a> la totalité des fonctionnalités obligatoires de la norme.</div><p>C&rsquo;est lors de la révision de l&rsquo;année 2003 que le standard fut subdivisé en 9 parties
 issues du standard précédent. Chacune d&rsquo;entre elles ayant pour ambition de couvrir
 un aspect différent du langage et parmi elles, nous retrouvons celle qui
 m&rsquo;intéresse particulièrement ces temps-ci : la norme ISO/IEC 9075-9, <em>Management
-of External Data</em>, aussi appelée <strong>SQL/MED</strong>.</p>
-<p>Ce <a href=https://www.iso.org/standard/63476.html>chapitre</a> de la norme propose les concepts de <em>datalink</em> et de <em>foreign-data
+of External Data</em>, aussi appelée <strong>SQL/MED</strong>.</p><p>Ce <a href=https://www.iso.org/standard/63476.html target=_blank rel=noopener>chapitre</a> de la norme propose les concepts de <em>datalink</em> et de <em>foreign-data
 wrapper</em>, ainsi que les différentes syntaxes pour les manipuler. Ces éléments peuvent
 déjà vous paraître familiers, il s&rsquo;agit de la même terminologie qu&rsquo;emploie PostgreSQL
 pour répondre à la norme. Ce standard impliquerait que les données d&rsquo;un système
 soient dites externes, si elles sont disponibles et gérés par un autre système de
-base de donnée.</p>
-<p>Une telle architecture répondant à ces contraintes permet l&rsquo;émergence des <a href=https://en.wikipedia.org/wiki/Federated_database_system>systèmes
+base de donnée.</p><p>Une telle architecture répondant à ces contraintes permet l&rsquo;émergence des <a href=https://en.wikipedia.org/wiki/Federated_database_system target=_blank rel=noopener>systèmes
 de bases de données fédérées</a>, responsables de la gestion d&rsquo;un ensemble de
 données autonomes et hétérogènes. Sur le plan théorique, les utilisateurs et les
 applications ne se connectent plus qu&rsquo;à un seul point d&rsquo;accès et seraient capables
 de consulter et modifier les données éparpillées sur différents moteurs de bases
-de données.</p>
-<p><img src=/img/fr/2021-07-16-postgresql-as-federated-database-system.png alt="PostgreSQL, un système fédérateur ?"></p>
-<p>Pour garantir un tel résultat, la norme SQL/MED articule autours des connecteurs
+de données.</p><p><img src=/img/fr/2021-07-16-postgresql-as-federated-database-system.png alt="PostgreSQL, un système fédérateur ?"></p><p>Pour garantir un tel résultat, la norme SQL/MED articule autours des connecteurs
 (<em>wrappers</em>), une série de composant tels que les serveurs distants (<em>foreign
 servers</em>) ou les correspondances d&rsquo;utilisateurs (<em>user mappings</em>). Ainsi, chaque
 connecteur s&rsquo;appuie sur une librairie logicielle pour permettre la communication
-avec le serveur à l&rsquo;aide de ces identifiants de connexion.</p>
-<p>Au cours des années qui suivirent, la communauté de développeurs autours de
+avec le serveur à l&rsquo;aide de ces identifiants de connexion.</p><p>Au cours des années qui suivirent, la communauté de développeurs autours de
 PostgreSQL s&rsquo;est aligné avec la norme pour proposer plusieurs extensions stables
-de <a href=https://wiki.postgresql.org/wiki/Foreign_data_wrappers>connecteurs</a>. Aujourd&rsquo;hui, la plupart des systèmes relationnels disposent
+de <a href=https://wiki.postgresql.org/wiki/Foreign_data_wrappers target=_blank rel=noopener>connecteurs</a>. Aujourd&rsquo;hui, la plupart des systèmes relationnels disposent
 d&rsquo;une abstraction pour permettre l&rsquo;accès des données externe à l&rsquo;intérieur de
-PostgreSQL.</p>
-<hr>
-<h2 id=une-implémentation-aux-petits-oignons>Une implémentation aux petits oignons</h2>
-<p>Avec un cycle de développement annuel et le support d&rsquo;une version majeure sur une
+PostgreSQL.</p><hr><h2 id=une-implémentation-aux-petits-oignons>Une implémentation aux petits oignons</h2><p>Avec un cycle de développement annuel et le support d&rsquo;une version majeure sur une
 durée de cinq années, les grands chantiers ont fréquemment été menés par petits
-pas. L&rsquo;implémentation de SQL/MED dans PostgreSQL n&rsquo;y a pas fait exception.</p>
-<p>C&rsquo;est en juillet 2009 que sort la <a href=https://www.postgresql.org/docs/8.4/release-8-4.html>version 8.4</a>, la dernière de la branche 8.x
+pas. L&rsquo;implémentation de SQL/MED dans PostgreSQL n&rsquo;y a pas fait exception.</p><p>C&rsquo;est en juillet 2009 que sort la <a href=https://www.postgresql.org/docs/8.4/release-8-4.html target=_blank rel=noopener>version 8.4</a>, la dernière de la branche 8.x
 avant l&rsquo;avènement des versions plus récentes. L&rsquo;architecture qui rendrait possible
-les connecteurs avait été posée. Le catalogue fut <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=cae565e503c42a0942ca1771665243b4453c5770">enrichi</a> par de nouvelles vues,
+les connecteurs avait été posée. Le catalogue fut <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=cae565e503c42a0942ca1771665243b4453c5770" target=_blank rel=noopener>enrichi</a> par de nouvelles vues,
 telles que <code>pg_foreign_data_wrapper</code>, <code>pg_foreign_server</code> ou <code>pg_user_mapping</code> et
-de nouvelles commandes préparaient le terrain.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>postgresql</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>demo</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>postgresql</span><span class=w> </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=n>dbname</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>MAPPING</span><span class=w> </span><span class=k>FOR</span><span class=w> </span><span class=k>public</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>demo</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>La gestion des données distantes n&rsquo;était alors possible qu&rsquo;à travers l&rsquo;extension
+de nouvelles commandes préparaient le terrain.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>postgresql</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>demo</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>postgresql</span><span class=w> </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=n>dbname</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>MAPPING</span><span class=w> </span><span class=k>FOR</span><span class=w> </span><span class=k>public</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>demo</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>La gestion des données distantes n&rsquo;était alors possible qu&rsquo;à travers l&rsquo;extension
 <code>dblink</code> qui fut rendue compatible avec les nouveaux objets de la norme SQL/MED.
 L&rsquo;exemple ci-dessous s&rsquo;appuie sur le serveur <code>demo</code> avec une connexion préalable
 à l&rsquo;aide de la méthode <code>dblink_connect</code>. À cette époque, les connecteurs reposaient
-sur la <code>libpq</code> par défaut.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=c1>-- les extensions n&#39;existent pas encore en version 8.4 :-)
-</span><span class=c1></span><span class=err>\</span><span class=n>i</span><span class=w> </span><span class=n>src</span><span class=o>/</span><span class=n>contrib</span><span class=o>/</span><span class=n>dblink</span><span class=o>/</span><span class=n>dblink</span><span class=p>.</span><span class=k>sql</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>dblink_connect</span><span class=p>(</span><span class=s1>&#39;myconn&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--  dblink_connect 
-</span><span class=c1>-- ----------------
-</span><span class=c1>--  OK
-</span><span class=c1></span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>dblink</span><span class=p>(</span><span class=s1>&#39;myconn&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;SELECT word FROM messages&#39;</span><span class=p>)</span><span class=w>
-</span><span class=w>    </span><span class=k>AS</span><span class=w> </span><span class=n>t</span><span class=p>(</span><span class=n>hello</span><span class=w> </span><span class=nb>text</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--  hello 
-</span><span class=c1>-- -------
-</span><span class=c1>--  world
-</span></code></pre></div><p>Le projet <code>pl/proxy</code> profita également de ces améliorations pour définir un <a href=https://plproxy.github.io/config.html#sqlmed-cluster-definitions>cluster
+sur la <code>libpq</code> par défaut.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- les extensions n&#39;existent pas encore en version 8.4 :-)
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=err>\</span><span class=n>i</span><span class=w> </span><span class=n>src</span><span class=o>/</span><span class=n>contrib</span><span class=o>/</span><span class=n>dblink</span><span class=o>/</span><span class=n>dblink</span><span class=p>.</span><span class=k>sql</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>dblink_connect</span><span class=p>(</span><span class=s1>&#39;myconn&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  dblink_connect 
+</span></span></span><span class=line><span class=cl><span class=c1>-- ----------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  OK
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>dblink</span><span class=p>(</span><span class=s1>&#39;myconn&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;SELECT word FROM messages&#39;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>AS</span><span class=w> </span><span class=n>t</span><span class=p>(</span><span class=n>hello</span><span class=w> </span><span class=nb>text</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  hello 
+</span></span></span><span class=line><span class=cl><span class=c1>-- -------
+</span></span></span><span class=line><span class=cl><span class=c1>--  world
+</span></span></span></code></pre></div><p>Le projet <code>pl/proxy</code> profita également de ces améliorations pour définir un <a href=https://plproxy.github.io/config.html#sqlmed-cluster-definitions target=_blank rel=noopener>cluster
 de serveurs distants</a> sur lesquels il était possible d&rsquo;exécuter des fonctions
 déportées, et d&rsquo;envisager une architecture éclatée (<em>sharding</em>) sur plusieurs
-instances PostgreSQL.</p>
-<hr>
-<p>En septembre 2011, les choses s&rsquo;accélérèrent à la sortie de PostgreSQL 9.1 avec
+instances PostgreSQL.</p><hr><p>En septembre 2011, les choses s&rsquo;accélérèrent à la sortie de PostgreSQL 9.1 avec
 l&rsquo;ajout des tables distantes (ou <em>foreign tables</em>) pour compléter le chantier
 initié par la version 8.4. Bien qu&rsquo;elles n&rsquo;étaient accessibles qu&rsquo;en lecture seule,
-leur fonctionnement faisait pâlir <code>dblink</code> à bien des égards.</p>
-<p>Derrière chaque table distante se cache un connecteur, préalablement configuré
+leur fonctionnement faisait pâlir <code>dblink</code> à bien des égards.</p><p>Derrière chaque table distante se cache un connecteur, préalablement configuré
 avec ses informations d&rsquo;accès et d&rsquo;authentification. En plus du <em>wrapper</em> interne
 pour les instances PostgreSQL, la contribution <code>file_fdw</code> fut ajoutée au projet
 afin d&rsquo;autoriser les fichiers CSV et COPY comme sources de données externes. Ce
-type de table est similaire aux <a href=https://oracle-base.com/articles/9i/external-tables-9i>tables externes</a> qu&rsquo;Oracle propose pour les
-formats CSV, Datapump ou SQL*Loader.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=n>EXTENSION</span><span class=w> </span><span class=n>file_fdw</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>file_server</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>file_fdw</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>departments</span><span class=w> </span><span class=p>(</span><span class=w>
-</span><span class=w>  </span><span class=n>department_id</span><span class=w> </span><span class=nb>int</span><span class=p>,</span><span class=w>
-</span><span class=w>  </span><span class=n>department_name</span><span class=w> </span><span class=nb>varchar</span><span class=p>(</span><span class=mi>30</span><span class=p>)</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=w>
-</span><span class=w></span><span class=p>)</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>file_server</span><span class=w> </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=w> 
-</span><span class=w>  </span><span class=n>filename</span><span class=w> </span><span class=s1>&#39;&lt;path&gt;/departments.dat&#39;</span><span class=w>
-</span><span class=w></span><span class=p>);</span><span class=w>
-</span></code></pre></div><p>Sur pareilles tables, PostgreSQL supporte uniquement les contraintes <code>(NOT) NULL</code>
+type de table est similaire aux <a href=https://oracle-base.com/articles/9i/external-tables-9i target=_blank rel=noopener>tables externes</a> qu&rsquo;Oracle propose pour les
+formats CSV, Datapump ou SQL*Loader.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=n>EXTENSION</span><span class=w> </span><span class=n>file_fdw</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>file_server</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>DATA</span><span class=w> </span><span class=n>WRAPPER</span><span class=w> </span><span class=n>file_fdw</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>departments</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>department_id</span><span class=w> </span><span class=nb>int</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>department_name</span><span class=w> </span><span class=nb>varchar</span><span class=p>(</span><span class=mi>30</span><span class=p>)</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=n>SERVER</span><span class=w> </span><span class=n>file_server</span><span class=w> </span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>filename</span><span class=w> </span><span class=s1>&#39;&lt;path&gt;/departments.dat&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><p>Sur pareilles tables, PostgreSQL supporte uniquement les contraintes <code>(NOT) NULL</code>
 et <code>CHECK</code> pour des besoins de planification. Ces contraintes doivent être assurées
 par le serveur distant. Les clés primaires ou contraintes <code>UNIQUE</code> impliquent la
-création d&rsquo;un index, qui ne sont pas supportés pour les tables distantes.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>INDEX</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>departments</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=c1>-- ERROR:  cannot create index on foreign table &#34;departments&#34;
-</span></code></pre></div><p>L&rsquo;usage premier des tables distantes consiste à intégrer ces relations dans les
+création d&rsquo;un index, qui ne sont pas supportés pour les tables distantes.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>INDEX</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>departments</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- ERROR:  cannot create index on foreign table &#34;departments&#34;
+</span></span></span></code></pre></div><p>L&rsquo;usage premier des tables distantes consiste à intégrer ces relations dans les
 requêtes SQL comme de simples tables, ce qui vous l&rsquo;avouerez, reste bien plus
 simple que d&rsquo;écrire des sous-requêtes avec les résultats par <code>dblink</code>. Par ailleurs,
 le nœud <code>Foreign Scan</code> fait son introduction pour représenter la lecture distante
-à travers le connecteur.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>EXPLAIN</span><span class=w> </span><span class=p>(</span><span class=k>analyze</span><span class=p>,</span><span class=w> </span><span class=n>costs</span><span class=w> </span><span class=k>off</span><span class=p>)</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>department_name</span><span class=p>,</span><span class=w> </span><span class=k>count</span><span class=p>(</span><span class=n>employee_id</span><span class=p>)</span><span class=w> 
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>employees</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>departments</span><span class=w> </span><span class=k>USING</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>)</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>department_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w> 
-</span><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>department_name</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>                               QUERY PLAN
------------------------------------------------------------------------
- HashAggregate (actual time=0.084..0.084 rows=1 loops=1)
-  -&gt; Nested Loop (actual time=0.058..0.077 rows=1 loops=1)
-     -&gt; Foreign Scan on departments 
-        (actual time=0.034..0.050 rows=1 loops=1)
-          Filter: (department_id = 1)
-          Foreign File: departments.dat
-     -&gt; Index Scan using employees_department_id_idx on employees 
-        (actual time=0.020..0.022 rows=1 loops=1)
-          Index Cond: (department_id = 1)
- Total runtime: 0.230 ms
-</code></pre></div><hr>
-<h2 id=conclusion>Conclusion</h2>
-<p>La page <a href=https://pgpedia.info/f/foreign-data-wrapper-fdw.html>pgpedia</a> sur les FDW reprend l&rsquo;historique des améliorations
+à travers le connecteur.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>EXPLAIN</span><span class=w> </span><span class=p>(</span><span class=k>analyze</span><span class=p>,</span><span class=w> </span><span class=n>costs</span><span class=w> </span><span class=k>off</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>department_name</span><span class=p>,</span><span class=w> </span><span class=k>count</span><span class=p>(</span><span class=n>employee_id</span><span class=p>)</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>employees</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>departments</span><span class=w> </span><span class=k>USING</span><span class=w> </span><span class=p>(</span><span class=n>department_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>department_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>department_name</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>                               QUERY PLAN
+</span></span><span class=line><span class=cl>-----------------------------------------------------------------------
+</span></span><span class=line><span class=cl> HashAggregate (actual time=0.084..0.084 rows=1 loops=1)
+</span></span><span class=line><span class=cl>  -&gt; Nested Loop (actual time=0.058..0.077 rows=1 loops=1)
+</span></span><span class=line><span class=cl>     -&gt; Foreign Scan on departments 
+</span></span><span class=line><span class=cl>        (actual time=0.034..0.050 rows=1 loops=1)
+</span></span><span class=line><span class=cl>          Filter: (department_id = 1)
+</span></span><span class=line><span class=cl>          Foreign File: departments.dat
+</span></span><span class=line><span class=cl>     -&gt; Index Scan using employees_department_id_idx on employees 
+</span></span><span class=line><span class=cl>        (actual time=0.020..0.022 rows=1 loops=1)
+</span></span><span class=line><span class=cl>          Index Cond: (department_id = 1)
+</span></span><span class=line><span class=cl> Total runtime: 0.230 ms
+</span></span></code></pre></div><hr><h2 id=conclusion>Conclusion</h2><p>La page <a href=https://pgpedia.info/f/foreign-data-wrapper-fdw.html target=_blank rel=noopener>pgpedia</a> sur les FDW reprend l&rsquo;historique des améliorations
 apportées entre chaque version majeure depuis une décennie. Le travail abattu est
 impressionnant et se poursuit encore avec la prochaine version. L&rsquo;architecture
 pensée lors de la version 8.4 reste toujours fiable, robuste et aura permis
-l&rsquo;émergence de nombreux connecteurs pour PostgreSQL (<a href=https://www.postgresql.org/docs/13/postgres-fdw.html>postgres_fdw</a>), Oracle
-(<a href=https://github.com/laurenz/oracle_fdw>oracle_fdw</a>) ou SQL Server (<a href=https://github.com/tds-fdw/tds_fdw>tds_fdw</a>).</p>
-<p>Parmi les nombreuses possibilités qu&rsquo;apporte la norme SQL/MED, j&rsquo;ai pu apprécier
-récemment l&rsquo;usage du connecteur Oracle dans la version 22.0 de l&rsquo;outil <a href=https://www.migops.com/blog/2021/07/01/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/>Ora2Pg</a>
+l&rsquo;émergence de nombreux connecteurs pour PostgreSQL (<a href=https://www.postgresql.org/docs/13/postgres-fdw.html target=_blank rel=noopener>postgres_fdw</a>), Oracle
+(<a href=https://github.com/laurenz/oracle_fdw target=_blank rel=noopener>oracle_fdw</a>) ou SQL Server (<a href=https://github.com/tds-fdw/tds_fdw target=_blank rel=noopener>tds_fdw</a>).</p><p>Parmi les nombreuses possibilités qu&rsquo;apporte la norme SQL/MED, j&rsquo;ai pu apprécier
+récemment l&rsquo;usage du connecteur Oracle dans la version 22.0 de l&rsquo;outil <a href=https://www.migops.com/blog/2021/07/01/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/ target=_blank rel=noopener>Ora2Pg</a>
 pour les migrations de données grâces aux tables distantes. Avec la version 14 de
-PostgreSQL, la <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=27e1f14563cf982f1f4d71e21ef247866662a052">lecture asynchrone des partitions distantes</a> permettra
-d&rsquo;accélérer passablement les requêtes d&rsquo;analyse sur de fortes volumétries.</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
-<small><time datetime=2021-12-06>6 déc 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/06/09/les-intervalles-de-valeurs/>Les intervalles de valeurs
-<small><time datetime=2021-06-09>9 juin 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
-<small><time datetime=2021-03-30>30 mars 2021</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+PostgreSQL, la <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=27e1f14563cf982f1f4d71e21ef247866662a052" target=_blank rel=noopener>lecture asynchrone des partitions distantes</a> permettra
+d&rsquo;accélérer passablement les requêtes d&rsquo;analyse sur de fortes volumétries.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li><li><a href=https://fljd.in/2021/06/09/les-intervalles-de-valeurs/>Les intervalles de valeurs
+<small><time datetime=2021-06-09>9 juin 2021</time></small></a></li><li><a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
+<small><time datetime=2021-03-30>30 mars 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

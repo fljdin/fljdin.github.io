@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>sqlmed on Carnet de découvertes</title><link>https://fljd.in/tags/sqlmed/</link><description>Recent content in sqlmed on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 06 Dec 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/sqlmed/index.xml" rel="self" type="application/rss+xml"/><item><title>Migrer vers PostgreSQL</title><link>https://fljd.in/2021/12/06/migrer-vers-postgresql/</link><pubDate>Mon, 06 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/12/06/migrer-vers-postgresql/</guid><description>&lt;p>Le marché de la migration en France est intense. Le Groupe de Travail
-Inter-Entreprises PostgreSQL (PGGTIE) a même publié un &lt;a href="https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf">guide de transition&lt;/a>
+Inter-Entreprises PostgreSQL (PGGTIE) a même publié un &lt;a href="https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf" target="_blank" rel="noopener">guide de transition&lt;/a>
 à PostgreSQL à destination des entreprises françaises. Ce dernier est le fruit
 de près de cinq années de travaux au sein de plusieurs organismes publics et a
 pour ambition de démontrer l&amp;rsquo;intérêt de PostgreSQL aux décideurs techniques en
 présentant les forces et les faiblesses du moteur.&lt;/p>
-&lt;p>Le mois dernier, une traduction en anglais est &lt;a href="https://twitter.com/nthonynowocien/status/1458065335387578382">sortie des cartons&lt;/a> pour
+&lt;p>Le mois dernier, une traduction en anglais est &lt;a href="https://twitter.com/nthonynowocien/status/1458065335387578382" target="_blank" rel="noopener">sortie des cartons&lt;/a> pour
 promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
 Je trouvais intéressant de profiter de cette actualité pour partager mes
 réflexions du moment, entre ma vision du marché français et l&amp;rsquo;approche technique
-pour engager les migrations de données vers PostgreSQL.&lt;/p></description></item><item><title>Parlons un peu des données externes</title><link>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</guid><description>&lt;p>Depuis plusieurs semaines, j&amp;rsquo;étudie les nouveautés de la &lt;a href="https://www.postgresql.org/docs/14/release-14.html">prochaine version majeure&lt;/a>
-de PostgreSQL avec un intérêt grandissant pour le connecteur &lt;a href="https://www.postgresql.org/docs/13/postgres-fdw.html">postgres_fdw&lt;/a>.
+pour engager les migrations de données vers PostgreSQL.&lt;/p></description></item><item><title>Parlons un peu des données externes</title><link>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</guid><description>&lt;p>Depuis plusieurs semaines, j&amp;rsquo;étudie les nouveautés de la &lt;a href="https://www.postgresql.org/docs/14/release-14.html" target="_blank" rel="noopener">prochaine version majeure&lt;/a>
+de PostgreSQL avec un intérêt grandissant pour le connecteur &lt;a href="https://www.postgresql.org/docs/13/postgres-fdw.html" target="_blank" rel="noopener">postgres_fdw&lt;/a>.
 Cette extension assez folle n&amp;rsquo;a pas son équivalent sur les autres systèmes de
 bases de données du marché, et pour cause, PostgreSQL est l&amp;rsquo;un des rares à respecter
 la norme SQL/MED, sous-partie du langage SQL tel que défini par le standard
-&lt;a href="https://www.iso.org/standard/63476.html">ISO/IEC 9075-9&lt;/a>.&lt;/p></description></item></channel></rss>
+&lt;a href="https://www.iso.org/standard/63476.html" target="_blank" rel="noopener">ISO/IEC 9075-9&lt;/a>.&lt;/p></description></item></channel></rss>

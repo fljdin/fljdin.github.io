@@ -1,261 +1,159 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Les corruptions silencieuses</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Les corruptions silencieuses</a></h1>
-<p class=post-date>
-<time datetime=2021-09-28>28 sept 2021</time>
-- 8 minutes de lecture
-</p><p>Parmi les drames universellement reconnus, les corruptions de données sont des
+<!doctype html><html lang=fr><head><title>Les corruptions silencieuses</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Les corruptions silencieuses</a></h1><p class=post-date><time datetime=2021-09-28>28 sept 2021</time>
+- 8 minutes de lecture</p><p>Parmi les drames universellement reconnus, les corruptions de données sont des
 événements mécaniques ou logiques qui surviennent à des moments imprévisibles.
 Tantôt il s&rsquo;agira de l&rsquo;âge avancé des secteurs disques, tantôt il s&rsquo;agira d&rsquo;une
 extinction inopinée d&rsquo;un composant électrique ou d&rsquo;une perte de paquet dans les
-protocoles de cache.</p>
-<p>Bien que peu de personnes peuvent se vanter d&rsquo;en avoir observé au cours de leur
+protocoles de cache.</p><p>Bien que peu de personnes peuvent se vanter d&rsquo;en avoir observé au cours de leur
 carrière, les corruptions sont particulièrement dévastatrices lorsqu&rsquo;elles se
 sont propagées sur les supports de sauvegardes et détectées bien des jours, voire
 des semaines après l&rsquo;incident. Les moteurs de bases de données sont très résilients
 face à ces destructions de données, en proposant des mécanismes de journalisation
-adaptés. Malgré cela, des précautions sont de mises.</p>
-<hr>
-<h2 id=la-surcorruption>La surcorruption</h2>
-<p>La détection d&rsquo;une corruption n&rsquo;est jamais très claire, ni très précise. Dans
+adaptés. Malgré cela, des précautions sont de mises.</p><hr><h2 id=la-surcorruption>La surcorruption</h2><p>La détection d&rsquo;une corruption n&rsquo;est jamais très claire, ni très précise. Dans
 la majorité des situations, il s&rsquo;agit d&rsquo;un utilisateur qui reporte une erreur
 lors de la lecture d&rsquo;une ligne dans la base de données et ne parvient pas à
 finaliser son traitement. Avec PostgreSQL, la première source exploitable reste
 le journal de l&rsquo;instance, dans lequel l&rsquo;anomalie sera flagrante avec des
-messages d&rsquo;erreur de type <code>could not read block xxx in file</code> ou <code>invalid page (header) in block xxx of relation</code>.</p>
-<p>Les corruptions peuvent aussi bien <a href=https://www.enterprisedb.com/blog/how-to-fix-postgresql-index-corruption-deal-repair-rebuild>toucher les index</a> que les tables. Les
+messages d&rsquo;erreur de type <code>could not read block xxx in file</code> ou <code>invalid page (header) in block xxx of relation</code>.</p><p>Les corruptions peuvent aussi bien <a href=https://www.enterprisedb.com/blog/how-to-fix-postgresql-index-corruption-deal-repair-rebuild target=_blank rel=noopener>toucher les index</a> que les tables. Les
 premières peuvent provoquer des ralentissements pour certaines requêtes, voire
 remonter des données erronées, alors que les secondes sont bien plus
-problématiques avec la destruction simple d&rsquo;une partie des données utilisateurs.</p>
-<p>Après un constat désarmant de corruption, la sueur perle probablement sur le
+problématiques avec la destruction simple d&rsquo;une partie des données utilisateurs.</p><p>Après un constat désarmant de corruption, la sueur perle probablement sur le
 front des équipes techniques, si tant est que l&rsquo;information leur ait été remontée
 dans un court laps de temps. La corruption est-elle réversible avec une copie
 quelconque de la table dans une instance secondaire, ou dans une sauvegarde ?
 La corruption est-elle présente depuis longtemps ? Le système présente-t-il des
-messages alarmants sur l&rsquo;état des écritures sur le volume ?</p>
-<p>Le meilleur des conseils que trop peu se permettent, serait de se prévenir d&rsquo;une
+messages alarmants sur l&rsquo;état des écritures sur le volume ?</p><p>Le meilleur des conseils que trop peu se permettent, serait de se prévenir d&rsquo;une
 surcorruption en <u>arrêtant les écritures le plus tôt possible</u>.
 Le temps d&rsquo;identifier l&rsquo;origine de la corruption, en mobilisant plusieurs équipes
 pour éplucher les logs des hyperviseurs, des baies de stockages ou du fournisseur
 Cloud, il se peut (statistiquement) qu&rsquo;une autre corruption porte atteinte à la
-vie des données saines du système.</p>
-<p>Il est aussi <a href=https://wiki.postgresql.org/wiki/Corruption>indispensable</a> de procéder à une copie bas niveau du répertoire
+vie des données saines du système.</p><p>Il est aussi <a href=https://wiki.postgresql.org/wiki/Corruption target=_blank rel=noopener>indispensable</a> de procéder à une copie bas niveau du répertoire
 de données de l&rsquo;instance et de travailler exclusivement sur un exemplaire de ladite
-copie, <em>a minima</em> sur des disques différents, au mieux, sur un serveur secondaire.</p>
-<hr>
-<h2 id=récupérer-ce-qui-peut-lêtre>Récupérer ce qui peut l&rsquo;être</h2>
-<p>Pour illustrer la complexité que peut devenir la récupération de données saines
+copie, <em>a minima</em> sur des disques différents, au mieux, sur un serveur secondaire.</p><hr><h2 id=récupérer-ce-qui-peut-lêtre>Récupérer ce qui peut l&rsquo;être</h2><p>Pour illustrer la complexité que peut devenir la récupération de données saines
 sur une base corrompue, j&rsquo;ai malmené une instance jetable en version 13 dont
 les données de la table <code>pgbench_accounts</code> ont été partiellement détruites avec
-l&rsquo;outil <code>fallocate</code>.</p>
-<p>Élargir la recherche des corruptions est possible en forçant la lecture intégrale
+l&rsquo;outil <code>fallocate</code>.</p><p>Élargir la recherche des corruptions est possible en forçant la lecture intégrale
 des données contenues dans les tables. Avec PostgreSQL, le plus simple consiste
 à exporter les bases avec <code>pg_dump</code>, de surveiller la sortie d&rsquo;erreurs… et
-d&rsquo;espérer qu&rsquo;aucune donnée ne soit perdue.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>$ pg_dump demo 1&gt; /dev/null
-
-Dumping the contents of table &#34;pgbench_accounts&#34; failed: PQgetResult() failed.
-Error message from server: 
-  ERROR:  invalid page in block 20 of relation base/16997/17010
-The command was: 
-  COPY public.pgbench_accounts (aid, bid, abalance, filler) TO stdout;
-</code></pre></div><p>L&rsquo;incertitude s&rsquo;installe à l&rsquo;issue de la commande. L&rsquo;une des pages de la table
+d&rsquo;espérer qu&rsquo;aucune donnée ne soit perdue.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ pg_dump demo 1&gt; /dev/null
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Dumping the contents of table &#34;pgbench_accounts&#34; failed: PQgetResult() failed.
+</span></span><span class=line><span class=cl>Error message from server: 
+</span></span><span class=line><span class=cl>  ERROR:  invalid page in block 20 of relation base/16997/17010
+</span></span><span class=line><span class=cl>The command was: 
+</span></span><span class=line><span class=cl>  COPY public.pgbench_accounts (aid, bid, abalance, filler) TO stdout;
+</span></span></code></pre></div><p>L&rsquo;incertitude s&rsquo;installe à l&rsquo;issue de la commande. L&rsquo;une des pages de la table
 <code>pgbench_accounts</code> présente une malformation, rendant impossible la lecture de
 8 ko de données. La récupération des données encore exploitable peut être possible,
 notamment à travers l&rsquo;index de clé primaire et une recherche par dichotomie sur
-les valeurs disponibles dans le fichier corrompu.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SET</span><span class=w> </span><span class=n>enable_seqscan</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>off</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>COPY</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>aid</span><span class=p>,</span><span class=w> </span><span class=n>bid</span><span class=p>,</span><span class=w> </span><span class=n>abalance</span><span class=p>,</span><span class=w> </span><span class=n>filler</span><span class=w> 
-</span><span class=w>        </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1221</span><span class=p>)</span><span class=w>
-</span><span class=w>  </span><span class=k>TO</span><span class=w> </span><span class=k>stdout</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>COPY</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>aid</span><span class=p>,</span><span class=w> </span><span class=n>bid</span><span class=p>,</span><span class=w> </span><span class=n>abalance</span><span class=p>,</span><span class=w> </span><span class=n>filler</span><span class=w> 
-</span><span class=w>        </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=mi>1281</span><span class=p>)</span><span class=w> 
-</span><span class=w>  </span><span class=k>TO</span><span class=w> </span><span class=k>stdout</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>Si tant est que cette table soit concernée par une contrainte de clé étrangère,
+les valeurs disponibles dans le fichier corrompu.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>enable_seqscan</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>off</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>COPY</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>aid</span><span class=p>,</span><span class=w> </span><span class=n>bid</span><span class=p>,</span><span class=w> </span><span class=n>abalance</span><span class=p>,</span><span class=w> </span><span class=n>filler</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1221</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>TO</span><span class=w> </span><span class=k>stdout</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>COPY</span><span class=w> </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>aid</span><span class=p>,</span><span class=w> </span><span class=n>bid</span><span class=p>,</span><span class=w> </span><span class=n>abalance</span><span class=p>,</span><span class=w> </span><span class=n>filler</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=mi>1281</span><span class=p>)</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>TO</span><span class=w> </span><span class=k>stdout</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Si tant est que cette table soit concernée par une contrainte de clé étrangère,
 l&rsquo;ensemble du modèle devient alors partiellement incohérent et les données
 orphelines sont destinées à être détruites explicitement pour valider la
-contrainte.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>pgbench_history</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>aid</span><span class=p>)</span><span class=w> </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>(</span><span class=n>aid</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- ERROR: insert or update on table &#34;pgbench_history&#34; violates 
-</span><span class=c1>--        foreign key constraint &#34;pgbench_history_aid_fkey&#34;
-</span><span class=c1>-- DETAIL: Key (aid)=(1276) is not present in table &#34;pgbench_accounts&#34;.
-</span><span class=c1></span><span class=w>
-</span><span class=w></span><span class=k>DELETE</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=n>h</span><span class=w> 
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>EXISTS</span><span class=w>
-</span><span class=w>   </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>h</span><span class=p>.</span><span class=n>aid</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>pgbench_history</span><span class=w>
-</span><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>aid</span><span class=p>)</span><span class=w> </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>(</span><span class=n>aid</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- ALTER TABLE
-</span></code></pre></div><hr>
-<h2 id=se-protéger-des-corruptions>Se protéger des corruptions</h2>
-<p>Comme précisé en introduction, la plupart des moteurs de bases de données sont
-<a href=https://www.postgresql.org/docs/current/wal-reliability.html>résilients</a> et articulent leurs écritures autours de la journalisation.
+contrainte.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>pgbench_history</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>aid</span><span class=p>)</span><span class=w> </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>(</span><span class=n>aid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- ERROR: insert or update on table &#34;pgbench_history&#34; violates 
+</span></span></span><span class=line><span class=cl><span class=c1>--        foreign key constraint &#34;pgbench_history_aid_fkey&#34;
+</span></span></span><span class=line><span class=cl><span class=c1>-- DETAIL: Key (aid)=(1276) is not present in table &#34;pgbench_accounts&#34;.
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>DELETE</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=n>h</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>EXISTS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=p>(</span><span class=k>SELECT</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>h</span><span class=p>.</span><span class=n>aid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>pgbench_history</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>ADD</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>KEY</span><span class=w> </span><span class=p>(</span><span class=n>aid</span><span class=p>)</span><span class=w> </span><span class=k>REFERENCES</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>(</span><span class=n>aid</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- ALTER TABLE
+</span></span></span></code></pre></div><hr><h2 id=se-protéger-des-corruptions>Se protéger des corruptions</h2><p>Comme précisé en introduction, la plupart des moteurs de bases de données sont
+<a href=https://www.postgresql.org/docs/current/wal-reliability.html target=_blank rel=noopener>résilients</a> et articulent leurs écritures autours de la journalisation.
 Chaque modification est assurée d&rsquo;être écrite sur un stockage non volatile à la
 réception du <code>COMMIT</code> de la transaction. Cela implique une synchronisation des
 blocs en mémoire vers le stockage du système comme je l&rsquo;avais illustré dans un
-<a href=/2021/01/19/la-breve-histoire-du-fichier-backup_label/#il-%C3%A9tait-une-fois-la-journalisation>précédent article</a>.</p>
-<p>Des précautions sont bien sûr nécessaires, et Craig Ringer avait compilé dans
-un <a href=http://blog.ringerc.id.au/2012/10/avoiding-postgresql-database-corruption.html>article</a> en 2012, des recommandations toujours pertinentes pour réduire
-le risque de corruptions.</p>
-<ul>
-<li><strong>Mettre à jour</strong> votre instance à la dernière version mineure disponible ;</li>
-<li><strong>Ne pas désactiver</strong> <code>fsync</code> et privilégier les paramètres <code>synchronous_commit</code>
-et <code>commit_delay</code> ;</li>
-<li><strong>Ne pas tuer</strong> les processus PostgreSQL et utiliser les fonctions système
-<code>pg_cancel_backend</code> et <code>pg_terminate_backend</code> pour arrêter une requête longue ;</li>
-<li><strong>Ne pas supprimer</strong> le contenu du répertoire de données, à l&rsquo;exception des
-traces d&rsquo;activité au format texte ;</li>
-<li><strong>Ne pas modifier</strong> le catalogue système (<code>pg_catalog.*</code>) ;</li>
-<li><strong>Conserver les sauvegardes sur de longues périodes</strong> à raison d&rsquo;une par semaine,
+<a href=/2021/01/19/la-breve-histoire-du-fichier-backup_label/#il-%c3%a9tait-une-fois-la-journalisation>précédent article</a>.</p><p>Des précautions sont bien sûr nécessaires, et Craig Ringer avait compilé dans
+un <a href=http://blog.ringerc.id.au/2012/10/avoiding-postgresql-database-corruption.html target=_blank rel=noopener>article</a> en 2012, des recommandations toujours pertinentes pour réduire
+le risque de corruptions.</p><ul><li><strong>Mettre à jour</strong> votre instance à la dernière version mineure disponible ;</li><li><strong>Ne pas désactiver</strong> <code>fsync</code> et privilégier les paramètres <code>synchronous_commit</code>
+et <code>commit_delay</code> ;</li><li><strong>Ne pas tuer</strong> les processus PostgreSQL et utiliser les fonctions système
+<code>pg_cancel_backend</code> et <code>pg_terminate_backend</code> pour arrêter une requête longue ;</li><li><strong>Ne pas supprimer</strong> le contenu du répertoire de données, à l&rsquo;exception des
+traces d&rsquo;activité au format texte ;</li><li><strong>Ne pas modifier</strong> le catalogue système (<code>pg_catalog.*</code>) ;</li><li><strong>Conserver les sauvegardes sur de longues périodes</strong> à raison d&rsquo;une par semaine,
 une par mois, voire une par année pour reconstruire les données corrompues
-(avec un peu de chance tout de même) ;</li>
-<li>Mettre en place de la réplication et des sauvegardes physiques, avec un politique
-de rétention des journaux de transactions sur de longues périodes ;</li>
-<li><strong>Éviter les disques en RAID5</strong> et privilégier le RAID10 pour les disques mécaniques ;</li>
-<li><strong>Ne pas utiliser</strong> les systèmes de fichiers exotiques comme (ZFS), BTRFS ou FAT32 ;</li>
-<li><strong>Ne pas stocker les fichiers</strong> de l&rsquo;instance sur une clé USB ou un montage
-réseau.</li>
-</ul>
-<div class=message>Depuis quelques années, le projet ZFS s&rsquo;est ouvert à la communauté avec OpenZFS
+(avec un peu de chance tout de même) ;</li><li>Mettre en place de la réplication et des sauvegardes physiques, avec un politique
+de rétention des journaux de transactions sur de longues périodes ;</li><li><strong>Éviter les disques en RAID5</strong> et privilégier le RAID10 pour les disques mécaniques ;</li><li><strong>Ne pas utiliser</strong> les systèmes de fichiers exotiques comme (ZFS), BTRFS ou FAT32 ;</li><li><strong>Ne pas stocker les fichiers</strong> de l&rsquo;instance sur une clé USB ou un montage
+réseau.</li></ul><div class=message>Depuis quelques années, le projet ZFS s&rsquo;est ouvert à la communauté avec OpenZFS
 en 2013. En plus des fonctionnalités de <em>Copy on Write</em>, de <em>Snapshot</em> ou de
 <em>Mirroring</em>, ce système de fichiers couvre également l&rsquo;aspect des sommes de
 contrôle, le rendant bien plus résilient qu&rsquo;à l&rsquo;époque où Craig Ringer écrivait
-ses recommandations.</div>
-<p>Malgré toutes ces protections, une autre forme de corruption peut encore survenir.
+ses recommandations.</div><p>Malgré toutes ces protections, une autre forme de corruption peut encore survenir.
 Une donnée erronée peut être retournée au client sans message d&rsquo;erreur. On parle
-alors de <a href=https://wiki.postgresql.org/wiki/Corruption_Detection_and_Containment>corruption silencieuse</a>.</p>
-<p>Prenons l&rsquo;exemple d&rsquo;une donnée dans la table <code>pgbench_branches</code> :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_branches</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;florent&#39;</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_branches&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--  pg_relation_filepath 
-</span><span class=c1>-- ----------------------
-</span><span class=c1>--  base/17100/17179
-</span></code></pre></div><p>À l&rsquo;aide d&rsquo;un éditeur hexadécimal, je suis libre d&rsquo;émuler une corruption
+alors de <a href=https://wiki.postgresql.org/wiki/Corruption_Detection_and_Containment target=_blank rel=noopener>corruption silencieuse</a>.</p><p>Prenons l&rsquo;exemple d&rsquo;une donnée dans la table <code>pgbench_branches</code> :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_branches</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;florent&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_branches&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_relation_filepath 
+</span></span></span><span class=line><span class=cl><span class=c1>-- ----------------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  base/17100/17179
+</span></span></span></code></pre></div><p>À l&rsquo;aide d&rsquo;un éditeur hexadécimal, je suis libre d&rsquo;émuler une corruption
 silencieuse en ciblant précisément une donnée de type <code>text</code>. Ici, je remplace
-quelques octets pour transformer <code>florent</code> en <code>fl4r%nt</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>hexedit base/17100/17179
-
-00001F64   00 00 00 00  00 00 00 00  00 00 00 00  ............
-00001F70   02 00 03 80  02 29 18 00  01 00 00 00  .....)......
-00001F7C   00 00 00 00  B3 66 6C 34  72 25 6E 74  .....fl4r%nt
-00001F88   20 20 20 20  20 20 20 20  20 20 20 20
-00001F94   20 20 20 20  20 20 20 20  20 20 20 20
-00001FA0   20 20 20 20  20 20 20 20  20 20 20 20
-00001FAC   20 20 20 20  20 20 20 20  20 20 20 20
-</code></pre></div><p>Pour cette démonstration, ce changement a été fait à froid, c&rsquo;est-à-dire instance
+quelques octets pour transformer <code>florent</code> en <code>fl4r%nt</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>hexedit base/17100/17179
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>00001F64   00 00 00 00  00 00 00 00  00 00 00 00  ............
+</span></span><span class=line><span class=cl>00001F70   02 00 03 80  02 29 18 00  01 00 00 00  .....)......
+</span></span><span class=line><span class=cl>00001F7C   00 00 00 00  B3 66 6C 34  72 25 6E 74  .....fl4r%nt
+</span></span><span class=line><span class=cl>00001F88   20 20 20 20  20 20 20 20  20 20 20 20
+</span></span><span class=line><span class=cl>00001F94   20 20 20 20  20 20 20 20  20 20 20 20
+</span></span><span class=line><span class=cl>00001FA0   20 20 20 20  20 20 20 20  20 20 20 20
+</span></span><span class=line><span class=cl>00001FAC   20 20 20 20  20 20 20 20  20 20 20 20
+</span></span></code></pre></div><p>Pour cette démonstration, ce changement a été fait à froid, c&rsquo;est-à-dire instance
 arrêtée et fichiers fermés. Une copie du bloc pouvant encore être dans le cache
 mémoire de PostgreSQL, le prochain <code>CHECKPOINT</code> ou synchronisation préventive
-aurait réécrit le bloc sain à l&rsquo;intérieur du fichier.</p>
-<p>Au redémarrage de l&rsquo;instance, le contenu de la table est erroné, mais PostgreSQL
-n&rsquo;aura détecté aucune anomalie de corruption dans le bloc de fichier.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_branches</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- -[ RECORD 1 ]---------
-</span><span class=c1>-- bid      | 1
-</span><span class=c1>-- bbalance | 0
-</span><span class=c1>-- filler   | fl4r%nt
-</span></code></pre></div><p>Depuis la version 9.3 de PostgreSQL, publiée en septembre 2013, il est possible
-d&rsquo;activer les <a href=https://paquier.xyz/postgresql-2/postgres-9-3-feature-highlight-data-checksums/>sommes de contrôles</a> pour les données d&rsquo;une instance afin de
+aurait réécrit le bloc sain à l&rsquo;intérieur du fichier.</p><p>Au redémarrage de l&rsquo;instance, le contenu de la table est erroné, mais PostgreSQL
+n&rsquo;aura détecté aucune anomalie de corruption dans le bloc de fichier.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_branches</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- -[ RECORD 1 ]---------
+</span></span></span><span class=line><span class=cl><span class=c1>-- bid      | 1
+</span></span></span><span class=line><span class=cl><span class=c1>-- bbalance | 0
+</span></span></span><span class=line><span class=cl><span class=c1>-- filler   | fl4r%nt
+</span></span></span></code></pre></div><p>Depuis la version 9.3 de PostgreSQL, publiée en septembre 2013, il est possible
+d&rsquo;activer les <a href=https://paquier.xyz/postgresql-2/postgres-9-3-feature-highlight-data-checksums/ target=_blank rel=noopener>sommes de contrôles</a> pour les données d&rsquo;une instance afin de
 contrôler l&rsquo;état d&rsquo;un bloc entre son écriture et ses futures lectures, évitant
-alors tout risque de corruption silencieuse.</p>
-<p>Cette opération nécessite pour les versions 11 et inférieures, que l&rsquo;instance
-soit créée avec ce mode particulier. Depuis la <a href=https://pgpedia.info/d/data-page-checksums.html>version 12</a>, l&rsquo;utilitaire
+alors tout risque de corruption silencieuse.</p><p>Cette opération nécessite pour les versions 11 et inférieures, que l&rsquo;instance
+soit créée avec ce mode particulier. Depuis la <a href=https://pgpedia.info/d/data-page-checksums.html target=_blank rel=noopener>version 12</a>, l&rsquo;utilitaire
 <code>pg_checksums</code> permet d&rsquo;activer et de désactiver le mécanisme de sommes de
 contrôle sur le répertoire de données d&rsquo;une instance arrêtée, sans besoin de
 migrer vers une nouvelle instance comme il était nécessaire dans les versions
-précédentes.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>$ pg_checksums --pgdata<span class=o>=</span><span class=nv>$PGENV_ROOT</span>/pgsql/data --enable
-
-Checksum operation completed
-Files scanned:  <span class=m>3097</span>
-Blocks scanned: <span class=m>109156</span>
-pg_checksums: syncing data directory
-pg_checksums: updating control file
-Checksums enabled in cluster
-</code></pre></div><p>Dans ce nouveau contexte, je réalise à une nouvelle fois un <code>UPDATE</code> sur la table…</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_branches</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;florent&#39;</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>CHECKPOINT</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>… et je corromps la donnée de la table <code>pgbench_branches</code>. Au redémarrage,
+précédentes.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>$ pg_checksums --pgdata<span class=o>=</span><span class=nv>$PGENV_ROOT</span>/pgsql/data --enable
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Checksum operation completed
+</span></span><span class=line><span class=cl>Files scanned:  <span class=m>3097</span>
+</span></span><span class=line><span class=cl>Blocks scanned: <span class=m>109156</span>
+</span></span><span class=line><span class=cl>pg_checksums: syncing data directory
+</span></span><span class=line><span class=cl>pg_checksums: updating control file
+</span></span><span class=line><span class=cl>Checksums enabled in cluster
+</span></span></code></pre></div><p>Dans ce nouveau contexte, je réalise à une nouvelle fois un <code>UPDATE</code> sur la table…</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_branches</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;florent&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CHECKPOINT</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>… et je corromps la donnée de la table <code>pgbench_branches</code>. Au redémarrage,
 PostgreSQL remonte correctement une anomalie de sommes de contrôle sur le bloc
-qui contient la donnée corrompue :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_branches</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- WARNING: page verification failed, calculated checksum 35393 but expected 2501
-</span><span class=c1>-- ERROR: invalid page in block 0 of relation base/17100/17179
-</span></code></pre></div><hr>
-<h2 id=conclusion>Conclusion</h2>
-<p>Les corruptions sont des événements rarissimes et imprévisibles. Il est
+qui contient la donnée corrompue :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_branches</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- WARNING: page verification failed, calculated checksum 35393 but expected 2501
+</span></span></span><span class=line><span class=cl><span class=c1>-- ERROR: invalid page in block 0 of relation base/17100/17179
+</span></span></span></code></pre></div><hr><h2 id=conclusion>Conclusion</h2><p>Les corruptions sont des événements rarissimes et imprévisibles. Il est
 communément admis que les dégâts sont irréversibles dans un grand nombre de
-situations, en l&rsquo;absence de contre-mesures suffisantes.</p>
-<p>À moins d&rsquo;avoir une confiance aveugle dans l&rsquo;infrastructure matérielle qui
+situations, en l&rsquo;absence de contre-mesures suffisantes.</p><p>À moins d&rsquo;avoir une confiance aveugle dans l&rsquo;infrastructure matérielle qui
 héberge vos instances, l&rsquo;activation des sommes de contrôle représente à ce jour
 le mécanisme le plus complet pour identifier rapidement toutes les formes de
-corruptions sur les données de vos bases.</p>
-<p><strong>Mauvaise nouvelle : ce mécanisme n&rsquo;est pas actif par défaut.</strong></p>
-<p>À vous d&rsquo;intégrer l&rsquo;option <code>--data-checksums</code> de l&rsquo;utilitaire <code>initdb</code> lors du
+corruptions sur les données de vos bases.</p><p><strong>Mauvaise nouvelle : ce mécanisme n&rsquo;est pas actif par défaut.</strong></p><p>À vous d&rsquo;intégrer l&rsquo;option <code>--data-checksums</code> de l&rsquo;utilitaire <code>initdb</code> lors du
 provisionnement de toutes vos nouvelles instances. Enfin, privilégiez une
 version 12 ou supérieure, car vous ne regretterez pas le gain de temps que
-vous apportera <code>pg_checksums</code> !</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
-<small><time datetime=2020-12-21>21 déc 2020</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/11/18/quelques-outils-meconnus/>Quelques outils méconnus
-<small><time datetime=2020-11-18>18 nov 2020</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/>Jette ton instance à la poubelle
-<small><time datetime=2019-06-20>20 juin 2019</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+vous apportera <code>pg_checksums</code> !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
+<small><time datetime=2020-12-21>21 déc 2020</time></small></a></li><li><a href=https://fljd.in/2020/11/18/quelques-outils-meconnus/>Quelques outils méconnus
+<small><time datetime=2020-11-18>18 nov 2020</time></small></a></li><li><a href=https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/>Jette ton instance à la poubelle
+<small><time datetime=2019-06-20>20 juin 2019</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

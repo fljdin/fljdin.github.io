@@ -1,361 +1,267 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Les statistiques au service du plan d'exécution</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Les statistiques au service du plan d'exécution</a></h1>
-<p class=post-date>
-<time datetime=2020-07-01>1 juil 2020</time>
-- 9 minutes de lecture
-</p><p>La lecture d&rsquo;un plan d&rsquo;exécution fait partie des meilleures armes du développeur
+<!doctype html><html lang=fr><head><title>Les statistiques au service du plan d'exécution</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Les statistiques au service du plan d'exécution</a></h1><p class=post-date><time datetime=2020-07-01>1 juil 2020</time>
+- 9 minutes de lecture</p><p>La lecture d&rsquo;un plan d&rsquo;exécution fait partie des meilleures armes du développeur
 et de l&rsquo;administrateur de bases de données pour identifier les problèmes de
 performances. Dans <a href=/2019/09/27/index-decomplexe>un précédent article</a>, je
 présentais l&rsquo;intérêt de positionner un index sur les colonnes d&rsquo;une table pour
-faciliter les recherches, notamment avec l&rsquo;aide de la commande <code>EXPLAIN</code>.</p>
-<p>À cette époque, je ne m&rsquo;étais pas attardé sur la notion des statistiques de
+faciliter les recherches, notamment avec l&rsquo;aide de la commande <code>EXPLAIN</code>.</p><p>À cette époque, je ne m&rsquo;étais pas attardé sur la notion des statistiques de
 données, que l&rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
-près ce que propose PostgreSQL pour garantir les performances de vos requêtes.</p>
-<hr>
-<h2 id=estimer-ou-ne-pas-estimer>Estimer ou ne pas estimer</h2>
-<p>Une statistique de données résulte d&rsquo;un calcul en arrière plan sur tout ou partie
+près ce que propose PostgreSQL pour garantir les performances de vos requêtes.</p><hr><h2 id=estimer-ou-ne-pas-estimer>Estimer ou ne pas estimer</h2><p>Une statistique de données résulte d&rsquo;un calcul en arrière plan sur tout ou partie
 des données d&rsquo;une table. Il peut s&rsquo;agir de la quantité de lignes, du nombre
 distinct de valeurs dans une colonne, ou bien encore de la <strong>distribution</strong> des
 valeurs sous forme d&rsquo;histogramme. Ainsi, pour chaque table et chaque colonne, il
 existe des données supplémentaires qui permettent au moteur d&rsquo;avoir une juste
-<strong>estimation</strong> des données qu&rsquo;il s&rsquo;apprête à manipuler.</p>
-<p>Prenons la table <code>pgbench_history</code> sur laquelle j&rsquo;ai ajouté un index pour la
+<strong>estimation</strong> des données qu&rsquo;il s&rsquo;apprête à manipuler.</p><p>Prenons la table <code>pgbench_history</code> sur laquelle j&rsquo;ai ajouté un index pour la
 colonne <code>aid</code>. Quel plan nous propose le moteur pour récupérer toutes les lignes
-dont la valeur <code>aid</code> est inférieure à 1 000 ?</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>                      QUERY PLAN
---------------------------------------------------------
- Bitmap Heap Scan on pgbench_history
- (cost=4.34..11.79 rows=9 width=116)
-   Recheck Cond: (aid &lt; 1000)
-   -&gt;  Bitmap Index Scan on pgbench_history_aid_idx  
-       (cost=0.00..4.34 rows=9 width=0)
-         Index Cond: (aid &lt; 1000)
-</code></pre></div><p>Le résultat qui s&rsquo;affiche correspond au meilleur plan connu et repose sur un
+dont la valeur <code>aid</code> est inférieure à 1 000 ?</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>                      QUERY PLAN
+</span></span><span class=line><span class=cl>--------------------------------------------------------
+</span></span><span class=line><span class=cl> Bitmap Heap Scan on pgbench_history
+</span></span><span class=line><span class=cl> (cost=4.34..11.79 rows=9 width=116)
+</span></span><span class=line><span class=cl>   Recheck Cond: (aid &lt; 1000)
+</span></span><span class=line><span class=cl>   -&gt;  Bitmap Index Scan on pgbench_history_aid_idx  
+</span></span><span class=line><span class=cl>       (cost=0.00..4.34 rows=9 width=0)
+</span></span><span class=line><span class=cl>         Index Cond: (aid &lt; 1000)
+</span></span></code></pre></div><p>Le résultat qui s&rsquo;affiche correspond au meilleur plan connu et repose sur un
 système de coût d&rsquo;accès aux lignes. Le plan présentant le coût le plus faible
 est considéré comme le <em>meilleur</em> plan ; l&rsquo;ensemble des nœuds le composant sera
 donc respecté pour récupérer le résultat final. Dans le cas de notre requête, le
 moteur estime que les opérations <code>Bitmap Index</code> et <code>Bitmap Heap</code> sont les moins
-coûteuses en performance.</p>
-<p>Comment le moteur peut-il être certain que ce plan est le moins coûteux ?
+coûteuses en performance.</p><p>Comment le moteur peut-il être certain que ce plan est le moins coûteux ?
 Comparons son coût d&rsquo;accès total (ici <code>11.79</code>) avec un autre plan pour lequel
-nous interdisons l&rsquo;usage de l&rsquo;index.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SET</span><span class=w> </span><span class=n>enable_bitmapscan</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>off</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>                            QUERY PLAN
-------------------------------------------------------------------
- Seq Scan on pgbench_history  (cost=0.00..19.50 rows=9 width=116)
-   Filter: (aid &lt; 1000)
-</code></pre></div><p>Le coût de lecture complète de la table (nœud <code>Seq Scan</code>) vaut <code>19.50</code>, ce qui
+nous interdisons l&rsquo;usage de l&rsquo;index.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>enable_bitmapscan</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>off</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>                            QUERY PLAN
+</span></span><span class=line><span class=cl>------------------------------------------------------------------
+</span></span><span class=line><span class=cl> Seq Scan on pgbench_history  (cost=0.00..19.50 rows=9 width=116)
+</span></span><span class=line><span class=cl>   Filter: (aid &lt; 1000)
+</span></span></code></pre></div><p>Le coût de lecture complète de la table (nœud <code>Seq Scan</code>) vaut <code>19.50</code>, ce qui
 est supérieur au plan précédent. Lorsque l&rsquo;on exécute un requête SQL, une partie
 du moteur, appelé le planificateur consolide en arrière plan une petite quantité
-de plans avant de ne retourner que le meilleur. Plusieurs <a href=https://www.postgresql.org/docs/12/runtime-config-query.html>paramètres</a> comme
+de plans avant de ne retourner que le meilleur. Plusieurs <a href=https://www.postgresql.org/docs/12/runtime-config-query.html target=_blank rel=noopener>paramètres</a> comme
 <code>enable_bitmapscan</code>, peuvent changer complètement le comportement du planificateur
-en réduisant le nombre de choix possibles dans l&rsquo;élaboration de ses plans.</p>
-<p>En complément du coût, la commande <code>EXPLAIN</code> indique également l&rsquo;estimation du
+en réduisant le nombre de choix possibles dans l&rsquo;élaboration de ses plans.</p><p>En complément du coût, la commande <code>EXPLAIN</code> indique également l&rsquo;estimation du
 nombre de lignes que retourneront les nœuds. Dans le cas des deux plans, le
 planificateur <em>estime</em> qu&rsquo;il existe 9 lignes répondant au critère de recherche.
-Cette <em>statistique</em> peut être déduite des vues système <code>pg_class</code> et <code>pg_stats</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=o>*</span><span class=p>,</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>relpages</span><span class=p>,</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>reltuples</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stats</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>c</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>tablename</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>relname</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>tablename</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_history&#39;</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>attname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;aid&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>-[ RECORD 1 ]----------+------------------------------------
-schemaname             | public
-tablename              | pgbench_history
-attname                | aid
-inherited              | f
-null_frac              | 0
-avg_width              | 4
-n_distinct             | -0.997
-most_common_vals       | {66403,80979,82766}
-most_common_freqs      | {0.002,0.002,0.002}
-histogram_bounds       | {75,973,1755,… ,98037,98999,99991}
-correlation            | 0.047431067
-most_common_elems      | 
-most_common_elem_freqs | 
-elem_count_histogram   | 
-relpages               | 7
-reltuples              | 1000
-</code></pre></div><p>Sans même consulter le contenu de la table <code>pgbench_history</code>, nous sommes en
+Cette <em>statistique</em> peut être déduite des vues système <code>pg_class</code> et <code>pg_stats</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=o>*</span><span class=p>,</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>relpages</span><span class=p>,</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>reltuples</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stats</span><span class=w> </span><span class=n>s</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>c</span><span class=w> </span><span class=k>ON</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>tablename</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>c</span><span class=p>.</span><span class=n>relname</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>tablename</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_history&#39;</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>attname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;aid&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>-[ RECORD 1 ]----------+------------------------------------
+</span></span><span class=line><span class=cl>schemaname             | public
+</span></span><span class=line><span class=cl>tablename              | pgbench_history
+</span></span><span class=line><span class=cl>attname                | aid
+</span></span><span class=line><span class=cl>inherited              | f
+</span></span><span class=line><span class=cl>null_frac              | 0
+</span></span><span class=line><span class=cl>avg_width              | 4
+</span></span><span class=line><span class=cl>n_distinct             | -0.997
+</span></span><span class=line><span class=cl>most_common_vals       | {66403,80979,82766}
+</span></span><span class=line><span class=cl>most_common_freqs      | {0.002,0.002,0.002}
+</span></span><span class=line><span class=cl>histogram_bounds       | {75,973,1755,… ,98037,98999,99991}
+</span></span><span class=line><span class=cl>correlation            | 0.047431067
+</span></span><span class=line><span class=cl>most_common_elems      | 
+</span></span><span class=line><span class=cl>most_common_elem_freqs | 
+</span></span><span class=line><span class=cl>elem_count_histogram   | 
+</span></span><span class=line><span class=cl>relpages               | 7
+</span></span><span class=line><span class=cl>reltuples              | 1000
+</span></span></code></pre></div><p>Sans même consulter le contenu de la table <code>pgbench_history</code>, nous sommes en
 possession d&rsquo;informations intéressantes. Nous apprenons que la table contient
 exactement 1 000 lignes (<em>reltuples</em>) et que la colonne <code>aid</code> présente un nombre
 de valeurs distinctes (<em>n_distinct</em>) qui tend vers <code>-1</code>, c&rsquo;est-à-dire autant de
-valeurs uniques que de lignes dans la table.</p>
-<p>La distribution des valeurs de la colonne <code>aid</code> est représentée par le tableau
-<code>histogram_bounds</code> de <a href=https://postgresqlco.nf/en/doc/param/default_statistics_target/>100 éléments</a>. Ces bornes divisent approximativement les
+valeurs uniques que de lignes dans la table.</p><p>La distribution des valeurs de la colonne <code>aid</code> est représentée par le tableau
+<code>histogram_bounds</code> de <a href=https://postgresqlco.nf/en/doc/param/default_statistics_target/ target=_blank rel=noopener>100 éléments</a>. Ces bornes divisent approximativement les
 valeurs dans des groupes de même taille ; comprendre que 1 % des lignes ont une
 valeur de colonne <code>aid</code> comprise entre 75 et 972, 1 % des lignes, entre 973 et
 1 754, etc. On peut dès lors supposer que les valeurs possibles de la colonne
-<code>aid</code> s&rsquo;étendent de 75 à 99 991.</p>
-<p>Si l&rsquo;on revient à notre critère de recherche, les lignes dont la valeur <code>aid</code>
+<code>aid</code> s&rsquo;étendent de 75 à 99 991.</p><p>Si l&rsquo;on revient à notre critère de recherche, les lignes dont la valeur <code>aid</code>
 est inférieure à 1 000 représenteraient un peu plus de 1 % des 1000 lignes de la
 table, soit environ 10 lignes si toutes les valeurs étaient distinctes.
-L&rsquo;estimation de 9 lignes proposée par la commande <code>EXPLAIN</code> serait donc juste.</p>
-<div class=message>La documentation du projet détaille en profondeur le calcul de ces estimations
+L&rsquo;estimation de 9 lignes proposée par la commande <code>EXPLAIN</code> serait donc juste.</p><div class=message>La documentation du projet détaille en profondeur le calcul de ces estimations
 avec de nombreux exemples :
-<em><a href=https://www.postgresql.org/docs/12/row-estimation-examples.html>How the Planner Uses Statistics: Row Estimation Examples</a></em>.</div>
-<hr>
-<p>Tout l&rsquo;intérêt des statistiques est donc d&rsquo;apporter suffisamment d&rsquo;éléments
+<em><a href=https://www.postgresql.org/docs/12/row-estimation-examples.html target=_blank rel=noopener>How the Planner Uses Statistics: Row Estimation Examples</a></em>.</div><hr><p>Tout l&rsquo;intérêt des statistiques est donc d&rsquo;apporter suffisamment d&rsquo;éléments
 précalculés et économes en espace disque pour que le planificateur puisse faire
 des estimations les plus justes possibles. Dès lors qu&rsquo;une estimation est calculée,
 le choix du plan d&rsquo;exécution le moins coûteux devient évident. Retenons que le
 meilleur plan <strong>doit être</strong> le moins coûteux en ressources et donc, le plus
-optimisé pour la requête SQL.</p>
-<p>Qu&rsquo;advient-il de notre plan si, par erreur ou hasard, les statistiques étaient
-erronées ou venaient à disparaître pour la colonne <code>aid</code> ?</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>DELETE</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_statistic</span><span class=w> </span><span class=n>s</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>starelid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_history&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>staattnum</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>(</span><span class=w>
-</span><span class=w>   </span><span class=k>SELECT</span><span class=w> </span><span class=n>attnum</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_attribute</span><span class=w> 
-</span><span class=w>    </span><span class=k>WHERE</span><span class=w> </span><span class=n>attrelid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>starelid</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>attname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;aid&#39;</span><span class=w>
-</span><span class=w> </span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>RESET</span><span class=w> </span><span class=n>enable_bitmapscan</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>                             QUERY PLAN                             
---------------------------------------------------------------------
- Seq Scan on pgbench_history  (cost=0.00..19.50 rows=333 width=116)
-   Filter: (aid &lt; 1000)
-</code></pre></div><p>On constate qu&rsquo;en l&rsquo;absence de statistiques sur le critère de sélection, le plan
+optimisé pour la requête SQL.</p><p>Qu&rsquo;advient-il de notre plan si, par erreur ou hasard, les statistiques étaient
+erronées ou venaient à disparaître pour la colonne <code>aid</code> ?</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DELETE</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_statistic</span><span class=w> </span><span class=n>s</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>starelid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_history&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>staattnum</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>SELECT</span><span class=w> </span><span class=n>attnum</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_attribute</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>WHERE</span><span class=w> </span><span class=n>attrelid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>starelid</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>attname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;aid&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>RESET</span><span class=w> </span><span class=n>enable_bitmapscan</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>                             QUERY PLAN                             
+</span></span><span class=line><span class=cl>--------------------------------------------------------------------
+</span></span><span class=line><span class=cl> Seq Scan on pgbench_history  (cost=0.00..19.50 rows=333 width=116)
+</span></span><span class=line><span class=cl>   Filter: (aid &lt; 1000)
+</span></span></code></pre></div><p>On constate qu&rsquo;en l&rsquo;absence de statistiques sur le critère de sélection, le plan
 <code>Bitmap</code> n&rsquo;est plus le moins coûteux et n&rsquo;est donc plus proposé par le
 planificateur. Le moteur privilégera la lecture complète de la table (<code>Seq Scan</code>)
-dont le coût est invariant.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SET</span><span class=w> </span><span class=n>enable_seqscan</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>off</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>                      QUERY PLAN
---------------------------------------------------------
- Bitmap Heap Scan on pgbench_history
- (cost=10.86..22.02 rows=333 width=116)
-   Recheck Cond: (aid &lt; 1000)
-   -&gt;  Bitmap Index Scan on pgbench_history_aid_idx
-       (cost=0.00..10.77 rows=333 width=0)
-         Index Cond: (aid &lt; 1000)
-</code></pre></div><p>L&rsquo;estimation de lignes retournées peut paraître surprenante ! Il s&rsquo;agit d&rsquo;un
-calcul arbitraire défini dans la classe <code>selfuncs.h</code> (<a href=https://doxygen.postgresql.org/selfuncs_8h.html#define-members>source</a>) avec notamment un
+dont le coût est invariant.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>enable_seqscan</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>off</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>EXPLAIN</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_history</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=mi>1000</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>                      QUERY PLAN
+</span></span><span class=line><span class=cl>--------------------------------------------------------
+</span></span><span class=line><span class=cl> Bitmap Heap Scan on pgbench_history
+</span></span><span class=line><span class=cl> (cost=10.86..22.02 rows=333 width=116)
+</span></span><span class=line><span class=cl>   Recheck Cond: (aid &lt; 1000)
+</span></span><span class=line><span class=cl>   -&gt;  Bitmap Index Scan on pgbench_history_aid_idx
+</span></span><span class=line><span class=cl>       (cost=0.00..10.77 rows=333 width=0)
+</span></span><span class=line><span class=cl>         Index Cond: (aid &lt; 1000)
+</span></span></code></pre></div><p>L&rsquo;estimation de lignes retournées peut paraître surprenante ! Il s&rsquo;agit d&rsquo;un
+calcul arbitraire défini dans la classe <code>selfuncs.h</code> (<a href=https://doxygen.postgresql.org/selfuncs_8h.html#define-members target=_blank rel=noopener>source</a>) avec notamment un
 facteur de sélectivité qui s&rsquo;applique sur le nombre total de lignes présentes dans
 la table. Ainsi, pour un critère d&rsquo;égalité, ce facteur vaudra 0.5 %
 (<code>DEFAULT_EQ_SEL=0.005</code>) alors qu&rsquo;une comparaison de non-égalité comme celle
-de notre exemple, vaudra 33.33 % (<code>DEFAULT_INEQ_SEL=0.3333333333333333</code>).</p>
-<p>Puisque le planificateur estime devoir parcourir 333 entrées dans l&rsquo;index à défaut
+de notre exemple, vaudra 33.33 % (<code>DEFAULT_INEQ_SEL=0.3333333333333333</code>).</p><p>Puisque le planificateur estime devoir parcourir 333 entrées dans l&rsquo;index à défaut
 de meilleure estimation, le coût total de ce plan est surévalué à <code>22.02</code>, au
-lieu de <code>11.79</code> auparavant.</p>
-<hr>
-<h2 id=collecte-automatique-des-statistiques>Collecte automatique des statistiques</h2>
-<p>Bien entendu, supprimer des statistiques n&rsquo;est pas une bonne pratique et ne devrait
+lieu de <code>11.79</code> auparavant.</p><hr><h2 id=collecte-automatique-des-statistiques>Collecte automatique des statistiques</h2><p>Bien entendu, supprimer des statistiques n&rsquo;est pas une bonne pratique et ne devrait
 pas être envisagé pour « changer le comportement » du planificateur. Depuis la
 version 8.3 de PostgreSQL, il n&rsquo;y a même plus trop de raison de s&rsquo;inquiéter de
 l&rsquo;absence ou de la fraîcheur des statistiques associées à chaque colonne de vos
-tables : le processus <a href=https://www.postgresql.org/docs/8.3/runtime-config-autovacuum.html>autovacuum</a> (désactivé en 8.1 et 8.2) se charge, entre
+tables : le processus <a href=https://www.postgresql.org/docs/8.3/runtime-config-autovacuum.html target=_blank rel=noopener>autovacuum</a> (désactivé en 8.1 et 8.2) se charge, entre
 autres fonctions, de parcourir régulièrement les tables de vos bases pour collecter
 et consolider la table <code>pg_statistic</code>. Il se porte ainsi garant de la pertinence
-des plans d&rsquo;exécution.</p>
-<p>En réalité, ce processus <em>observe</em> les variations de volumétrie des tables avant
+des plans d&rsquo;exécution.</p><p>En réalité, ce processus <em>observe</em> les variations de volumétrie des tables avant
 de déclencher l&rsquo;opération <code>ANALYZE</code> par un processus de maintenance pour cette
 table. Ce mécanisme est bien plus pertinent et optimisé qu&rsquo;une exécution à
-intervale régulier pour calculer arbitrairement les statistiques de la base.</p>
-<p>Le <a href=https://www.postgresql.org/docs/12/routine-vacuuming.html#AUTOVACUUM>seuil de déclenchement</a> de l'<em>autoanalyze</em> est obtenu à l&rsquo;aide d&rsquo;un calcul
+intervale régulier pour calculer arbitrairement les statistiques de la base.</p><p>Le <a href=https://www.postgresql.org/docs/12/routine-vacuuming.html#AUTOVACUUM target=_blank rel=noopener>seuil de déclenchement</a> de l&rsquo;<em>autoanalyze</em> est obtenu à l&rsquo;aide d&rsquo;un calcul
 trivial impliquant deux paramètres globaux que l&rsquo;on peut surcharger,
-<code>autovacuum_analyze_threshold = 50</code> et <code>autovacuum_analyze_scale_factor = 0.1</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>analyze threshold = analyze base threshold + 
-                    analyze scale factor * number of tuples
-</code></pre></div><p>Prenons l&rsquo;exemple de la table <code>pgbench_accounts</code> qui contient un million de lignes
+<code>autovacuum_analyze_threshold = 50</code> et <code>autovacuum_analyze_scale_factor = 0.1</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>analyze threshold = analyze base threshold + 
+</span></span><span class=line><span class=cl>                    analyze scale factor * number of tuples
+</span></span></code></pre></div><p>Prenons l&rsquo;exemple de la table <code>pgbench_accounts</code> qui contient un million de lignes
 avec une contrainte de clé primaire sur la colonne <code>aid</code>. La vue système
 <code>pg_stat_user_tables</code> dispose d&rsquo;informations complémentaires à celles des
 statistiques, notamment la colonne <code>n_mod_since_analyze</code> qui indique la quantité
 de tuples ayant été modifiés depuis la dernière opération de collecte <code>ANALYZE</code>.
-Voyons son contenu après la modification d&rsquo;une portion de lignes.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=mi>10000</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=c1>-- UPDATE 10000
-</span><span class=c1></span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>,</span><span class=w> </span><span class=n>n_live_tup</span><span class=p>,</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> 
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w> </span><span class=n>u</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>-[ RECORD 1 ]-------+------------------------------
-relname             | pgbench_accounts
-last_autoanalyze    | 2020-06-18 15:12:55.224493+02
-n_live_tup          | 1000000
-n_mod_since_analyze | 10000
-</code></pre></div><p>Ici, seul 1 % de la table a subi un changement et le mécanisme de collecte
+Voyons son contenu après la modification d&rsquo;une portion de lignes.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=mi>10000</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- UPDATE 10000
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>,</span><span class=w> </span><span class=n>n_live_tup</span><span class=p>,</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w> </span><span class=n>u</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>-[ RECORD 1 ]-------+------------------------------
+</span></span><span class=line><span class=cl>relname             | pgbench_accounts
+</span></span><span class=line><span class=cl>last_autoanalyze    | 2020-06-18 15:12:55.224493+02
+</span></span><span class=line><span class=cl>n_live_tup          | 1000000
+</span></span><span class=line><span class=cl>n_mod_since_analyze | 10000
+</span></span></code></pre></div><p>Ici, seul 1 % de la table a subi un changement et le mécanisme de collecte
 automatique des statistiques semble ne pas s&rsquo;être déclenché. En effet, le seuil
 de déclenchement pour cette table serait plutôt de 100 050 lignes
 (<code>50 + 0.1 * 1000000</code>). Recommençons avec un plus large échantillon et observons
-les traces d&rsquo;activité du processus <code>autovacuum</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>log_min_messages</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>debug2</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>log_autovacuum_min_duration</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_reload_conf</span><span class=p>();</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=mi>90051</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=c1>-- UPDATE 90051
-</span><span class=c1></span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>,</span><span class=w> </span><span class=n>n_live_tup</span><span class=p>,</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> 
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w> </span><span class=n>u</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>-[ RECORD 1 ]-------+------------------------------
-relname             | pgbench_accounts
-last_autoanalyze    | 2020-06-30 17:44:22.424363+02
-n_live_tup          | 1000000
-n_mod_since_analyze | 0
-</code></pre></div><p>Comme attendu, un traitement <code>ANALYZE</code> s&rsquo;est exécuté et a mis à jour les données
+les traces d&rsquo;activité du processus <code>autovacuum</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>log_min_messages</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>debug2</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>log_autovacuum_min_duration</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_reload_conf</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=mi>90051</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- UPDATE 90051
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>,</span><span class=w> </span><span class=n>n_live_tup</span><span class=p>,</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w> </span><span class=n>u</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>-[ RECORD 1 ]-------+------------------------------
+</span></span><span class=line><span class=cl>relname             | pgbench_accounts
+</span></span><span class=line><span class=cl>last_autoanalyze    | 2020-06-30 17:44:22.424363+02
+</span></span><span class=line><span class=cl>n_live_tup          | 1000000
+</span></span><span class=line><span class=cl>n_mod_since_analyze | 0
+</span></span></code></pre></div><p>Comme attendu, un traitement <code>ANALYZE</code> s&rsquo;est exécuté et a mis à jour les données
 de la vue <code>pg_stat_user_tables</code>, mettant à zéro la colonne <code>n_mod_since_analyze</code>
 jusqu&rsquo;au prochain déclenchement. Côté trace d&rsquo;activité, le mode <code>debug2</code> écrit
 une série d&rsquo;événements tels que les seuils calculés de la table, le démarrage
-et la fin du traitement par le <em>worker</em> dédié.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-r data-lang=r><span class=n>DEBUG</span><span class=o>:</span>  <span class=n>autovacuum</span><span class=o>:</span> <span class=n>processing</span> <span class=n>database</span> <span class=s>&#34;demo&#34;</span>
-<span class=n>DEBUG</span><span class=o>:</span>  <span class=n>pgbench_accounts</span><span class=o>:</span> <span class=n>vac</span><span class=o>:</span> <span class=m>100051</span> <span class=p>(</span><span class=n>threshold</span> <span class=m>200050</span><span class=p>),</span> 
-                          <span class=n>anl</span><span class=o>:</span> <span class=m>100051</span> <span class=p>(</span><span class=n>threshold</span> <span class=m>100050</span><span class=p>)</span>
-<span class=n>DEBUG</span><span class=o>:</span>  <span class=n>analyzing</span> <span class=s>&#34;public.pgbench_accounts&#34;</span>
-<span class=n>LOG</span><span class=o>:</span>  <span class=n>automatic</span> <span class=n>analyze</span> <span class=n>of</span> <span class=n>table</span> <span class=s>&#34;demo.public.pgbench_accounts&#34;</span> 
-      <span class=n>system</span> <span class=n>usage</span><span class=o>:</span> <span class=n>CPU</span><span class=o>:</span> <span class=n>user</span><span class=o>:</span> <span class=m>0.09</span> <span class=n>s</span><span class=p>,</span> <span class=n>system</span><span class=o>:</span> <span class=m>0.00</span> <span class=n>s</span><span class=p>,</span> <span class=n>elapsed</span><span class=o>:</span> <span class=m>0.25</span> <span class=n>s</span>
-</code></pre></div><hr>
-<h2 id=estimer-la-prochaine-heure-de-la-collecte>Estimer la prochaine heure de la collecte</h2>
-<p>Dans la plupart des cas, les paramètres associés au mécanisme d'<em>autovacuum</em> sont
+et la fin du traitement par le <em>worker</em> dédié.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-r data-lang=r><span class=line><span class=cl><span class=n>DEBUG</span><span class=o>:</span>  <span class=n>autovacuum</span><span class=o>:</span> <span class=n>processing</span> <span class=n>database</span> <span class=s>&#34;demo&#34;</span>
+</span></span><span class=line><span class=cl><span class=n>DEBUG</span><span class=o>:</span>  <span class=n>pgbench_accounts</span><span class=o>:</span> <span class=n>vac</span><span class=o>:</span> <span class=m>100051</span> <span class=p>(</span><span class=n>threshold</span> <span class=m>200050</span><span class=p>),</span> 
+</span></span><span class=line><span class=cl>                          <span class=n>anl</span><span class=o>:</span> <span class=m>100051</span> <span class=p>(</span><span class=n>threshold</span> <span class=m>100050</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>DEBUG</span><span class=o>:</span>  <span class=n>analyzing</span> <span class=s>&#34;public.pgbench_accounts&#34;</span>
+</span></span><span class=line><span class=cl><span class=n>LOG</span><span class=o>:</span>  <span class=n>automatic</span> <span class=n>analyze</span> <span class=n>of</span> <span class=n>table</span> <span class=s>&#34;demo.public.pgbench_accounts&#34;</span> 
+</span></span><span class=line><span class=cl>      <span class=n>system</span> <span class=n>usage</span><span class=o>:</span> <span class=n>CPU</span><span class=o>:</span> <span class=n>user</span><span class=o>:</span> <span class=m>0.09</span> <span class=n>s</span><span class=p>,</span> <span class=n>system</span><span class=o>:</span> <span class=m>0.00</span> <span class=n>s</span><span class=p>,</span> <span class=n>elapsed</span><span class=o>:</span> <span class=m>0.25</span> <span class=n>s</span>
+</span></span></code></pre></div><hr><h2 id=estimer-la-prochaine-heure-de-la-collecte>Estimer la prochaine heure de la collecte</h2><p>Dans la plupart des cas, les paramètres associés au mécanisme d&rsquo;<em>autovacuum</em> sont
 adaptés à la plupart des tables et assurent une fréquence correcte du calcul des
 statistiques. Cependant, au-delà d&rsquo;une certaine volumétrie, une table peut
-présenter des incohérences entre son contenu et ses statistiques.</p>
-<p>La modification de 10 % de la table <code>pgbench_accounts</code> pourrait prendre des jours
+présenter des incohérences entre son contenu et ses statistiques.</p><p>La modification de 10 % de la table <code>pgbench_accounts</code> pourrait prendre des jours
 voire des semaines avant que ne survienne le traitement <em>autoanalyze</em>. Il est
 donc de la responsabilité du développeur ou du DBA de surveiller l&rsquo;accroissement
 de l&rsquo;indicateur <code>n_mod_since_analyze</code> pour éviter que les statistiques ne soient
-trop décorrélées du contenu.</p>
-<p>Pour s&rsquo;en assurer, je crée deux fonctions dans ma base pour récupérer respectivement
+trop décorrélées du contenu.</p><p>Pour s&rsquo;en assurer, je crée deux fonctions dans ma base pour récupérer respectivement
 les options de stockage d&rsquo;une table (<code>reloptions</code>) ou à défaut, les paramètres
 d&rsquo;instance, ainsi que le calcul du seuil de déclenchement sur la base de la
 formule précédente. La seconde fonction s&rsquo;assure notamment que le mécanisme de
-collecte automatique n&rsquo;est pas désactivé (<code>autovacuum_enabled = off</code>).</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>get_reloption</span><span class=p>(</span><span class=n>reloptions</span><span class=w> </span><span class=nb>text</span><span class=p>[],</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=nb>text</span><span class=p>)</span><span class=w>
-</span><span class=w></span><span class=k>RETURNS</span><span class=w> </span><span class=nb>text</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=k>sql</span><span class=w>
-</span><span class=w></span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
-</span><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>coalesce</span><span class=p>(</span><span class=k>min</span><span class=p>(</span><span class=n>option_value</span><span class=p>),</span><span class=w> </span><span class=n>current_setting</span><span class=p>(</span><span class=n>name</span><span class=p>))</span><span class=w>
-</span><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_options_to_table</span><span class=p>(</span><span class=n>reloptions</span><span class=p>)</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>option_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>name</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=err>$$</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>o</span><span class=w> </span><span class=n>oid</span><span class=p>)</span><span class=w>
-</span><span class=w></span><span class=k>RETURNS</span><span class=w> </span><span class=nb>float</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=k>sql</span><span class=w>
-</span><span class=w></span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
-</span><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>get_reloption</span><span class=p>(</span><span class=n>reloptions</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;autovacuum_analyze_threshold&#39;</span><span class=p>)::</span><span class=nb>int</span><span class=w> </span><span class=o>+</span><span class=w> 
-</span><span class=w>         </span><span class=n>get_reloption</span><span class=p>(</span><span class=n>reloptions</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;autovacuum_analyze_scale_factor&#39;</span><span class=p>)::</span><span class=nb>float</span><span class=w> </span><span class=o>*</span><span class=w>
-</span><span class=w>            </span><span class=k>c</span><span class=p>.</span><span class=n>reltuples</span><span class=w>
-</span><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>c</span><span class=w>
-</span><span class=w>   </span><span class=k>WHERE</span><span class=w> </span><span class=n>oid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>o</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>EXISTS</span><span class=w> </span><span class=p>(</span><span class=w>
-</span><span class=w>     </span><span class=k>SELECT</span><span class=w> </span><span class=mi>1</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_options_to_table</span><span class=p>(</span><span class=k>c</span><span class=p>.</span><span class=n>reloptions</span><span class=p>)</span><span class=w>
-</span><span class=w>      </span><span class=k>WHERE</span><span class=w> </span><span class=n>option_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;autovacuum_enabled&#39;</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>option_value</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;off&#39;</span><span class=w>
-</span><span class=w>    </span><span class=p>)</span><span class=w>
-</span><span class=w></span><span class=err>$$</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>Avec les résultats de ces fonctions, je peux construire une requête plus évoluée
+collecte automatique n&rsquo;est pas désactivé (<code>autovacuum_enabled = off</code>).</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>get_reloption</span><span class=p>(</span><span class=n>reloptions</span><span class=w> </span><span class=nb>text</span><span class=p>[],</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=nb>text</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>RETURNS</span><span class=w> </span><span class=nb>text</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=k>sql</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>coalesce</span><span class=p>(</span><span class=k>min</span><span class=p>(</span><span class=n>option_value</span><span class=p>),</span><span class=w> </span><span class=n>current_setting</span><span class=p>(</span><span class=n>name</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_options_to_table</span><span class=p>(</span><span class=n>reloptions</span><span class=p>)</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>option_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>name</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$$</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>o</span><span class=w> </span><span class=n>oid</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>RETURNS</span><span class=w> </span><span class=nb>float</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=k>sql</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>get_reloption</span><span class=p>(</span><span class=n>reloptions</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;autovacuum_analyze_threshold&#39;</span><span class=p>)::</span><span class=nb>int</span><span class=w> </span><span class=o>+</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>         </span><span class=n>get_reloption</span><span class=p>(</span><span class=n>reloptions</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;autovacuum_analyze_scale_factor&#39;</span><span class=p>)::</span><span class=nb>float</span><span class=w> </span><span class=o>*</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>c</span><span class=p>.</span><span class=n>reltuples</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_class</span><span class=w> </span><span class=k>c</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>WHERE</span><span class=w> </span><span class=n>oid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>o</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>EXISTS</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>SELECT</span><span class=w> </span><span class=mi>1</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_options_to_table</span><span class=p>(</span><span class=k>c</span><span class=p>.</span><span class=n>reloptions</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=k>WHERE</span><span class=w> </span><span class=n>option_name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;autovacuum_enabled&#39;</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>option_value</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;off&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$$</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Avec les résultats de ces fonctions, je peux construire une requête plus évoluée
 qui estime l&rsquo;heure du prochain déclenchement en fonction de nombre de modification
-et de la dernière collecte.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=n>n_live_tup</span><span class=p>,</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=p>,</span><span class=w>
-</span><span class=w>    </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>relid</span><span class=p>)</span><span class=w> </span><span class=n>threshold</span><span class=p>,</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>,</span><span class=w>
-</span><span class=w>    </span><span class=k>current_timestamp</span><span class=w> </span><span class=o>+</span><span class=w> 
-</span><span class=w>      </span><span class=p>(</span><span class=mi>1</span><span class=w> </span><span class=o>-</span><span class=w> 
-</span><span class=w>        </span><span class=k>CASE</span><span class=w> </span><span class=k>WHEN</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=k>THEN</span><span class=w> </span><span class=k>null</span><span class=w>
-</span><span class=w>             </span><span class=k>WHEN</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>relid</span><span class=p>)</span><span class=w> </span><span class=k>THEN</span><span class=w> </span><span class=mi>1</span><span class=w>
-</span><span class=w>             </span><span class=k>ELSE</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> </span><span class=o>/</span><span class=w> </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>relid</span><span class=p>)</span><span class=w> </span><span class=k>END</span><span class=p>)</span><span class=w> </span><span class=o>*</span><span class=w>
-</span><span class=w>      </span><span class=p>(</span><span class=k>current_timestamp</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>)</span><span class=w> </span><span class=n>next_autoanalyze</span><span class=w>
-</span><span class=w></span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>-[ RECORD 1 ]--------+------------------------------
-relname              | pgbench_accounts
-n_live_tup           | 1000000
-n_mod_since_analyze  | 0
-threshold            | 100050
-last_autoanalyze     | 2020-07-01 15:07:40.134444+02
-next_autoanalyze     | 
-</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=mi>25000</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=c1>-- UPDATE 25000
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>-[ RECORD 1 ]--------+------------------------------
-relname              | pgbench_accounts
-n_live_tup           | 1000000
-n_mod_since_analyze  | 25000
-threshold            | 100050
-last_autoanalyze     | 2020-07-01 15:07:40.134444+02
-next_autoanalyze     | 2020-07-01 18:16:43.734491+02
-</code></pre></div><p>La commande <code>ALTER TABLE</code> suivante permet de modifier les options de stockage de
+et de la dernière collecte.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>relname</span><span class=p>,</span><span class=w> </span><span class=n>n_live_tup</span><span class=p>,</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>relid</span><span class=p>)</span><span class=w> </span><span class=n>threshold</span><span class=p>,</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>current_timestamp</span><span class=w> </span><span class=o>+</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=p>(</span><span class=mi>1</span><span class=w> </span><span class=o>-</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>CASE</span><span class=w> </span><span class=k>WHEN</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=w> </span><span class=k>THEN</span><span class=w> </span><span class=k>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>             </span><span class=k>WHEN</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>relid</span><span class=p>)</span><span class=w> </span><span class=k>THEN</span><span class=w> </span><span class=mi>1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>             </span><span class=k>ELSE</span><span class=w> </span><span class=n>n_mod_since_analyze</span><span class=w> </span><span class=o>/</span><span class=w> </span><span class=n>get_anl_threshold</span><span class=p>(</span><span class=n>relid</span><span class=p>)</span><span class=w> </span><span class=k>END</span><span class=p>)</span><span class=w> </span><span class=o>*</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=p>(</span><span class=k>current_timestamp</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>last_autoanalyze</span><span class=p>)</span><span class=w> </span><span class=n>next_autoanalyze</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stat_user_tables</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>relname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>-[ RECORD 1 ]--------+------------------------------
+</span></span><span class=line><span class=cl>relname              | pgbench_accounts
+</span></span><span class=line><span class=cl>n_live_tup           | 1000000
+</span></span><span class=line><span class=cl>n_mod_since_analyze  | 0
+</span></span><span class=line><span class=cl>threshold            | 100050
+</span></span><span class=line><span class=cl>last_autoanalyze     | 2020-07-01 15:07:40.134444+02
+</span></span><span class=line><span class=cl>next_autoanalyze     | 
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>UPDATE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>filler</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;&#39;</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=mi>25000</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- UPDATE 25000
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>-[ RECORD 1 ]--------+------------------------------
+</span></span><span class=line><span class=cl>relname              | pgbench_accounts
+</span></span><span class=line><span class=cl>n_live_tup           | 1000000
+</span></span><span class=line><span class=cl>n_mod_since_analyze  | 25000
+</span></span><span class=line><span class=cl>threshold            | 100050
+</span></span><span class=line><span class=cl>last_autoanalyze     | 2020-07-01 15:07:40.134444+02
+</span></span><span class=line><span class=cl>next_autoanalyze     | 2020-07-01 18:16:43.734491+02
+</span></span></code></pre></div><p>La commande <code>ALTER TABLE</code> suivante permet de modifier les options de stockage de
 la table, et d&rsquo;ajuster le seuil du déclenchement automatique de la collecte. À
-vous de voir si l&rsquo;activité sur votre table le justifie !</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=p>(</span><span class=w>
-</span><span class=w>  </span><span class=n>autovacuum_analyze_scale_factor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>.</span><span class=mi>01</span><span class=p>,</span><span class=w> 
-</span><span class=w>  </span><span class=n>autovacuum_analyze_threshold</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=w>
-</span><span class=w></span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>-[ RECORD 1 ]--------+------------------------------
-relname              | pgbench_accounts
-n_live_tup           | 1000000
-n_mod_since_analyze  | 25000
-threshold            | 10000
-last_autoanalyze     | 2020-07-01 15:07:40.134444+02
-next_autoanalyze     | 2020-07-01 17:04:34.038917+02
-
--[ RECORD 1 ]--------+------------------------------
-relname              | pgbench_accounts
-n_live_tup           | 1000000
-n_mod_since_analyze  | 0
-threshold            | 10000
-last_autoanalyze     | 2020-07-01 17:04:41.987032+02
-next_autoanalyze     | 
-</code></pre></div><hr>
-<h2 id=conclusion>Conclusion</h2>
-<p>Les statistiques jouent un rôle essentiel dans les performances d&rsquo;un moteur
+vous de voir si l&rsquo;activité sur votre table le justifie !</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>autovacuum_analyze_scale_factor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>.</span><span class=mi>01</span><span class=p>,</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>autovacuum_analyze_threshold</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>-[ RECORD 1 ]--------+------------------------------
+</span></span><span class=line><span class=cl>relname              | pgbench_accounts
+</span></span><span class=line><span class=cl>n_live_tup           | 1000000
+</span></span><span class=line><span class=cl>n_mod_since_analyze  | 25000
+</span></span><span class=line><span class=cl>threshold            | 10000
+</span></span><span class=line><span class=cl>last_autoanalyze     | 2020-07-01 15:07:40.134444+02
+</span></span><span class=line><span class=cl>next_autoanalyze     | 2020-07-01 17:04:34.038917+02
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>-[ RECORD 1 ]--------+------------------------------
+</span></span><span class=line><span class=cl>relname              | pgbench_accounts
+</span></span><span class=line><span class=cl>n_live_tup           | 1000000
+</span></span><span class=line><span class=cl>n_mod_since_analyze  | 0
+</span></span><span class=line><span class=cl>threshold            | 10000
+</span></span><span class=line><span class=cl>last_autoanalyze     | 2020-07-01 17:04:41.987032+02
+</span></span><span class=line><span class=cl>next_autoanalyze     | 
+</span></span></code></pre></div><hr><h2 id=conclusion>Conclusion</h2><p>Les statistiques jouent un rôle essentiel dans les performances d&rsquo;un moteur
 relationnel comme PostgreSQL. Réussir à les maintenir pertinentes est la clé dans
 la gestion au quotidien du système. Avec mon exposé, j&rsquo;espère vous avoir démontré
 qu&rsquo;il n&rsquo;est pas nécessaire de rafraîchir toutes les statistiques, mais seulement
-celles dont le seuil n&rsquo;est plus adapté.</p>
-<p>Dans un genre similaire, un <a href=https://www.depesz.com/2020/01/29/which-tables-should-be-auto-vacuumed-or-auto-analyzed/>récent article</a> de Hubert « depesz » Lubaczewski
+celles dont le seuil n&rsquo;est plus adapté.</p><p>Dans un genre similaire, un <a href=https://www.depesz.com/2020/01/29/which-tables-should-be-auto-vacuumed-or-auto-analyzed/ target=_blank rel=noopener>récent article</a> de Hubert « depesz » Lubaczewski
 présente une série de requêtes permettant d&rsquo;identifier les tables nécessitant une
 action de maintenance (<code>vacuum</code> ou <code>analyze</code>) dans le cas où la routine automatique
 ne fait pas correctement son travail. Ce genre de petites astuces peuvent sauver
-des vies… (euh) des plans d&rsquo;exécution !</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
-<small><time datetime=2021-04-23>23 avr 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Tour d'horizon de PgBouncer
-<small><time datetime=2020-08-21>21 août 2020</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
-<small><time datetime=2021-03-30>30 mars 2021</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+des vies… (euh) des plans d&rsquo;exécution !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
+<small><time datetime=2021-04-23>23 avr 2021</time></small></a></li><li><a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Tour d'horizon de PgBouncer
+<small><time datetime=2020-08-21>21 août 2020</time></small></a></li><li><a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
+<small><time datetime=2021-03-30>30 mars 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

@@ -1,224 +1,148 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Les intervalles de valeurs</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Les intervalles de valeurs</a></h1>
-<p class=post-date>
-<time datetime=2021-06-09>9 juin 2021</time>
-- 5 minutes de lecture
-</p><p>Ce mois-ci, je vous propose de réviser un peu le langage SQL en l&rsquo;appliquant pour
+<!doctype html><html lang=fr><head><title>Les intervalles de valeurs</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Les intervalles de valeurs</a></h1><p class=post-date><time datetime=2021-06-09>9 juin 2021</time>
+- 5 minutes de lecture</p><p>Ce mois-ci, je vous propose de réviser un peu le langage SQL en l&rsquo;appliquant pour
 des cas d&rsquo;usage assez fréquents qui mettent en scène des types temporels, notamment
 les intervalles de dates. Ce sera l&rsquo;occasion également de revenir sur l&rsquo;implémentation
 très originale qu&rsquo;en a fait PostgreSQL avec les types d&rsquo;intervalle de valeurs, ou
-<em><a href=https://www.postgresql.org/docs/13/rangetypes.html>range types</a></em> dans la documentation.</p>
-<hr>
-<p>Les intervalles de valeurs sont des types dits complexes, au même titre que les
-<a href=https://www.postgresql.org/docs/13/arrays.html>tableaux</a>, le <a href=https://www.postgresql.org/docs/13/datatype-json.html>JSON</a> ou les <a href=https://www.postgresql.org/docs/13/datatype-geometric.html>types géométriques</a>. Chacun propose une
+<em><a href=https://www.postgresql.org/docs/13/rangetypes.html target=_blank rel=noopener>range types</a></em> dans la documentation.</p><hr><p>Les intervalles de valeurs sont des types dits complexes, au même titre que les
+<a href=https://www.postgresql.org/docs/13/arrays.html target=_blank rel=noopener>tableaux</a>, le <a href=https://www.postgresql.org/docs/13/datatype-json.html target=_blank rel=noopener>JSON</a> ou les <a href=https://www.postgresql.org/docs/13/datatype-geometric.html target=_blank rel=noopener>types géométriques</a>. Chacun propose une
 réponse plus adaptée à un problème donné, bien plus confortable que les types
 numériques, temporels ou textuels présents dans tous les sytèmes de bases de
-données.</p>
-<p>Par défaut, PostgreSQL supporte les intervalles de types numériques (<code>int4</code>, <code>int8</code>
+données.</p><p>Par défaut, PostgreSQL supporte les intervalles de types numériques (<code>int4</code>, <code>int8</code>
 et <code>numeric</code>), horodatés (<code>timestamp</code> avec sans <em>timezone</em>) et datés (<code>date</code>).
 Pour l&rsquo;exemple, nous pouvons prendre le dernier de ces trois types pour répondre
 à la question suivante : « Lesquels de mes salariés (dans un table <em>staff</em>) est
-en activité aujourd&rsquo;hui ? »</p>
-<p>Mon <a href=https://gist.github.com/fljdin/293984e0f3e55817257cf65d1bb85e5b>jeu de données</a> présente deux types de contrat de travail, durée
+en activité aujourd&rsquo;hui ? »</p><p>Mon <a href=https://gist.github.com/fljdin/293984e0f3e55817257cf65d1bb85e5b target=_blank rel=noopener>jeu de données</a> présente deux types de contrat de travail, durée
 déterminée et durée indéterminée, il faut donc que je gère les bornes supérieures
 pouvant être nulles. En l&rsquo;absence d&rsquo;intervalle de valeurs, il est possible de
 définir deux colonnes de types <code>date</code> avec une série de condition sur le début
-et la fin de contrat d&rsquo;un⋅e salarié⋅e, comme suit :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=k>BETWEEN</span><span class=w> </span><span class=k>start</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>finish</span><span class=w>
-</span><span class=w>    </span><span class=k>OR</span><span class=w> </span><span class=p>(</span><span class=k>current_date</span><span class=w> </span><span class=o>&gt;=</span><span class=w> </span><span class=k>start</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> id |   name   |   start    |   finish   
-----+----------+------------+------------
-  1 | Élodie   | 2020-05-01 | 
-  3 | Stéphane | 2021-01-04 | 2021-07-01
-  5 | Martine  | 2021-02-01 | 
-  6 | Philippe | 2021-02-20 | 2021-07-02
-  7 | Jean     | 2021-06-01 | 
-</code></pre></div><p>Ici, nous cherchons donc à retrouver les lignes dont la date du jour <code>current_date</code>
+et la fin de contrat d&rsquo;un⋅e salarié⋅e, comme suit :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=k>BETWEEN</span><span class=w> </span><span class=k>start</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>finish</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>OR</span><span class=w> </span><span class=p>(</span><span class=k>current_date</span><span class=w> </span><span class=o>&gt;=</span><span class=w> </span><span class=k>start</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> id |   name   |   start    |   finish   
+</span></span><span class=line><span class=cl>----+----------+------------+------------
+</span></span><span class=line><span class=cl>  1 | Élodie   | 2020-05-01 | 
+</span></span><span class=line><span class=cl>  3 | Stéphane | 2021-01-04 | 2021-07-01
+</span></span><span class=line><span class=cl>  5 | Martine  | 2021-02-01 | 
+</span></span><span class=line><span class=cl>  6 | Philippe | 2021-02-20 | 2021-07-02
+</span></span><span class=line><span class=cl>  7 | Jean     | 2021-06-01 | 
+</span></span></code></pre></div><p>Ici, nous cherchons donc à retrouver les lignes dont la date du jour <code>current_date</code>
 est comprise <strong>dans un intervalle</strong> borné par deux dates. Ces deux colonnes peuvent
 se fusionner en un type dédié à l&rsquo;aide de la fonction <code>daterange()</code>. Son troisième
 argument correspond à l&rsquo;inclusion de valeurs des bornes basses et hautes au sein
-de l&rsquo;intervalle. Dans le cas de notre table <em>staff</em>, les deux bornes sont incluses.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=p>,</span><span class=w> </span><span class=n>daterange</span><span class=p>(</span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;[]&#39;</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>period</span><span class=w>
-</span><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>2</span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>  name  |   start    |   finish   |         period          
---------+------------+------------+-------------------------
- Élodie | 2020-05-01 |            | [2020-05-01,)
- Louise | 2021-01-04 | 2021-02-25 | [2021-01-04,2021-02-26)
-</code></pre></div><p>Ainsi, il devient plus aisé d&rsquo;écrire la recherche des salariés actifs à l&rsquo;aide
-de l'<a href=https://www.postgresql.org/docs/13/functions-range.html#RANGE-OPERATORS-TABLE>opérateur</a> d&rsquo;inclusion <code>@></code> sur ce nouveau champ. Dans le cas d&rsquo;un
+de l&rsquo;intervalle. Dans le cas de notre table <em>staff</em>, les deux bornes sont incluses.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=p>,</span><span class=w> </span><span class=n>daterange</span><span class=p>(</span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;[]&#39;</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>period</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>id</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>2</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>  name  |   start    |   finish   |         period          
+</span></span><span class=line><span class=cl>--------+------------+------------+-------------------------
+</span></span><span class=line><span class=cl> Élodie | 2020-05-01 |            | [2020-05-01,)
+</span></span><span class=line><span class=cl> Louise | 2021-01-04 | 2021-02-25 | [2021-01-04,2021-02-26)
+</span></span></code></pre></div><p>Ainsi, il devient plus aisé d&rsquo;écrire la recherche des salariés actifs à l&rsquo;aide
+de l&rsquo;<a href=https://www.postgresql.org/docs/13/functions-range.html#RANGE-OPERATORS-TABLE target=_blank rel=noopener>opérateur</a> d&rsquo;inclusion <code>@></code> sur ce nouveau champ. Dans le cas d&rsquo;un
 contrat à durée indéterminée, la borne haute avec une valeur nulle représente
 l&rsquo;infini et sera parfaitement interprétée par la clause d&rsquo;inclusion de notre
-recherche.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> 
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=o>@&gt;</span><span class=w> </span><span class=k>current_date</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> id |   name   |         period          
-----+----------+-------------------------
-  1 | Élodie   | [2020-05-01,)
-  3 | Stéphane | [2021-01-04,2021-07-02)
-  5 | Martine  | [2021-02-01,)
-  6 | Philippe | [2021-02-20,2021-07-03)
-  7 | Jean     | [2021-06-01,)
-</code></pre></div><p>Une variante plus poussée serait de demander la liste des salariés pleinement
+recherche.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=o>@&gt;</span><span class=w> </span><span class=k>current_date</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> id |   name   |         period          
+</span></span><span class=line><span class=cl>----+----------+-------------------------
+</span></span><span class=line><span class=cl>  1 | Élodie   | [2020-05-01,)
+</span></span><span class=line><span class=cl>  3 | Stéphane | [2021-01-04,2021-07-02)
+</span></span><span class=line><span class=cl>  5 | Martine  | [2021-02-01,)
+</span></span><span class=line><span class=cl>  6 | Philippe | [2021-02-20,2021-07-03)
+</span></span><span class=line><span class=cl>  7 | Jean     | [2021-06-01,)
+</span></span></code></pre></div><p>Une variante plus poussée serait de demander la liste des salariés pleinement
 actifs durant le mois de mars. L&rsquo;opérateur est tout à fait capable de déterminer
-si l&rsquo;un des deux intervalles est inclus dans le second.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=o>@&gt;</span><span class=w> </span><span class=n>daterange</span><span class=p>(</span><span class=s1>&#39;2021-03-01&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2021-04-01&#39;</span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> id |   name   |         period          
-----+----------+-------------------------
-  1 | Élodie   | [2020-05-01,)
-  3 | Stéphane | [2021-01-04,2021-07-02)
-  5 | Martine  | [2021-02-01,)
-  6 | Philippe | [2021-02-20,2021-07-03)
-</code></pre></div><p>Il peut être possible que nous cherchions également à comparer deux intervalles,
+si l&rsquo;un des deux intervalles est inclus dans le second.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=o>@&gt;</span><span class=w> </span><span class=n>daterange</span><span class=p>(</span><span class=s1>&#39;2021-03-01&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2021-04-01&#39;</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> id |   name   |         period          
+</span></span><span class=line><span class=cl>----+----------+-------------------------
+</span></span><span class=line><span class=cl>  1 | Élodie   | [2020-05-01,)
+</span></span><span class=line><span class=cl>  3 | Stéphane | [2021-01-04,2021-07-02)
+</span></span><span class=line><span class=cl>  5 | Martine  | [2021-02-01,)
+</span></span><span class=line><span class=cl>  6 | Philippe | [2021-02-20,2021-07-03)
+</span></span></code></pre></div><p>Il peut être possible que nous cherchions également à comparer deux intervalles,
 par exemple pour le calcul d&rsquo;une intersection ou la recherche de chevauchement.
 Prenons le nouveau problème suivant : « Quels sont les salariés qu&rsquo;Édouard est
-susceptible d&rsquo;avoir connu durant la durée de son contrat de travail ? »</p>
-<p>Dans ce cas de figure, nous cherchons le chevauchement entre les dates de début
+susceptible d&rsquo;avoir connu durant la durée de son contrat de travail ? »</p><p>Dans ce cas de figure, nous cherchons le chevauchement entre les dates de début
 et de fin de contrat entre deux ensembles. Les requêtes suivantes sont
 équivalentes afin de comprendre ce que réalise l&rsquo;opérateur <code>&&</code> entre deux
-intervalles.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s1</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s2</span><span class=w> 
-</span><span class=w>    </span><span class=k>ON</span><span class=w> </span><span class=p>(</span><span class=n>s1</span><span class=p>.</span><span class=k>start</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>)</span><span class=w>
-</span><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=p>(</span><span class=n>s1</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=o>&gt;=</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=k>start</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>)</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>&lt;&gt;</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;Édouard&#39;</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s1</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s2</span><span class=w>
-</span><span class=w>    </span><span class=k>ON</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>period</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>period</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>&lt;&gt;</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;Édouard&#39;</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> id |   name   
-----+----------
-  1 | Élodie
-  3 | Stéphane
-  5 | Martine
-  6 | Philippe
-  7 | Jean
-</code></pre></div><hr>
-<p>Au délà des opérateurs qui permettent de réduire notre ensemble de données, il
-existe également une série de <a href=https://www.postgresql.org/docs/13/functions-range.html#RANGE-FUNCTIONS-TABLE>fonctions dédiées</a> aux intervalles comme celle
+intervalles.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s1</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s2</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>ON</span><span class=w> </span><span class=p>(</span><span class=n>s1</span><span class=p>.</span><span class=k>start</span><span class=w> </span><span class=o>&lt;=</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>AND</span><span class=w> </span><span class=p>(</span><span class=n>s1</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=o>&gt;=</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=k>start</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>&lt;&gt;</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;Édouard&#39;</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s1</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=n>s2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>ON</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>period</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>period</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>s1</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>&lt;&gt;</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>s2</span><span class=p>.</span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;Édouard&#39;</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> id |   name   
+</span></span><span class=line><span class=cl>----+----------
+</span></span><span class=line><span class=cl>  1 | Élodie
+</span></span><span class=line><span class=cl>  3 | Stéphane
+</span></span><span class=line><span class=cl>  5 | Martine
+</span></span><span class=line><span class=cl>  6 | Philippe
+</span></span><span class=line><span class=cl>  7 | Jean
+</span></span></code></pre></div><hr><p>Au délà des opérateurs qui permettent de réduire notre ensemble de données, il
+existe également une série de <a href=https://www.postgresql.org/docs/13/functions-range.html#RANGE-FUNCTIONS-TABLE target=_blank rel=noopener>fonctions dédiées</a> aux intervalles comme celle
 citée plus haut, <code>daterange()</code>. Grâce à certaines d&rsquo;entre elles, il devient possible
 de répondre à une question plus large que la première de cet article, à savoir :
-« Quels salariés font ou feront partie de mes effectifs à compter d&rsquo;aujourd&rsquo;hui ? »</p>
-<p>Les méthodes <code>upper()</code> et <code>upper_inf()</code> permettent de traiter l&rsquo;intervalle sur la
+« Quels salariés font ou feront partie de mes effectifs à compter d&rsquo;aujourd&rsquo;hui ? »</p><p>Les méthodes <code>upper()</code> et <code>upper_inf()</code> permettent de traiter l&rsquo;intervalle sur la
 seule borne haute comme une simple date, respectivement l&rsquo;une extrait la dernière
 date de l&rsquo;intervalle, quant à l&rsquo;autre, elle détermine si la borne haute correspond
 à l&rsquo;infini (et retourne un <code>bool</code>). Les deux expressions suivantes sont ainsi
-équivalentes.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>;</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=k>upper</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>upper_inf</span><span class=p>(</span><span class=n>period</span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> id |   name   |         period          
-----+----------+-------------------------
-  1 | Élodie   | [2020-05-01,)
-  3 | Stéphane | [2021-01-04,2021-07-02)
-  5 | Martine  | [2021-02-01,)
-  6 | Philippe | [2021-02-20,2021-07-03)
-  7 | Jean     | [2021-06-01,)
-  9 | Lucas    | [2021-07-01,2021-09-01)
- 10 | Mickaël  | [2021-07-01,)
-</code></pre></div><p>À partir de la version 14, actuellement en <a href=https://www.postgresql.org/about/news/postgresql-14-beta-1-released-2213/>beta1</a> au moment où j&rsquo;écris ces lignes,
+équivalentes.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>finish</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NULL</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=n>period</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=k>upper</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>upper_inf</span><span class=p>(</span><span class=n>period</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> id |   name   |         period          
+</span></span><span class=line><span class=cl>----+----------+-------------------------
+</span></span><span class=line><span class=cl>  1 | Élodie   | [2020-05-01,)
+</span></span><span class=line><span class=cl>  3 | Stéphane | [2021-01-04,2021-07-02)
+</span></span><span class=line><span class=cl>  5 | Martine  | [2021-02-01,)
+</span></span><span class=line><span class=cl>  6 | Philippe | [2021-02-20,2021-07-03)
+</span></span><span class=line><span class=cl>  7 | Jean     | [2021-06-01,)
+</span></span><span class=line><span class=cl>  9 | Lucas    | [2021-07-01,2021-09-01)
+</span></span><span class=line><span class=cl> 10 | Mickaël  | [2021-07-01,)
+</span></span></code></pre></div><p>À partir de la version 14, actuellement en <a href=https://www.postgresql.org/about/news/postgresql-14-beta-1-released-2213/ target=_blank rel=noopener>beta1</a> au moment où j&rsquo;écris ces lignes,
 il sera possible de réaliser des aggrégations d&rsquo;ensemble sur les intervalles de
-valeurs. Les <a href=https://www.postgresql.org/docs/14/functions-aggregate.html>méthodes</a> <code>range_agg()</code> et <code>range_intersect_agg()</code> ont été pensées
+valeurs. Les <a href=https://www.postgresql.org/docs/14/functions-aggregate.html target=_blank rel=noopener>méthodes</a> <code>range_agg()</code> et <code>range_intersect_agg()</code> ont été pensées
 pour les requêtes de regroupement avec <code>GROUP BY</code> à l&rsquo;image de la fonction
 <code>range_merge()</code> et de l&rsquo;opérateur <code>*</code>, respectivement l&rsquo;union et l&rsquo;intersection
 des données. Ces fonctions ont vu le jour grâce au support des multi-intervalles
-publié en <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=6df7a9698bb036610c1e8c6d375e1be38cb26d5f">décembre dernier</a>.</p>
-<p>La requête suivante permet de résoudre le problème : « Quels jours seraient
+publié en <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=6df7a9698bb036610c1e8c6d375e1be38cb26d5f" target=_blank rel=noopener>décembre dernier</a>.</p><p>La requête suivante permet de résoudre le problème : « Quels jours seraient
 propice à un rassemblement général avec l&rsquo;ensemble des salariés dans un avenir
-proche ? »</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>range_intersect_agg</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=k>upper</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>upper_inf</span><span class=p>(</span><span class=n>period</span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>   range_intersect_agg   
--------------------------
- [2021-07-01,2021-07-02)
-</code></pre></div><p>Parmi les salariés actuels et futurs, l&rsquo;intersection de toutes les périodes
+proche ? »</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>range_intersect_agg</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=k>upper</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>upper_inf</span><span class=p>(</span><span class=n>period</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>   range_intersect_agg   
+</span></span><span class=line><span class=cl>-------------------------
+</span></span><span class=line><span class=cl> [2021-07-01,2021-07-02)
+</span></span></code></pre></div><p>Parmi les salariés actuels et futurs, l&rsquo;intersection de toutes les périodes
 d&rsquo;activité ne laisse que la date du 1<sup>er</sup> juillet pour
 organiser une rencontre. Ce résultat peut devenir incertain, si un contrat était
 interrompu avant la date ou qu&rsquo;une nouvelle personne venait à rejoindre les
-effectifs au-delà de cette date.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=p>(</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=p>)</span><span class=w>
-</span><span class=w></span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;Marie&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2021-08-01&#39;</span><span class=p>,</span><span class=w> </span><span class=k>null</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>range_intersect_agg</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
-</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=k>upper</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>upper_inf</span><span class=p>(</span><span class=n>period</span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> range_intersect_agg 
----------------------
- empty
-</code></pre></div><p>La valeur <code>empty</code> correspond à l&rsquo;intervalle nul, celui qui ne contient aucune
+effectifs au-delà de cette date.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>staff</span><span class=w> </span><span class=p>(</span><span class=n>name</span><span class=p>,</span><span class=w> </span><span class=k>start</span><span class=p>,</span><span class=w> </span><span class=n>finish</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>VALUES</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;Marie&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2021-08-01&#39;</span><span class=p>,</span><span class=w> </span><span class=k>null</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>range_intersect_agg</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>staff</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>current_date</span><span class=w> </span><span class=o>&lt;</span><span class=w> </span><span class=k>upper</span><span class=p>(</span><span class=n>period</span><span class=p>)</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=n>upper_inf</span><span class=p>(</span><span class=n>period</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> range_intersect_agg 
+</span></span><span class=line><span class=cl>---------------------
+</span></span><span class=line><span class=cl> empty
+</span></span></code></pre></div><p>La valeur <code>empty</code> correspond à l&rsquo;intervalle nul, celui qui ne contient aucune
 valeur. Il n&rsquo;y aurait donc dans notre ensemble de données, aucune date possible
-pour faire converger le planning de tout le personnel.</p>
-<hr>
-<h2 id=conclusion>Conclusion</h2>
-<p>Manipuler les dates en tant qu&rsquo;intervalles permet de résoudre des situations
+pour faire converger le planning de tout le personnel.</p><hr><h2 id=conclusion>Conclusion</h2><p>Manipuler les dates en tant qu&rsquo;intervalles permet de résoudre des situations
 cocasses tels que les chevauchements de planning ou les réservations de salle.
-Il s&rsquo;agit d&rsquo;ailleurs d&rsquo;un des cas d&rsquo;usage promu par la <a href=https://www.postgresql.org/docs/13/rangetypes.html#RANGETYPES-CONSTRAINT>documentation</a>, avec
-la gestion des contraintes et de la méthode d&rsquo;accès <a href=https://www.postgresql.org/docs/13/gist-intro.html>GiST</a> au service de la
-cohérence des données.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>reservation</span><span class=w> </span><span class=p>(</span><span class=w>
-</span><span class=w>    </span><span class=n>during</span><span class=w> </span><span class=n>tsrange</span><span class=p>,</span><span class=w>
-</span><span class=w>    </span><span class=n>EXCLUDE</span><span class=w> </span><span class=k>USING</span><span class=w> </span><span class=n>GIST</span><span class=w> </span><span class=p>(</span><span class=n>during</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=p>)</span><span class=w>
-</span><span class=w></span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>reservation</span><span class=w> </span><span class=k>VALUES</span><span class=w>
-</span><span class=w>    </span><span class=p>(</span><span class=s1>&#39;[2010-01-01 14:45, 2010-01-01 15:45)&#39;</span><span class=p>);</span><span class=w>
-</span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>ERROR:  conflicting key value violates exclusion constraint
-DETAIL:  Key (during)=([&#34;2010-01-01 14:45:00&#34;,&#34;2010-01-01 15:45:00&#34;)) 
-         conflicts with existing key 
-         (during)=([&#34;2010-01-01 11:30:00&#34;,&#34;2010-01-01 15:00:00&#34;)).
-</code></pre></div>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
-<small><time datetime=2021-07-16>16 juil 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
-<small><time datetime=2021-03-30>30 mars 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Écrire ses tests unitaires en SQL
-<small><time datetime=2020-05-14>14 mai 2020</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+Il s&rsquo;agit d&rsquo;ailleurs d&rsquo;un des cas d&rsquo;usage promu par la <a href=https://www.postgresql.org/docs/13/rangetypes.html#RANGETYPES-CONSTRAINT target=_blank rel=noopener>documentation</a>, avec
+la gestion des contraintes et de la méthode d&rsquo;accès <a href=https://www.postgresql.org/docs/13/gist-intro.html target=_blank rel=noopener>GiST</a> au service de la
+cohérence des données.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>reservation</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>during</span><span class=w> </span><span class=n>tsrange</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>EXCLUDE</span><span class=w> </span><span class=k>USING</span><span class=w> </span><span class=n>GIST</span><span class=w> </span><span class=p>(</span><span class=n>during</span><span class=w> </span><span class=k>WITH</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>reservation</span><span class=w> </span><span class=k>VALUES</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=s1>&#39;[2010-01-01 14:45, 2010-01-01 15:45)&#39;</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>ERROR:  conflicting key value violates exclusion constraint
+</span></span><span class=line><span class=cl>DETAIL:  Key (during)=([&#34;2010-01-01 14:45:00&#34;,&#34;2010-01-01 15:45:00&#34;)) 
+</span></span><span class=line><span class=cl>         conflicts with existing key 
+</span></span><span class=line><span class=cl>         (during)=([&#34;2010-01-01 11:30:00&#34;,&#34;2010-01-01 15:00:00&#34;)).
+</span></span></code></pre></div></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
+<small><time datetime=2021-07-16>16 juil 2021</time></small></a></li><li><a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
+<small><time datetime=2021-03-30>30 mars 2021</time></small></a></li><li><a href=https://fljd.in/2022/03/11/conversions-implicites/>Conversions implicites
+<small><time datetime=2022-03-11>11 mars 2022</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

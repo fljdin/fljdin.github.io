@@ -1,56 +1,20 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Quel avenir pour PostgreSQL ?</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Quel avenir pour PostgreSQL ?</a></h1>
-<p class=post-date>
-<time datetime=2019-07-04>4 juil 2019</time>
-- 12 minutes de lecture
-</p><p>À moins d&rsquo;avoir passé la dernière décennie dans une grotte ou un service
+<!doctype html><html lang=fr><head><title>Quel avenir pour PostgreSQL ?</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Quel avenir pour PostgreSQL ?</a></h1><p class=post-date><time datetime=2019-07-04>4 juil 2019</time>
+- 12 minutes de lecture</p><p>À moins d&rsquo;avoir passé la dernière décennie dans une grotte ou un service
 informatique vieillissant, chacun·e des acteur·rice·s de l&rsquo;IT a dû entendre parler
 du projet PostgreSQL, ne serait-ce que son nom inintelligible. La page d&rsquo;accueil
 est par ailleurs catégorique : il s&rsquo;agit <u>du moteur relationnel open-source
-le plus avancé au monde</u>. (<em><a href=https://www.postgresql.org>PostgreSQL: The World&rsquo;s Most Advanced Open
-Source Relational Database</a></em>)</p>
-<p>Comment expliquer ce succès ? D&rsquo;ailleurs, quelles sont les tendances du produit
+le plus avancé au monde</u>. (<em><a href=https://www.postgresql.org target=_blank rel=noopener>PostgreSQL: The World&rsquo;s Most Advanced Open
+Source Relational Database</a></em>)</p><p>Comment expliquer ce succès ? D&rsquo;ailleurs, quelles sont les tendances du produit
 et comment s&rsquo;articule la vie d&rsquo;un logiciel aussi ambitieux ? Est-il possible de
 voir émerger en France un mouvement massif de migration vers ce moteur, alors
 même qu&rsquo;Oracle et Microsoft ont une part de marché importante sur les grands
-secteurs de la santé, du bancaire ou de la grande distribution ?</p>
-<hr>
-<h2 id=historique-du-projet-et-cycle-de-vie>Historique du projet et cycle de vie</h2>
-<div class=message>Pour démarrer cet article, je me lance dans un exercice sobre mais indispensable
-pour appréhender ce phénomène qu&rsquo;aucun DBA tel que moi ne peut ignorer.</div>
-<p>Ce projet est ancien, très ancien. Même qu&rsquo;il est plus vieux que le Web <a href=https://home.cern/fr/science/computing/birth-web>lui-même</a>.
+secteurs de la santé, du bancaire ou de la grande distribution ?</p><hr><h2 id=historique-du-projet-et-cycle-de-vie>Historique du projet et cycle de vie</h2><div class=message>Pour démarrer cet article, je me lance dans un exercice sobre mais indispensable
+pour appréhender ce phénomène qu&rsquo;aucun DBA tel que moi ne peut ignorer.</div><p>Ce projet est ancien, très ancien. Même qu&rsquo;il est plus vieux que le Web <a href=https://home.cern/fr/science/computing/birth-web target=_blank rel=noopener>lui-même</a>.
 Il a été initié en 1986 par un professeur et son équipe à l&rsquo;université de
 Californie à Berkeley avec le soutien de plusieurs sponsors. À l&rsquo;origine de ce
 projet, la volonté d&rsquo;améliorer un autre projet de l&rsquo;université de Californie,
-exprimée dans l&rsquo;extrait du <a href=http://db.cs.berkeley.edu/papers/ERL-M85-95.pdf>document</a> ci-dessous.</p>
-<blockquote>
-<p>The INGRES relational database management system (DBMS) was implemented during
+exprimée dans l&rsquo;extrait du <a href=http://db.cs.berkeley.edu/papers/ERL-M85-95.pdf target=_blank rel=noopener>document</a> ci-dessous.</p><blockquote><p>The INGRES relational database management system (DBMS) was implemented during
 1975-1977 at the University of California. Since 1978 various prototype extensions
 have been made to support distributed databases, ordered relations, abstract
 datatypes, and QUEL as a data type. In addition, we proposed but never prototyped
@@ -59,219 +23,154 @@ INGRES has been ‘‘hacked up enough’’ to make the inclusion of substantia
 function extremely difficult. Another problem with continuing to extend the
 existing system is that many of our proposed ideas would be difficult to
 integrate into that system because of earlier design decisions. Consequently,
-we are building a new database system, called POSTGRES (POSTinGRES).</p>
-</blockquote>
-<p>Pour l&rsquo;anecdote, le projet mentionné (INGRES) a par la suite permis l&rsquo;émergence
-de produits sous <a href=https://en.wikipedia.org/wiki/Ingres_(database)>licence commerciale</a> comme Microsoft SQL Server ou Sybase
-(propriété actuelle de l&rsquo;éditeur SAP).</p>
-<p><a href=https://en.wikipedia.org/wiki/User:Intgr/RDBMS_timeline><img src=/img/fr/2019-07-04-timeline-of-databases.png alt="Timeline of databases"></a></p>
-<p>Les années 1990 à 1994 virent des versions successives fiabiliser le produit
+we are building a new database system, called POSTGRES (POSTinGRES).</p></blockquote><p>Pour l&rsquo;anecdote, le projet mentionné (INGRES) a par la suite permis l&rsquo;émergence
+de produits sous <a href=https://en.wikipedia.org/wiki/Ingres_%28database%29 target=_blank rel=noopener>licence commerciale</a> comme Microsoft SQL Server ou Sybase
+(propriété actuelle de l&rsquo;éditeur SAP).</p><p><a href=https://en.wikipedia.org/wiki/User:Intgr/RDBMS_timeline target=_blank rel=noopener><img src=/img/fr/2019-07-04-timeline-of-databases.png alt="Timeline of databases"></a></p><p>Les années 1990 à 1994 virent des versions successives fiabiliser le produit
 jusqu&rsquo;à une nouvelle branche open-source appellée Postgres95, puis PostgreSQL,
 intégrant l&rsquo;interpréteur du language SQL connu aujourd&rsquo;hui. Aussi, tout appellation
-« Postgres » au-delà de cette date est un simple abus de langage.</p>
-<p>Le cycle de développement qui suivit fut régulier, à raison d&rsquo;une nouvelle release
+« Postgres » au-delà de cette date est un simple abus de langage.</p><p>Le cycle de développement qui suivit fut régulier, à raison d&rsquo;une nouvelle release
 chaque année avec un apport en fonctionnalités et en performance. Entre 1997 et
 2018, ce n&rsquo;est pas moins de 25 versions majeures et 112 fonctionnalités qui furent
-mises à disposition du grand public en téléchargement gratuit et libre.</p>
-<p><a href=https://en.wikipedia.org/wiki/PostgreSQL#Release_history><img src=/img/fr/2019-07-04-postgresql-release-timeline.png alt="PostgreSQL release timeline"></a></p>
-<p>Source : <a href=https://docs.postgresql.fr/12/history.html>https://docs.postgresql.fr/12/history.html</a></p>
-<hr>
-<h2 id=gouvernance-et-contributions>Gouvernance et contributions</h2>
-<p>Lorsqu&rsquo;on s&rsquo;intéresse au milieu de l&rsquo;open-source, il est très courant de voir des
+mises à disposition du grand public en téléchargement gratuit et libre.</p><p><a href=https://en.wikipedia.org/wiki/PostgreSQL#Release_history target=_blank rel=noopener><img src=/img/fr/2019-07-04-postgresql-release-timeline.png alt="PostgreSQL release timeline"></a></p><p>Source : <a href=https://docs.postgresql.fr/12/history.html target=_blank rel=noopener>https://docs.postgresql.fr/12/history.html</a></p><hr><h2 id=gouvernance-et-contributions>Gouvernance et contributions</h2><p>Lorsqu&rsquo;on s&rsquo;intéresse au milieu de l&rsquo;open-source, il est très courant de voir des
 projets vivre et mourrir comme des étoiles dans un univers chaotique. La beauté
 de cette chorégraphie peut s&rsquo;expliquer par le foisonnement d&rsquo;idées et de contributions
 libres dans un monde connecté où les barrières linguistique et culturelle
 n&rsquo;existent plus. Un produit peut apparaître à un moment décisif dans un écosystème
 et peut être accueilli par un ensemble d&rsquo;acteurs hétérogènes, ou bien, peut
 disparaître à défaut de maintenance/consensus ou au profit d&rsquo;une alternative.
-C&rsquo;est la jungle, ou plus précisemment : <a href=https://fr.wikipedia.org/wiki/La_Cath%C3%A9drale_et_le_Bazar>le bazar</a>.</p>
-<p>En ce qui concerne le projet PostgreSQL, ce qui explique sa longévité et son
+C&rsquo;est la jungle, ou plus précisemment : <a href=https://fr.wikipedia.org/wiki/La_Cath%C3%A9drale_et_le_Bazar target=_blank rel=noopener>le bazar</a>.</p><p>En ce qui concerne le projet PostgreSQL, ce qui explique sa longévité et son
 assise actuelle est sans conteste l&rsquo;approche verticale de la gouvernance. Une
-<a href=https://www.postgresql.org/community/contributors/>page officielle</a> recense les membres actifs du projet à travers trois
+<a href=https://www.postgresql.org/community/contributors/ target=_blank rel=noopener>page officielle</a> recense les membres actifs du projet à travers trois
 distinctions : la <em>Core Team</em> (une sorte de comité de pilotage), les
 <em>Major Contributors</em> et les <em>Contributors</em>. Le processus de mise à disposition
 d&rsquo;une contribution est tout à fait intéressant et diffère des <em>pull-requests</em>
-habituelles des autres projets open-source.</p>
-<p><u>Exemple pour un patch</u> (<a href=https://wiki.postgresql.org/wiki/Submitting_a_Patch#Patch_review_and_commit>source</a>) :</p>
-<p>Le développeur lambda fait une demande mail sur la liste de diffusion
-<code>pgsql-hackers@postgresql.org</code> et plusieurs scénarii sont possibles :</p>
-<ol>
-<li>Un contributeur intégre immédiatement la correction dans la prochaine release</li>
-<li>Le patch est ajouté dans la liste du prochain <a href=https://commitfest.postgresql.org/>CommitFest</a> et sera confronté
+habituelles des autres projets open-source.</p><p><u>Exemple pour un patch</u> (<a href=https://wiki.postgresql.org/wiki/Submitting_a_Patch#Patch_review_and_commit target=_blank rel=noopener>source</a>) :</p><p>Le développeur lambda fait une demande mail sur la liste de diffusion
+<code>pgsql-hackers@postgresql.org</code> et plusieurs scénarii sont possibles :</p><ol><li>Un contributeur intégre immédiatement la correction dans la prochaine release</li><li>Le patch est ajouté dans la liste du prochain <a href=https://commitfest.postgresql.org/ target=_blank rel=noopener>CommitFest</a> et sera confronté
 à l&rsquo;avis d&rsquo;un comité de contributeurs pendant 3 à 4 mois avant d&rsquo;être intégré dans
-le produit</li>
-<li>Le patch est rejeté pour des raisons diverses avec un commentaire pour
-l&rsquo;améliorer avant de le relivrer</li>
-</ol>
-<p>Devenir contributeur prend du temps et nécessite un investissement dans un
+le produit</li><li>Le patch est rejeté pour des raisons diverses avec un commentaire pour
+l&rsquo;améliorer avant de le relivrer</li></ol><p>Devenir contributeur prend du temps et nécessite un investissement dans un
 composant du projet, comme l&rsquo;ajout ou l&rsquo;amélioration d&rsquo;une fonctionnalité ou la
 correction des bogues du moteur. C&rsquo;est ce qu&rsquo;a témoigné Dimitri Fontaine lors
-d&rsquo;un <a href=https://linuxfr.org/news/interview-de-dimitri-fontaine-contributeur-majeur-a-postgresql>interview</a> pour LinuxFR.</p>
-<blockquote>
-<p>Ma contribution suivante a porté sur les Event triggers. Sur la liste de diffusion,
+d&rsquo;un <a href=https://linuxfr.org/news/interview-de-dimitri-fontaine-contributeur-majeur-a-postgresql target=_blank rel=noopener>interview</a> pour LinuxFR.</p><blockquote><p>Ma contribution suivante a porté sur les Event triggers. Sur la liste de diffusion,
 Jan Wieck avait indiqué que ça devait être assez facile à mettre au point : à
 la lecture de son message, je me suis dit qu’il devait avoir raison et j’ai
-commencé le développement. Ça m’a pris 18 mois.</p>
-</blockquote>
-<p>Le français Michael Paquier également a réalisé cet exploit en participant depuis
+commencé le développement. Ça m’a pris 18 mois.</p></blockquote><p>Le français Michael Paquier également a réalisé cet exploit en participant depuis
 2009 au <em>PostgreSQL Global Development Group</em> avec le suivi de la mailing-list et
-la publication très régulière d&rsquo;articles sur <a href=https://paquier.xyz/>son blog</a> pour expliquer chacune
-de ses contributions. Une véritable mine d&rsquo;informations !</p>
-<p>Contribuer à un projet open-source ne se réduit pas au développement de
+la publication très régulière d&rsquo;articles sur <a href=https://paquier.xyz/ target=_blank rel=noopener>son blog</a> pour expliquer chacune
+de ses contributions. Une véritable mine d&rsquo;informations !</p><p>Contribuer à un projet open-source ne se réduit pas au développement de
 fonctionnalités ou de correctifs. PostgreSQL n&rsquo;échappe pas à cette règle, et l&rsquo;on
 a vu fleurir des groupes de passionné·e·s faire la promotion du produit à travers
 le monde entier. Leurs formes sont évidemment multiples : traduction de la
-documentation anglaise (la version française est largement traduite par <a href=https://github.com/gleu/pgdocs_fr>Guillaume
+documentation anglaise (la version française est largement traduite par <a href=https://github.com/gleu/pgdocs_fr target=_blank rel=noopener>Guillaume
 Lelarge</a>) ou encore l&rsquo;animation d&rsquo;évenements tel que la PG Day ou la PG Conf
-majoritairement sponsorisées par des entreprises.</p>
-<p>Je ne parle volontairement pas des outils tiers qui soutiennent la dynamique du
+majoritairement sponsorisées par des entreprises.</p><p>Je ne parle volontairement pas des outils tiers qui soutiennent la dynamique du
 projet PostgreSQL, avec des contributions d&rsquo;individus ou d&rsquo;entités plus organisées.
 Nous verrons juste après l&rsquo;intérêt que portent de nombreux acteurs pour cette
-exception logicielle.</p>
-<hr>
-<h2 id=la-maturité>La maturité</h2>
-<div class=message>Les éléments suivants ont été arbitrairement seléctionnés par mes soins pour
-illustrer le propos global de l&rsquo;article.</div>
-<p>Il est tout à fait impossible de cartographier l&rsquo;usage d&rsquo;un produit open-source
+exception logicielle.</p><hr><h2 id=la-maturité>La maturité</h2><div class=message>Les éléments suivants ont été arbitrairement seléctionnés par mes soins pour
+illustrer le propos global de l&rsquo;article.</div><p>Il est tout à fait impossible de cartographier l&rsquo;usage d&rsquo;un produit open-source
 en milieu d&rsquo;entreprise. Une initiative française s&rsquo;illustre en réunissant de
-nombreux acteurs dans un <a href=https://www.postgresql.fr/entreprises/accueil>groupe dédié</a> à la promotion et la standardisation
+nombreux acteurs dans un <a href=https://www.postgresql.fr/entreprises/accueil target=_blank rel=noopener>groupe dédié</a> à la promotion et la standardisation
 des outils. Les cabinets de conseils et sociétés de service autours de PostgreSQL
 sont encore dans un marché de niche ; mon intuition me pousse à croire qu&rsquo;une
-tendance se dessine tout de même sur le territoire français.</p>
-<p>Sur les seules cinq années écoulées, j&rsquo;ai pu apprécier une forte émulation autours
+tendance se dessine tout de même sur le territoire français.</p><p>Sur les seules cinq années écoulées, j&rsquo;ai pu apprécier une forte émulation autours
 du produit PostgreSQL. Parmi les DBA (Oracle accessoirement) que je fréquentais
 ou suivais sur les réseaux, j&rsquo;ai vu une poignée d&rsquo;entre eux afficher la double
 compétence Oracle/PostgreSQL sur leur fiche descriptive. Les blogs d&rsquo;entreprises
 spécialisées diffusaient des contenus inédits et de très bonne qualité là où nous
 ne les attendions pas (exemples comme
-<a href=https://www.percona.com/blog/category/postgresql/>Percona</a>,
-<a href="https://blog.dbi-services.com/?s=postgresql">dbi-services</a>,
-<a href=https://www.digora.com/fr/search/node/postgresql>Digora</a>
-ou encore <a href="https://easyteam.fr/?s=postgresql">Easyteam</a>).</p>
-<p>Côté service public, la Direction interministérielle des systèmes d&rsquo;information
-et de communication publie depuis 2014 la <a href=https://sill.etalab.gouv.fr/rf/software>liste des logiciels de bases de données</a>
+<a href=https://www.percona.com/blog/category/postgresql/ target=_blank rel=noopener>Percona</a>,
+<a href="https://blog.dbi-services.com/?s=postgresql" target=_blank rel=noopener>dbi-services</a>,
+<a href=https://www.digora.com/fr/search/node/postgresql target=_blank rel=noopener>Digora</a>
+ou encore <a href="https://easyteam.fr/?s=postgresql" target=_blank rel=noopener>Easyteam</a>).</p><p>Côté service public, la Direction interministérielle des systèmes d&rsquo;information
+et de communication publie depuis 2014 la <a href=https://sill.etalab.gouv.fr/rf/software target=_blank rel=noopener>liste des logiciels de bases de données</a>
 open-source à privilégier avec PostgreSQL au côté de MariaDB et SQLite. En
-début d&rsquo;année 2019, elle maintient sa position en <a href=https://disic.github.io/sill/2019/sill-diff-2018-2019.pdf>encourageant</a> l&rsquo;usage de
-la version 10 de PostgreSQL. A titre d&rsquo;exemple, durant la <a href="https://www.youtube.com/watch?v=emH6lPXOLf0">PG Day 2016</a>,
+début d&rsquo;année 2019, elle maintient sa position en <a href=https://disic.github.io/sill/2019/sill-diff-2018-2019.pdf target=_blank rel=noopener>encourageant</a> l&rsquo;usage de
+la version 10 de PostgreSQL. A titre d&rsquo;exemple, durant la <a href="https://www.youtube.com/watch?v=emH6lPXOLf0" target=_blank rel=noopener>PG Day 2016</a>,
 j&rsquo;avais été surpris par l&rsquo;appropriation du produit au sein de la Gendarmerie
-Nationale avec un retour d&rsquo;expérience agréable.</p>
-<p>Ma lecture pour cet engouement serait à la fois technique et engagée.</p>
-<p>J&rsquo;ai observé de nette avancée dans les fonctionnalités durant les trois précédentes
+Nationale avec un retour d&rsquo;expérience agréable.</p><p>Ma lecture pour cet engouement serait à la fois technique et engagée.</p><p>J&rsquo;ai observé de nette avancée dans les fonctionnalités durant les trois précédentes
 années, avec notamment des solutions de performances qui n&rsquo;ont plus à rougir face
 aux produits <em>leaders</em> du marché (Oracle et SQL Server). Je pense essentiellement
-au support de la <a href=https://www.postgresql.org/docs/9.6/parallel-query.html>parallélisation</a> des ressources CPU apporté dans la version
+au support de la <a href=https://www.postgresql.org/docs/9.6/parallel-query.html target=_blank rel=noopener>parallélisation</a> des ressources CPU apporté dans la version
 9.6 et sans cesse amélioré à chaque nouvelle release, alors que cette même capacité
-est <a href=https://docs.oracle.com/en/database/oracle/oracle-database/19/dblic/Licensing-Information.html#GUID-0F9EB85D-4610-4EDF-89C2-4916A0E7AC87>absente</a> en version Standard (SE2) d&rsquo;Oracle Database et <a href="https://docs.microsoft.com/en-us/sql/sql-server/editions-and-components-of-sql-server-2017?view=sql-server-2017#RDBMSSP">limitée</a> en
-version Standard SQL Server.</p>
-<p>La version 10 a changé la donne pour les bases de données à haute volumétrie avec
-la réécriture du module de <a href=https://www.postgresql.org/docs/10/ddl-partitioning.html>partitionnement</a> qui reposait sur de l&rsquo;héritage
+est <a href=https://docs.oracle.com/en/database/oracle/oracle-database/19/dblic/Licensing-Information.html#GUID-0F9EB85D-4610-4EDF-89C2-4916A0E7AC87 target=_blank rel=noopener>absente</a> en version Standard (SE2) d&rsquo;Oracle Database et <a href="https://docs.microsoft.com/en-us/sql/sql-server/editions-and-components-of-sql-server-2017?view=sql-server-2017#RDBMSSP" target=_blank rel=noopener>limitée</a> en
+version Standard SQL Server.</p><p>La version 10 a changé la donne pour les bases de données à haute volumétrie avec
+la réécriture du module de <a href=https://www.postgresql.org/docs/10/ddl-partitioning.html target=_blank rel=noopener>partitionnement</a> qui reposait sur de l&rsquo;héritage
 de tables et un mix de triggers et de contraintes. À présent, la création et la
 maintenance des tables partitionnées sont simplifiées avec une nouvelle syntaxe
 déclarative, bien qu&rsquo;encore limitées en attendant les prochaines versions. Chez
 la concurrence, les choses sont plus avancées. Oracle proprose un partitionnement
 poussée sous licence Entreprise + option avec notamment la gestion forte des
 contraintes ou du sous-partitionnement ; SQL Server impose son implémentation à
-l&rsquo;aide de fonctions et de <a href="https://docs.microsoft.com/fr-fr/sql/relational-databases/partitions/create-partitioned-tables-and-indexes?view=sql-server-2017">schémas de partition</a> mais autorise son utilisation
-pour la version Standard depuis la <a href="https://docs.microsoft.com/en-us/sql/sql-server/editions-and-components-of-sql-server-2016?view=sql-server-2017">version 2016 SP1</a>.</p>
-<p>Avec du retard, la version 11 de PostgreSQL implémente les <a href=https://www.postgresql.org/docs/11/sql-createprocedure.html>procédures stockées</a>
+l&rsquo;aide de fonctions et de <a href="https://docs.microsoft.com/fr-fr/sql/relational-databases/partitions/create-partitioned-tables-and-indexes?view=sql-server-2017" target=_blank rel=noopener>schémas de partition</a> mais autorise son utilisation
+pour la version Standard depuis la <a href="https://docs.microsoft.com/en-us/sql/sql-server/editions-and-components-of-sql-server-2016?view=sql-server-2017" target=_blank rel=noopener>version 2016 SP1</a>.</p><p>Avec du retard, la version 11 de PostgreSQL implémente les <a href=https://www.postgresql.org/docs/11/sql-createprocedure.html target=_blank rel=noopener>procédures stockées</a>
 et le support transactionnel. Cela n&rsquo;a l&rsquo;air de rien, mais c&rsquo;est essentiel pour
 un grand nombre de projets dont la logique métier est déportée au plus proche du
 moteur, pratique courrante sur les bases Oracle avec le langage PL/SQL. Cette
 avancée ouvre les portes à de possibles migrations Oracle vers PostgreSQL en
-réécrivant l&rsquo;ensemble des procédures stockées dans le bon format !</p>
-<p>De bonnes choses sont encore à prévoir avec la prochaine release 12, où l&rsquo;option
-<code>CONCURRENTLY</code> est à présent supportée lors de la <a href=https://www.postgresql.org/docs/12/sql-reindex.html#SQL-REINDEX-CONCURRENTLY>réindexation</a>. Cette
+réécrivant l&rsquo;ensemble des procédures stockées dans le bon format !</p><p>De bonnes choses sont encore à prévoir avec la prochaine release 12, où l&rsquo;option
+<code>CONCURRENTLY</code> est à présent supportée lors de la <a href=https://www.postgresql.org/docs/12/sql-reindex.html#SQL-REINDEX-CONCURRENTLY target=_blank rel=noopener>réindexation</a>. Cette
 fonctionnalité stabilise grandement le produit pour les bases à forte activité et
 forte volumétrie, où les opérations de maintenance ne doivent en aucun cas
 perturber les requêtes courantes. Sans vouloir me répéter, Oracle et SQL Server
-proposent ce mécanisme en version Entreprise exclusivement…</p>
-<p>Mises bout à bout, ces fonctionnalités redessinent le paysage numérique et poussent
+proposent ce mécanisme en version Entreprise exclusivement…</p><p>Mises bout à bout, ces fonctionnalités redessinent le paysage numérique et poussent
 de nombreuses sociétés à revoir leur copie en terme de licence ou de politique
 d&rsquo;architecture. La popularité pour ce produit n&rsquo;a pas terminée son ascension, à
-en croire le classement annuel des moteurs de bases de données.</p>
-<p><a href=https://db-engines.com/en/ranking_trend><img src=/img/fr/2019-07-04-db-ranking.png alt="Databases ranking"></a></p>
-<hr>
-<h2 id=les-travers-des-contributions-tierces>Les travers des contributions tierces</h2>
-<p>Il existe bien d&rsquo;autres fonctionnalités que j&rsquo;affectionne dans PostgreSQL, qu&rsquo;il
+en croire le classement annuel des moteurs de bases de données.</p><p><a href=https://db-engines.com/en/ranking_trend target=_blank rel=noopener><img src=/img/fr/2019-07-04-db-ranking.png alt="Databases ranking"></a></p><hr><h2 id=les-travers-des-contributions-tierces>Les travers des contributions tierces</h2><p>Il existe bien d&rsquo;autres fonctionnalités que j&rsquo;affectionne dans PostgreSQL, qu&rsquo;il
 faut absolument connaître pour faire un choix crucial en début de projet, je
 pourrais parler plus longuement du <em>hot backup</em> et du <em>hot standby</em>, deux modes
 de fonctionnements pour la sauvegarde et la lecture seule sur une base répliquée
 (<em>Oracle Active Dataguard</em> est une option payante.) ou alors des très récents
 index couvrants apparus en version 11, faisant de l&rsquo;ombre à SQL Server. Mais
 tout n&rsquo;est pas glorieux, et les contributeurs du projet PostgreSQL ont encore un
-grand défi à surmonter : la Haute Disponibilité.</p>
-<div class=message>Pour limiter au plus possible l&rsquo;exposé détaillé des solutions technique mises à
+grand défi à surmonter : la Haute Disponibilité.</p><div class=message>Pour limiter au plus possible l&rsquo;exposé détaillé des solutions technique mises à
 disposition nativement au grand public, je considère que les élements de la
-<a href=https://www.postgresql.org/docs/current/different-replication-solutions.html>documentation officielle</a>
+<a href=https://www.postgresql.org/docs/current/different-replication-solutions.html target=_blank rel=noopener>documentation officielle</a>
 sont connus du lecteur, à savoir : le <em>log shipping</em>, la réplication <em>streaming</em>
-et la réplication logique.</div>
-<p>Je disais donc, la <a href=https://fr.wikipedia.org/wiki/Haute_disponibilit%C3%A9>Haute Disponibilité</a> est une des fonctionnalités les plus
+et la réplication logique.</div><p>Je disais donc, la <a href=https://fr.wikipedia.org/wiki/Haute_disponibilit%C3%A9 target=_blank rel=noopener>Haute Disponibilité</a> est une des fonctionnalités les plus
 demandées lorsque l&rsquo;on traite d&rsquo;une architecture où le cœur d&rsquo;un système repose
 sur un moteur de bases de données. Elle consiste à apporter une solution technique
 de gestion de ressources en cas de panne dans le système. Un incendie ? Une panne
 de disque ? Une erreur humaine sur le serveur ? PostgreSQL propose une réplication
 aux petits oignons pour assurer la copie des données en temps réel sur un second
-serveur ou <em>datacenter</em>.</p>
-<p>Cependant, la détection de l&rsquo;anomalie, la bascule des flux de connexions et
+serveur ou <em>datacenter</em>.</p><p>Cependant, la détection de l&rsquo;anomalie, la bascule des flux de connexions et
 l&rsquo;activation de la base secondaire ne sont pas nativement implémentées. Et alors
 que les produits concurrents y répondent à grands coups de <em>Real Application
 Cluster</em> (Oracle Database) ou de <em>Always On</em> (SQL Server), le produit communautaire
 se voit contraint de bénéficier d&rsquo;outils tiers, souvent de haut niveau, qui
-rendent très vite complexe l&rsquo;architecture globale.</p>
-<p>La documentation actuelle fait l&rsquo;état des lieux de solutions vieillissantes et/ou
+rendent très vite complexe l&rsquo;architecture globale.</p><p>La documentation actuelle fait l&rsquo;état des lieux de solutions vieillissantes et/ou
 abandonnées (exemple de Londiste, non maintenue depuis 2014). D&rsquo;autres comme
-<a href=https://www.pgpool.net/mediawiki/index.php/Main_Page>pgpool-II</a> ou <a href=https://repmgr.org/docs/current/repmgr-components.html>repmgr</a>, présents dans le paysage depuis très longtemps,
-rencontrent une concurrence avec des alternatives plus modernes comme <a href=https://patroni.readthedocs.io/en/latest/>Patroni</a>
-développé par Zalando ou plus récemment le package <a href=https://cloudblogs.microsoft.com/opensource/2019/05/06/introducing-pg_auto_failover-postgresql-open-source-extension-automated-failover-high-availability/>pg_auto_failover</a> offert
+<a href=https://www.pgpool.net/mediawiki/index.php/Main_Page target=_blank rel=noopener>pgpool-II</a> ou <a href=https://repmgr.org/docs/current/repmgr-components.html target=_blank rel=noopener>repmgr</a>, présents dans le paysage depuis très longtemps,
+rencontrent une concurrence avec des alternatives plus modernes comme <a href=https://patroni.readthedocs.io/en/latest/ target=_blank rel=noopener>Patroni</a>
+développé par Zalando ou plus récemment le package <a href=https://cloudblogs.microsoft.com/opensource/2019/05/06/introducing-pg_auto_failover-postgresql-open-source-extension-automated-failover-high-availability/ target=_blank rel=noopener>pg_auto_failover</a> offert
 à la communauté par Microsoft. D&rsquo;autres encore, détournent les mécanismes de
 réplication pour répondre à d&rsquo;autres besoins comme l&rsquo;architecture <em>multi-master</em>
 où chaque nœud peut répondre à des requêtes d&rsquo;écriture. À ce jeu là, il est possible
-de tomber sur des solutions comme <a href=https://www.2ndquadrant.com/en/resources/postgres-bdr-2ndquadrant/>Postgres-DBR</a> sous licence 2ndQuadrant ou
-<a href=https://bucardo.org/Bucardo/Overview.html>Bucardo</a> en accès libre.</p>
-<p>Que penser de ces contributions ? Faut-il payer pour une fonctionnalité qui
+de tomber sur des solutions comme <a href=https://www.2ndquadrant.com/en/resources/postgres-bdr-2ndquadrant/ target=_blank rel=noopener>Postgres-DBR</a> sous licence 2ndQuadrant ou
+<a href=https://bucardo.org/Bucardo/Overview.html target=_blank rel=noopener>Bucardo</a> en accès libre.</p><p>Que penser de ces contributions ? Faut-il payer pour une fonctionnalité qui
 n&rsquo;existe pas… ou pas encore ? Ou miser sur un produit tendance et moderne à la
 place d&rsquo;un autre qui pourrait ne plus être maintenu ? Le choix n&rsquo;est pas aisé,
 et la réponse que le DBA doit apporter, lourde de conséquences sur les systèmes
-de production.</p>
-<hr>
-<h2 id=faut-il-miser-sur-lalternative-que-devient-postgresql>Faut-il miser sur l&rsquo;alternative que devient PostgreSQL ?</h2>
-<p>Compte tenu que PostgreSQL est un logiciel open-source et que ce dernier respecte
-les libertés de la <em><a href=https://fr.wikipedia.org/wiki/Logiciel_libre#D%C3%A9finition_de_la_Free_Software_Foundation_(FSF)>Free Software Foundation</a></em> (bien qu&rsquo;il <a href=https://www.postgresql.org/about/licence/>n&rsquo;utilise pas</a>
+de production.</p><hr><h2 id=faut-il-miser-sur-lalternative-que-devient-postgresql>Faut-il miser sur l&rsquo;alternative que devient PostgreSQL ?</h2><p>Compte tenu que PostgreSQL est un logiciel open-source et que ce dernier respecte
+les libertés de la <em><a href=https://fr.wikipedia.org/wiki/Logiciel_libre#D%C3%A9finition_de_la_Free_Software_Foundation_%28FSF%29 target=_blank rel=noopener>Free Software Foundation</a></em> (bien qu&rsquo;il <a href=https://www.postgresql.org/about/licence/ target=_blank rel=noopener>n&rsquo;utilise pas</a>
 de license GNU GPL), tout le monde peut l&rsquo;exécuter librement et dans
 l&rsquo;environnement qu&rsquo;il souhaite, ainsi que le modifier et le distribuer aux tarifs
-qu&rsquo;il entend !</p>
-<p>Dans ce contexte, les offres <em>cloud</em> se sont multipliées auprès des fournisseurs
-que l&rsquo;on connait tous. Amazon avec <a href=https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.AuroraPostgreSQL.html>Aurora</a> et <a href=https://aws.amazon.com/fr/redshift/>Redshift</a>, Microsoft avec
-<a href=https://azure.microsoft.com/en-us/services/postgresql/>Hyperscale</a> et Google avec ses déclinaisons <a href=https://cloud.google.com/sql/docs/postgres/pricing>Cloud SQL</a>. Toutes ces
+qu&rsquo;il entend !</p><p>Dans ce contexte, les offres <em>cloud</em> se sont multipliées auprès des fournisseurs
+que l&rsquo;on connait tous. Amazon avec <a href=https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.AuroraPostgreSQL.html target=_blank rel=noopener>Aurora</a> et <a href=https://aws.amazon.com/fr/redshift/ target=_blank rel=noopener>Redshift</a>, Microsoft avec
+<a href=https://azure.microsoft.com/en-us/services/postgresql/ target=_blank rel=noopener>Hyperscale</a> et Google avec ses déclinaisons <a href=https://cloud.google.com/sql/docs/postgres/pricing target=_blank rel=noopener>Cloud SQL</a>. Toutes ces
 propositions, pour ne citer que les <em>providers</em> les plus puissants, constituent
 un tremplin phénomal pour l&rsquo;adoption de PostgreSQL à l&rsquo;heure du <em>Go to Cloud</em>
-engagé par les DSI de grands groupes français.</p>
-<p>Encourager l&rsquo;alternative, c&rsquo;est lutter contre les positions dominantes et entrer
+engagé par les DSI de grands groupes français.</p><p>Encourager l&rsquo;alternative, c&rsquo;est lutter contre les positions dominantes et entrer
 dans un dialogue technologique pour développer et améliorer nos outils du quotidien.
 Nous ne sommes pas à l&rsquo;abri des contre-ripostes des géants du Web comme mentionnés
 plus haut et cette bataille pour la liberté ébranle depuis le début de notre
-siècle notre rapport à l&rsquo;outil informatique.</p>
-<hr>
-<p>En s&rsquo;intéressant à la gouvernance et à la maturité de PostgreSQL, on pourrait
+siècle notre rapport à l&rsquo;outil informatique.</p><hr><p>En s&rsquo;intéressant à la gouvernance et à la maturité de PostgreSQL, on pourrait
 entrevoir un essort confortable et rassurant d&rsquo;un logiciel open-source, dont la
 popularité n&rsquo;est plus à discuter. L&rsquo;adoption et l&rsquo;usage d&rsquo;un tel outil présuppose
 que l&rsquo;utilisateur soit conscient des efforts de longues dates qui ont permit son
-ascension.</p>
-<p>Choisir PostgreSQL, c&rsquo;est s&rsquo;engager dans un combat où s&rsquo;affronte deux idéologies :
+ascension.</p><p>Choisir PostgreSQL, c&rsquo;est s&rsquo;engager dans un combat où s&rsquo;affronte deux idéologies :
 celle du logiciel libre et celle de la propriété intellectuelle ; s&rsquo;opposer aux
 industries du logiciel pour garantir l&rsquo;émergence du partage et de l&rsquo;éthique au
-cœur de la technologie toujours plus grandissante.</p>
-<p>« Internet ou la révolution du partage » est un excellent <a href=https://fr.wikipedia.org/wiki/Internet_ou_la_r%C3%A9volution_du_partage>reportage Arte</a>
+cœur de la technologie toujours plus grandissante.</p><p>« Internet ou la révolution du partage » est un excellent <a href=https://fr.wikipedia.org/wiki/Internet_ou_la_r%C3%A9volution_du_partage target=_blank rel=noopener>reportage Arte</a>
 où le réalisateur Philippe Borrel traite de la question de la liberté dans le
-logiciel. Il n&rsquo;appartient qu&rsquo;à nous d&rsquo;entrer dans ce mouvement !</p>
-</article>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+logiciel. Il n&rsquo;appartient qu&rsquo;à nous d&rsquo;entrer dans ce mouvement !</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

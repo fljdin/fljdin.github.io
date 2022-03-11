@@ -1,347 +1,237 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Le jour où tout bascule</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Le jour où tout bascule</a></h1>
-<p class=post-date>
-<time datetime=2019-12-19>19 déc 2019</time>
-- 10 minutes de lecture
-</p><p>Lorsque l&rsquo;on exploite une plateforme PostgreSQL avec de la réplication, il est
+<!doctype html><html lang=fr><head><title>Le jour où tout bascule</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Le jour où tout bascule</a></h1><p class=post-date><time datetime=2019-12-19>19 déc 2019</time>
+- 10 minutes de lecture</p><p>Lorsque l&rsquo;on exploite une plateforme PostgreSQL avec de la réplication, il est
 exceptionnel de devoir déclencher le plan de bascule, rédigé par un ancien
 collègue ou un prestataire oublié. Ce genre de décision se prend lorsque
 l&rsquo;ensemble des experts ont individuellement déterminé qu&rsquo;aucune autre solution
-n&rsquo;était envisageable.</p>
-<p>Quels moyens a-t-on avec une architecture PostgreSQL dans son plus simple appareil
+n&rsquo;était envisageable.</p><p>Quels moyens a-t-on avec une architecture PostgreSQL dans son plus simple appareil
 pour réaliser une bascule des rôles et raccrocher les instances secondaires au
-nouveau primaire fraîchement élu ?</p>
-<hr>
-<h2 id=mise-en-place>Mise en place</h2>
-<p>Partons du postulat que l&rsquo;architecture la plus simple en terme de haute-disponibilité
+nouveau primaire fraîchement élu ?</p><hr><h2 id=mise-en-place>Mise en place</h2><p>Partons du postulat que l&rsquo;architecture la plus simple en terme de haute-disponibilité
 avec PostgreSQL est constituée de deux services avec une réplication physique
-d&rsquo;une instance primaire vers une instance secondaire.</p>
-<p>Pour des raisons de coûts, aucun serveur supplémentaire n&rsquo;est alloué pour accueillir
+d&rsquo;une instance primaire vers une instance secondaire.</p><p>Pour des raisons de coûts, aucun serveur supplémentaire n&rsquo;est alloué pour accueillir
 les archives de journaux de transactions, et ces derniers seront déplacés sur le
-serveur secondaire avec la commande <code>rsync</code>.</p>
-<p>Et puisque la version 12 apporte des nouveautés notables sur la gestion d&rsquo;une
+serveur secondaire avec la commande <code>rsync</code>.</p><p>Et puisque la version 12 apporte des nouveautés notables sur la gestion d&rsquo;une
 réplication, nous l&rsquo;employerons dans cet article pour configurer nos instances
 sans le fichier <code>recovery.conf</code>. Pour la facilité de lecture, je baptiserai
-volontairement les deux serveurs : <code>batman</code> et <code>robin</code>.</p>
-<p><img src=/img/fr/2019-12-19-architecture-batman-robin.png alt="Architecture simplifiée"></p>
-<p>L&rsquo;instance <code>batman</code> dispose de la configuration suivante :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># postgresql.auto.conf</span>
-<span class=na>port</span> <span class=o>=</span> <span class=s>5432</span>
-<span class=na>archive_mode</span> <span class=o>=</span> <span class=s>on</span>
-<span class=na>wal_log_hints</span> <span class=o>=</span> <span class=s>on</span>
-<span class=na>archive_command</span> <span class=o>=</span> <span class=s>&#39;rsync -a %p robin:/opt/batcave/%f&#39;</span>
-<span class=na>restore_command</span> <span class=o>=</span> <span class=s>&#39;cp /opt/batcave/%f %p&#39;</span>
-<span class=na>archive_cleanup_command</span> <span class=o>=</span> <span class=s>&#39;pg_archivecleanup /opt/batcave %r&#39;</span>
-<span class=na>primary_conninfo</span> <span class=o>=</span> <span class=s>&#39;host=batman user=streamer&#39;</span>
-</code></pre></div><p>Le fichier <code>postgresql.auto.conf</code> permet de surcharger les valeurs présentes dans
+volontairement les deux serveurs : <code>batman</code> et <code>robin</code>.</p><p><img src=/img/fr/2019-12-19-architecture-batman-robin.png alt="Architecture simplifiée"></p><p>L&rsquo;instance <code>batman</code> dispose de la configuration suivante :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># postgresql.auto.conf</span>
+</span></span><span class=line><span class=cl><span class=na>port</span> <span class=o>=</span> <span class=s>5432</span>
+</span></span><span class=line><span class=cl><span class=na>archive_mode</span> <span class=o>=</span> <span class=s>on</span>
+</span></span><span class=line><span class=cl><span class=na>wal_log_hints</span> <span class=o>=</span> <span class=s>on</span>
+</span></span><span class=line><span class=cl><span class=na>archive_command</span> <span class=o>=</span> <span class=s>&#39;rsync -a %p robin:/opt/batcave/%f&#39;</span>
+</span></span><span class=line><span class=cl><span class=na>restore_command</span> <span class=o>=</span> <span class=s>&#39;cp /opt/batcave/%f %p&#39;</span>
+</span></span><span class=line><span class=cl><span class=na>archive_cleanup_command</span> <span class=o>=</span> <span class=s>&#39;pg_archivecleanup /opt/batcave %r&#39;</span>
+</span></span><span class=line><span class=cl><span class=na>primary_conninfo</span> <span class=o>=</span> <span class=s>&#39;host=batman user=streamer&#39;</span>
+</span></span></code></pre></div><p>Le fichier <code>postgresql.auto.conf</code> permet de surcharger les valeurs présentes dans
 le fichier standard <code>postgresql.conf</code> et, avantage certain sur une distribution
 Debian & co, il est accessible dans le répertoire de données <code>PGDATA</code> et pourra
 être copié en l&rsquo;état vers toutes les instances secondaires au moment de leur
-création.</p>
-<p>Cette étape par ailleurs repose sur un outil simple et fourni avec toutes les
+création.</p><p>Cette étape par ailleurs repose sur un outil simple et fourni avec toutes les
 versions PostgreSQL : <code>pg_basebackup</code>. L&rsquo;unique prérequis est de disposer d&rsquo;un
 compte de réplication sur l&rsquo;instance à répliquer et que le serveur distant puisse
-réaliser une authentification valide (fichier <code>pg_hba.conf</code>).</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=nb>cd</span> /opt
-pg_basebackup --host<span class=o>=</span>batman --user<span class=o>=</span>streamer <span class=se>\
-</span><span class=se></span>  --pgdata<span class=o>=</span>robin --wal-method<span class=o>=</span>stream --checkpoint<span class=o>=</span>fast
-
-touch robin/standby.signal
-pg_ctl start -D robin
-</code></pre></div><p>Un autre outil existe pour contrôler l&rsquo;état d&rsquo;une instance en scannant le contenu
+réaliser une authentification valide (fichier <code>pg_hba.conf</code>).</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=nb>cd</span> /opt
+</span></span><span class=line><span class=cl>pg_basebackup --host<span class=o>=</span>batman --user<span class=o>=</span>streamer <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --pgdata<span class=o>=</span>robin --wal-method<span class=o>=</span>stream --checkpoint<span class=o>=</span>fast
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>touch robin/standby.signal
+</span></span><span class=line><span class=cl>pg_ctl start -D robin
+</span></span></code></pre></div><p>Un autre outil existe pour contrôler l&rsquo;état d&rsquo;une instance en scannant le contenu
 du fichier <code>PGDATA/global/pg_control</code>, notamment pour savoir si notre serveur est
-primaire ou secondaire et s&rsquo;il réplique les journaux de transactions :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pg_controldata -D robin
-
-<span class=c1># pg_control version number:            1201</span>
-<span class=c1># Catalog version number:               201909212</span>
-<span class=c1># Database system identifier:           6771436906102136159</span>
-<span class=c1># Database cluster state:               in archive recovery</span>
-<span class=c1># Latest checkpoint location:           0/A000098</span>
-<span class=c1># Latest checkpoint&#39;s REDO location:    0/A000060</span>
-<span class=c1># Latest checkpoint&#39;s REDO WAL file:    00000001000000000000000A</span>
-<span class=c1># wal_level setting:                    replica</span>
-<span class=c1># wal_log_hints setting:                on</span>
-<span class=c1># WAL block size:                       8192</span>
-<span class=c1># Data page checksum version:           0</span>
-</code></pre></div><hr>
-<h2 id=la-bascule>La bascule</h2>
-<p>À présent, mettons de la forme à notre incident.</p>
-<p>Vous revenez de pause déjeûner aux alentours de 13:30 et le service support est
+primaire ou secondaire et s&rsquo;il réplique les journaux de transactions :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pg_controldata -D robin
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># pg_control version number:            1201</span>
+</span></span><span class=line><span class=cl><span class=c1># Catalog version number:               201909212</span>
+</span></span><span class=line><span class=cl><span class=c1># Database system identifier:           6771436906102136159</span>
+</span></span><span class=line><span class=cl><span class=c1># Database cluster state:               in archive recovery</span>
+</span></span><span class=line><span class=cl><span class=c1># Latest checkpoint location:           0/A000098</span>
+</span></span><span class=line><span class=cl><span class=c1># Latest checkpoint&#39;s REDO location:    0/A000060</span>
+</span></span><span class=line><span class=cl><span class=c1># Latest checkpoint&#39;s REDO WAL file:    00000001000000000000000A</span>
+</span></span><span class=line><span class=cl><span class=c1># wal_level setting:                    replica</span>
+</span></span><span class=line><span class=cl><span class=c1># wal_log_hints setting:                on</span>
+</span></span><span class=line><span class=cl><span class=c1># WAL block size:                       8192</span>
+</span></span><span class=line><span class=cl><span class=c1># Data page checksum version:           0</span>
+</span></span></code></pre></div><hr><h2 id=la-bascule>La bascule</h2><p>À présent, mettons de la forme à notre incident.</p><p>Vous revenez de pause déjeûner aux alentours de 13:30 et le service support est
 alerté depuis midi de la perte d&rsquo;un composant réseau sur votre <em>datacenter</em>
 principal. Toute la charge a basculé et les services web sont redirigées
 correctement… Pas de bol, les frontaux remontent des erreurs et la navigation
 est en mode dégradé : l&rsquo;instance secondaire est en lecture seule, et l&rsquo;on vous
-attendait pour corriger le tir !</p>
-<p>Ni une ni deux, un accès au serveur <code>robin</code> et une commande solutionnent le
-problème :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pg_ctl promote -D robin
-
-<span class=c1># FATAL: terminating walreceiver process due to administrator command</span>
-<span class=c1># LOG: invalid record length at 0/A000148: wanted 24, got 0</span>
-<span class=c1># LOG: redo done at 0/A000110</span>
-<span class=c1># LOG: selected new timeline ID: 2</span>
-<span class=c1># LOG: archive recovery complete</span>
-<span class=c1># LOG: database system is ready to accept connections</span>
-</code></pre></div><p>L&rsquo;instance <code>robin</code> est donc promue, elle acceptera toutes les demandes d&rsquo;écriture
+attendait pour corriger le tir !</p><p>Ni une ni deux, un accès au serveur <code>robin</code> et une commande solutionnent le
+problème :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pg_ctl promote -D robin
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># FATAL: terminating walreceiver process due to administrator command</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: invalid record length at 0/A000148: wanted 24, got 0</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: redo done at 0/A000110</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: selected new timeline ID: 2</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: archive recovery complete</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: database system is ready to accept connections</span>
+</span></span></code></pre></div><p>L&rsquo;instance <code>robin</code> est donc promue, elle acceptera toutes les demandes d&rsquo;écriture
 en contrepartie d&rsquo;une nouvelle ligne de temps (<em>timeline</em>) dédiée aux futures
-transactions.</p>
-<p>Je passe la scène des grandes accolades et chaleureux compliments qui n&rsquo;auront
+transactions.</p><p>Je passe la scène des grandes accolades et chaleureux compliments qui n&rsquo;auront
 jamais lieu car les équipes ont déjà d&rsquo;autres chats à fouetter ; après tout,
 soyez réaliste, vous n&rsquo;avez exécuté qu&rsquo;une seule commande ! Autant dire, vous
 prenez votre pause, et alors que coule votre café, vous apprenez par
 l&rsquo;intermédiaire du <em>delivery manager</em> que le client rencontre des dégradations
 de performance sur son <em>backoffice</em> depuis la perte du nœud <code>batman</code>. Mais, de
-quoi parle-t-il ?</p>
-<p>Et l&rsquo;architecture globale vous revient en mémoire. Une goûte perle votre front :
+quoi parle-t-il ?</p><p>Et l&rsquo;architecture globale vous revient en mémoire. Une goûte perle votre front :
 l&rsquo;instance secondaire est utilisée pour répartir la charge de lecture entre chaque
-nœud à l&rsquo;aide de l&rsquo;attribut de préférence <code>target_session_attrs</code> (<a href=https://www.postgresql.org/docs/12/libpq-connect.html#id-1.7.3.8.3.6>documentation</a>)
+nœud à l&rsquo;aide de l&rsquo;attribut de préférence <code>target_session_attrs</code> (<a href=https://www.postgresql.org/docs/12/libpq-connect.html#id-1.7.3.8.3.6 target=_blank rel=noopener>documentation</a>)
 et aucun mécanisme d&rsquo;éviction en cas de <em>split-brain</em> ou de VIP flottante n&rsquo;ont
-été déployés sur vos serveurs…</p>
-<p><img src=/img/fr/2019-12-19-split-brain.png alt="Split brain applicatif"></p>
-<h2 id=synchronisation>Synchronisation</h2>
-<p>L&rsquo;urgence impose d&rsquo;intervenir sur les chaînes de connexion pour réduire le risque
+été déployés sur vos serveurs…</p><p><img src=/img/fr/2019-12-19-split-brain.png alt="Split brain applicatif"></p><h2 id=synchronisation>Synchronisation</h2><p>L&rsquo;urgence impose d&rsquo;intervenir sur les chaînes de connexion pour réduire le risque
 de modification sur la mauvaise <em>timeline</em>. Vous recommandez à l&rsquo;équipe support
-de retirer l&rsquo;IP <code>batman</code> de tout ce qui s&rsquo;apparente à un fichier <code>settings_db.xml</code> :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>postgresql://app@batman,robin/gotham?target_session_attrs<span class=o>=</span>read-write
-<span class=c1># devient</span>
-postgresql://app@robin/gotham?target_session_attrs<span class=o>=</span>read-write
-</code></pre></div><p>Les performances ne sont bien évidemment pas meilleures, mais tout risque de perte
+de retirer l&rsquo;IP <code>batman</code> de tout ce qui s&rsquo;apparente à un fichier <code>settings_db.xml</code> :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>postgresql://app@batman,robin/gotham?target_session_attrs<span class=o>=</span>read-write
+</span></span><span class=line><span class=cl><span class=c1># devient</span>
+</span></span><span class=line><span class=cl>postgresql://app@robin/gotham?target_session_attrs<span class=o>=</span>read-write
+</span></span></code></pre></div><p>Les performances ne sont bien évidemment pas meilleures, mais tout risque de perte
 de données lié au <em>split-brain</em> est écarté. Le timing est parfait, car au même
 moment, l&rsquo;équipe système vous informe que l&rsquo;intervention au <em>datacenter</em> a permis
-la remise en réseau des serveurs, toujours actifs.</p>
-<p>Votre rôle consiste donc à rétablir la synchronisation entre <code>batman</code> et <code>robin</code>
+la remise en réseau des serveurs, toujours actifs.</p><p>Votre rôle consiste donc à rétablir la synchronisation entre <code>batman</code> et <code>robin</code>
 pour accomplir leur mission de répartition de charge. La première méthode disponible
 réside dans le duo gagnant <code>pg_start/stop_backup()</code> et <code>rsync</code> pour réaliser à
-la main une sauvegarde physique différentielle.</p>
-<h3 id=première-méthode>Première méthode</h3>
-<p>Puisque la sauvegarde exclusive est annoncée obsolète depuis la version 9.6,
+la main une sauvegarde physique différentielle.</p><h3 id=première-méthode>Première méthode</h3><p>Puisque la sauvegarde exclusive est annoncée obsolète depuis la version 9.6,
 nous déclarerons le début d&rsquo;une sauvegarde concurrente sur l&rsquo;instance primaire
-<code>robin</code> à l&rsquo;aide de la commande suivante et nous maintiendrons la connexion :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=s1>&#39;rsync the batman&#39;</span><span class=p>,</span><span class=w> </span><span class=k>true</span><span class=p>,</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=c1>--  pg_start_backup 
-</span><span class=c1>-- -----------------
-</span><span class=c1>--  0/15000028
-</span></code></pre></div><p>Sur le nœud <code>batman</code>, on peut alors transférer les données avec l&rsquo;option
+<code>robin</code> à l&rsquo;aide de la commande suivante et nous maintiendrons la connexion :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=s1>&#39;rsync the batman&#39;</span><span class=p>,</span><span class=w> </span><span class=k>true</span><span class=p>,</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_start_backup 
+</span></span></span><span class=line><span class=cl><span class=c1>-- -----------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  0/15000028
+</span></span></span></code></pre></div><p>Sur le nœud <code>batman</code>, on peut alors transférer les données avec l&rsquo;option
 <code>--whole-file</code> de la commande rsync pour réduire le risque de corruption des
-fichiers de données :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=nb>cd</span> /opt
-pg_ctl stop -D batman
-rsync robin:/opt/robin/ batman --archive --checksum --whole-file
-</code></pre></div><p>À l&rsquo;issue de cette copie victorieuse, n&rsquo;oubliez pas de lancer la commande
+fichiers de données :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=nb>cd</span> /opt
+</span></span><span class=line><span class=cl>pg_ctl stop -D batman
+</span></span><span class=line><span class=cl>rsync robin:/opt/robin/ batman --archive --checksum --whole-file
+</span></span></code></pre></div><p>À l&rsquo;issue de cette copie victorieuse, n&rsquo;oubliez pas de lancer la commande
 <code>pg_stop_backup()</code> sur l&rsquo;instance primaire pour finaliser la sauvegarde et la
-rendre valide.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>false</span><span class=p>)</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span><span class=w></span><span class=c1>-- -[ RECORD 1 ]-------------------------------------------------------------
-</span><span class=c1>-- labelfile | START WAL LOCATION: 0/15000028 (file 000000020000000000000015)+
-</span><span class=c1>--           | CHECKPOINT LOCATION: 0/15000060                               +
-</span><span class=c1>--           | BACKUP METHOD: streamed                                       +
-</span><span class=c1>--           | BACKUP FROM: master                                           +
-</span><span class=c1>--           | START TIME: 2019-12-17 16:21:21 CET                           +
-</span><span class=c1>--           | LABEL: rsync the batman                                       +
-</span><span class=c1>--           | START TIMELINE: 2                                             +
-</span></code></pre></div><p>La dernière étape devient bordélique, mais n&rsquo;ayez crainte, ça ne dure pas
+rendre valide.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>false</span><span class=p>)</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- -[ RECORD 1 ]-------------------------------------------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>-- labelfile | START WAL LOCATION: 0/15000028 (file 000000020000000000000015)+
+</span></span></span><span class=line><span class=cl><span class=c1>--           | CHECKPOINT LOCATION: 0/15000060                               +
+</span></span></span><span class=line><span class=cl><span class=c1>--           | BACKUP METHOD: streamed                                       +
+</span></span></span><span class=line><span class=cl><span class=c1>--           | BACKUP FROM: master                                           +
+</span></span></span><span class=line><span class=cl><span class=c1>--           | START TIME: 2019-12-17 16:21:21 CET                           +
+</span></span></span><span class=line><span class=cl><span class=c1>--           | LABEL: rsync the batman                                       +
+</span></span></span><span class=line><span class=cl><span class=c1>--           | START TIMELINE: 2                                             +
+</span></span></span></code></pre></div><p>La dernière étape devient bordélique, mais n&rsquo;ayez crainte, ça ne dure pas
 longtemps. Les commandes sont à exécuter sur l&rsquo;instance secondaire <code>batman</code> et
 s&rsquo;assurent notamment que l&rsquo;instance redémarre avec les bons paramètres de
 réplication, dont <code>primary_conninfo</code> et les fichiers <code>standby.signal</code> et
-<code>backup_label</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sed -i -e <span class=s1>&#39;s/batman/robin/g&#39;</span> batman/postgresql.auto.conf
-
-rsync robin:/opt/robin/pg_wal/ batman/pg_wal <span class=se>\
-</span><span class=se></span>  --archive --checksum --whole-file
-
-<span class=c1># récupération des instructions backup_label présentes dans </span>
-<span class=c1># le fichier .backup généré par la commande pg_stop_backup()</span>
-grep -iv ^stop batman/pg_wal/000000020000000000000015.00000028.backup <span class=se>\
-</span><span class=se></span>  &gt; batman/backup_label
-
-rm batman/postmaster.pid
-touch batman/standby.signal
-
-pg_ctl start -D batman
-<span class=c1># LOG: entering standby mode</span>
-<span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
-<span class=c1># LOG: restored log file &#34;000000020000000000000015&#34; from archive</span>
-<span class=c1># LOG: redo starts at 0/15000028</span>
-<span class=c1># LOG: consistent recovery state reached at 0/15000138</span>
-<span class=c1># LOG: database system is ready to accept read only connections</span>
-<span class=c1># LOG: invalid record length at 0/16000148: wanted 24, got 0</span>
-<span class=c1># LOG: started streaming WAL from primary at 0/16000000 on timeline 2</span>
-</code></pre></div><p>L&rsquo;état intermédiaire de notre cluster peut être visualisé comme suit. On constate
+<code>backup_label</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>sed -i -e <span class=s1>&#39;s/batman/robin/g&#39;</span> batman/postgresql.auto.conf
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>rsync robin:/opt/robin/pg_wal/ batman/pg_wal <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --archive --checksum --whole-file
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># récupération des instructions backup_label présentes dans </span>
+</span></span><span class=line><span class=cl><span class=c1># le fichier .backup généré par la commande pg_stop_backup()</span>
+</span></span><span class=line><span class=cl>grep -iv ^stop batman/pg_wal/000000020000000000000015.00000028.backup <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  &gt; batman/backup_label
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>rm batman/postmaster.pid
+</span></span><span class=line><span class=cl>touch batman/standby.signal
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>pg_ctl start -D batman
+</span></span><span class=line><span class=cl><span class=c1># LOG: entering standby mode</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;000000020000000000000015&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: redo starts at 0/15000028</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: consistent recovery state reached at 0/15000138</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: database system is ready to accept read only connections</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: invalid record length at 0/16000148: wanted 24, got 0</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: started streaming WAL from primary at 0/16000000 on timeline 2</span>
+</span></span></code></pre></div><p>L&rsquo;état intermédiaire de notre cluster peut être visualisé comme suit. On constate
 que la zone d&rsquo;archivage (<code>batcave</code>) réside donc sur le même serveur que l&rsquo;instance
 nouvellement primaire <code>robin</code> et pourrait être un risque en cas de surincident.
 De manière générale, il est recommandé d&rsquo;externaliser systématiquement les archives
-et les sauvegardes !</p>
-<p><img src=/img/fr/2019-12-19-architecture-apres-rsync.png alt="Situation après la synchronisation"></p>
-<p>Vous y conviendrez, cette étape était particulièrement coton pour l&rsquo;envisager
+et les sauvegardes !</p><p><img src=/img/fr/2019-12-19-architecture-apres-rsync.png alt="Situation après la synchronisation"></p><p>Vous y conviendrez, cette étape était particulièrement coton pour l&rsquo;envisager
 dans une situation passablement stressante. Voyons ensemble l&rsquo;autre solution plus
-adaptée à notre scénario : la commande <code>pg_rewind</code>.</p>
-<h3 id=deuxième-méthode>Deuxième méthode</h3>
-<p>La situation reste inchangée, <em>i.e.</em> l&rsquo;instance <code>batman</code> est primaire sur une
+adaptée à notre scénario : la commande <code>pg_rewind</code>.</p><h3 id=deuxième-méthode>Deuxième méthode</h3><p>La situation reste inchangée, <em>i.e.</em> l&rsquo;instance <code>batman</code> est primaire sur une
 ancienne <em>timeline</em> et doit être resynchronisée avec <code>robin</code> pour obtenir toutes
-les modifications réalisées depuis sa promotion.</p>
-<p>Comme suggéré dans la <a href=https://www.postgresql.org/docs/12/app-pgrewind.html#id-1.9.5.9.8>documentation</a>, le compte de réplication <code>streamer</code>
+les modifications réalisées depuis sa promotion.</p><p>Comme suggéré dans la <a href=https://www.postgresql.org/docs/12/app-pgrewind.html#id-1.9.5.9.8 target=_blank rel=noopener>documentation</a>, le compte de réplication <code>streamer</code>
 doit disposer des droits d&rsquo;exécution sur certaines fontions internes pour
-utiliser l&rsquo;outil <code>pg_rewind</code> correctement :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=err>\</span><span class=k>connect</span><span class=w> </span><span class=n>postgres</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
-</span><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_ls_dir</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
-</span><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_stat_file</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
-</span><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_read_binary_file</span><span class=p>(</span><span class=nb>text</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
-</span><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_read_binary_file</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>bigint</span><span class=p>,</span><span class=w> </span><span class=nb>bigint</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>Sur le serveur <code>batman</code>, l&rsquo;instance doit être arrêtée avant de lancer la
+utiliser l&rsquo;outil <code>pg_rewind</code> correctement :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=err>\</span><span class=k>connect</span><span class=w> </span><span class=n>postgres</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_ls_dir</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_stat_file</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_read_binary_file</span><span class=p>(</span><span class=nb>text</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_read_binary_file</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>bigint</span><span class=p>,</span><span class=w> </span><span class=nb>bigint</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Sur le serveur <code>batman</code>, l&rsquo;instance doit être arrêtée avant de lancer la
 synchronisation et le contenu de la zone d&rsquo;archivage <code>batcave</code> doit être copié
 manuellement vers le répertoire de récupération <code>pg_wal</code> ; il s&rsquo;agit de reproduire
 l&rsquo;instruction <code>restore_command</code> que ne peut pas exécuter l&rsquo;instance lorsqu&rsquo;elle
-est éteinte.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pg_ctl stop -D batman
-rsync robin:/opt/batcave/ batman/pg_wal <span class=se>\
-</span><span class=se></span>   --archive --checksum --whole-file
-
-pg_rewind -D batman <span class=se>\
-</span><span class=se></span>  --source-server<span class=o>=</span><span class=s2>&#34;host=robin user=streamer dbname=postgres&#34;</span>
-<span class=c1># pg_rewind: servers diverged at WAL location 0/8000060 on timeline 1</span>
-<span class=c1># pg_rewind: rewinding from last common checkpoint at 0/7000060 on timeline 1</span>
-<span class=c1># pg_rewind: Done!</span>
-</code></pre></div><p>Le résultat de la commande <code>pg_rewind</code> nous informe que <code>batman</code> est revenu à
+est éteinte.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pg_ctl stop -D batman
+</span></span><span class=line><span class=cl>rsync robin:/opt/batcave/ batman/pg_wal <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>   --archive --checksum --whole-file
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>pg_rewind -D batman <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --source-server<span class=o>=</span><span class=s2>&#34;host=robin user=streamer dbname=postgres&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># pg_rewind: servers diverged at WAL location 0/8000060 on timeline 1</span>
+</span></span><span class=line><span class=cl><span class=c1># pg_rewind: rewinding from last common checkpoint at 0/7000060 on timeline 1</span>
+</span></span><span class=line><span class=cl><span class=c1># pg_rewind: Done!</span>
+</span></span></code></pre></div><p>Le résultat de la commande <code>pg_rewind</code> nous informe que <code>batman</code> est revenu à
 la position de sa <em>timeline</em> au moment de la promotion de <code>robin</code>. Cette opération
 repose sur un format étendu des journaux de transactions, désactivé par défaut.
-Les plus attentifs auront constaté le paramètre <code>wal_log_hints=on</code>(<a href=https://www.postgresql.org/docs/12/runtime-config-wal.html#GUC-WAL-LOG-HINTS>documentation</a>)
+Les plus attentifs auront constaté le paramètre <code>wal_log_hints=on</code>(<a href=https://www.postgresql.org/docs/12/runtime-config-wal.html#GUC-WAL-LOG-HINTS target=_blank rel=noopener>documentation</a>)
 dans le fichier <code>postgresql.auto.conf</code> en début d&rsquo;article, qui est l&rsquo;un des
-prérequis de l&rsquo;outil <code>pg_rewind</code>.</p>
-<blockquote>
-<p>pg_rewind requires that the target server either has the wal_log_hints option
+prérequis de l&rsquo;outil <code>pg_rewind</code>.</p><blockquote><p>pg_rewind requires that the target server either has the wal_log_hints option
 enabled in postgresql.conf or data checksums enabled when the cluster was
 initialized with initdb. Neither of these are currently on by default.
-full_page_writes must also be set to on, but is enabled by default.</p>
-</blockquote>
-<div class=message>Pour certains au fond de la salle, cette opération correspond à l&rsquo;instruction
+full_page_writes must also be set to on, but is enabled by default.</p></blockquote><div class=message>Pour certains au fond de la salle, cette opération correspond à l&rsquo;instruction
 <code>FLASHBACK DATABASE</code> sur un moteur Oracle Database lorsque l&rsquo;on souhaite
-reconstruire une instance Dataguard.</div>
-<p>La dernière étape consiste à modifier la chaîne <code>primary_conninfo</code> et ajouter le
-fichier <code>standby.signal</code> avant de démarrer l&rsquo;instance <code>batman</code> :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>sed -i -e <span class=s1>&#39;s/batman/robin/g&#39;</span> batman/postgresql.auto.conf
-touch batman/standby.signal
-
-pg_ctl start -D batman
-<span class=c1># LOG: entering standby mode</span>
-<span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
-<span class=c1># LOG: restored log file &#34;000000010000000000000007&#34; from archive</span>
-<span class=c1># LOG: redo starts at 0/7000028</span>
-<span class=c1># LOG: restored log file &#34;000000020000000000000008&#34; from archive</span>
-<span class=c1># LOG: started streaming WAL from primary at 0/9000000 on timeline 2</span>
-<span class=c1># LOG: consistent recovery state reached at 0/904B5C8</span>
-</code></pre></div><h2 id=inversion-des-rôles>Inversion des rôles</h2>
-<p>Cette opération permet la remise en place des rôles à leur état nominal. Ainsi,
+reconstruire une instance Dataguard.</div><p>La dernière étape consiste à modifier la chaîne <code>primary_conninfo</code> et ajouter le
+fichier <code>standby.signal</code> avant de démarrer l&rsquo;instance <code>batman</code> :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>sed -i -e <span class=s1>&#39;s/batman/robin/g&#39;</span> batman/postgresql.auto.conf
+</span></span><span class=line><span class=cl>touch batman/standby.signal
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>pg_ctl start -D batman
+</span></span><span class=line><span class=cl><span class=c1># LOG: entering standby mode</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;000000010000000000000007&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: redo starts at 0/7000028</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;000000020000000000000008&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: started streaming WAL from primary at 0/9000000 on timeline 2</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: consistent recovery state reached at 0/904B5C8</span>
+</span></span></code></pre></div><h2 id=inversion-des-rôles>Inversion des rôles</h2><p>Cette opération permet la remise en place des rôles à leur état nominal. Ainsi,
 <code>batman</code> reprendra le contrôle et <code>robin</code> deviendra son second. Les étapes sont
-relativement simples :</p>
-<ul>
-<li>Arrêter proprement l&rsquo;instance <code>robin</code> pour écrire les caches sur disque,
+relativement simples :</p><ul><li>Arrêter proprement l&rsquo;instance <code>robin</code> pour écrire les caches sur disque,
 notamment les dernières transactions dans les journaux mais également, pour
-envoyer toutes les modifications à travers le flux de réplication vers <code>batman</code> ;</li>
-</ul>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pg_ctl stop -D robin
-</code></pre></div><ul>
-<li>Contrôler optionnellement que les positions sont identiques entre les deux
-instances ;</li>
-</ul>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pg_controldata -D robin <span class=p>|</span> grep -iE <span class=s2>&#34;(cluster state|checkpoint location)&#34;</span>
-<span class=c1># Database cluster state:               shut down</span>
-<span class=c1># Latest checkpoint location:           0/A000028</span>
-
-pg_controldata -D batman <span class=p>|</span> grep -iE <span class=s2>&#34;(cluster state|checkpoint location)&#34;</span>
-<span class=c1># Database cluster state:               in archive recovery</span>
-<span class=c1># Latest checkpoint location:           0/A000028</span>
-</code></pre></div><ul>
-<li>Promouvoir la nouvelle instance primaire <code>batman</code> ;</li>
-</ul>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pg_ctl promote -D batman
-<span class=c1># LOG: received promote request</span>
-<span class=c1># LOG: redo done at 0/A000028</span>
-<span class=c1># LOG: selected new timeline ID: 3</span>
-<span class=c1># LOG: archive recovery complete</span>
-<span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
-<span class=c1># LOG: database system is ready to accept connections</span>
-</code></pre></div><ul>
-<li>Configurer <code>robin</code> en instance secondaire et la démarrer.</li>
-</ul>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>touch robin/standby.signal
-pg_ctl start -D robin
-<span class=c1># LOG: restored log file &#34;00000003.history&#34; from archive</span>
-<span class=c1># LOG: entering standby mode</span>
-<span class=c1># LOG: restored log file &#34;00000003.history&#34; from archive</span>
-<span class=c1># LOG: restored log file &#34;00000003000000000000000A&#34; from archive</span>
-<span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
-<span class=c1># LOG: consistent recovery state reached at 0/A0000A0</span>
-<span class=c1># LOG: redo starts at 0/A0000A0</span>
-<span class=c1># LOG: database system is ready to accept read only connections</span>
-<span class=c1># LOG: started streaming WAL from primary at 0/B000000 on timeline 3</span>
-</code></pre></div><p>Depuis la version 12, le paramètre <code>recovery_target_timeline</code> est défini sur la
+envoyer toutes les modifications à travers le flux de réplication vers <code>batman</code> ;</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pg_ctl stop -D robin
+</span></span></code></pre></div><ul><li>Contrôler optionnellement que les positions sont identiques entre les deux
+instances ;</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pg_controldata -D robin <span class=p>|</span> grep -iE <span class=s2>&#34;(cluster state|checkpoint location)&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># Database cluster state:               shut down</span>
+</span></span><span class=line><span class=cl><span class=c1># Latest checkpoint location:           0/A000028</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>pg_controldata -D batman <span class=p>|</span> grep -iE <span class=s2>&#34;(cluster state|checkpoint location)&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># Database cluster state:               in archive recovery</span>
+</span></span><span class=line><span class=cl><span class=c1># Latest checkpoint location:           0/A000028</span>
+</span></span></code></pre></div><ul><li>Promouvoir la nouvelle instance primaire <code>batman</code> ;</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pg_ctl promote -D batman
+</span></span><span class=line><span class=cl><span class=c1># LOG: received promote request</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: redo done at 0/A000028</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: selected new timeline ID: 3</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: archive recovery complete</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: database system is ready to accept connections</span>
+</span></span></code></pre></div><ul><li>Configurer <code>robin</code> en instance secondaire et la démarrer.</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>touch robin/standby.signal
+</span></span><span class=line><span class=cl>pg_ctl start -D robin
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;00000003.history&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: entering standby mode</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;00000003.history&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;00000003000000000000000A&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: restored log file &#34;00000002.history&#34; from archive</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: consistent recovery state reached at 0/A0000A0</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: redo starts at 0/A0000A0</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: database system is ready to accept read only connections</span>
+</span></span><span class=line><span class=cl><span class=c1># LOG: started streaming WAL from primary at 0/B000000 on timeline 3</span>
+</span></span></code></pre></div><p>Depuis la version 12, le paramètre <code>recovery_target_timeline</code> est défini sur la
 valeur <code>latest</code> par défaut, ce qui permet à l&rsquo;instance secondaire de détecter le
 saut de <em>timeline</em> provoqué par une promotion et de raccrocher correctement les
-transactions à répliquer avant de se connecter en <em>streaming</em> à l&rsquo;instance primaire.</p>
-<h2 id=conclusion>Conclusion</h2>
-<p>L&rsquo;architecture proposée répond à plusieurs problématiques assez fréquentes mais
+transactions à répliquer avant de se connecter en <em>streaming</em> à l&rsquo;instance primaire.</p><h2 id=conclusion>Conclusion</h2><p>L&rsquo;architecture proposée répond à plusieurs problématiques assez fréquentes mais
 présente un certain nombre d&rsquo;inconvénients. À travers cet article, nous avons
-parcouru l&rsquo;ensemble des outils disponibles nativement avec PostgreSQL.</p>
-<p>Comme rappelé précédemment, il est fortement conseillé de décentraliser la zone
+parcouru l&rsquo;ensemble des outils disponibles nativement avec PostgreSQL.</p><p>Comme rappelé précédemment, il est fortement conseillé de décentraliser la zone
 d&rsquo;archivage sur un système de fichiers redondé pour se prévenir de l&rsquo;absence
 d&rsquo;un nœud. Le diagramme suivant présenterait alors le moins de risque possible
 tout en assurant un niveau de service acceptable, avec un minimum d&rsquo;actions en
-cas de bascule :</p>
-<p><img src=/img/fr/2019-12-19-architecture-complete.png alt="Architecture complète"></p>
-<p>La détection de panne et la bascule automatique sont des thématiques récurrentes
+cas de bascule :</p><p><img src=/img/fr/2019-12-19-architecture-complete.png alt="Architecture complète"></p><p>La détection de panne et la bascule automatique sont des thématiques récurrentes
 lorsque l&rsquo;on exprime un besoin de haute-disponibilité. Durant l&rsquo;année 2019, une
-série d&rsquo;outils tiers ont assis leur réputation avec notamment <a href=https://patroni.readthedocs.io/en/latest/>patroni</a> de
-Zalando qui propose intelligemment l&rsquo;usage de <code>pg_rewind</code> dans son fonctionnement.</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Construire une instance standby avec pgBackRest
-<small><time datetime=2019-11-07>7 nov 2019</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+série d&rsquo;outils tiers ont assis leur réputation avec notamment <a href=https://patroni.readthedocs.io/en/latest/ target=_blank rel=noopener>patroni</a> de
+Zalando qui propose intelligemment l&rsquo;usage de <code>pg_rewind</code> dans son fonctionnement.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Construire une instance standby avec pgBackRest
+<small><time datetime=2019-11-07>7 nov 2019</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

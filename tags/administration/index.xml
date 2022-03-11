@@ -9,7 +9,7 @@ sont propagées sur les supports de sauvegardes et détectées bien des jours, v
 des semaines après l&amp;rsquo;incident. Les moteurs de bases de données sont très résilients
 face à ces destructions de données, en proposant des mécanismes de journalisation
 adaptés. Malgré cela, des précautions sont de mises.&lt;/p></description></item><item><title>Compiler et patcher avec pgenv</title><link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link><pubDate>Mon, 21 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</guid><description>&lt;p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
-efficace répondant au nom de &lt;a href="https://github.com/theory/pgenv">pgenv&lt;/a>, un gestionnaire des versions PostgreSQL.
+efficace répondant au nom de &lt;a href="https://github.com/theory/pgenv" target="_blank" rel="noopener">pgenv&lt;/a>, un gestionnaire des versions PostgreSQL.
 Ce projet est publié sous licence MIT par David E. Wheeler, auteur de l&amp;rsquo;extension
 pgTAP dont j&amp;rsquo;avais déjà vanté les mérites dans un &lt;a href="https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql">autre article&lt;/a>.&lt;/p>
 &lt;p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
@@ -17,10 +17,10 @@ quelques DBA féru⋅es d&amp;rsquo;expérimentations, car &lt;code>pgenv&lt;/co
 d&amp;rsquo;exécuter toutes les versions majeures et mineures du système de base de données
 open-source le plus avancé du monde.&lt;/p></description></item><item><title>De Jekyll à Hugo</title><link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link><pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid><description>&lt;p>Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
 plusieurs &lt;em>frameworks&lt;/em> depuis quelques années. Vous avez peut-être entendu parler
-de &lt;a href="https://github.com/jekyll/jekyll">Jekyll&lt;/a>, &lt;a href="https://github.com/vercel/next.js">Next.js&lt;/a>, &lt;a href="https://github.com/gatsbyjs/gatsby">Gastby&lt;/a> ou &lt;a href="https://github.com/gohugoio/hugo">Hugo&lt;/a> ? Je ne cite que les plus
+de &lt;a href="https://github.com/jekyll/jekyll" target="_blank" rel="noopener">Jekyll&lt;/a>, &lt;a href="https://github.com/vercel/next.js" target="_blank" rel="noopener">Next.js&lt;/a>, &lt;a href="https://github.com/gatsbyjs/gatsby" target="_blank" rel="noopener">Gastby&lt;/a> ou &lt;a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo&lt;/a> ? Je ne cite que les plus
 sollicités par la communauté sur GitHub, mais il en existe des centaines.&lt;/p>
-&lt;p>Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p></description></item><item><title>Quelques outils méconnus</title><link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link><pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/11/18/quelques-outils-meconnus/</guid><description>&lt;p>Cette semaine, passait sur &lt;a href="https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments">mon fil d&amp;rsquo;actualité Twitter&lt;/a> une simple URL
-pointant sur le site &lt;a href="https://pgpedia.info">https://pgpedia.info&lt;/a>. Non loin d&amp;rsquo;être le seul à l&amp;rsquo;avoir
+&lt;p>Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p></description></item><item><title>Quelques outils méconnus</title><link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link><pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/11/18/quelques-outils-meconnus/</guid><description>&lt;p>Cette semaine, passait sur &lt;a href="https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments" target="_blank" rel="noopener">mon fil d&amp;rsquo;actualité Twitter&lt;/a> une simple URL
+pointant sur le site &lt;a href="https://pgpedia.info" target="_blank" rel="noopener">https://pgpedia.info&lt;/a>. Non loin d&amp;rsquo;être le seul à l&amp;rsquo;avoir
 remarqué, nous en parlions entre collègues pour constater avec surprise que nous
 ne connaissions pas cette mine d&amp;rsquo;or d&amp;rsquo;informations sur PostgreSQL. Après y avoir
 perdu plusieurs heures, je me suis dit qu&amp;rsquo;un article sur les quelques utilitaires

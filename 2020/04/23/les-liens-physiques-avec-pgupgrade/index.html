@@ -1,277 +1,183 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Les liens physiques avec pg_upgrade</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Les liens physiques avec pg_upgrade</a></h1>
-<p class=post-date>
-<time datetime=2020-04-23>23 avr 2020</time>
-- 8 minutes de lecture
-</p><p>La création d&rsquo;un lien sous Unix se réalise avec les commandes <a href=https://www.gnu.org/software/coreutils/ln>ln</a> ou
-<a href=https://www.gnu.org/software/coreutils/cp>cp</a>. Cette action permet de <em>lier</em> deux fichiers vers la même donnée et
+<!doctype html><html lang=fr><head><title>Les liens physiques avec pg_upgrade</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Les liens physiques avec pg_upgrade</a></h1><p class=post-date><time datetime=2020-04-23>23 avr 2020</time>
+- 8 minutes de lecture</p><p>La création d&rsquo;un lien sous Unix se réalise avec les commandes <a href=https://www.gnu.org/software/coreutils/ln target=_blank rel=noopener>ln</a> ou
+<a href=https://www.gnu.org/software/coreutils/cp target=_blank rel=noopener>cp</a>. Cette action permet de <em>lier</em> deux fichiers vers la même donnée et
 de rendre disponible une ressource par l&rsquo;intermédiaire de l&rsquo;un ou de l&rsquo;autre de
-ces fichiers.</p>
-<p>Cependant, les opérations diffèrent selon le type de ce lien. Le plus connu reste
+ces fichiers.</p><p>Cependant, les opérations diffèrent selon le type de ce lien. Le plus connu reste
 le <em>symlink</em>, le lien symbolique. Mais qu&rsquo;en est-il des autres ? Comment se
 caractérisent-ils et dans quels contextes ? En vrai, qu&rsquo;est-ce qu&rsquo;un <em>inode</em> ?
 Et PostgreSQL dans tout ça ? Autant de petites questions de curiosité que
-j&rsquo;aborde avec vous dans cet article !</p>
-<hr>
-<h2 id=parlons-dabord-du-lien-symbolique>Parlons d&rsquo;abord du lien symbolique</h2>
-<p>Pour faire simple, on peut comparer le lien symbolique à un raccourci Windows.
+j&rsquo;aborde avec vous dans cet article !</p><hr><h2 id=parlons-dabord-du-lien-symbolique>Parlons d&rsquo;abord du lien symbolique</h2><p>Pour faire simple, on peut comparer le lien symbolique à un raccourci Windows.
 Il s&rsquo;agit d&rsquo;un pointeur vers un fichier ou un répertoire qui permet toutes les
-opérations simples comme la lecture ou l&rsquo;écriture.</p>
-<p>Par exemple, pour une instance PostgreSQL, il est possible de déporter le
+opérations simples comme la lecture ou l&rsquo;écriture.</p><p>Par exemple, pour une instance PostgreSQL, il est possible de déporter le
 répertoire des fichiers WAL sur un autre montage à l&rsquo;aide d&rsquo;un lien symbolique.
 Cette opération nécessite un arrêt du service et la copie des fichiers vers le
-nouveau montage, comme suit :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=c1># à réaliser avec le compte root</span>
-systemctl stop postgresql-12.service
-
-<span class=c1># créer le nouveau répertoire en préservant les permissions</span>
-install --owner<span class=o>=</span>postgres --group<span class=o>=</span>postgres --mode<span class=o>=</span><span class=m>700</span> -d /u01/pg_wal/12
-mv /var/lib/pgsql/12/data/pg_wal/* /u01/pg_wal/12/
-
-<span class=c1># créer le lien vers le nouveau répertoire</span>
-rmdir /var/lib/pgsql/12/data/pg_wal
-ln --symbolic /u01/pg_wal/12 /var/lib/pgsql/12/data/pg_wal
-
-<span class=c1># et redémarrer l&#39;instance</span>
-systemctl start postgresql-12.service
-</code></pre></div><p>Le lien ainsi obtenu par la commande <code>ln --symbolic</code> se présente comme une fausse
+nouveau montage, comme suit :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># à réaliser avec le compte root</span>
+</span></span><span class=line><span class=cl>systemctl stop postgresql-12.service
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># créer le nouveau répertoire en préservant les permissions</span>
+</span></span><span class=line><span class=cl>install --owner<span class=o>=</span>postgres --group<span class=o>=</span>postgres --mode<span class=o>=</span><span class=m>700</span> -d /u01/pg_wal/12
+</span></span><span class=line><span class=cl>mv /var/lib/pgsql/12/data/pg_wal/* /u01/pg_wal/12/
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># créer le lien vers le nouveau répertoire</span>
+</span></span><span class=line><span class=cl>rmdir /var/lib/pgsql/12/data/pg_wal
+</span></span><span class=line><span class=cl>ln --symbolic /u01/pg_wal/12 /var/lib/pgsql/12/data/pg_wal
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># et redémarrer l&#39;instance</span>
+</span></span><span class=line><span class=cl>systemctl start postgresql-12.service
+</span></span></code></pre></div><p>Le lien ainsi obtenu par la commande <code>ln --symbolic</code> se présente comme une fausse
 copie du répertoire d&rsquo;origine, permettant aux données d&rsquo;être consultées à plusieurs
 endroits sans risque d&rsquo;être dupliquées. La commande <code>stat</code> nous donne de précieuses
-informations à son sujet :</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># FORMAT=&#34;File   = %N\nType   = %F\nOwner  = %U:%G\nAccess = %A\nInode  = %i\n&#34;</span>
-<span class=c1># stat --printf=&#34;$FORMAT&#34; /var/lib/pgsql/12/data/pg_wal</span>
-<span class=na>File</span>   <span class=o>=</span> <span class=s>‘/var/lib/pgsql/12/data/pg_wal’ -&gt; ‘/u01/pg_wal/12’</span>
-<span class=na>Type</span>   <span class=o>=</span> <span class=s>symbolic link</span>
-<span class=na>Owner</span>  <span class=o>=</span> <span class=s>root:root</span>
-<span class=na>Access</span> <span class=o>=</span> <span class=s>lrwxrwxrwx</span>
-<span class=na>Inode</span>  <span class=o>=</span> <span class=s>33725146</span>
-</code></pre></div><p>Il apparait que son propriétaire est <code>root</code>, que son accès est ouvert à tous, et
-que l'<em>inode</em> qui lui est associé vaut <code>33919915</code>. Qu&rsquo;en est-il de répertoire
-contenant les journaux de transactions ?</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># stat --printf=&#34;$FORMAT&#34; /u01/pg_wal/12</span>
-<span class=na>File</span>   <span class=o>=</span> <span class=s>‘/u01/pg_wal/12’</span>
-<span class=na>Type</span>   <span class=o>=</span> <span class=s>directory</span>
-<span class=na>Owner</span>  <span class=o>=</span> <span class=s>postgres:postgres</span>
-<span class=na>Access</span> <span class=o>=</span> <span class=s>drwx------</span>
-<span class=na>Inode</span>  <span class=o>=</span> <span class=s>33867963</span>
-</code></pre></div><p>Les deux fichiers sont bien distincts et présentent des différences notables,
+informations à son sujet :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># FORMAT=&#34;File   = %N\nType   = %F\nOwner  = %U:%G\nAccess = %A\nInode  = %i\n&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># stat --printf=&#34;$FORMAT&#34; /var/lib/pgsql/12/data/pg_wal</span>
+</span></span><span class=line><span class=cl><span class=na>File</span>   <span class=o>=</span> <span class=s>‘/var/lib/pgsql/12/data/pg_wal’ -&gt; ‘/u01/pg_wal/12’</span>
+</span></span><span class=line><span class=cl><span class=na>Type</span>   <span class=o>=</span> <span class=s>symbolic link</span>
+</span></span><span class=line><span class=cl><span class=na>Owner</span>  <span class=o>=</span> <span class=s>root:root</span>
+</span></span><span class=line><span class=cl><span class=na>Access</span> <span class=o>=</span> <span class=s>lrwxrwxrwx</span>
+</span></span><span class=line><span class=cl><span class=na>Inode</span>  <span class=o>=</span> <span class=s>33725146</span>
+</span></span></code></pre></div><p>Il apparait que son propriétaire est <code>root</code>, que son accès est ouvert à tous, et
+que l&rsquo;<em>inode</em> qui lui est associé vaut <code>33919915</code>. Qu&rsquo;en est-il de répertoire
+contenant les journaux de transactions ?</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># stat --printf=&#34;$FORMAT&#34; /u01/pg_wal/12</span>
+</span></span><span class=line><span class=cl><span class=na>File</span>   <span class=o>=</span> <span class=s>‘/u01/pg_wal/12’</span>
+</span></span><span class=line><span class=cl><span class=na>Type</span>   <span class=o>=</span> <span class=s>directory</span>
+</span></span><span class=line><span class=cl><span class=na>Owner</span>  <span class=o>=</span> <span class=s>postgres:postgres</span>
+</span></span><span class=line><span class=cl><span class=na>Access</span> <span class=o>=</span> <span class=s>drwx------</span>
+</span></span><span class=line><span class=cl><span class=na>Inode</span>  <span class=o>=</span> <span class=s>33867963</span>
+</span></span></code></pre></div><p>Les deux fichiers sont bien distincts et présentent des différences notables,
 comme les propriétaires et les droits d&rsquo;accès. En réalité, Unix propose sept
-<a href=https://en.wikipedia.org/wiki/Unix_file_types>types de fichiers</a> et chacun présente des caractéristiques et comportements
+<a href=https://en.wikipedia.org/wiki/Unix_file_types target=_blank rel=noopener>types de fichiers</a> et chacun présente des caractéristiques et comportements
 que lui sont propres. On retrouve ainsi les fichiers, répertoires, liens
 symboliques, mais aussi les <em>named pipes</em>, les <em>sockets</em>, les <em>devices</em> ou les
-<em>doors</em>.</p>
-<p>Le dernier attribut que remonte ma commande <code>stat</code> correspond au <em>inumber</em> ou
+<em>doors</em>.</p><p>Le dernier attribut que remonte ma commande <code>stat</code> correspond au <em>inumber</em> ou
 numéro <em>inode</em>. Il s&rsquo;agit d&rsquo;un identifiant unique sur le système de fichiers
-permettant de retrouver toutes les métadonnées du fichier dans une table d'<em>inodes</em>.
-Nous avions vu à l&rsquo;instant les droits et le propriétaire, l'<em>inode</em> permet
+permettant de retrouver toutes les métadonnées du fichier dans une table d&rsquo;<em>inodes</em>.
+Nous avions vu à l&rsquo;instant les droits et le propriétaire, l&rsquo;<em>inode</em> permet
 également de stocker les horodatages de création ou de modification ainsi que
-l&rsquo;adresse physique des données du fichier sur le disque.</p>
-<p>Ainsi, pour chaque fichier sur notre système lui est associé un <em>inode</em>. La
+l&rsquo;adresse physique des données du fichier sur le disque.</p><p>Ainsi, pour chaque fichier sur notre système lui est associé un <em>inode</em>. La
 représentation suivante permet donc de comprendre la relation entre un lien
-symbolique et un répertoire.</p>
-<p><img src=/img/fr/2020-04-23-symlink-directory.png alt="Relation entre symlink et directory"></p>
-<h2 id=le-mode---link-de-pg_upgrade>Le mode --link de <code>pg_upgrade</code></h2>
-<p>Les choses sont devenues passionnantes lorsque j&rsquo;ai découvert la notion de lien
+symbolique et un répertoire.</p><p><img src=/img/fr/2020-04-23-symlink-directory.png alt="Relation entre symlink et directory"></p><h2 id=le-mode---link-de-pg_upgrade>Le mode --link de <code>pg_upgrade</code></h2><p>Les choses sont devenues passionnantes lorsque j&rsquo;ai découvert la notion de lien
 physique, ou <em>hardlink</em>, qu&rsquo;il était possible de créer entre deux fichiers. Ce
 n&rsquo;est en rien une nouveauté, car inclu dans les systèmes Unix depuis longtemps
-mais ça m&rsquo;a permis de comprendre davantage l&rsquo;intérêt des fameux <em>inodes</em>.</p>
-<p>Puisqu&rsquo;un exemple concret parle toujours de lui-même, je propose d&rsquo;étudier la
+mais ça m&rsquo;a permis de comprendre davantage l&rsquo;intérêt des fameux <em>inodes</em>.</p><p>Puisqu&rsquo;un exemple concret parle toujours de lui-même, je propose d&rsquo;étudier la
 méthode de migration de données d&rsquo;une version 9.6 vers une version 12 de
 PostgreSQL avec l&rsquo;outil <code>pg_upgrade</code>. Ce dernier propose l&rsquo;option <code>--link</code> pour
 réduire le temps de migration des données sans copier les fichiers d’une instance
-à l’autre. Bien sûr, ce n&rsquo;est pas le comportement par défaut.</p>
-<div class=message>La distribution CentOS 7 est utilisée pour la démonstration.<br>
-Le paquet <code>postgresql12-server</code> doit être installé au préalable.</div>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=c1># la routine setup permet la création du fichier de service ainsi</span>
-<span class=c1># que l&#39;initilisation d&#39;un répertoire de données minimaliste</span>
-/usr/pgsql-12/bin/postgresql-12-setup initdb postgresql-12
-
-<span class=c1># durant la migration, l&#39;instance 9.6 doit être arrêtée</span>
-systemctl stop postgresql-9.6.service
-
-<span class=nb>export</span> <span class=nv>PGDATAOLD</span><span class=o>=</span>/var/lib/pgsql/9.6/data
-<span class=nb>export</span> <span class=nv>PGDATANEW</span><span class=o>=</span>/var/lib/pgsql/12/data
-<span class=nb>export</span> <span class=nv>PGBINOLD</span><span class=o>=</span>/usr/pgsql-9.6/bin
-<span class=nb>export</span> <span class=nv>PGBINNEW</span><span class=o>=</span>/usr/pgsql-12/bin
-<span class=nv>$PGBINNEW</span>/pg_upgrade --link --verbose
-
-<span class=c1># extrait du déroulement</span>
-mappings <span class=k>for</span> database <span class=s2>&#34;prod&#34;</span>:
-public.pgbench_accounts: <span class=m>16397</span> to <span class=m>16391</span>
-
-linking <span class=s2>&#34;/var/lib/pgsql/9.6/data/base/16384/16397&#34;</span> to
-  <span class=s2>&#34;/var/lib/pgsql/12/data/base/16402/16391&#34;</span>
-linking <span class=s2>&#34;/var/lib/pgsql/9.6/data/base/16384/16397_fsm&#34;</span> to
-  <span class=s2>&#34;/var/lib/pgsql/12/data/base/16402/16391_fsm&#34;</span>
-linking <span class=s2>&#34;/var/lib/pgsql/9.6/data/base/16384/16397_vm&#34;</span> to  
-  <span class=s2>&#34;/var/lib/pgsql/12/data/base/16402/16391_vm&#34;</span>
-</code></pre></div><p>L&rsquo;outil <code>pg_upgrade</code> est composé d&rsquo;une série d&rsquo;opération de contrôle, de copies
+à l’autre. Bien sûr, ce n&rsquo;est pas le comportement par défaut.</p><div class=message>La distribution CentOS 7 est utilisée pour la démonstration.<br>Le paquet <code>postgresql12-server</code> doit être installé au préalable.</div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># la routine setup permet la création du fichier de service ainsi</span>
+</span></span><span class=line><span class=cl><span class=c1># que l&#39;initilisation d&#39;un répertoire de données minimaliste</span>
+</span></span><span class=line><span class=cl>/usr/pgsql-12/bin/postgresql-12-setup initdb postgresql-12
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># durant la migration, l&#39;instance 9.6 doit être arrêtée</span>
+</span></span><span class=line><span class=cl>systemctl stop postgresql-9.6.service
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGDATAOLD</span><span class=o>=</span>/var/lib/pgsql/9.6/data
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGDATANEW</span><span class=o>=</span>/var/lib/pgsql/12/data
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGBINOLD</span><span class=o>=</span>/usr/pgsql-9.6/bin
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGBINNEW</span><span class=o>=</span>/usr/pgsql-12/bin
+</span></span><span class=line><span class=cl><span class=nv>$PGBINNEW</span>/pg_upgrade --link --verbose
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># extrait du déroulement</span>
+</span></span><span class=line><span class=cl>mappings <span class=k>for</span> database <span class=s2>&#34;prod&#34;</span>:
+</span></span><span class=line><span class=cl>public.pgbench_accounts: <span class=m>16397</span> to <span class=m>16391</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>linking <span class=s2>&#34;/var/lib/pgsql/9.6/data/base/16384/16397&#34;</span> to
+</span></span><span class=line><span class=cl>  <span class=s2>&#34;/var/lib/pgsql/12/data/base/16402/16391&#34;</span>
+</span></span><span class=line><span class=cl>linking <span class=s2>&#34;/var/lib/pgsql/9.6/data/base/16384/16397_fsm&#34;</span> to
+</span></span><span class=line><span class=cl>  <span class=s2>&#34;/var/lib/pgsql/12/data/base/16402/16391_fsm&#34;</span>
+</span></span><span class=line><span class=cl>linking <span class=s2>&#34;/var/lib/pgsql/9.6/data/base/16384/16397_vm&#34;</span> to  
+</span></span><span class=line><span class=cl>  <span class=s2>&#34;/var/lib/pgsql/12/data/base/16402/16391_vm&#34;</span>
+</span></span></code></pre></div><p>L&rsquo;outil <code>pg_upgrade</code> est composé d&rsquo;une série d&rsquo;opération de contrôle, de copies
 de fichiers, d&rsquo;arrêt/démarrage des instances et d&rsquo;une remise à zéro des journaux
 de transactions avec <code>pg_resetwal</code>. Les lignes ci-dessus illustrent le mode
 <code>--link</code> lors de notre migration, avec la création d&rsquo;un lien entre les deux
-versions du fichier de la table <code>pgbench_accounts</code>.</p>
-<p>La méthode employée peut être consultée dans les sources de <a href=https://doxygen.postgresql.org/file_8c.html#a177e42cfa16856fb3b24c12684da9db8>pg_upgrade</a> et
-repose sur la méthode <a href=https://www.gnu.org/software/coreutils/link>link</a>. Regardons en détail les métadonnées des
-fichiers de données de la table <code>pgbench_accounts</code> dans les deux répertoires.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=c1># FORMAT=&#34;${FORMAT}Links  = %h\n&#34;</span>
-<span class=c1># stat --printf=&#34;$FORMAT&#34; /var/lib/pgsql/9.6/data/base/16384/16397</span>
-<span class=na>File</span>   <span class=o>=</span> <span class=s>‘/var/lib/pgsql/9.6/data/base/16384/16397’</span>
-<span class=na>Type</span>   <span class=o>=</span> <span class=s>regular file</span>
-<span class=na>Owner</span>  <span class=o>=</span> <span class=s>postgres:postgres</span>
-<span class=na>Access</span> <span class=o>=</span> <span class=s>-rw-------</span>
-<span class=na>Inode</span>  <span class=o>=</span> <span class=s>101132106</span>
-<span class=na>Links</span>  <span class=o>=</span> <span class=s>2</span>
-
-<span class=c1># stat --printf=&#34;$FORMAT&#34; /var/lib/pgsql/12/data/base/16402/16391</span>
-<span class=na>File</span>   <span class=o>=</span> <span class=s>‘/var/lib/pgsql/12/data/base/16402/16391’</span>
-<span class=na>Type</span>   <span class=o>=</span> <span class=s>regular file</span>
-<span class=na>Owner</span>  <span class=o>=</span> <span class=s>postgres:postgres</span>
-<span class=na>Access</span> <span class=o>=</span> <span class=s>-rw-------</span>
-<span class=na>Inode</span>  <span class=o>=</span> <span class=s>101132106</span>
-<span class=na>Links</span>  <span class=o>=</span> <span class=s>2</span>
-</code></pre></div><p>Au niveau du système, les fichiers sont strictement similaires. Pour dire vrai,
+versions du fichier de la table <code>pgbench_accounts</code>.</p><p>La méthode employée peut être consultée dans les sources de <a href=https://doxygen.postgresql.org/file_8c.html#a177e42cfa16856fb3b24c12684da9db8 target=_blank rel=noopener>pg_upgrade</a> et
+repose sur la méthode <a href=https://www.gnu.org/software/coreutils/link target=_blank rel=noopener>link</a>. Regardons en détail les métadonnées des
+fichiers de données de la table <code>pgbench_accounts</code> dans les deux répertoires.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># FORMAT=&#34;${FORMAT}Links  = %h\n&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># stat --printf=&#34;$FORMAT&#34; /var/lib/pgsql/9.6/data/base/16384/16397</span>
+</span></span><span class=line><span class=cl><span class=na>File</span>   <span class=o>=</span> <span class=s>‘/var/lib/pgsql/9.6/data/base/16384/16397’</span>
+</span></span><span class=line><span class=cl><span class=na>Type</span>   <span class=o>=</span> <span class=s>regular file</span>
+</span></span><span class=line><span class=cl><span class=na>Owner</span>  <span class=o>=</span> <span class=s>postgres:postgres</span>
+</span></span><span class=line><span class=cl><span class=na>Access</span> <span class=o>=</span> <span class=s>-rw-------</span>
+</span></span><span class=line><span class=cl><span class=na>Inode</span>  <span class=o>=</span> <span class=s>101132106</span>
+</span></span><span class=line><span class=cl><span class=na>Links</span>  <span class=o>=</span> <span class=s>2</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># stat --printf=&#34;$FORMAT&#34; /var/lib/pgsql/12/data/base/16402/16391</span>
+</span></span><span class=line><span class=cl><span class=na>File</span>   <span class=o>=</span> <span class=s>‘/var/lib/pgsql/12/data/base/16402/16391’</span>
+</span></span><span class=line><span class=cl><span class=na>Type</span>   <span class=o>=</span> <span class=s>regular file</span>
+</span></span><span class=line><span class=cl><span class=na>Owner</span>  <span class=o>=</span> <span class=s>postgres:postgres</span>
+</span></span><span class=line><span class=cl><span class=na>Access</span> <span class=o>=</span> <span class=s>-rw-------</span>
+</span></span><span class=line><span class=cl><span class=na>Inode</span>  <span class=o>=</span> <span class=s>101132106</span>
+</span></span><span class=line><span class=cl><span class=na>Links</span>  <span class=o>=</span> <span class=s>2</span>
+</span></span></code></pre></div><p>Au niveau du système, les fichiers sont strictement similaires. Pour dire vrai,
 il s&rsquo;agit des mêmes <em>inodes</em>. Les métadonnées sont communes aux deux fichiers et
 les blocs de données de la table <code>pgbench_accounts</code> résident à la même adresse
-physique.</p>
-<p>À la différence du lien symbolique, ce type de lien rattache un fichier non pas
-à un autre fichier, mais au numéro d'<em>inode</em> d&rsquo;un autre fichier. L&rsquo;attribut
-<code>Links</code> de ma commande <code>stat</code> correspond au nombre de liens sur l'<em>inode</em> en
-question. Une représentation de cette relation pourait être la suivante :</p>
-<p><img src=/img/fr/2020-04-23-hardlink-pgbench_accounts.png alt="Relation hardlink entre deux fichiers"></p>
-<p>Les avantages sont doubles dans le cas d&rsquo;une migration majeure :</p>
-<ul>
-<li><strong>Temps de copie des données quasi-nul</strong> : le modèle de données est importé dans
+physique.</p><p>À la différence du lien symbolique, ce type de lien rattache un fichier non pas
+à un autre fichier, mais au numéro d&rsquo;<em>inode</em> d&rsquo;un autre fichier. L&rsquo;attribut
+<code>Links</code> de ma commande <code>stat</code> correspond au nombre de liens sur l&rsquo;<em>inode</em> en
+question. Une représentation de cette relation pourait être la suivante :</p><p><img src=/img/fr/2020-04-23-hardlink-pgbench_accounts.png alt="Relation hardlink entre deux fichiers"></p><p>Les avantages sont doubles dans le cas d&rsquo;une migration majeure :</p><ul><li><strong>Temps de copie des données quasi-nul</strong> : le modèle de données est importé dans
 la nouvelle instance et les fichiers de données sont liés à ceux de la version
-précédente ;</li>
-<li><strong>Économie d&rsquo;espace disque</strong> : la migration n&rsquo;a pas besoin du double d&rsquo;espace
-disque.</li>
-</ul>
-<p>En contrepartie :</p>
-<ul>
-<li><strong>Pas de retour arrière</strong> : chacune des deux instances disposent de fichiers
+précédente ;</li><li><strong>Économie d&rsquo;espace disque</strong> : la migration n&rsquo;a pas besoin du double d&rsquo;espace
+disque.</li></ul><p>En contrepartie :</p><ul><li><strong>Pas de retour arrière</strong> : chacune des deux instances disposent de fichiers
 internes comme les journaux de transactions ou le fichier de contrôle, rendant
 incompatibles les fichiers de données à l&rsquo;une des deux instances dès lors que
-l&rsquo;autre a démarré après la migration.</li>
-</ul>
-<h2 id=fin-de-vie-dune-donnée-liée>Fin de vie d&rsquo;une donnée liée</h2>
-<p>L&rsquo;une de mes questions à l&rsquo;issue d&rsquo;une migration par <code>pg_upgrade</code> a été : « Mais
+l&rsquo;autre a démarré après la migration.</li></ul><h2 id=fin-de-vie-dune-donnée-liée>Fin de vie d&rsquo;une donnée liée</h2><p>L&rsquo;une de mes questions à l&rsquo;issue d&rsquo;une migration par <code>pg_upgrade</code> a été : « Mais
 que se passe-t-il si nous ne supprimons pas l&rsquo;ancien répertoire de données ? ».
 Puisque la donnée est référencée par la nouvelle instance, toutes les nouveautés
-y seront stockées et il n&rsquo;y a pas de risque pour l&rsquo;espace disque. Vraiment ?</p>
-<p>Comme nous le voyions précédemment, les données de la table <code>pgbench_accounts</code>
-sont accessibles à travers le numéro d'<em>inode</em> <code>101132106</code>. Les deux liens
+y seront stockées et il n&rsquo;y a pas de risque pour l&rsquo;espace disque. Vraiment ?</p><p>Comme nous le voyions précédemment, les données de la table <code>pgbench_accounts</code>
+sont accessibles à travers le numéro d&rsquo;<em>inode</em> <code>101132106</code>. Les deux liens
 pointent vers la même adresse physique et la même allocation d&rsquo;espace disque,
-ici 13 Mo.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=c1># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16391</span>
-13M	9.6/data/base/16384/16397
-13M	12/data/base/16402/16391
-</code></pre></div><p>Il est possible au cours de la vie d&rsquo;une table de voir son identifiant <code>relfilenode</code>
+ici 13 Mo.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16391</span>
+</span></span><span class=line><span class=cl>13M	9.6/data/base/16384/16397
+</span></span><span class=line><span class=cl>13M	12/data/base/16402/16391
+</span></span></code></pre></div><p>Il est possible au cours de la vie d&rsquo;une table de voir son identifiant <code>relfilenode</code>
 varier au moment de la réécriture du fichier sous un nom différent. Le cas se
 présente lorsque l&rsquo;on souhaite déplacer la table dans un autre <em>tablespace</em>,
 quand il faut la défragmenter avec <code>VACUUM FULL</code>, ou lors de la restauration
 d&rsquo;un <em>dump</em>. Ces opérations réalisent toute une reconstruction de la table, avec
-le déplacement des lignes dans un nouveau fichier.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=c1>--  pg_relation_filepath 
-</span><span class=c1>-- ----------------------
-</span><span class=c1>--  base/16402/16391
-</span><span class=c1></span><span class=w>
-</span><span class=w></span><span class=k>VACUUM</span><span class=w> </span><span class=k>FULL</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>CHECKPOINT</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w></span><span class=c1>--  pg_relation_filepath 
-</span><span class=c1>-- ----------------------
-</span><span class=c1>--  base/16402/16435
-</span></code></pre></div><p>Ici, la défragmentation reconstruit la table dans un nouveau fichier <code>16435</code>.
+le déplacement des lignes dans un nouveau fichier.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_relation_filepath 
+</span></span></span><span class=line><span class=cl><span class=c1>-- ----------------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  base/16402/16391
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>VACUUM</span><span class=w> </span><span class=k>FULL</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CHECKPOINT</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_relation_filepath 
+</span></span></span><span class=line><span class=cl><span class=c1>-- ----------------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  base/16402/16435
+</span></span></span></code></pre></div><p>Ici, la défragmentation reconstruit la table dans un nouveau fichier <code>16435</code>.
 L&rsquo;instruction <code>CHECKPOINT</code> permet d&rsquo;écrire sur disque la totalité des nouveaux
 blocs et d&rsquo;actualiser l&rsquo;usage des fichiers, supprimant en principe les anciens
-fichiers de données.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=c1># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16435</span>
-0	9.6/data/base/16384/16397
-13M	12/data/base/16402/16435
-
-<span class=c1># FORMAT=&#34;File  = %n\nInode = %i\n&#34;</span>
-<span class=c1># stat --printf=&#34;$FORMAT&#34; 9.6/data/base/16384/16397 </span>
-<span class=nv>File</span>  <span class=o>=</span> 9.6/data/base/16384/16397
-<span class=nv>Inode</span> <span class=o>=</span> <span class=m>101132106</span>
-
-<span class=c1># stat --printf=&#34;$FORMAT&#34; 12/data/base/16402/16435</span>
-<span class=nv>File</span>  <span class=o>=</span> 12/data/base/16402/16435
-<span class=nv>Inode</span> <span class=o>=</span> <span class=m>34082173</span>
-</code></pre></div><p>Le nouveau fichier de notre table pour l&rsquo;instance 12 pèse toujours 13 Mo, le
+fichiers de données.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16435</span>
+</span></span><span class=line><span class=cl>0	9.6/data/base/16384/16397
+</span></span><span class=line><span class=cl>13M	12/data/base/16402/16435
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># FORMAT=&#34;File  = %n\nInode = %i\n&#34;</span>
+</span></span><span class=line><span class=cl><span class=c1># stat --printf=&#34;$FORMAT&#34; 9.6/data/base/16384/16397 </span>
+</span></span><span class=line><span class=cl><span class=nv>File</span>  <span class=o>=</span> 9.6/data/base/16384/16397
+</span></span><span class=line><span class=cl><span class=nv>Inode</span> <span class=o>=</span> <span class=m>101132106</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># stat --printf=&#34;$FORMAT&#34; 12/data/base/16402/16435</span>
+</span></span><span class=line><span class=cl><span class=nv>File</span>  <span class=o>=</span> 12/data/base/16402/16435
+</span></span><span class=line><span class=cl><span class=nv>Inode</span> <span class=o>=</span> <span class=m>34082173</span>
+</span></span></code></pre></div><p>Le nouveau fichier de notre table pour l&rsquo;instance 12 pèse toujours 13 Mo, le
 fichier maintenu par le lien physique de la version précédente a été vidé lors
 de l&rsquo;opération <code>VACUUM FULL</code> et pèse à présent zéro octet. Mais il n&rsquo;a pas été
 supprimé ! Nous nous retrouvons avec un fichier et son <em>inode</em> en trop sur le
-serveur.</p>
-<p><img src=/img/fr/2020-04-23-hardlink-after-vacuum-full.png alt="Nouvel inode après un VACUUM FULL"></p>
-<p>Sur un système de fichiers, le nombre maximal de fichiers que l&rsquo;on peut créer est
-défini par la quantité d'<em>inodes</em> disponibles, alors autant faire le ménage dès
+serveur.</p><p><img src=/img/fr/2020-04-23-hardlink-after-vacuum-full.png alt="Nouvel inode après un VACUUM FULL"></p><p>Sur un système de fichiers, le nombre maximal de fichiers que l&rsquo;on peut créer est
+défini par la quantité d&rsquo;<em>inodes</em> disponibles, alors autant faire le ménage dès
 que possible pour ne pas atteindre cette limite. D&rsquo;autant plus que la suppression
 du répertoire <code>9.6/data</code> est proposée à la fin de la migration par l&rsquo;outil
-<code>pg_upgrade</code> et ne présente aucun risque !</p>
-<h2 id=conclusion>Conclusion</h2>
-<p>Apparu en version 9.0, l&rsquo;outil <code>pg_upgrade</code> est une petite usine qui simule un
+<code>pg_upgrade</code> et ne présente aucun risque !</p><h2 id=conclusion>Conclusion</h2><p>Apparu en version 9.0, l&rsquo;outil <code>pg_upgrade</code> est une petite usine qui simule un
 import/export des structures d&rsquo;une instance complète, avec la capacité de copier
 ou lier les anciens fichiers, de façon bien plus rapide qu&rsquo;une insertion massive
 avec l&rsquo;instruction <code>COPY</code> de <code>pg_restore</code>. C&rsquo;est une solution de choix lorsque
 l&rsquo;on migre d&rsquo;une version majeure à l&rsquo;autre sur un même serveur, notamment pour
-le gain de temps non négligeable que propose l&rsquo;option <code>--link</code>.</p>
-<p>Avec la version 12, l&rsquo;outil propose une nouvelle option <code>--clone</code> et s&rsquo;appuie
+le gain de temps non négligeable que propose l&rsquo;option <code>--link</code>.</p><p>Avec la version 12, l&rsquo;outil propose une nouvelle option <code>--clone</code> et s&rsquo;appuie
 sur la notion de liens « par référence » (ou <em>reflinks</em>), conçus initialement
-sur les systèmes de fichiers supportant la <a href=https://fr.wikipedia.org/wiki/Copy-on-write>copie sur écriture</a>. La
+sur les systèmes de fichiers supportant la <a href=https://fr.wikipedia.org/wiki/Copy-on-write target=_blank rel=noopener>copie sur écriture</a>. La
 documentation précise que la copie des fichiers est <em>pratiquement instantanée</em> et
-n&rsquo;affecte pas l&rsquo;ancienne instance.</p>
-<p>Peut-être l&rsquo;occasion de creuser le sujet dans un prochain article ?</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
-<small><time datetime=2021-12-06>6 déc 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2020/01/17/gestion-des-signaux-internes/>Gestion des signaux internes
-<small><time datetime=2020-01-17>17 janv 2020</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+n&rsquo;affecte pas l&rsquo;ancienne instance.</p><p>Peut-être l&rsquo;occasion de creuser le sujet dans un prochain article ?</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li><li><a href=https://fljd.in/2020/01/17/gestion-des-signaux-internes/>Gestion des signaux internes
+<small><time datetime=2020-01-17>17 janv 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

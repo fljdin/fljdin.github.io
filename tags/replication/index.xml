@@ -7,5 +7,5 @@ n&amp;rsquo;était envisageable.&lt;/p>
 pour réaliser une bascule des rôles et raccrocher les instances secondaires au
 nouveau primaire fraîchement élu ?&lt;/p></description></item><item><title>Construire une instance standby avec pgBackRest</title><link>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</link><pubDate>Thu, 07 Nov 2019 16:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</guid><description>&lt;p>Pour cette démonstration, j&amp;rsquo;utilise le système Debian et dispose de deux instances
 en version 12, d&amp;rsquo;un serveur de sauvegarde et du paquet &lt;code>pgbackrest&lt;/code> pour mettre
-en place une réplication et observer les nouveautés concernant la &lt;a href="https://paquier.xyz/postgresql-2/postgres-12-recovery-change/">disparition&lt;/a>
+en place une réplication et observer les nouveautés concernant la &lt;a href="https://paquier.xyz/postgresql-2/postgres-12-recovery-change/" target="_blank" rel="noopener">disparition&lt;/a>
 du fichier &lt;code>recovery.conf&lt;/code>.&lt;/p></description></item></channel></rss>

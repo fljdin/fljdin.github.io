@@ -1,242 +1,165 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Gestion des signaux internes</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Gestion des signaux internes</a></h1>
-<p class=post-date>
-<time datetime=2020-01-17>17 janv 2020</time>
-- 6 minutes de lecture
-</p><p>Je voulais m&rsquo;attarder sur une notion que je n&rsquo;avais pas exploré à l&rsquo;époque où
+<!doctype html><html lang=fr><head><title>Gestion des signaux internes</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Gestion des signaux internes</a></h1><p class=post-date><time datetime=2020-01-17>17 janv 2020</time>
+- 6 minutes de lecture</p><p>Je voulais m&rsquo;attarder sur une notion que je n&rsquo;avais pas exploré à l&rsquo;époque où
 j&rsquo;apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l&rsquo;école et
-où l&rsquo;on usait de commandes apprises par cœur : les signaux !</p>
-<p>Les signaux les plus connus et les plus utilisés sont les numéros 6 <code>SIGABRT</code> et
+où l&rsquo;on usait de commandes apprises par cœur : les signaux !</p><p>Les signaux les plus connus et les plus utilisés sont les numéros 6 <code>SIGABRT</code> et
 9 <code>SIGKILL</code>, ça vous revient ? Pourquoi en existe-t-il autant, dans quels
 contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons
-le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !</p>
-<hr>
-<p>Commençons sobrement par une description issue de <a href=https://fr.wikipedia.org/wiki/Signal_(informatique)>Wikipédia</a> :</p>
-<blockquote>
-<p>Un signal est une forme limitée de communication entre processus utilisée par
+le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !</p><hr><p>Commençons sobrement par une description issue de <a href=https://fr.wikipedia.org/wiki/Signal_%28informatique%29 target=_blank rel=noopener>Wikipédia</a> :</p><blockquote><p>Un signal est une forme limitée de communication entre processus utilisée par
 les systèmes de type Unix et ceux respectant les standards POSIX. Il s&rsquo;agit
 d&rsquo;une notification asynchrone envoyée à un processus pour lui signaler
 l&rsquo;apparition d&rsquo;un événement. Quand un signal est envoyé à un processus, le
 système d&rsquo;exploitation interrompt l&rsquo;exécution normale de celui-ci. Si le
 processus possède une routine de traitement pour le signal reçu, il lance son
 exécution. Dans le cas contraire, il exécute la routine de traitement des
-signaux par défaut.</p>
-</blockquote>
-<p>En somme, les signaux sont de simples événements à destination d&rsquo;un processus
+signaux par défaut.</p></blockquote><p>En somme, les signaux sont de simples événements à destination d&rsquo;un processus
 pour ordonner une action, comme l&rsquo;éveil, l&rsquo;arrêt, la lecture d&rsquo;un fichier de
-configuration ou le repli sur un champ de bataille (non, pas ce signal-là).</p>
-<p><img src=/img/fr/2020-01-17-drapeaux-kaamelott.jpg alt="Gestion des signaux en temps de guerre arthurienne"></p>
-<p>Tout administrateur qui se respecte (ou non) connaît la commande <code>kill</code> fournie
+configuration ou le repli sur un champ de bataille (non, pas ce signal-là).</p><p><img src=/img/fr/2020-01-17-drapeaux-kaamelott.jpg alt="Gestion des signaux en temps de guerre arthurienne"></p><p>Tout administrateur qui se respecte (ou non) connaît la commande <code>kill</code> fournie
 par son système pour résoudre le problème épineux des programmes qui font n&rsquo;importe
 quoi &ndash; d&rsquo;après leurs dires &ndash; en leur envoyant un message d&rsquo;arrêt. Ces messages
 sont nombreux et permettent différentes réactions en s&rsquo;inspirant de cette fameuse
-norme POSIX.1-1990 dont je vous renvoie au tableau du <a href=http://man7.org/linux/man-pages/man7/signal.7.html>manuel</a> <code>signal(7)</code> ou
-la commande <code>kill -l</code> pour les lister.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=nb>kill</span> -l
-
-<span class=c1>#  1) SIGHUP       2) SIGINT       3) SIGQUIT      4) SIGILL       5) SIGTRAP</span>
-<span class=c1>#  6) SIGABRT      7) SIGBUS       8) SIGFPE       9) SIGKILL     10) SIGUSR1</span>
-<span class=c1># 11) SIGSEGV     12) SIGUSR2     13) SIGPIPE     14) SIGALRM     15) SIGTERM</span>
-<span class=c1># 16) SIGSTKFLT   17) SIGCHLD     18) SIGCONT     19) SIGSTOP     20) SIGTSTP</span>
-<span class=c1># 21) SIGTTIN     22) SIGTTOU     23) SIGURG      24) SIGXCPU     25) SIGXFSZ</span>
-<span class=c1># 26) SIGVTALRM   27) SIGPROF     28) SIGWINCH    29) SIGIO       30) SIGPWR</span>
-<span class=c1># 31) SIGSYS      34) SIGRTMIN    35) SIGRTMIN+1  36) SIGRTMIN+2  37) SIGRTMIN+3</span>
-<span class=c1># 38) SIGRTMIN+4  39) SIGRTMIN+5  40) SIGRTMIN+6  41) SIGRTMIN+7  42) SIGRTMIN+8</span>
-<span class=c1># 43) SIGRTMIN+9  44) SIGRTMIN+10 45) SIGRTMIN+11 46) SIGRTMIN+12 47) SIGRTMIN+13</span>
-<span class=c1># 48) SIGRTMIN+14 49) SIGRTMIN+15 50) SIGRTMAX-14 51) SIGRTMAX-13 52) SIGRTMAX-12</span>
-<span class=c1># 53) SIGRTMAX-11 54) SIGRTMAX-10 55) SIGRTMAX-9  56) SIGRTMAX-8  57) SIGRTMAX-7</span>
-<span class=c1># 58) SIGRTMAX-6  59) SIGRTMAX-5  60) SIGRTMAX-4  61) SIGRTMAX-3  62) SIGRTMAX-2</span>
-<span class=c1># 63) SIGRTMAX-1  64) SIGRTMAX </span>
-</code></pre></div><p>À l&rsquo;aide de cette commande, il est possible d&rsquo;interragir avec un processus actif
+norme POSIX.1-1990 dont je vous renvoie au tableau du <a href=http://man7.org/linux/man-pages/man7/signal.7.html target=_blank rel=noopener>manuel</a> <code>signal(7)</code> ou
+la commande <code>kill -l</code> pour les lister.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=nb>kill</span> -l
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#  1) SIGHUP       2) SIGINT       3) SIGQUIT      4) SIGILL       5) SIGTRAP</span>
+</span></span><span class=line><span class=cl><span class=c1>#  6) SIGABRT      7) SIGBUS       8) SIGFPE       9) SIGKILL     10) SIGUSR1</span>
+</span></span><span class=line><span class=cl><span class=c1># 11) SIGSEGV     12) SIGUSR2     13) SIGPIPE     14) SIGALRM     15) SIGTERM</span>
+</span></span><span class=line><span class=cl><span class=c1># 16) SIGSTKFLT   17) SIGCHLD     18) SIGCONT     19) SIGSTOP     20) SIGTSTP</span>
+</span></span><span class=line><span class=cl><span class=c1># 21) SIGTTIN     22) SIGTTOU     23) SIGURG      24) SIGXCPU     25) SIGXFSZ</span>
+</span></span><span class=line><span class=cl><span class=c1># 26) SIGVTALRM   27) SIGPROF     28) SIGWINCH    29) SIGIO       30) SIGPWR</span>
+</span></span><span class=line><span class=cl><span class=c1># 31) SIGSYS      34) SIGRTMIN    35) SIGRTMIN+1  36) SIGRTMIN+2  37) SIGRTMIN+3</span>
+</span></span><span class=line><span class=cl><span class=c1># 38) SIGRTMIN+4  39) SIGRTMIN+5  40) SIGRTMIN+6  41) SIGRTMIN+7  42) SIGRTMIN+8</span>
+</span></span><span class=line><span class=cl><span class=c1># 43) SIGRTMIN+9  44) SIGRTMIN+10 45) SIGRTMIN+11 46) SIGRTMIN+12 47) SIGRTMIN+13</span>
+</span></span><span class=line><span class=cl><span class=c1># 48) SIGRTMIN+14 49) SIGRTMIN+15 50) SIGRTMAX-14 51) SIGRTMAX-13 52) SIGRTMAX-12</span>
+</span></span><span class=line><span class=cl><span class=c1># 53) SIGRTMAX-11 54) SIGRTMAX-10 55) SIGRTMAX-9  56) SIGRTMAX-8  57) SIGRTMAX-7</span>
+</span></span><span class=line><span class=cl><span class=c1># 58) SIGRTMAX-6  59) SIGRTMAX-5  60) SIGRTMAX-4  61) SIGRTMAX-3  62) SIGRTMAX-2</span>
+</span></span><span class=line><span class=cl><span class=c1># 63) SIGRTMAX-1  64) SIGRTMAX </span>
+</span></span></code></pre></div><p>À l&rsquo;aide de cette commande, il est possible d&rsquo;interragir avec un processus actif
 dès lors que l&rsquo;on a connaissance de son <code>pid</code>, le <em>process identifier</em>. La plupart
 du temps, nous ignorons tout bonnement l&rsquo;état dans lequel il se trouve. Est-il
-en attente ? Fait-il un calcul important ?</p>
-<p>Trop souvent, en l&rsquo;absence de journaux d&rsquo;activité ou de verbosité du processus,
+en attente ? Fait-il un calcul important ?</p><p>Trop souvent, en l&rsquo;absence de journaux d&rsquo;activité ou de verbosité du processus,
 d&rsquo;impatience ou d&rsquo;urgence, on lui envoie un message d&rsquo;auto-suicide <code>kill -9 pid</code>.
-Et prends ça dans tes circuits logiques.</p>
-<hr>
-<p>À son démarrage, un programme met en place une série d&rsquo;instructions à l&rsquo;aide de
-méthodes comme <code>trap</code> (<a href=http://man7.org/linux/man-pages/man1/trap.1p.html>documentation</a>) pour un script <em>bash</em> ou de la librairie
+Et prends ça dans tes circuits logiques.</p><hr><p>À son démarrage, un programme met en place une série d&rsquo;instructions à l&rsquo;aide de
+méthodes comme <code>trap</code> (<a href=http://man7.org/linux/man-pages/man1/trap.1p.html target=_blank rel=noopener>documentation</a>) pour un script <em>bash</em> ou de la librairie
 <code>signal.h</code> pour un programme en C. Ces outils permettent de surcharger les
 comportements du programme à la réception d&rsquo;un signal en leur associant une
 instruction ou une fonction plus complexe. Prenons l&rsquo;exemple d&rsquo;un bête terminal,
 qui en soit, est un programme en attente de saisie utilisateur, dispose d&rsquo;un
-<code>pid</code> et d&rsquo;un interpréteur <em>bash</em>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=c1># Obtenir le pid du terminal tty courant</span>
-<span class=nb>echo</span> <span class=nv>$$</span>
-<span class=c1># 5032</span>
-
-<span class=c1># Définir les comportements attendus</span>
-<span class=nb>trap</span> <span class=s1>&#39;echo SIGUSR1 received&#39;</span> <span class=m>10</span>
-<span class=nb>trap</span> <span class=s1>&#39;date&#39;</span> <span class=m>12</span>
-
-<span class=nb>kill</span> -SIGUSR1 <span class=m>5032</span>
-<span class=c1># SIGUSR1 received</span>
-<span class=nb>kill</span> -SIGUSR2 <span class=m>5032</span>
-<span class=c1># ven. janv. 17 16:29:10 CET 2020</span>
-</code></pre></div><p>Cela devient particulièrement intéressant dans un contexte de programme
+<code>pid</code> et d&rsquo;un interpréteur <em>bash</em>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># Obtenir le pid du terminal tty courant</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=nv>$$</span>
+</span></span><span class=line><span class=cl><span class=c1># 5032</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Définir les comportements attendus</span>
+</span></span><span class=line><span class=cl><span class=nb>trap</span> <span class=s1>&#39;echo SIGUSR1 received&#39;</span> <span class=m>10</span>
+</span></span><span class=line><span class=cl><span class=nb>trap</span> <span class=s1>&#39;date&#39;</span> <span class=m>12</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nb>kill</span> -SIGUSR1 <span class=m>5032</span>
+</span></span><span class=line><span class=cl><span class=c1># SIGUSR1 received</span>
+</span></span><span class=line><span class=cl><span class=nb>kill</span> -SIGUSR2 <span class=m>5032</span>
+</span></span><span class=line><span class=cl><span class=c1># ven. janv. 17 16:29:10 CET 2020</span>
+</span></span></code></pre></div><p>Cela devient particulièrement intéressant dans un contexte de programme
 multi-processeurs, de pouvoir se reposer sur un système de signaux pour déclencher
 les événements entre un processus père et ses enfants, plutôt que de complexifier
-les échanges avec une <em>queue</em> en mémoire ou sur fichier.</p>
-<p>Si l&rsquo;on prend l&rsquo;exemple du processus <code>archiver</code> de PostgreSQL, la définition des
+les échanges avec une <em>queue</em> en mémoire ou sur fichier.</p><p>Si l&rsquo;on prend l&rsquo;exemple du processus <code>archiver</code> de PostgreSQL, la définition des
 signaux est la première étape au moment de sa création par le processus <code>postmaster</code>,
-juste avant l&rsquo;entrée dans sa boucle principale.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=c1>// src/backend/postmaster/pgarch.c
-</span><span class=c1></span><span class=cm>/*
-</span><span class=cm> * PgArchiverMain
-</span><span class=cm> *
-</span><span class=cm> *  The argc/argv parameters are valid only in EXEC_BACKEND case.  However,
-</span><span class=cm> *  since we don&#39;t use &#39;em, it hardly matters...
-</span><span class=cm> */</span>
-<span class=n>NON_EXEC_STATIC</span> <span class=kt>void</span>
-<span class=nf>PgArchiverMain</span><span class=p>(</span><span class=kt>int</span> <span class=n>argc</span><span class=p>,</span> <span class=kt>char</span> <span class=o>*</span><span class=n>argv</span><span class=p>[])</span>
-<span class=p>{</span>
-  <span class=cm>/*
-</span><span class=cm>   * Ignore all signals usually bound to some action in the postmaster,
-</span><span class=cm>   * except for SIGHUP, SIGTERM, SIGUSR1, SIGUSR2, and SIGQUIT.
-</span><span class=cm>   */</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGHUP</span><span class=p>,</span> <span class=n>SignalHandlerForConfigReload</span><span class=p>);</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGINT</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGTERM</span><span class=p>,</span> <span class=n>SignalHandlerForShutdownRequest</span><span class=p>);</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGQUIT</span><span class=p>,</span> <span class=n>pgarch_exit</span><span class=p>);</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGALRM</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGPIPE</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGUSR1</span><span class=p>,</span> <span class=n>pgarch_waken</span><span class=p>);</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGUSR2</span><span class=p>,</span> <span class=n>pgarch_waken_stop</span><span class=p>);</span>
-  <span class=cm>/* Reset some signals that are accepted by postmaster but not here */</span>
-  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGCHLD</span><span class=p>,</span> <span class=n>SIG_DFL</span><span class=p>);</span>
-  <span class=n>PG_SETMASK</span><span class=p>(</span><span class=o>&amp;</span><span class=n>UnBlockSig</span><span class=p>);</span>
-
-  <span class=cm>/*
-</span><span class=cm>   * Identify myself via ps
-</span><span class=cm>   */</span>
-  <span class=n>init_ps_display</span><span class=p>(</span><span class=s>&#34;archiver&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>);</span>
-
-  <span class=n>pgarch_MainLoop</span><span class=p>();</span>
-
-  <span class=n>exit</span><span class=p>(</span><span class=mi>0</span><span class=p>);</span>
-<span class=p>}</span>
-</code></pre></div><p>La méthode <code>pqsignal</code> prend en paramètre la valeur <code>enum</code> du signal ainsi qu&rsquo;un
+juste avant l&rsquo;entrée dans sa boucle principale.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=c1>// src/backend/postmaster/pgarch.c
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm> * PgArchiverMain
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> *  The argc/argv parameters are valid only in EXEC_BACKEND case.  However,
+</span></span></span><span class=line><span class=cl><span class=cm> *  since we don&#39;t use &#39;em, it hardly matters...
+</span></span></span><span class=line><span class=cl><span class=cm> */</span>
+</span></span><span class=line><span class=cl><span class=n>NON_EXEC_STATIC</span> <span class=kt>void</span>
+</span></span><span class=line><span class=cl><span class=nf>PgArchiverMain</span><span class=p>(</span><span class=kt>int</span> <span class=n>argc</span><span class=p>,</span> <span class=kt>char</span> <span class=o>*</span><span class=n>argv</span><span class=p>[])</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>   * Ignore all signals usually bound to some action in the postmaster,
+</span></span></span><span class=line><span class=cl><span class=cm>   * except for SIGHUP, SIGTERM, SIGUSR1, SIGUSR2, and SIGQUIT.
+</span></span></span><span class=line><span class=cl><span class=cm>   */</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGHUP</span><span class=p>,</span> <span class=n>SignalHandlerForConfigReload</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGINT</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGTERM</span><span class=p>,</span> <span class=n>SignalHandlerForShutdownRequest</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGQUIT</span><span class=p>,</span> <span class=n>pgarch_exit</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGALRM</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGPIPE</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGUSR1</span><span class=p>,</span> <span class=n>pgarch_waken</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGUSR2</span><span class=p>,</span> <span class=n>pgarch_waken_stop</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=cm>/* Reset some signals that are accepted by postmaster but not here */</span>
+</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGCHLD</span><span class=p>,</span> <span class=n>SIG_DFL</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=n>PG_SETMASK</span><span class=p>(</span><span class=o>&amp;</span><span class=n>UnBlockSig</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>   * Identify myself via ps
+</span></span></span><span class=line><span class=cl><span class=cm>   */</span>
+</span></span><span class=line><span class=cl>  <span class=n>init_ps_display</span><span class=p>(</span><span class=s>&#34;archiver&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=n>pgarch_MainLoop</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=n>exit</span><span class=p>(</span><span class=mi>0</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>La méthode <code>pqsignal</code> prend en paramètre la valeur <code>enum</code> du signal ainsi qu&rsquo;un
 pointeur de fonction selon l&rsquo;événement que l&rsquo;on veut provoquer. Dans PostgreSQL,
 certains paramètres d&rsquo;instance sont dynamiques et doivent être réactualisés sans
 interrompre le processus, c&rsquo;est notamment le cas pour le processus <code>archiver</code>
 et son paramètre <code>archive_command</code> qui définit la méthode d&rsquo;archivage lorsqu&rsquo;un
-journal de transaction doit être archivé.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=c1>// src/backend/postmaster/interrupt.c
-</span><span class=c1></span><span class=cm>/*
-</span><span class=cm> * Simple signal handler for triggering a configuration reload.
-</span><span class=cm> *
-</span><span class=cm> * Normally, this handler would be used for SIGHUP. The idea is that code
-</span><span class=cm> * which uses it would arrange to check the ConfigReloadPending flag at
-</span><span class=cm> * convenient places inside main loops, or else call HandleMainLoopInterrupts.
-</span><span class=cm> */</span>
-<span class=kt>void</span>
-<span class=nf>SignalHandlerForConfigReload</span><span class=p>(</span><span class=n>SIGNAL_ARGS</span><span class=p>)</span>
-<span class=p>{</span>
-  <span class=kt>int</span>      <span class=n>save_errno</span> <span class=o>=</span> <span class=n>errno</span><span class=p>;</span>
-
-  <span class=n>ConfigReloadPending</span> <span class=o>=</span> <span class=nb>true</span><span class=p>;</span>
-  <span class=n>SetLatch</span><span class=p>(</span><span class=n>MyLatch</span><span class=p>);</span>
-
-  <span class=n>errno</span> <span class=o>=</span> <span class=n>save_errno</span><span class=p>;</span>
-<span class=p>}</span>
-</code></pre></div><p>Ainsi, lorsque le processus <code>archiver</code> reçoit un signal <code>SIGHUP</code>, il active le
+journal de transaction doit être archivé.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=c1>// src/backend/postmaster/interrupt.c
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm> * Simple signal handler for triggering a configuration reload.
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * Normally, this handler would be used for SIGHUP. The idea is that code
+</span></span></span><span class=line><span class=cl><span class=cm> * which uses it would arrange to check the ConfigReloadPending flag at
+</span></span></span><span class=line><span class=cl><span class=cm> * convenient places inside main loops, or else call HandleMainLoopInterrupts.
+</span></span></span><span class=line><span class=cl><span class=cm> */</span>
+</span></span><span class=line><span class=cl><span class=kt>void</span>
+</span></span><span class=line><span class=cl><span class=nf>SignalHandlerForConfigReload</span><span class=p>(</span><span class=n>SIGNAL_ARGS</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=kt>int</span>      <span class=n>save_errno</span> <span class=o>=</span> <span class=n>errno</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=n>ConfigReloadPending</span> <span class=o>=</span> <span class=nb>true</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=n>SetLatch</span><span class=p>(</span><span class=n>MyLatch</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=n>errno</span> <span class=o>=</span> <span class=n>save_errno</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>Ainsi, lorsque le processus <code>archiver</code> reçoit un signal <code>SIGHUP</code>, il active le
 <em>flag</em> <code>ConfigReloadPending</code> qui sera traité au sein de la boucle principale
 <code>pgarch_MainLoop()</code> et déclenchera la relecture du fichier de configuration avec
-la function <code>ProcessConfigFile()</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=c1>// src/backend/postmaster/pgarch.c
-</span><span class=c1></span><span class=cm>/*
-</span><span class=cm> * pgarch_MainLoop
-</span><span class=cm> *
-</span><span class=cm> * Main loop for archiver
-</span><span class=cm> */</span>
-<span class=k>static</span> <span class=kt>void</span>
-<span class=nf>pgarch_MainLoop</span><span class=p>(</span><span class=kt>void</span><span class=p>)</span>
-<span class=p>{</span>
-  <span class=p>...</span>
-  <span class=k>do</span>
-  <span class=p>{</span>
-    <span class=p>...</span>
-    <span class=cm>/* Check for config update */</span>
-    <span class=k>if</span> <span class=p>(</span><span class=n>ConfigReloadPending</span><span class=p>)</span>
-    <span class=p>{</span>
-      <span class=n>ConfigReloadPending</span> <span class=o>=</span> <span class=nb>false</span><span class=p>;</span>
-      <span class=n>ProcessConfigFile</span><span class=p>(</span><span class=n>PGC_SIGHUP</span><span class=p>);</span>
-    <span class=p>}</span>
-    <span class=p>...</span>
-  <span class=p>}</span> <span class=k>while</span> <span class=p>(</span><span class=o>!</span><span class=n>time_to_stop</span><span class=p>);</span>
-<span class=p>}</span>
-</code></pre></div><hr>
-<p>Les déclencheurs de signaux sont multiples et peuvent venir des propres enfants
+la function <code>ProcessConfigFile()</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=c1>// src/backend/postmaster/pgarch.c
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm> * pgarch_MainLoop
+</span></span></span><span class=line><span class=cl><span class=cm> *
+</span></span></span><span class=line><span class=cl><span class=cm> * Main loop for archiver
+</span></span></span><span class=line><span class=cl><span class=cm> */</span>
+</span></span><span class=line><span class=cl><span class=k>static</span> <span class=kt>void</span>
+</span></span><span class=line><span class=cl><span class=nf>pgarch_MainLoop</span><span class=p>(</span><span class=kt>void</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=p>...</span>
+</span></span><span class=line><span class=cl>  <span class=k>do</span>
+</span></span><span class=line><span class=cl>  <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=p>...</span>
+</span></span><span class=line><span class=cl>    <span class=cm>/* Check for config update */</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>ConfigReloadPending</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=p>{</span>
+</span></span><span class=line><span class=cl>      <span class=n>ConfigReloadPending</span> <span class=o>=</span> <span class=nb>false</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>      <span class=n>ProcessConfigFile</span><span class=p>(</span><span class=n>PGC_SIGHUP</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>...</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span> <span class=k>while</span> <span class=p>(</span><span class=o>!</span><span class=n>time_to_stop</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><hr><p>Les déclencheurs de signaux sont multiples et peuvent venir des propres enfants
 du <code>postmater</code> pour annoncer un événement ou un changement d&rsquo;état en usant
 principalement du signal <code>SIGUSR1</code>. Ces événements internes sont nécessaires pour
 coordonner les processus comme par exemple, demander au <code>walwriter</code> de changer
-de journal de transactions ou à l'<code>autovacuum launcher</code> de créer un nouveau
+de journal de transactions ou à l&rsquo;<code>autovacuum launcher</code> de créer un nouveau
 processus <code>autovacuum worker</code>.
 Les différents événements sont référencés par l&rsquo;énumération <code>PMSignalReason</code>
-décrite dans le fichier <code>src/include/storage/pmsignal.h</code>.</p>
-<p>L&rsquo;administrateur peut également provoquer ces signaux et ses effets mais inutile
+décrite dans le fichier <code>src/include/storage/pmsignal.h</code>.</p><p>L&rsquo;administrateur peut également provoquer ces signaux et ses effets mais inutile
 de préciser qu&rsquo;il est formellement déconseillé de passer par la commande <code>kill</code> !
 Préférez les outils <code>systemctl</code> ou <code>pg_ctl</code> pour recharger (<code>reload</code>) la
-configuration ou les <a href=https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL>fonctions SQL</a> prévues pour envoyer des signaux internes.</p>
-<div class=message>Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques
+configuration ou les <a href=https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL target=_blank rel=noopener>fonctions SQL</a> prévues pour envoyer des signaux internes.</p><div class=message>Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques
 toujours enrichissantes ! J&rsquo;espère que cet article vous a plu et que vous avez
 pris plaisir comme moi à parcourir quelques fichiers du code source du projet
-libre PostgreSQL !</div>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Écrire ses tests unitaires en SQL
-<small><time datetime=2020-05-14>14 mai 2020</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
-<small><time datetime=2021-07-16>16 juil 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/06/09/les-intervalles-de-valeurs/>Les intervalles de valeurs
-<small><time datetime=2021-06-09>9 juin 2021</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+libre PostgreSQL !</div></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Écrire ses tests unitaires en SQL
+<small><time datetime=2020-05-14>14 mai 2020</time></small></a></li><li><a href=https://fljd.in/2022/03/11/conversions-implicites/>Conversions implicites
+<small><time datetime=2022-03-11>11 mars 2022</time></small></a></li><li><a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
+<small><time datetime=2021-07-16>16 juil 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

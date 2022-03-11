@@ -1,282 +1,173 @@
-<!doctype html><html lang=fr>
-<head>
-<title>Comprendre les requêtes préparées</title>
-<link rel=stylesheet href=https://fljd.in/css/main.min.css>
-<link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png>
-<link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png>
-<link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png>
-<link rel=manifest href=/ico/site.webmanifest>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta charset=utf-8>
-</head>
-<body>
-<div class="container content">
-<header class=homepage>
-<h3 class=homepage-title>
-<a href=/ title="Florent Jardin">Florent Jardin</a>
-<small>
-<a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
-<a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a>
-<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
-<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a>
-</small>
-</h3>
-</header>
-<main>
-<article class=post>
-<h1 class=post-title>Comprendre les requêtes préparées</a></h1>
-<p class=post-date>
-<time datetime=2021-03-30>30 mars 2021</time>
-- 7 minutes de lecture
-</p><p>Les requêtes ou <a href=https://en.wikipedia.org/wiki/Prepared_statement>instructions préparées</a> sont un mécanisme proposé par la
+<!doctype html><html lang=fr><head><title>Comprendre les requêtes préparées</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Comprendre les requêtes préparées</a></h1><p class=post-date><time datetime=2021-03-30>30 mars 2021</time>
+- 7 minutes de lecture</p><p>Les requêtes ou <a href=https://en.wikipedia.org/wiki/Prepared_statement target=_blank rel=noopener>instructions préparées</a> sont un mécanisme proposé par la
 plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
 au précédent. On parle d&rsquo;un <em>template</em> de requête qu&rsquo;il est nécessaire de
 préparer avant d&rsquo;exécuter. Les principaux bénéfices que nous lui connaissons
-méritent un article afin de mieux comprendre leur implémentation.</p>
-<hr>
-<h2 id=parse-bind-execute>Parse-Bind-Execute</h2>
-<p>Au cours de sa vie, tout bon artisan du Web finit par découvrir les ravages
-des attaques par <a href=https://fr.wikipedia.org/wiki/Injection_SQL>injection SQL</a>, soit par la sagesse de leurs mentors, soit
+méritent un article afin de mieux comprendre leur implémentation.</p><hr><h2 id=parse-bind-execute>Parse-Bind-Execute</h2><p>Au cours de sa vie, tout bon artisan du Web finit par découvrir les ravages
+des attaques par <a href=https://fr.wikipedia.org/wiki/Injection_SQL target=_blank rel=noopener>injection SQL</a>, soit par la sagesse de leurs mentors, soit
 par la douloureuse expérience du terrain. Bien que les nombreuses couches
 d&rsquo;abstraction les rendent aujourd&rsquo;hui inopérantes grâce aux échappements ou à la
 validation des données en entrée, ces attaques sont encore possibles dès que la
-requête est écrite en pur SQL.</p>
-<p><img src=/img/fr/2021-03-30-exploits_of_a_mom.png alt="Exploit of a mom"></p>
-<p><em>Source : <a href=https://xkcd.com/327>https://xkcd.com/327</a></em></p>
-<p>L&rsquo;une des meilleures approches pour éviter ces attaques, repose sur la séparation
+requête est écrite en pur SQL.</p><p><img src=/img/fr/2021-03-30-exploits_of_a_mom.png alt="Exploit of a mom"></p><p><em>Source : <a href=https://xkcd.com/327 target=_blank rel=noopener>https://xkcd.com/327</a></em></p><p>L&rsquo;une des meilleures approches pour éviter ces attaques, repose sur la séparation
 des requêtes et de leurs paramètres au moment de leur exécution. L&rsquo;instruction,
 dite <strong>préparée</strong>, est ainsi intégralement analysée et le positionnement des valeurs
-est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à néant.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>PREPARE</span><span class=w> </span><span class=n>get_notation</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>text</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w>
-</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>exam</span><span class=p>,</span><span class=w> </span><span class=n>notation</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>students</span><span class=w>
-</span><span class=w>  </span><span class=k>WHERE</span><span class=w> </span><span class=n>lastname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>firstname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>2</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=k>EXECUTE</span><span class=w> </span><span class=n>get_notation</span><span class=p>(</span><span class=s1>&#39;Pattinson&#39;</span><span class=p>,</span><span class=w> </span><span class=err>$$</span><span class=n>Robert</span><span class=s1>&#39; ; DROP TABLE students;--$$);
-</span><span class=s1>-- (0 rows)
-</span></code></pre></div><p>L&rsquo;exemple précédent utilise les ordres SQL <code>PREPARE</code> et <code>EXECUTE</code> mais ce n&rsquo;est
+est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à néant.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>PREPARE</span><span class=w> </span><span class=n>get_notation</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>text</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>id</span><span class=p>,</span><span class=w> </span><span class=n>exam</span><span class=p>,</span><span class=w> </span><span class=n>notation</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>students</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>WHERE</span><span class=w> </span><span class=n>lastname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>firstname</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>2</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>EXECUTE</span><span class=w> </span><span class=n>get_notation</span><span class=p>(</span><span class=s1>&#39;Pattinson&#39;</span><span class=p>,</span><span class=w> </span><span class=err>$$</span><span class=n>Robert</span><span class=s1>&#39; ; DROP TABLE students;--$$);
+</span></span></span><span class=line><span class=cl><span class=s1>-- (0 rows)
+</span></span></span></code></pre></div><p>L&rsquo;exemple précédent utilise les ordres SQL <code>PREPARE</code> et <code>EXECUTE</code> mais ce n&rsquo;est
 pas la seule façon de déclarer une instruction préparée. En effet, il existe à
 ce sujet le sous-protocole <em>Extended Query</em> décrit dans la documentation sur les
-<a href=https://www.postgresql.org/docs/13/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY>flux de messages</a>. La communication client-serveur se découpe en trois
+<a href=https://www.postgresql.org/docs/13/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY target=_blank rel=noopener>flux de messages</a>. La communication client-serveur se découpe en trois
 messages afin de garantir la prise en compte des paramètres à inclure dans une
-instruction préparée, sans risque d&rsquo;injection.</p>
-<ul>
-<li><strong>Parse</strong> : l&rsquo;instruction SQL et éventuellement un nom et un typage pour les
-paramètres ;</li>
-<li><strong>Bind</strong> : les valeurs à positionner dans l&rsquo;instruction préparée donnée ;</li>
-<li><strong>Execute</strong> : déclenche la lecture du curseur ouvert sur le serveur.</li>
-</ul>
-<p>Il est donc de la responsabilité du pilote ou du connecteur fourni avec le
+instruction préparée, sans risque d&rsquo;injection.</p><ul><li><strong>Parse</strong> : l&rsquo;instruction SQL et éventuellement un nom et un typage pour les
+paramètres ;</li><li><strong>Bind</strong> : les valeurs à positionner dans l&rsquo;instruction préparée donnée ;</li><li><strong>Execute</strong> : déclenche la lecture du curseur ouvert sur le serveur.</li></ul><p>Il est donc de la responsabilité du pilote ou du connecteur fourni avec le
 langage ou le <em>framework</em> de son choix, de proposer les méthodes de communication
 qui s&rsquo;appuient sur le bon protocole étendu. En C et avec la <code>libpq</code> par exemple
-(<a href=https://www.postgresql.org/docs/13/libpq-exec.html>doc</a>), la déclaration d&rsquo;une instruction préparée se réalise avec la méthode
-<code>PQprepare</code> et l&rsquo;exécution avec <code>PQexecPrepared</code>.</p>
-<p>Côté serveur, si l&rsquo;on étend la verbosité des traces d&rsquo;activité avec les
+(<a href=https://www.postgresql.org/docs/13/libpq-exec.html target=_blank rel=noopener>doc</a>), la déclaration d&rsquo;une instruction préparée se réalise avec la méthode
+<code>PQprepare</code> et l&rsquo;exécution avec <code>PQexecPrepared</code>.</p><p>Côté serveur, si l&rsquo;on étend la verbosité des traces d&rsquo;activité avec les
 paramètres <code>log_parser_stats</code>, <code>log_planner_stats</code>, <code>log_executor_stats</code> et
 <code>log_min_duration_statement</code>, il est possible d&rsquo;identifier les étapes citées plus
-haut avec l&rsquo;exécution d&rsquo;une requête préparée par <code>pgbench</code>, nommée <code>P0_1</code>.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=c1>-- Message PARSE
-</span><span class=c1></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>PARSER</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
-</span><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>PARSE</span><span class=w> </span><span class=n>ANALYSIS</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
-</span><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>REWRITER</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
-</span><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>duration</span><span class=p>:</span><span class=w> </span><span class=mi>1</span><span class=p>.</span><span class=mi>284</span><span class=w> </span><span class=n>ms</span><span class=w>  
-</span><span class=w>      </span><span class=n>parse</span><span class=w> </span><span class=n>P0_1</span><span class=p>:</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>abalance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- Message BIND
-</span><span class=c1></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>PLANNER</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
-</span><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>duration</span><span class=p>:</span><span class=w> </span><span class=mi>1</span><span class=p>.</span><span class=mi>211</span><span class=w> </span><span class=n>ms</span><span class=w>  
-</span><span class=w>      </span><span class=n>bind</span><span class=w> </span><span class=n>P0_1</span><span class=p>:</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>abalance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=n>DETAIL</span><span class=p>:</span><span class=w>  </span><span class=k>parameters</span><span class=p>:</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;1600439&#39;</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>-- Message EXECUTE
-</span><span class=c1></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>EXECUTOR</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
-</span><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>duration</span><span class=p>:</span><span class=w> </span><span class=mi>4</span><span class=p>.</span><span class=mi>170</span><span class=w> </span><span class=n>ms</span><span class=w>  
-</span><span class=w>      </span><span class=k>execute</span><span class=w> </span><span class=n>P0_1</span><span class=p>:</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>abalance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=n>DETAIL</span><span class=p>:</span><span class=w>  </span><span class=k>parameters</span><span class=p>:</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;1600439&#39;</span><span class=w>
-</span></code></pre></div><h2 id=quand-un-plan-générique-se-déroule-sans-accroc>Quand un plan générique se déroule sans accroc</h2>
-<p>Cependant, la sécurité contre les injections n&rsquo;est pas mise en avant dans la
+haut avec l&rsquo;exécution d&rsquo;une requête préparée par <code>pgbench</code>, nommée <code>P0_1</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- Message PARSE
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>PARSER</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>PARSE</span><span class=w> </span><span class=n>ANALYSIS</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>REWRITER</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>duration</span><span class=p>:</span><span class=w> </span><span class=mi>1</span><span class=p>.</span><span class=mi>284</span><span class=w> </span><span class=n>ms</span><span class=w>  
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>parse</span><span class=w> </span><span class=n>P0_1</span><span class=p>:</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>abalance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Message BIND
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>PLANNER</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>duration</span><span class=p>:</span><span class=w> </span><span class=mi>1</span><span class=p>.</span><span class=mi>211</span><span class=w> </span><span class=n>ms</span><span class=w>  
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>bind</span><span class=w> </span><span class=n>P0_1</span><span class=p>:</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>abalance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>DETAIL</span><span class=p>:</span><span class=w>  </span><span class=k>parameters</span><span class=p>:</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;1600439&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Message EXECUTE
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>EXECUTOR</span><span class=w> </span><span class=k>STATISTICS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>LOG</span><span class=p>:</span><span class=w>  </span><span class=n>duration</span><span class=p>:</span><span class=w> </span><span class=mi>4</span><span class=p>.</span><span class=mi>170</span><span class=w> </span><span class=n>ms</span><span class=w>  
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=k>execute</span><span class=w> </span><span class=n>P0_1</span><span class=p>:</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=n>abalance</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>aid</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>DETAIL</span><span class=p>:</span><span class=w>  </span><span class=k>parameters</span><span class=p>:</span><span class=w> </span><span class=err>$</span><span class=mi>1</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;1600439&#39;</span><span class=w>
+</span></span></span></code></pre></div><h2 id=quand-un-plan-générique-se-déroule-sans-accroc>Quand un plan générique se déroule sans accroc</h2><p>Cependant, la sécurité contre les injections n&rsquo;est pas mise en avant dans la
 documentation de PostgreSQL au sujet de <code>PREPARE</code>. Et pour cause, depuis son
 implémentation dans la version 7.3, cette méthode repose sur des mécanismes
 profonds pour optimiser les performances d&rsquo;une requête lorsqu&rsquo;elle est exécutée
-un certain nombre de fois.</p>
-<blockquote>
-<p>Les instructions préparées sont principalement intéressantes quand une seule
+un certain nombre de fois.</p><blockquote><p>Les instructions préparées sont principalement intéressantes quand une seule
 session est utilisée pour exécuter un grand nombre d&rsquo;instructions similaires.
 La différence de performances est potentiellement significative si les
 instructions sont complexes à planifier ou à réécrire, par exemple, si la
 requête implique une jointure de plusieurs tables ou requiert l&rsquo;application de
 différentes règles. Si l&rsquo;instruction est relativement simple à planifier ou à
 réécrire mais assez coûteuse à exécuter, l&rsquo;avantage de performance des
-instructions préparées est moins net.</p>
-<p>Source : <a href=https://docs.postgresql.fr/13/sql-prepare.html>https://docs.postgresql.fr/13/sql-prepare.html</a></p>
-</blockquote>
-<p>Avec PostgreSQL, chaque requête passe par une <a href=https://www.postgresql.org/docs/13/query-path.html>succession d&rsquo;étapes</a> pour
+instructions préparées est moins net.</p><p>Source : <a href=https://docs.postgresql.fr/13/sql-prepare.html target=_blank rel=noopener>https://docs.postgresql.fr/13/sql-prepare.html</a></p></blockquote><p>Avec PostgreSQL, chaque requête passe par une <a href=https://www.postgresql.org/docs/13/query-path.html target=_blank rel=noopener>succession d&rsquo;étapes</a> pour
 obtenir le résultat final. Ce fonctionnement permet de qualifier la transformation
 d&rsquo;une étape à une autre en s&rsquo;assurant par ailleurs que la syntaxe est bonne ou
-qu&rsquo;un chemin optimisé puisse être emprunté.</p>
-<ul>
-<li>Le <em>parser</em> vérifie la syntaxe de l&rsquo;instruction, ouvre une transaction pour
-réaliser l&rsquo;analyse sémantique auprès des relations voulues ;</li>
-<li>Le <em>rewriter</em> réalise les transformations nécessaires en fonction des règles
-telle que la définition d&rsquo;une vue ou d&rsquo;une fonction ;</li>
-<li>Le <em>planner</em> (ou planificateur) sélectionne le plan d&rsquo;exécution le moins coûteux
-en fonction des régles d&rsquo;accès et des estimations connues ;</li>
-<li>L'<em>executor</em> suit les consignes du plan d&rsquo;exécution et consolide le résultat
-final à retourner au client.</li>
-</ul>
-<p>Les étapes d&rsquo;analyse d&rsquo;une instruction lors des messages <code>Parse</code> et <code>Bind</code> ont un
+qu&rsquo;un chemin optimisé puisse être emprunté.</p><ul><li>Le <em>parser</em> vérifie la syntaxe de l&rsquo;instruction, ouvre une transaction pour
+réaliser l&rsquo;analyse sémantique auprès des relations voulues ;</li><li>Le <em>rewriter</em> réalise les transformations nécessaires en fonction des règles
+telle que la définition d&rsquo;une vue ou d&rsquo;une fonction ;</li><li>Le <em>planner</em> (ou planificateur) sélectionne le plan d&rsquo;exécution le moins coûteux
+en fonction des régles d&rsquo;accès et des estimations connues ;</li><li>L&rsquo;<em>executor</em> suit les consignes du plan d&rsquo;exécution et consolide le résultat
+final à retourner au client.</li></ul><p>Les étapes d&rsquo;analyse d&rsquo;une instruction lors des messages <code>Parse</code> et <code>Bind</code> ont un
 coût : il est nécessaire de valider la syntaxe, réécrire les jointures si besoin
 et surtout, construire le plan d&rsquo;exécution. Par défaut, une série de plans sera
 construit avant que le moteur n&rsquo;en retienne qu&rsquo;un seul dont le coût est bon
 compromis avec la moyenne des cinq premiers. Ce plan devient le <strong>plan générique</strong>
 et sera réutilisé au sein de la même session pour toutes les exécutions de
-l&rsquo;instruction préparée.</p>
-<p>L&rsquo;utilisation de ce plan d&rsquo;exécution unique devient la clé pour économiser
+l&rsquo;instruction préparée.</p><p>L&rsquo;utilisation de ce plan d&rsquo;exécution unique devient la clé pour économiser
 quelques précieuses millisecondes d&rsquo;analyse à chaque nouveau message <code>Execute</code>.
 Si je reprends l&rsquo;exemple de Bobby et de la table <code>students</code>, on observe un gain
 significatif au bout de la cinquième ou sixième exécution avec un temps de
-planification (<em>Planning Time</em>) quasi-nul.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=k>EXPLAIN</span><span class=w> </span><span class=p>(</span><span class=k>ANALYZE</span><span class=p>)</span><span class=w> 
-</span><span class=w></span><span class=k>EXECUTE</span><span class=w> </span><span class=n>get_notation</span><span class=p>(</span><span class=s1>&#39;Pattinson&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;Robert&#39;</span><span class=p>);</span><span class=w>
-</span><span class=w>
-</span><span class=w></span><span class=c1>--                                 QUERY PLAN
-</span><span class=c1>-- -------------------------------------------------------------------------------
-</span><span class=c1>--  Index Scan using students_lastname_firstname_idx on students  
-</span><span class=c1>--    (cost=0.29..6.06 rows=1 width=13) (actual time=0.027..0.029 rows=1 loops=1)
-</span><span class=c1>--    Index Cond: ((lastname = &#39;Pattinson&#39;::text) AND (firstname = &#39;Robert&#39;::text))
-</span><span class=c1>--  Planning Time: 0.235 ms
-</span><span class=c1>--  Execution Time: 0.071 ms
-</span><span class=c1>--  ...
-</span><span class=c1>--  Planning Time: 0.225 ms
-</span><span class=c1>--  Execution Time: 0.090 ms
-</span><span class=c1>--  ...
-</span><span class=c1>--  Planning Time: 0.323 ms
-</span><span class=c1>--  Execution Time: 0.081 ms
-</span><span class=c1>--  ...
-</span><span class=c1>--  Planning Time: 0.249 ms
-</span><span class=c1>--  Execution Time: 0.074 ms
-</span><span class=c1>--  ...
-</span><span class=c1>--  Planning Time: 0.218 ms
-</span><span class=c1>--  Execution Time: 0.068 ms
-</span><span class=c1>--  ...
-</span><span class=c1>--  Planning Time: 0.232 ms
-</span><span class=c1>--  Execution Time: 0.068 ms
-</span><span class=c1>--  ...
-</span><span class=c1>--  Planning Time: 0.040 ms
-</span><span class=c1>--  Execution Time: 0.091 ms
-</span><span class=c1>--  ...
-</span><span class=c1>--  Planning Time: 0.036 ms
-</span><span class=c1>--  Execution Time: 0.089 ms
-</span></code></pre></div><p>Depuis la version 12 de PostgreSQL, il est possible de changer le comportement
+planification (<em>Planning Time</em>) quasi-nul.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>EXPLAIN</span><span class=w> </span><span class=p>(</span><span class=k>ANALYZE</span><span class=p>)</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>EXECUTE</span><span class=w> </span><span class=n>get_notation</span><span class=p>(</span><span class=s1>&#39;Pattinson&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;Robert&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--                                 QUERY PLAN
+</span></span></span><span class=line><span class=cl><span class=c1>-- -------------------------------------------------------------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>--  Index Scan using students_lastname_firstname_idx on students  
+</span></span></span><span class=line><span class=cl><span class=c1>--    (cost=0.29..6.06 rows=1 width=13) (actual time=0.027..0.029 rows=1 loops=1)
+</span></span></span><span class=line><span class=cl><span class=c1>--    Index Cond: ((lastname = &#39;Pattinson&#39;::text) AND (firstname = &#39;Robert&#39;::text))
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.235 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.071 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  ...
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.225 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.090 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  ...
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.323 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.081 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  ...
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.249 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.074 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  ...
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.218 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.068 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  ...
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.232 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.068 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  ...
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.040 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.091 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  ...
+</span></span></span><span class=line><span class=cl><span class=c1>--  Planning Time: 0.036 ms
+</span></span></span><span class=line><span class=cl><span class=c1>--  Execution Time: 0.089 ms
+</span></span></span></code></pre></div><p>Depuis la version 12 de PostgreSQL, il est possible de changer le comportement
 du moteur avec le paramètre <code>plan_cache_mode</code> en forçant l&rsquo;utilisation du plan
 générique dès la deuxième exécution (<code>force_generic_plan</code>) ou ne pas l&rsquo;utiliser
-du tout (<code>force_custom_plan</code>).</p>
-<hr>
-<h2 id=les-dessous-du-temps-de-réponse>Les dessous du temps de réponse</h2>
-<p>Pour se convaincre des bénéfices qu&rsquo;engendre l&rsquo;utilisation des instructions préparées,
+du tout (<code>force_custom_plan</code>).</p><hr><h2 id=les-dessous-du-temps-de-réponse>Les dessous du temps de réponse</h2><p>Pour se convaincre des bénéfices qu&rsquo;engendre l&rsquo;utilisation des instructions préparées,
 j&rsquo;ai souhaité étudier le comportement d&rsquo;une même requête <code>SELECT</code> sur la table
 <code>pgbench_accounts</code>. L&rsquo;outil <code>pgbench</code> fourni avec le projet PostgreSQL permet de
-générer une variété de requêtes sur un modèle de données générique.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=nb>export</span> <span class=nv>PGDATABASE</span><span class=o>=</span>pgbench
-pgbench --initialize --scale<span class=o>=</span><span class=m>100</span>
-</code></pre></div><p>La table contient 10 millions de lignes et dispose d&rsquo;une clé primaire sur laquelle
+générer une variété de requêtes sur un modèle de données générique.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PGDATABASE</span><span class=o>=</span>pgbench
+</span></span><span class=line><span class=cl>pgbench --initialize --scale<span class=o>=</span><span class=m>100</span>
+</span></span></code></pre></div><p>La table contient 10 millions de lignes et dispose d&rsquo;une clé primaire sur laquelle
 nous estimerons qu&rsquo;une grande partie des requêtes réalisera ses lectures.
 J&rsquo;active également les paramètres pour tracer les statistiques de chacune des
 étapes citées plus haut, afin d&rsquo;en savoir plus sur leur durée respective et la
-répartition du temps de travail entre elles.</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;-c client_min_messages=log&#34;</span>
-<span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$PGOPTIONS</span><span class=s2> -c log_parser_stats=on&#34;</span>
-<span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$PGOPTIONS</span><span class=s2> -c log_planner_stats=on&#34;</span>
-<span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$PGOPTIONS</span><span class=s2> -c log_executor_stats=on&#34;</span>
-<span class=nb>export</span> PGOPTIONS
-</code></pre></div><p>Ces informations statistiques de l&rsquo;ensemble des requêtes de <code>pgbench</code> sont
+répartition du temps de travail entre elles.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;-c client_min_messages=log&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$PGOPTIONS</span><span class=s2> -c log_parser_stats=on&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$PGOPTIONS</span><span class=s2> -c log_planner_stats=on&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>PGOPTIONS</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$PGOPTIONS</span><span class=s2> -c log_executor_stats=on&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>export</span> PGOPTIONS
+</span></span></code></pre></div><p>Ces informations statistiques de l&rsquo;ensemble des requêtes de <code>pgbench</code> sont
 redirigées de la sortie d&rsquo;erreurs vers une routine <code>awk</code> qui agrège les temps
 de traitement. Dans cette démonstration, le paramètre <code>plan_cache_mode</code> est
-positionné sur <code>auto</code>, sa valeur par défaut.</p>
-<ul>
-<li>Exécution sans préparation</li>
-</ul>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pgbench --protocol<span class=o>=</span>simple --select-only --transactions<span class=o>=</span><span class=m>10000</span> <span class=se>\
-</span><span class=se></span>2&gt;<span class=p>&amp;</span><span class=m>1</span> &gt;/dev/null <span class=p>|</span> awk <span class=s1>&#39;
-</span><span class=s1>  /STATISTICS/ { $1=&#34;&#34; ; k=$0 }
-</span><span class=s1>  /elapsed/ { stats[k]+=$8 ; count[k]+=1 ; total+=$8 }
-</span><span class=s1>  END { for (s in stats) printf &#34;%s: %1.3f ms\n&#34;, s, stats[s]*1000 }
-</span><span class=s1>  END { printf &#34; -- TOTAL: %1.3f ms\n&#34;, total*1000 }&#39;</span>
-</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> EXECUTOR STATISTICS: 163.910 ms
- PARSE ANALYSIS STATISTICS: 57.493 ms
- PLANNER STATISTICS: 163.451 ms
- PARSER STATISTICS: 37.018 ms
- REWRITER STATISTICS: 13.753 ms
- -- TOTAL: 435.625 ms
-</code></pre></div><ul>
-<li>Exécution avec préparation</li>
-</ul>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh>pgbench --protocol<span class=o>=</span>prepared --select-only --transactions<span class=o>=</span><span class=m>10000</span> <span class=se>\
-</span><span class=se></span>2&gt;<span class=p>&amp;</span><span class=m>1</span> &gt;/dev/null <span class=p>|</span> awk <span class=s1>&#39;
-</span><span class=s1>  /STATISTICS/ { $1=&#34;&#34; ; k=$0 }
-</span><span class=s1>  /elapsed/ { stats[k]+=$8 ; count[k]+=1 ; total+=$8 }
-</span><span class=s1>  END { for (s in stats) printf &#34;%s: %1.3f ms\n&#34;, s, stats[s]*1000 }
-</span><span class=s1>  END { printf &#34; -- TOTAL: %1.3f ms\n&#34;, total*1000 }&#39;</span>
-</code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text> EXECUTOR STATISTICS: 157.778 ms
- PARSE ANALYSIS STATISTICS: 0.746 ms
- PLANNER STATISTICS: 1.146 ms
- PARSER STATISTICS: 0.129 ms
- REWRITER STATISTICS: 0.031 ms
- -- TOTAL: 159.830 ms
-</code></pre></div><p>Rapporté à une exécution unitaire, la répartition des temps de traitement entre
+positionné sur <code>auto</code>, sa valeur par défaut.</p><ul><li>Exécution sans préparation</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pgbench --protocol<span class=o>=</span>simple --select-only --transactions<span class=o>=</span><span class=m>10000</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>2&gt;<span class=p>&amp;</span><span class=m>1</span> &gt;/dev/null <span class=p>|</span> awk <span class=s1>&#39;
+</span></span></span><span class=line><span class=cl><span class=s1>  /STATISTICS/ { $1=&#34;&#34; ; k=$0 }
+</span></span></span><span class=line><span class=cl><span class=s1>  /elapsed/ { stats[k]+=$8 ; count[k]+=1 ; total+=$8 }
+</span></span></span><span class=line><span class=cl><span class=s1>  END { for (s in stats) printf &#34;%s: %1.3f ms\n&#34;, s, stats[s]*1000 }
+</span></span></span><span class=line><span class=cl><span class=s1>  END { printf &#34; -- TOTAL: %1.3f ms\n&#34;, total*1000 }&#39;</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> EXECUTOR STATISTICS: 163.910 ms
+</span></span><span class=line><span class=cl> PARSE ANALYSIS STATISTICS: 57.493 ms
+</span></span><span class=line><span class=cl> PLANNER STATISTICS: 163.451 ms
+</span></span><span class=line><span class=cl> PARSER STATISTICS: 37.018 ms
+</span></span><span class=line><span class=cl> REWRITER STATISTICS: 13.753 ms
+</span></span><span class=line><span class=cl> -- TOTAL: 435.625 ms
+</span></span></code></pre></div><ul><li>Exécution avec préparation</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pgbench --protocol<span class=o>=</span>prepared --select-only --transactions<span class=o>=</span><span class=m>10000</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>2&gt;<span class=p>&amp;</span><span class=m>1</span> &gt;/dev/null <span class=p>|</span> awk <span class=s1>&#39;
+</span></span></span><span class=line><span class=cl><span class=s1>  /STATISTICS/ { $1=&#34;&#34; ; k=$0 }
+</span></span></span><span class=line><span class=cl><span class=s1>  /elapsed/ { stats[k]+=$8 ; count[k]+=1 ; total+=$8 }
+</span></span></span><span class=line><span class=cl><span class=s1>  END { for (s in stats) printf &#34;%s: %1.3f ms\n&#34;, s, stats[s]*1000 }
+</span></span></span><span class=line><span class=cl><span class=s1>  END { printf &#34; -- TOTAL: %1.3f ms\n&#34;, total*1000 }&#39;</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> EXECUTOR STATISTICS: 157.778 ms
+</span></span><span class=line><span class=cl> PARSE ANALYSIS STATISTICS: 0.746 ms
+</span></span><span class=line><span class=cl> PLANNER STATISTICS: 1.146 ms
+</span></span><span class=line><span class=cl> PARSER STATISTICS: 0.129 ms
+</span></span><span class=line><span class=cl> REWRITER STATISTICS: 0.031 ms
+</span></span><span class=line><span class=cl> -- TOTAL: 159.830 ms
+</span></span></code></pre></div><p>Rapporté à une exécution unitaire, la répartition des temps de traitement entre
 les phases de préparation et d&rsquo;exécution est sans surprise. Alors que le temps
 de préparation (<em>Parse, Rewrite, Plan</em>) est supérieur au temps d&rsquo;exécution pour des instructions non
 préparées, il s&rsquo;annule intégralement sur un volume de plusieurs milliers de
-requêtes exécutées dans la même session avec l&rsquo;utilisation d&rsquo;un plan générique.</p>
-<p><img src=/img/fr/2021-03-30-repartition-temps-de-reponse.png alt="Répartition des temps d&rsquo;exécution"></p>
-<div class=message>Le graphique ci-dessus reprend les temps moyens de chaque étape d&rsquo;une requête
+requêtes exécutées dans la même session avec l&rsquo;utilisation d&rsquo;un plan générique.</p><p><img src=/img/fr/2021-03-30-repartition-temps-de-reponse.png alt="Répartition des temps d&amp;rsquo;exécution"></p><div class=message>Le graphique ci-dessus reprend les temps moyens de chaque étape d&rsquo;une requête
 unitaire à l&rsquo;issue d&rsquo;une vingtaine de traitements <code>pgbench</code> pour 10 000
-transactions.</div>
-<hr>
-<h2 id=pour-aller-plus-loin>Pour aller plus loin</h2>
-<p>Que ce soit pour se protéger des injections ou pour atteindre de hautes
+transactions.</div><hr><h2 id=pour-aller-plus-loin>Pour aller plus loin</h2><p>Que ce soit pour se protéger des injections ou pour atteindre de hautes
 performances, j&rsquo;ai voulu montrer dans cet article qu&rsquo;il pouvait être bénéfique
 de préparer ses requêtes, d&rsquo;autant plus si votre librairie préférée le supporte.
 Si vous êtes à la recherche de temps de réponse les plus faibles possibles,
-posez-vous les questions suivantes :</p>
-<ul>
-<li>Mes requêtes ont-elles fréquemment la même forme ?</li>
-<li>Leurs plans d&rsquo;exécution sont-ils relativement bien optimisés ?</li>
-<li>Mon application gère-t-elle la persistance des connexions ?</li>
-</ul>
-<p>Si vous rentrez dans ces cases, vous gagnerez de précieuses millisecondes avec
+posez-vous les questions suivantes :</p><ul><li>Mes requêtes ont-elles fréquemment la même forme ?</li><li>Leurs plans d&rsquo;exécution sont-ils relativement bien optimisés ?</li><li>Mon application gère-t-elle la persistance des connexions ?</li></ul><p>Si vous rentrez dans ces cases, vous gagnerez de précieuses millisecondes avec
 un plan générique au sein d&rsquo;une même session. Dans le cas où la persistance des
 connexions n&rsquo;est pas votre fort, il est possible de coupler <a href=/2020/08/21/tour-d-horizon-de-pgbouncer>PgBouncer</a> avec
-l&rsquo;extension <a href=https://github.com/dimitri/preprepare>preprepare</a> pour définir un ensemble d&rsquo;instructions préparées dès
-l&rsquo;ouverture de la session.</p>
-</article>
-<aside class=related>
-<h3>Suggestion d'articles</h3>
-<ul class=related-posts>
-<li>
-<a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
-<small><time datetime=2021-07-16>16 juil 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/06/09/les-intervalles-de-valeurs/>Les intervalles de valeurs
-<small><time datetime=2021-06-09>9 juin 2021</time></small>
-</a>
-</li>
-<li>
-<a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
-<small><time datetime=2021-04-23>23 avr 2021</time></small>
-</a>
-</li>
-</ul>
-</aside>
-</main>
-<footer class=footer>
-<small>
-&copy; 2019-<time datetime=2021-12-22>2021</time>
-— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a>
-</small>
-</footer>
-</div>
-</body>
-</html>
+l&rsquo;extension <a href=https://github.com/dimitri/preprepare target=_blank rel=noopener>preprepare</a> pour définir un ensemble d&rsquo;instructions préparées dès
+l&rsquo;ouverture de la session.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
+<small><time datetime=2021-07-16>16 juil 2021</time></small></a></li><li><a href=https://fljd.in/2021/06/09/les-intervalles-de-valeurs/>Les intervalles de valeurs
+<small><time datetime=2021-06-09>9 juin 2021</time></small></a></li><li><a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
+<small><time datetime=2021-04-23>23 avr 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-03-11>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
