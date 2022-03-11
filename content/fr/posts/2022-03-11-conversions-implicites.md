@@ -1,5 +1,5 @@
 ---
-title: "Les conversions implicites"
+title: "Conversions implicites"
 categories: [postgresql]
 tags: [developpement]
 date: 2022-03-11
@@ -203,10 +203,9 @@ C'est avec ce phénomène en tête que je peux vous parler des _Large Objects_ 
 
 À l'instar du [mécanisme de _toasting_][9] permettant le débordement d'une donnée 
 supérieure à 8 ko dans un fichier dédié, les _Large Objects_ sont centralisées
-dans une table système nommée `pg_largeobject`. Leurs avantages peuvent être
-multiples (_streaming_ binaire, stockage au-delà de 1 Go) et peuvent justifier
-leur utilisation en lieu et place des types plus standards, comme `text` ou
-`bytea`.
+dans une table système nommée `pg_largeobject`. Des besoins comme le _streaming_
+binaire ou le stockage au-delà de 1 Go, peuvent justifier leur utilisation en
+lieu et place des types plus standards, comme `text` ou `bytea`.
 
 [9]: /2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/
 
