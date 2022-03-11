@@ -70,7 +70,7 @@ SELECT substr(current_date::text, 1, 4) AS "year";
 SELECT position(5 IN '1234567890') = '5' AS "5";
 -- ERROR: function pg_catalog.position(unknown, integer) does not exist
 --> devient
-SELECT position('5' IN '1234567890') = '5' AS "5";
+SELECT position(CAST(5 AS text) IN '1234567890') = '5' AS "5";
 ```
 
 L'exemple ci-après est inspiré des [tests de regression][4], mettant en jeu deux
@@ -129,7 +129,7 @@ Une fois encore, la correction la plus appropriée serait d'épurer l'expression
 booléenne avec uniquement la clause `WHERE is_online`. Pour celles et ceux qui
 ne peuvent (ou ne veulent) pas procéder à la réécriture, Sim Zacks proposait sur
 la [liste pgsql-general][6] un contournement au niveau des opérateurs dans
-PostgreSQL. Dans la version ci-dessus, je m'appuie sur la fonction native `bool()`
+PostgreSQL. Dans la version ci-dessous, je m'appuie sur la fonction native `bool()`
 pour déterminer la correspondance booléenne d'un entier.
 
 [6]: https://www.postgresql.org/message-id/do4dpl%242f6t%241%40news.hub.org
@@ -158,9 +158,9 @@ SELECT id, name FROM visitor WHERE is_online = -1;
 
 Une donnée `oid` ([doc][7]) est depuis peu, un type exclusivement réservé au
 fonctionnement interne du catalogue PostgreSQL. Il s'agit très simplement d'un
-entier encodé sur 4 bits, exactement comme le type `int4` ou `integer`. Et là
+entier encodé sur 4 octets, exactement comme le type `int4` ou `integer`. Et là
 où la conversion implicite nous empêchait de trouver une correspondance entre une
-chaîne de caractère et un entier, le type `oid` se comporte bien différement.
+chaîne de caractère et un entier, le type `oid` se comporte bien différemment.
 
 [7]: https://www.postgresql.org/docs/14/datatype-oid.html
 
@@ -174,7 +174,7 @@ INSERT INTO test VALUES (10000, 10000);
 ```
 
 La conversion inverse ne sera pas possible pour le type `text`, comme expliqué
-plus haut avec une implémentation plus robuste introduit en version 8.3. 
+plus haut avec une implémentation plus robuste introduite en version 8.3. 
 Cependant, rien n'interdira l'opération inverse pour le type `oid` vers `integer`.
 
 ```sql
@@ -227,9 +227,9 @@ INSERT INTO wallet VALUES (
 -- INSERT 0 1
 ```
 
-La consultation du fichier sera permise qu'à travers des méthodes dédiées, telle
-que `lo_get()`. Dans l'exemple ci-dessous, je consulte les 10 premiers octets du
-fichier PDF pour m'assurer de son existence dans la base de données.
+La consultation du fichier ne sera permise qu'à travers des méthodes dédiées, 
+telle que `lo_get()`. Dans l'exemple ci-dessous, je consulte les 10 premiers 
+octets du fichier PDF pour m'assurer de son existence dans la base de données.
 
 ```sql
 SELECT content, lo_get(content, 0, 10) FROM wallet;
@@ -256,7 +256,7 @@ SELECT content, lo_get(content, 0, 10) FROM wallet;
 Puisque le type `oid` est coercible binairement avec le type `integer`, nous 
 n'observons pas d'erreur de conversion ni lors du changement du type de la colonne
 ni lors de l'appel `lo_get()`. À partir de cet instant, les choses deviennent
-dangereuses pour le rapport du GIEC, par ignorance, un administrateur soucieux
+dangereuses pour le rapport du GIEC : par ignorance, un administrateur soucieux
 des données larges orphelines décide de déclencher la commande `vacuumlo` 
 ([doc][11]) :
 
@@ -270,8 +270,8 @@ Successfully removed 1 large objects from database "demo".
 
 Une donnée orpheline est considérée comme telle dès que son OID n'apparaît dans
 aucune colonne `oid` de la base de données. Or, avec la modification du type de
-la colonne `content`, tous les documents stockés dans la table `pg_largeobject`
-sont nettoyés automatiquement, détruits à jamais.
+la colonne `content`, tous les documents de la table `wallet` sont supprimés 
+automatiquement de table `pg_largeobject`, détruits à jamais.
 
 ```sql
 SELECT content, lo_get(content, 0, 10) FROM wallet;
