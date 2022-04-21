@@ -1,4 +1,12 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>developpement on Carnet de découvertes</title><link>https://fljd.in/tags/developpement/</link><description>Recent content in developpement on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 11 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml"/><item><title>Conversions implicites</title><link>https://fljd.in/2022/03/11/conversions-implicites/</link><pubDate>Fri, 11 Mar 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/03/11/conversions-implicites/</guid><description>&lt;p>À l&amp;rsquo;image d&amp;rsquo;un langage de programmation classique, le SQL manipule des données
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>developpement on Carnet de découvertes</title><link>https://fljd.in/tags/developpement/</link><description>Recent content in developpement on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 21 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml"/><item><title>Halte aux régressions</title><link>https://fljd.in/2022/04/21/halte-aux-regressions/</link><pubDate>Thu, 21 Apr 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/04/21/halte-aux-regressions/</guid><description>&lt;p>Pour garantir la qualité du code d&amp;rsquo;un logiciel, rien de mieux que la validation
+par les tests. Ces derniers peuvent être de différentes natures (fonctionnels,
+intégration, unitaires, performance, etc.) et permettent de respecter une série
+d&amp;rsquo;exigences que s&amp;rsquo;imposent les développeurs pour maintenir et faire évoluer ledit
+logiciel dans la bonne direction.&lt;/p>
+&lt;p>Dans cet article, je souhaite explorer le système de tests tel qu&amp;rsquo;il est (et
+a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d&amp;rsquo;une
+extension communautaire. Si vous ne connaissiez pas l&amp;rsquo;outil &lt;code>pg_regress&lt;/code>, il
+n&amp;rsquo;aura plus de secret pour vous !&lt;/p></description></item><item><title>Conversions implicites</title><link>https://fljd.in/2022/03/11/conversions-implicites/</link><pubDate>Fri, 11 Mar 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/03/11/conversions-implicites/</guid><description>&lt;p>À l&amp;rsquo;image d&amp;rsquo;un langage de programmation classique, le SQL manipule des données
 typées, comme les chaînes de caractères, les dates ou des entiers numériques.
 Les opérations de transformations ou de comparaison diffèrent en fonction du
 type de données ; il ne sera pas possible de comparer le caractère &lt;code>A&lt;/code> avec le
@@ -20,12 +28,4 @@ très originale qu&amp;rsquo;en a fait PostgreSQL avec les types d&amp;rsquo;int
 plupart des moteurs de bases de données afin de réexécuter un ordre SQL semblable
 au précédent. On parle d&amp;rsquo;un &lt;em>template&lt;/em> de requête qu&amp;rsquo;il est nécessaire de
 préparer avant d&amp;rsquo;exécuter. Les principaux bénéfices que nous lui connaissons
-méritent un article afin de mieux comprendre leur implémentation.&lt;/p></description></item><item><title>Écrire ses tests unitaires en SQL</title><link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link><pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid><description>&lt;p>Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
-réalité, ce n&amp;rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
-curiosité m&amp;rsquo;a mené à découvrir bien tardivement la mouvance &lt;a href="https://fr.wikipedia.org/wiki/Test_driven_development" target="_blank" rel="noopener">TDD&lt;/a> dans la
-conception logicielle et la rigueur d&amp;rsquo;écrire chaque test avant l&amp;rsquo;implémentation
-d&amp;rsquo;une fonctionnalité.&lt;/p>
-&lt;p>Ce fut par hasard et avec grand étonnement, que je suis tombé sur l&amp;rsquo;extension
-&lt;a href="https://pgtap.org/" target="_blank" rel="noopener">pgTAP&lt;/a> il y a plusieurs mois, et l&amp;rsquo;idée de la mettre en application sur une
-instance PostgreSQL me hantait. Je vous propose dans cet article d&amp;rsquo;aborder ce
-&lt;em>framework&lt;/em> de tests avec un cas d&amp;rsquo;usage amusant.&lt;/p></description></item></channel></rss>
+méritent un article afin de mieux comprendre leur implémentation.&lt;/p></description></item></channel></rss>

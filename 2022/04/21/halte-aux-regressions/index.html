@@ -1,0 +1,140 @@
+<!doctype html><html lang=fr><head><title>Halte aux régressions</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Halte aux régressions</a></h1><p class=post-date><time datetime=2022-04-21>21 avr 2022</time>
+- 5 minutes de lecture</p><p>Pour garantir la qualité du code d&rsquo;un logiciel, rien de mieux que la validation
+par les tests. Ces derniers peuvent être de différentes natures (fonctionnels,
+intégration, unitaires, performance, etc.) et permettent de respecter une série
+d&rsquo;exigences que s&rsquo;imposent les développeurs pour maintenir et faire évoluer ledit
+logiciel dans la bonne direction.</p><p>Dans cet article, je souhaite explorer le système de tests tel qu&rsquo;il est (et
+a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d&rsquo;une
+extension communautaire. Si vous ne connaissiez pas l&rsquo;outil <code>pg_regress</code>, il
+n&rsquo;aura plus de secret pour vous !</p><hr><h2 id=aux-origines-des-tests-de-régression>Aux origines des tests de régression</h2><p>Avant même l&rsquo;émergence du plus avancé des systèmes de bases de données open-source
+du monde que l&rsquo;on connait, le projet Berkeley <a href=https://dsf.berkeley.edu/postgres-v4r2/ target=_blank rel=noopener>POSTGRES</a> disposait déjà d&rsquo;un
+répertoire <code>src/regress/regress</code> dans sa dernière version connue. Celui-ci fut
+définitivement adopté sous la forme de <code>src/test/regress</code> lors de la reprise du
+projet Postgre95 par les <a href=https://www.postgresql.org/docs/14/history.html target=_blank rel=noopener>deux étudiants</a> Andrew Yu et Jolly Chen.</p><p>Ce n&rsquo;est pas anodin, car ce répertoire existe encore dans les versions modernes
+et porte toujours les mêmes responsabilités, à savoir : s&rsquo;assurer que les
+fonctionnalités de PostgreSQL ne présentent aucune régression à chaque patch ou
+nouvelle version majeure. Ce système de test est relativement simple à
+appréhender et très répandu dans le milieu du développement des logiciels libres.</p><p>Il repose sur les fichiers de tests au format SQL et des fichiers de sorties au
+format OUT. L&rsquo;astuce consiste à exécuter le code SQL sur une instance en cours
+d&rsquo;exécution et de capter la sortie standard dans un fichier de résultat. Pour
+chaque test (<code>sql</code>), le fichier de résultat (<code>result</code>) est ensuite comparé au
+résultat attendu du test (<code>expected</code>) à l&rsquo;aide de la méthode <code>diff</code>.</p><p><img src=/img/fr/2022-04-21-regress-path.png alt="Fonctionnement du système de tests"></p><p>Ce traitement est réalisé depuis la version 7.1 par l&rsquo;utilitaire <code>pg_regress.sh</code>.
+À l&rsquo;origine, ce dernier était un <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/test/regress/pg_regress.sh;h=323035f0947d44b8102af1afd0d453846cd1073d;hb=6f64c2e54a0b14154a335249f4dca91a39c61c50" target=_blank rel=noopener>simple script shell</a> responsable de monter
+une instance PostgreSQL temporaire au besoin, de rapprocher les fichiers SQL de
+leurs résultats OUT et de fournir un résumé des tests. Le script fut intégralement
+<a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=a38c85bd5d928115fdd22c9e28e0a7eeebc9878e" target=_blank rel=noopener>remplacé</a> par son équivalent <code>pg_regress</code> réécrit en C à la sortie de la
+version 8.2, pour faciliter notamment :</p><ul><li>La validation des tests sur un environnement Windows sans émulateur de shell
+tel que <code>mingw</code></li><li>La mise à disposition d&rsquo;un outil prêt à l&rsquo;emploi avec l&rsquo;installation de PostgreSQL,
+sans les dépendances systèmes requises par l&rsquo;ancien script</li><li>L&rsquo;implémentation de nouvelles améliorations comme l&rsquo;exécution concurrente des
+tests ou un résultat plus conviviale</li></ul><p>Lors d&rsquo;une compilation des binaires d&rsquo;une version quelconque de PostgreSQL, il
+est possible de valider tout ou partie des fonctionnalités à l&rsquo;aide de la commande
+<code>make check</code> ou <code>make installcheck</code>. La première des deux commandes créée une
+instance temporaire alors que la seconde va exécuter les tests sur une instance
+en cours d&rsquo;exécution.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>make check
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nv>PATH</span><span class=o>=</span><span class=s2>&#34;tmp_install/var/lib/pgsql-14.2/bin:src/test/regress:</span><span class=nv>$PATH</span><span class=s2>&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span><span class=nv>LD_LIBRARY_PATH</span><span class=o>=</span><span class=s2>&#34;tmp_install/var/lib/pgsql-14.2/lib:</span><span class=nv>$LD_LIBRARY_PATH</span><span class=s2>&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>../../../src/test/regress/pg_regress <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --temp-instance<span class=o>=</span>./tmp_check <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --inputdir<span class=o>=</span>. --bindir<span class=o>=</span> --dlpath<span class=o>=</span>. <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --max-concurrent-tests<span class=o>=</span><span class=m>20</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --make-testtablespace-dir <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  --schedule<span class=o>=</span>./parallel_schedule
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>============== removing existing temp instance        ==============
+</span></span><span class=line><span class=cl>============== creating temporary instance            ==============
+</span></span><span class=line><span class=cl>============== initializing database system           ==============
+</span></span><span class=line><span class=cl>============== starting postmaster                    ==============
+</span></span><span class=line><span class=cl>running on port 58082 with PID 24013
+</span></span><span class=line><span class=cl>============== creating database &#34;regression&#34;         ==============
+</span></span><span class=line><span class=cl>CREATE DATABASE
+</span></span><span class=line><span class=cl>ALTER DATABASE
+</span></span><span class=line><span class=cl>============== running regression test queries        ==============
+</span></span><span class=line><span class=cl>test tablespace                   ... ok          165 ms
+</span></span><span class=line><span class=cl>parallel group (20 tests):
+</span></span><span class=line><span class=cl>     boolean                      ... ok           47 ms
+</span></span><span class=line><span class=cl>     char                         ... ok           40 ms
+</span></span><span class=line><span class=cl>     name                         ... ok           41 ms
+</span></span><span class=line><span class=cl>     varchar                      ... ok           38 ms
+</span></span><span class=line><span class=cl>     text                         ... ok           34 ms
+</span></span><span class=line><span class=cl>     int2                         ... ok           24 ms
+</span></span><span class=line><span class=cl>     int4                         ... ok           23 ms
+</span></span><span class=line><span class=cl>     int8                         ... ok           55 ms
+</span></span><span class=line><span class=cl>     oid                          ... ok           43 ms
+</span></span><span class=line><span class=cl>     float4                       ... ok           60 ms
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>parallel group (2 tests):
+</span></span><span class=line><span class=cl>     event_trigger                ... ok           59 ms
+</span></span><span class=line><span class=cl>     oidjoins                     ... ok          119 ms
+</span></span><span class=line><span class=cl>test fast_default                 ... ok           71 ms
+</span></span><span class=line><span class=cl>test stats                        ... ok          620 ms
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>============== shutting down postmaster               ==============
+</span></span><span class=line><span class=cl>============== removing temporary instance            ==============
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>=======================
+</span></span><span class=line><span class=cl> All 210 tests passed. 
+</span></span><span class=line><span class=cl>=======================
+</span></span></code></pre></div><hr><h2 id=tester-son-extension-avec-pgxs>Tester son extension avec PGXS</h2><p>En plusieurs années, l&rsquo;outil <code>pg_regress</code> s&rsquo;est étendu aux fonctionnalités annexes
+du projet PostgreSQL, comme les langages embarqués (<code>plpgsql</code>, <code>plperl</code>, etc.) ou
+les contributions communautaires.</p><p>Le système <a href=https://www.postgresql.org/docs/14/extend-pgxs.html target=_blank rel=noopener>PGXS</a> propose aux membres de la communauté d&rsquo;enrichir leurs
+<code>Makefile</code> avec des règles de compilation, d&rsquo;installation et de validation par
+<code>pg_regress</code>. Dans un projet, il est ainsi recommandé d&rsquo;inclure les directives
+du PGXS pour bénéficier de la règle <code>installcheck</code> responsable des tests.</p><p>Prenons l&rsquo;exemple de la contribution <code>pgstattuple</code> avec la définition de son
+<a href=https://github.com/postgres/postgres/blob/REL_14_2/contrib/pgstattuple/Makefile target=_blank rel=noopener>Makefile</a>. Ce dernier contient les quelques variables nécessaires pour la
+compilation et l&rsquo;installation, puis inclut les règles <code>pgxs.mk</code> si le système
+est utilisé.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># contrib/pgstattuple/Makefile</span>
+</span></span><span class=line><span class=cl><span class=nv>REGRESS</span> <span class=o>=</span> pgstattuple
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>ifdef USE_PGXS
+</span></span><span class=line><span class=cl><span class=nv>PG_CONFIG</span> <span class=o>=</span> pg_config
+</span></span><span class=line><span class=cl>PGXS :<span class=o>=</span> <span class=k>$(</span>shell <span class=k>$(</span>PG_CONFIG<span class=k>)</span> --pgxs<span class=k>)</span>
+</span></span><span class=line><span class=cl>include <span class=k>$(</span>PGXS<span class=k>)</span>
+</span></span><span class=line><span class=cl><span class=k>else</span>
+</span></span><span class=line><span class=cl><span class=nv>subdir</span> <span class=o>=</span> contrib/pgstattuple
+</span></span><span class=line><span class=cl><span class=nv>top_builddir</span> <span class=o>=</span> ../..
+</span></span><span class=line><span class=cl>include <span class=k>$(</span>top_builddir<span class=k>)</span>/src/Makefile.global
+</span></span><span class=line><span class=cl>include <span class=k>$(</span>top_srcdir<span class=k>)</span>/contrib/contrib-global.mk
+</span></span><span class=line><span class=cl>endif
+</span></span></code></pre></div><p>Avec cette configuration par défaut, l&rsquo;outil <code>pg_regress</code> part à la recherche des
+fichiers <code>sql/</code> dans le répertoire courant, et les exécute sur l&rsquo;instance pour
+ensuite comparer ses résultats avec les fichiers <code>expected/</code>. Le contenu du
+fichier <code>expected/pgstattuple.out</code> peut être consulté directement dans le <a href=https://github.com/postgres/postgres/blob/REL_14_2/contrib/pgstattuple/expected/pgstattuple.out target=_blank rel=noopener>code
+source</a> de PostgreSQL.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>pgstattuple
+</span></span><span class=line><span class=cl>├── expected
+</span></span><span class=line><span class=cl>│   └── pgstattuple.out
+</span></span><span class=line><span class=cl>├── results
+</span></span><span class=line><span class=cl>│   └── pgstattuple.out
+</span></span><span class=line><span class=cl>└── sql
+</span></span><span class=line><span class=cl>    └── pgstattuple.sql
+</span></span></code></pre></div><p>Lançons les tests de l&rsquo;extension avec le système PGXS :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=nb>cd</span> contrib/pgstattuple
+</span></span><span class=line><span class=cl>make <span class=nv>USE_PGXS</span><span class=o>=</span><span class=m>1</span> install installcheck
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>./lib/pgxs/src/makefiles/../../src/test/regress/pg_regress \
+</span></span><span class=line><span class=cl>  --inputdir=./ --bindir=&#39;./bin&#39; \
+</span></span><span class=line><span class=cl>  --dbname=contrib_regression pgstattuple
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>(using postmaster on Unix socket, default port)
+</span></span><span class=line><span class=cl>============== dropping database &#34;contrib_regression&#34; ==============
+</span></span><span class=line><span class=cl>DROP DATABASE
+</span></span><span class=line><span class=cl>============== creating database &#34;contrib_regression&#34; ==============
+</span></span><span class=line><span class=cl>CREATE DATABASE
+</span></span><span class=line><span class=cl>ALTER DATABASE
+</span></span><span class=line><span class=cl>============== running regression test queries        ==============
+</span></span><span class=line><span class=cl>test pgstattuple                  ... ok          167 ms
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>=====================
+</span></span><span class=line><span class=cl> All 1 tests passed. 
+</span></span><span class=line><span class=cl>=====================
+</span></span></code></pre></div><hr><h2 id=pensez-y->Pensez-y !</h2><p>Vous souhaitez développer votre propre extension pour révolutionner PostgreSQL ?
+Pensez à écrire vos tests avec le <em>framework</em> PGXS ! La <a href=https://www.postgresql.org/docs/14/regress-run.html target=_blank rel=noopener>documentation</a> est
+très fournie à ce sujet pour prendre en main les variables d&rsquo;environnement. De
+plus, depuis la version PostgreSQL 9.4, il est possible de bénéficier de standard
+TAP pour <a href=https://www.2ndquadrant.com/en/blog/using-postgresql-tap-framework-extensions/ target=_blank rel=noopener>rédiger vos tests</a>.</p><p>Les extensions sont nombreuses et ce n&rsquo;est jamais une mauvaise idée de s&rsquo;inspirer
+des contributions maintenues dans le projet PostgreSQL. Je recommande également
+la <a href=http://big-elephants.com/2015-10/writing-postgres-extensions-part-i/ target=_blank rel=noopener>série d&rsquo;articles</a> rédigée par Manuel Kniep pour comprendre le processus
+complet de l&rsquo;écriture d&rsquo;une extension ou la <a href=https://l_avrot.gitlab.io/slides/postgres-waffles.html target=_blank rel=noopener>conférence</a> de Lætitia Avrot
+sur l&rsquo;extension <a href=https://gitlab.com/l_avrot/pgwaffles target=_blank rel=noopener>pgwaffles</a> créée à l&rsquo;occasion du FOSDEM 2021.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Écrire ses tests unitaires en SQL
+<small><time datetime=2020-05-14>14 mai 2020</time></small></a></li><li><a href=https://fljd.in/2022/03/11/conversions-implicites/>Conversions implicites
+<small><time datetime=2022-03-11>11 mars 2022</time></small></a></li><li><a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
+<small><time datetime=2021-07-16>16 juil 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-04-21>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

@@ -1,4 +1,12 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 11 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Conversions implicites</title><link>https://fljd.in/2022/03/11/conversions-implicites/</link><pubDate>Fri, 11 Mar 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/03/11/conversions-implicites/</guid><description>&lt;p>À l&amp;rsquo;image d&amp;rsquo;un langage de programmation classique, le SQL manipule des données
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 21 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Halte aux régressions</title><link>https://fljd.in/2022/04/21/halte-aux-regressions/</link><pubDate>Thu, 21 Apr 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/04/21/halte-aux-regressions/</guid><description>&lt;p>Pour garantir la qualité du code d&amp;rsquo;un logiciel, rien de mieux que la validation
+par les tests. Ces derniers peuvent être de différentes natures (fonctionnels,
+intégration, unitaires, performance, etc.) et permettent de respecter une série
+d&amp;rsquo;exigences que s&amp;rsquo;imposent les développeurs pour maintenir et faire évoluer ledit
+logiciel dans la bonne direction.&lt;/p>
+&lt;p>Dans cet article, je souhaite explorer le système de tests tel qu&amp;rsquo;il est (et
+a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d&amp;rsquo;une
+extension communautaire. Si vous ne connaissiez pas l&amp;rsquo;outil &lt;code>pg_regress&lt;/code>, il
+n&amp;rsquo;aura plus de secret pour vous !&lt;/p></description></item><item><title>Conversions implicites</title><link>https://fljd.in/2022/03/11/conversions-implicites/</link><pubDate>Fri, 11 Mar 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/03/11/conversions-implicites/</guid><description>&lt;p>À l&amp;rsquo;image d&amp;rsquo;un langage de programmation classique, le SQL manipule des données
 typées, comme les chaînes de caractères, les dates ou des entiers numériques.
 Les opérations de transformations ou de comparaison diffèrent en fonction du
 type de données ; il ne sera pas possible de comparer le caractère &lt;code>A&lt;/code> avec le
@@ -34,9 +42,4 @@ moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/
 &lt;p>Après cet épisode et l&amp;rsquo;amertume d&amp;rsquo;avoir perdu quelques travaux, ou la surprise
 de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
 erreur, je me suis tourné vers l&amp;rsquo;outil incontournable dont tous mes collègues me
-parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p></description></item><item><title>Parlons un peu des données externes</title><link>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</guid><description>&lt;p>Depuis plusieurs semaines, j&amp;rsquo;étudie les nouveautés de la &lt;a href="https://www.postgresql.org/docs/14/release-14.html" target="_blank" rel="noopener">prochaine version majeure&lt;/a>
-de PostgreSQL avec un intérêt grandissant pour le connecteur &lt;a href="https://www.postgresql.org/docs/13/postgres-fdw.html" target="_blank" rel="noopener">postgres_fdw&lt;/a>.
-Cette extension assez folle n&amp;rsquo;a pas son équivalent sur les autres systèmes de
-bases de données du marché, et pour cause, PostgreSQL est l&amp;rsquo;un des rares à respecter
-la norme SQL/MED, sous-partie du langage SQL tel que défini par le standard
-&lt;a href="https://www.iso.org/standard/63476.html" target="_blank" rel="noopener">ISO/IEC 9075-9&lt;/a>.&lt;/p></description></item></channel></rss>
+parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p></description></item></channel></rss>
