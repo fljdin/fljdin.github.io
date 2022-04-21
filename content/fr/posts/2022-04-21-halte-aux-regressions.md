@@ -69,9 +69,9 @@ version 8.2, pour faciliter notamment :
 * La validation des tests sur un environnement Windows sans émulateur de shell
   tel que `mingw`
 * La mise à disposition d'un outil prêt à l'emploi avec l'installation de PostgreSQL,
-  sans dépendance système requis par l'ancien script
-* Apporter de nouvelles améliorations comme l'exécution concurrente des tests
-  ou un résultat plus conviviale
+  sans les dépendances systèmes requises par l'ancien script
+* L'implémentation de nouvelles améliorations comme l'exécution concurrente des 
+  tests ou un résultat plus conviviale
 
 Lors d'une compilation des binaires d'une version quelconque de PostgreSQL, il
 est possible de valider tout ou partie des fonctionnalités à l'aide de la commande
@@ -82,8 +82,8 @@ en cours d'exécution.
 ```sh
 make check
 
-PATH="tmp_install/var/lib/pgenv/pgsql-14.2/bin:src/test/regress:$PATH" \
-LD_LIBRARY_PATH="tmp_install/var/lib/pgenv/pgsql-14.2/lib:$LD_LIBRARY_PATH" \
+PATH="tmp_install/var/lib/pgsql-14.2/bin:src/test/regress:$PATH" \
+LD_LIBRARY_PATH="tmp_install/var/lib/pgsql-14.2/lib:$LD_LIBRARY_PATH" \
 ../../../src/test/regress/pg_regress \
   --temp-instance=./tmp_check \
   --inputdir=. --bindir= --dlpath=. \
@@ -189,8 +189,7 @@ Lançons les tests de l'extension avec le système PGXS :
 
 ```sh
 cd contrib/pgstattuple
-export USE_PGXS=1
-make install installcheck
+make USE_PGXS=1 install installcheck
 ```
 
 ```text
@@ -219,10 +218,10 @@ test pgstattuple                  ... ok          167 ms
 Vous souhaitez développer votre propre extension pour révolutionner PostgreSQL ?
 Pensez à écrire vos tests avec le _framework_ PGXS ! La [documentation][8] est
 très fournie à ce sujet pour prendre en main les variables d'environnement. De
-plus depuis la version PostgreSQL 9.4, il est possible de bénéficier de standard
+plus, depuis la version PostgreSQL 9.4, il est possible de bénéficier de standard
 TAP pour [rédiger vos tests][9]. 
 
-[8]: https://www.postgresql.org/docs/current/regress-run.html
+[8]: https://www.postgresql.org/docs/14/regress-run.html
 [9]: https://www.2ndquadrant.com/en/blog/using-postgresql-tap-framework-extensions/
 
 Les extensions sont nombreuses et ce n'est jamais une mauvaise idée de s'inspirer
