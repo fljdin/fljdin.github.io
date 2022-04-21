@@ -1,18 +1,17 @@
 ---
-title: "Halte aux regressions"
-date: 2022-03-29
+title: "Halte aux régressions"
+date: 2022-04-21
 categories: [postgresql]
 tags: [developpement,tests]
-draft: true
 ---
 
 Pour garantir la qualité du code d'un logiciel, rien de mieux que la validation
 par les tests. Ces derniers peuvent être de différentes natures (fonctionnels,
-intégration, unitaires, performance, etc…) et permettent de respecter une série
+intégration, unitaires, performance, etc.) et permettent de respecter une série
 d'exigences que s'imposent les développeurs pour maintenir et faire évoluer ledit
 logiciel dans la bonne direction.
 
-Dans cette article, je souhaite explorer le système de tests tel qu'il est (et
+Dans cet article, je souhaite explorer le système de tests tel qu'il est (et
 a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d'une
 extension communautaire. Si vous ne connaissiez pas l'outil `pg_regress`, il 
 n'aura plus de secret pour vous !
@@ -44,7 +43,7 @@ d'exécution et de capter la sortie standard dans un fichier de résultat. Pour
 chaque test (`sql`), le fichier de résultat (`result`) est ensuite comparé au 
 résultat attendu du test (`expected`) à l'aide de la méthode `diff`.
 
-![Fonctionnement du système de tests](/img/fr/mermaid-diagram-20220330173642.png)
+![Fonctionnement du système de tests](/img/fr/2022-04-21-regress-path.png)
 
 <!-- https://mermaid-js.github.io/mermaid-live-editor
 {
@@ -58,7 +57,7 @@ graph LR
 -->
 
 Ce traitement est réalisé depuis la version 7.1 par l'utilitaire `pg_regress.sh`.
-À l'origine, ce dernier était un [simple script shell][3] reponsable de monter 
+À l'origine, ce dernier était un [simple script shell][3] responsable de monter 
 une instance PostgreSQL temporaire au besoin, de rapprocher les fichiers SQL de 
 leurs résultats OUT et de fournir un résumé des tests. Le script fut intégralement
 [remplacé][4] par son équivalent `pg_regress` réécrit en C à la sortie de la
@@ -72,7 +71,7 @@ version 8.2, pour faciliter notamment :
 * La mise à disposition d'un outil prêt à l'emploi avec l'installation de PostgreSQL,
   sans dépendance système requis par l'ancien script
 * Apporter de nouvelles améliorations comme l'exécution concurrente des tests
-  ou un résultat plus conviviable
+  ou un résultat plus conviviale
 
 Lors d'une compilation des binaires d'une version quelconque de PostgreSQL, il
 est possible de valider tout ou partie des fonctionnalités à l'aide de la commande
