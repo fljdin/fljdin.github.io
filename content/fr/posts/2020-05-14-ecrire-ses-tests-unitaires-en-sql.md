@@ -2,7 +2,7 @@
 title: "Écrire ses tests unitaires en SQL"
 date: 2020-05-14 17:30:00 +0200
 categories: [postgresql]
-tags: [developpement]
+tags: [developpement,tests]
 ---
 
 Je ne suis qu'un piètre développeur et je n'écris pas de tests unitaires. En 
