@@ -176,9 +176,9 @@ Dans le cas de mon exemple, il s'agissait de :
   syntaxique.
 
 Dans les semaines qui suivirent, la [solution][14] se présentait à moi avec 
-l'extension `postgres-ast-deparser`, dédiée à la construction d'arbres d'analyse
+l'extension [postgres-ast-deparser][15], dédiée à la construction d'arbres d'analyse
 et la réécriture au format SQL de la requête (_deparsing_). Après quelques échanges
-avec son contributeur Dan Lynch, je me suis servi d'une des nombreuses méthode 
+avec son contributeur Dan Lynch, je me suis servi d'une des nombreuses méthodes 
 pour simplifier mon prototype.
 
 [14]: https://twitter.com/fljdin/status/1538972129156337666
@@ -203,7 +203,7 @@ BEGIN
       v_name := value)) INTO v_columns
     FROM config WHERE name = 'column_name';
 
-  RAISE NOTICE '%', deparser.expression(ast.insert_stmt(
+  EXECUTE deparser.expression(ast.insert_stmt(
     v_relation := v_relation,
     v_cols := v_columns,
     v_selectStmt := ast.select_stmt(
@@ -215,15 +215,28 @@ END;
 $prototype$;
 ```
 
-<!--
-
-https://pganalyze.com/blog/parse-postgresql-queries-in-ruby
-https://github.com/pganalyze/libpg_query
-https://github.com/pganalyze/pg_query
-https://twitter.com/pyramation/status/1526241931704950784
-
--->
+L'extension propose une série de méthodes dans les schémas `ast` et `ast_helpers`
+pour obtenir les nœuds de l'arbre sous forme de JSONB. L'imbrication de plusieurs
+appels permet de reconstruire l'arbre dans sa totalité pour finalement obtenir la 
+structure `InsertStmt` telle que définie par l'analyseur syntaxique de PostgreSQL
+lui-même !
 
 ---
 
 ## Conclusion
+
+En manipulant des arbres sous forme de JSONB, j'ai perçu l'intérêt que peuvent
+avoir des projets comme `postgres-ast-deparser`. Ce dernier repose d'ailleurs
+sur les travaux de la société qui édite [pganalyze](https://pganalyze.com/), qui
+propose ni plus ni moins d'utiliser le _parser_ interne de PostgreSQL à l'extérieur
+de ce dernier à l'aide de la librairie [libpg_query][16] !
+
+[16]: https://github.com/pganalyze/libpg_query
+
+Les cas d'usage sont nombreux, tels que la colorisation ou la validation syntaxique,
+reformater les sauts de lignes d'une requête, sérialiser la requête pour modifier
+une partie de ses nœuds, etc. La [documentation][17] de `pglast` (un autre _parser_
+pour Python) propose d'autres exemples d'utilisation si d'aventure, cet article 
+a éveillé votre curiosité.
+
+[17]: https://pglast.readthedocs.io/en/v3/usage.html
