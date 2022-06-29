@@ -5,14 +5,13 @@ slug: draw-me-an-abstract-tree
 categories: [postgresql]
 tags: [developpement]
 date: 2022-06-29
-draft: yes
 ---
 
 > The parser stage creates a parse tree using only fixed rules about the syntactic
 > structure of SQL. It does not make any lookups in the system catalogs, so there
 > is no possibility to understand the detailed semantics of the requested operations.
 > 
-> (Documentation : [Transformation Process][1])
+> (Documentation: [Transformation Process][1])
 
 [1]: https://www.postgresql.org/docs/14/parser-stage.html#id-1.10.3.6.4
 
@@ -25,8 +24,8 @@ His remarquebable work was added in [official documentation][3] as "Overview of
 PostgreSQL Internals", which is intended to share Simkovics' researchs in a
 simplified way to reach a larger audience.
 
-With this article, I'm trilled to share recent thoughts about an subelement of
-these internals, the parser one. It relies on a similar approach to compiling by
+With this article, I'm thrilled to share recent thoughts about a subelement of
+theses internals, the parser one. It relies on a similar approach to compiling by
 using a advanced development pattern called [AST][4] (abstract syntax tree).
 
 [2]: https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/
@@ -40,7 +39,7 @@ using a advanced development pattern called [AST][4] (abstract syntax tree).
 ## From code to machine
 
 Writing statement as a bunch of words, as we do with SQL, involves a need of
-understanding this specific statement to the execution engine. A simple comparaison
+understanding this specific statement by the execution engine. A simple comparaison
 is common language, when grammar rules enforce the order of adjectives, nouns and
 pronouns so that two interlocutors can understand each other.
 
@@ -55,10 +54,10 @@ for analysing instructions, divided into several families:
   internal tokens, detects spacing or comments. The most famous scanners are
   [Lex][7] and [Flex][8] (a open-source alternative to Lex);
 * [Parsing][9] refers to the formal analysis of previous lexemes into its
-  constituents, resulting in a parse tree showing their syntactic relation to
+  constituents, resulting in a parse tree showing their syntactic relations to
   each other. The main parsers are [Yacc][10] and [Bison][11] (a forward-compatible
   Yacc replacement);
-* [Semantic analysis][12] gathers necessary semantic information for previous
+* [Semantic analysis][12] gathers necessary semantic information from previous
   steps, including variable declaration or type checking.
 
 [6]: https://en.wikipedia.org/wiki/Lexical_analysis
@@ -70,7 +69,7 @@ for analysing instructions, divided into several families:
 [12]: https://en.wikipedia.org/wiki/Semantic_analysis_(compilers)
 
 Compiling steps are scrupulously implemented in PostgreSQL when a SQL sentence
-sent by a user need to be interpreted. The Simkovics' thesis tales a journey into
+sent by a user needs to be interpreted. The Simkovics' thesis tales a journey into
 query parsing:
 
 ```sql
@@ -110,7 +109,7 @@ will not discuss here.
 
 Recently, I wrote some dynamic SQL queries as part of a PL/pgSQL side-project.
 This feature is quite common, it involves putting several pieces of expressions
-together to write an SQL query whose parts (columns, tables, conditions) may vary.
+together to write a SQL query whose parts (columns, tables, conditions) may vary.
 Here is former prototype of the code: 
 
 <!--
@@ -144,9 +143,9 @@ $prototype$;
 ```
 
 Content of the `config` table is under the logic and could be critical when
-construct a syntactically correct `INSERT` statement. In addition, in the more
+constructing a syntactically correct `INSERT` statement. In addition, in the more
 than likely event that my needs are getting finer, this procedural code will
-getting more complexe and finally may encounter trouble in maintenance and
+getting more complexe and finally may encounter troubles in maintenance and
 scalability.
 
 Talking to one of my [colleagues][13] about the obvious complications that were
@@ -160,7 +159,7 @@ can manipulate and design easily.
 In my case, it was about:
 
 * Building a SQL statement as a parse tree;
-* Deparsing back without lexical or syntactic error when needed
+* Deparsing back without lexical or syntactic error when needed.
 
 In few weeks after, a out-of-nowhere [solution][14] flashed in my Twitter timeline,
 a pure PL/pgSQL extension called [postgres-ast-deparser][15]. Its main goals are
@@ -219,8 +218,8 @@ which use the internal parser outside of PostgreSQL!
 [16]: https://github.com/pganalyze/libpg_query
 
 Use-cases may be numerous, like syntax highlighting or validation, prettying 
-query newlines ou serializing a statement to easily drop or modify internal
-nodes, etc. A other parsing project wrote in Python, called `pglast`, suggests 
+query newlines or serializing a statement to easily drop or modify internal
+nodes, etc. Another parsing project wrote in Python, called `pglast`, suggests 
 you in its [documentation][17] more examples, if by chance, this article has 
 aroused your curiosity.
 
