@@ -4,8 +4,7 @@ translationKey: draw-me-a-abstract-tree
 slug: dessine-moi-un-arbre-abstrait
 categories: [postgresql]
 tags: [developpement]
-date: 2022-06-28
-draft: true
+date: 2022-06-29
 ---
 
 > L'étape d'analyse crée un arbre d'analyse qui n'utilise que les règles fixes 
@@ -52,7 +51,7 @@ et pronoms pour que deux interlocuteurs puissent s'exprimer et se comprendre.
 En informatique, ce processus s'appelle la [compilation][5] et fait le lien entre
 les instructions du code source et leurs opérations équivalentes soumise à la
 machine qui exécutera le code compilé. Depuis l'aube du numérique, une poignée
-de logiciels sont chargés d'analyser les instructions, que l'on pourra distinguer
+de logiciels est chargée d'analyser les instructions, que l'on pourra distinguer
 en plusieurs familles :
 
 [5]: https://fr.wikipedia.org/wiki/Compilateur
@@ -79,7 +78,7 @@ en plusieurs familles :
 [11]: https://fr.wikipedia.org/wiki/GNU_Bison
 [12]: https://fr.wikipedia.org/wiki/Analyse_s%C3%A9mantique
 
-Cet enchainement d'étapes est scrupuleusement implémentée dans PostgreSQL 
+Cet enchainement d'étapes est scrupuleusement implémenté dans PostgreSQL 
 lorsqu'il s'agit d'interpréter une requête SQL soumise par un utilisateur. Le
 rapport de thèse de Simkovics prend en exemple la requête suivante :
 
@@ -89,10 +88,10 @@ SELECT s.sname, se.pno
  WHERE s.sno > 2 AND s.sno = se.sno;
 ```
 
-L'étape d'analyse ou _parsing_ va donc découper chaque mot de l'instruction et
+L'étape d'analyse (ou _parsing_) va donc découper chaque mot de l'instruction et
 les regrouper en lexèmes (mots-clé du langage, identifiants, opérateurs, 
 littéraux). Dès qu'une erreur de syntaxe est rencontrée, comme une virgule juste
-avec le mot-clé `FROM`, le traitement de la requête est interrompu et un message
+avant le mot-clé `FROM`, le traitement de la requête est interrompu et un message
 d'erreur explicite est retourné à l'utilisateur :
 
 ```text
@@ -103,15 +102,15 @@ LINE 2:   FROM supplier s, sells se
 Dans le cas où la requête est syntaxiquement correcte, l'arbre d'analyse est 
 consolidé en mémoire pour lier les lexèmes selon les règles de grammaire du
 langage. Ainsi, les tables de la clause `FROM` sont rattachées en tant que nœuds
-`RangeVar` à l'attribut `fromClause` de nœud principal `SelectStmt`. Il en va de
+`RangeVar` à l'attribut `fromClause` du nœud principal `SelectStmt`. Il en va de
 même pour la représentation des colonnes et de la clause `WHERE` de la requête
 à travers les nœuds `targetList` et `whereClause` respectivement.
 
-![Représentation d'un arbre d'analyse](/img/fr/query-tree-representation.png)
+![Représentation d'un arbre d'analyse](/img/fr/2022-09-29-query-tree-representation.png)
 
 Cet arbre est ensuite transformé par une nouvelle étape de réécriture, chargée
 de réaliser des optimisations entre les nœuds et retirer les branches superflues.
-Entre alors en scène deux autres mécanismes, à savoir l'**optimiseur** (_planner_)
+Entrent alors en scène deux autres mécanismes, à savoir l'**optimiseur** (_planner_)
 et l'**exécuteur** (_executor_), que je n'aborderais pas dans cet article, qui
 consommeront l'arbre ainsi finalisé pour construire le résultat de données à
 transmettre à l'utilisateur.
@@ -158,7 +157,7 @@ $prototype$;
 Ici, le contenu de la table `config` est déterminant pour que ce code construise
 une requête `INSERT` syntaxiquement correcte. De plus, dans l'éventualité plus que
 probable où la fonctionnalité ait besoin de s'enrichir, ledit code se complexifie
-et rencontrera très certainement des difficultés de maintenances et d'évolution.
+et rencontrera très certainement des difficultés de maintenance et d'évolution.
 
 Parlant à l'un de mes [collègues][13] des complications évidentes que j'allais 
 rencontrer dans mon développement, ce dernier m'oriente vers un pattern plus
@@ -175,11 +174,11 @@ Dans le cas de mon exemple, il s'agissait de :
 * Rendre à la requête sa forme textuelle pour l'exécuter sans faute lexicale ni
   syntaxique.
 
-Dans les semaines qui suivirent, la [solution][14] se présentait à moi avec 
-l'extension [postgres-ast-deparser][15], dédiée à la construction d'arbres d'analyse
+Dans les semaines qui suivirent, la [solution][14] se présenta à moi avec 
+l'extension [postgres-ast-deparser][15], dédiée à la construction d'arbres abstraits
 et la réécriture au format SQL de la requête (_deparsing_). Après quelques échanges
-avec son contributeur Dan Lynch, je me suis servi d'une des nombreuses méthodes 
-pour simplifier mon prototype.
+avec son auteur Dan Lynch, je me suis servi d'une série de fonctions pour 
+améliorer mon prototype.
 
 [14]: https://twitter.com/fljdin/status/1538972129156337666
 [15]: https://github.com/pyramation/postgres-ast-deparser
@@ -227,8 +226,8 @@ lui-même !
 
 En manipulant des arbres sous forme de JSONB, j'ai perçu l'intérêt que peuvent
 avoir des projets comme `postgres-ast-deparser`. Ce dernier repose d'ailleurs
-sur les travaux de la société qui édite [pganalyze](https://pganalyze.com/), qui
-propose ni plus ni moins d'utiliser le _parser_ interne de PostgreSQL à l'extérieur
+sur les travaux de la société qui édite [pganalyze](https://pganalyze.com/) en
+proposant ni plus ni moins d'utiliser le _parser_ interne de PostgreSQL à l'extérieur
 de ce dernier à l'aide de la librairie [libpg_query][16] !
 
 [16]: https://github.com/pganalyze/libpg_query
