@@ -1,4 +1,23 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 21 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Halte aux régressions</title><link>https://fljd.in/2022/04/21/halte-aux-regressions/</link><pubDate>Thu, 21 Apr 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/04/21/halte-aux-regressions/</guid><description>&lt;p>Pour garantir la qualité du code d&amp;rsquo;un logiciel, rien de mieux que la validation
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 29 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Dessine-moi un arbre (abstrait)</title><link>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</link><pubDate>Wed, 29 Jun 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</guid><description>&lt;blockquote>
+&lt;p>L&amp;rsquo;étape d&amp;rsquo;analyse crée un arbre d&amp;rsquo;analyse qui n&amp;rsquo;utilise que les règles fixes
+de la structure syntaxique de SQL. Il ne fait aucune recherche dans les
+catalogues système. Il n&amp;rsquo;y a donc aucune possibilité de comprendre la sémantique
+détaillée des opérations demandées.&lt;/p>
+&lt;p>(Documentation : &lt;a href="https://docs.postgresql.fr/14/parser-stage.html#id-1.10.3.6.4" target="_blank" rel="noopener">Processus de transformation&lt;/a>)&lt;/p>
+&lt;/blockquote>
+&lt;p>Que se passe-t-il entre l&amp;rsquo;instant où une requête SQL est soumise par l&amp;rsquo;utilisateur
+et l&amp;rsquo;envoi du résultat sous forme de lignes par le serveur PostgreSQL ? Cette
+question passionnante (pour une poignée de personnes, ne nous le cachons pas) a
+été étudiée par Stefan Simkovics durant &lt;a href="https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/" target="_blank" rel="noopener">sa thèse&lt;/a> pour l&amp;rsquo;université de
+technologie de Vienne en 1998.&lt;/p>
+&lt;p>Ces travaux ont notamment permis d&amp;rsquo;enrichir la &lt;a href="https://docs.postgresql.fr/14/overview.html" target="_blank" rel="noopener">documentation officielle&lt;/a> avec
+le chapitre « Présentation des mécanismes internes de PostgreSQL », qui reprend
+assez largement les observations de Simkovics de manière simplifiée pour en
+faciliter l&amp;rsquo;accès au plus grand nombre.&lt;/p>
+&lt;p>Dans cet article, je souhaite présenter de récentes découvertes sur l&amp;rsquo;une de ces
+phases internes, l&amp;rsquo;étape d&amp;rsquo;analyse, qui permet de manipuler une requête SQL sous
+une forme d&amp;rsquo;arbre et qui respecte un pattern de développement avancé nommé &lt;a href="https://fr.wikipedia.org/wiki/Arbre_de_la_syntaxe_abstraite" target="_blank" rel="noopener">AST&lt;/a>
+(&lt;em>abstract syntax tree&lt;/em>).&lt;/p></description></item><item><title>Halte aux régressions</title><link>https://fljd.in/2022/04/21/halte-aux-regressions/</link><pubDate>Thu, 21 Apr 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/04/21/halte-aux-regressions/</guid><description>&lt;p>Pour garantir la qualité du code d&amp;rsquo;un logiciel, rien de mieux que la validation
 par les tests. Ces derniers peuvent être de différentes natures (fonctionnels,
 intégration, unitaires, performance, etc.) et permettent de respecter une série
 d&amp;rsquo;exigences que s&amp;rsquo;imposent les développeurs pour maintenir et faire évoluer ledit
@@ -35,11 +54,4 @@ carrière, les corruptions sont particulièrement dévastatrices lorsqu&amp;rsqu
 sont propagées sur les supports de sauvegardes et détectées bien des jours, voire
 des semaines après l&amp;rsquo;incident. Les moteurs de bases de données sont très résilients
 face à ces destructions de données, en proposant des mécanismes de journalisation
-adaptés. Malgré cela, des précautions sont de mises.&lt;/p></description></item><item><title>BorgBackup ou la sauvegarde facile</title><link>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</link><pubDate>Tue, 24 Aug 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</guid><description>&lt;p>Jusqu&amp;rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
-sauvegardes de fichiers personnels réalisées naïvement avec un script &lt;code>rsync&lt;/code>.
-C&amp;rsquo;est honteux dans nos métiers, mais l&amp;rsquo;adage du cordonnier s&amp;rsquo;est vérifié avec
-moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/ -delete&lt;/code> durant des tests.&lt;/p>
-&lt;p>Après cet épisode et l&amp;rsquo;amertume d&amp;rsquo;avoir perdu quelques travaux, ou la surprise
-de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
-erreur, je me suis tourné vers l&amp;rsquo;outil incontournable dont tous mes collègues me
-parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p></description></item></channel></rss>
+adaptés. Malgré cela, des précautions sont de mises.&lt;/p></description></item></channel></rss>

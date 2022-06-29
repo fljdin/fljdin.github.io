@@ -1,0 +1,134 @@
+<!doctype html><html lang=fr><head><title>Dessine-moi un arbre (abstrait)</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/a-propos>À propos</a>&nbsp;&nbsp;<a href=/archives>Archives</a></small></h3></header><main><article class=post><h1 class=post-title>Dessine-moi un arbre (abstrait)</a></h1><p class=post-date><time datetime=2022-06-29>29 juin 2022</time>
+- 6 minutes de lecture</p><blockquote><p>L&rsquo;étape d&rsquo;analyse crée un arbre d&rsquo;analyse qui n&rsquo;utilise que les règles fixes
+de la structure syntaxique de SQL. Il ne fait aucune recherche dans les
+catalogues système. Il n&rsquo;y a donc aucune possibilité de comprendre la sémantique
+détaillée des opérations demandées.</p><p>(Documentation : <a href=https://docs.postgresql.fr/14/parser-stage.html#id-1.10.3.6.4 target=_blank rel=noopener>Processus de transformation</a>)</p></blockquote><p>Que se passe-t-il entre l&rsquo;instant où une requête SQL est soumise par l&rsquo;utilisateur
+et l&rsquo;envoi du résultat sous forme de lignes par le serveur PostgreSQL ? Cette
+question passionnante (pour une poignée de personnes, ne nous le cachons pas) a
+été étudiée par Stefan Simkovics durant <a href=https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/ target=_blank rel=noopener>sa thèse</a> pour l&rsquo;université de
+technologie de Vienne en 1998.</p><p>Ces travaux ont notamment permis d&rsquo;enrichir la <a href=https://docs.postgresql.fr/14/overview.html target=_blank rel=noopener>documentation officielle</a> avec
+le chapitre « Présentation des mécanismes internes de PostgreSQL », qui reprend
+assez largement les observations de Simkovics de manière simplifiée pour en
+faciliter l&rsquo;accès au plus grand nombre.</p><p>Dans cet article, je souhaite présenter de récentes découvertes sur l&rsquo;une de ces
+phases internes, l&rsquo;étape d&rsquo;analyse, qui permet de manipuler une requête SQL sous
+une forme d&rsquo;arbre et qui respecte un pattern de développement avancé nommé <a href=https://fr.wikipedia.org/wiki/Arbre_de_la_syntaxe_abstraite target=_blank rel=noopener>AST</a>
+(<em>abstract syntax tree</em>).</p><hr><h2 id=du-code-à-la-machine>Du code à la machine</h2><p>Exprimer une instruction sous forme de mots comme le propose le langage SQL
+implique que le moteur responsable du traitement de ladite instruction soit
+capable de l&rsquo;interpréter. Une analogie très simple peut être faite avec le
+langage commun, où des règles de grammaire fixent l&rsquo;ordre des adjectifs, noms
+et pronoms pour que deux interlocuteurs puissent s&rsquo;exprimer et se comprendre.</p><p>En informatique, ce processus s&rsquo;appelle la <a href=https://fr.wikipedia.org/wiki/Compilateur target=_blank rel=noopener>compilation</a> et fait le lien entre
+les instructions du code source et leurs opérations équivalentes soumise à la
+machine qui exécutera le code compilé. Depuis l&rsquo;aube du numérique, une poignée
+de logiciels est chargée d&rsquo;analyser les instructions, que l&rsquo;on pourra distinguer
+en plusieurs familles :</p><ul><li>L&rsquo;<a href=https://fr.wikipedia.org/wiki/Analyse_lexicale target=_blank rel=noopener>analyse lexicale</a> prend en charge la détection des mots-clés ou <em>lexème</em>,
+ainsi que les espacements ou les blocs de commentaires. Les analyseurs
+lexicaux (<em>scanners</em>) les plus connus sont <a href=https://fr.wikipedia.org/wiki/Lex_%28logiciel%29 target=_blank rel=noopener>Lex</a> et <a href=https://fr.wikipedia.org/wiki/Flex_%28logiciel%29 target=_blank rel=noopener>Flex</a> (la version
+GNU de Lex) ;</li><li>L&rsquo;<a href=https://fr.wikipedia.org/wiki/Analyse_syntaxique target=_blank rel=noopener>analyse syntaxique</a> énonce les règles qui permet de rattacher les lexèmes
+avec des relations de dépendances, que l&rsquo;on nomme <em>syntagmes</em>, afin d&rsquo;en sortir
+une représentation de l&rsquo;instruction sous forme d&rsquo;arbre d&rsquo;analyse. Les analyseurs
+syntaxiques (<em>parsers</em>) sont fréquemment <a href=https://fr.wikipedia.org/wiki/Yacc_%28logiciel%29 target=_blank rel=noopener>Yacc</a> et <a href=https://fr.wikipedia.org/wiki/GNU_Bison target=_blank rel=noopener>Bison</a> (la version
+GNU de Yacc) ;</li><li>L&rsquo;<a href=https://fr.wikipedia.org/wiki/Analyse_s%C3%A9mantique target=_blank rel=noopener>analyse sémantique</a> s&rsquo;assure que les éléments définis par les étapes
+précédentes soient suffisamment complets et contrôle le bon usage des lexèmes
+dans leur contexte (déclaration de variable, correspondance de type lors d&rsquo;une
+affectation, etc.)</li></ul><p>Cet enchainement d&rsquo;étapes est scrupuleusement implémenté dans PostgreSQL
+lorsqu&rsquo;il s&rsquo;agit d&rsquo;interpréter une requête SQL soumise par un utilisateur. Le
+rapport de thèse de Simkovics prend en exemple la requête suivante :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>sname</span><span class=p>,</span><span class=w> </span><span class=n>se</span><span class=p>.</span><span class=n>pno</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>supplier</span><span class=w> </span><span class=n>s</span><span class=p>,</span><span class=w> </span><span class=n>sells</span><span class=w> </span><span class=n>se</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>sno</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=mi>2</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>s</span><span class=p>.</span><span class=n>sno</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>se</span><span class=p>.</span><span class=n>sno</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>L&rsquo;étape d&rsquo;analyse (ou <em>parsing</em>) va donc découper chaque mot de l&rsquo;instruction et
+les regrouper en lexèmes (mots-clé du langage, identifiants, opérateurs,
+littéraux). Dès qu&rsquo;une erreur de syntaxe est rencontrée, comme une virgule juste
+avant le mot-clé <code>FROM</code>, le traitement de la requête est interrompu et un message
+d&rsquo;erreur explicite est retourné à l&rsquo;utilisateur :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>ERROR:  syntax error at or near &#34;FROM&#34;
+</span></span><span class=line><span class=cl>LINE 2:   FROM supplier s, sells se
+</span></span></code></pre></div><p>Dans le cas où la requête est syntaxiquement correcte, l&rsquo;arbre d&rsquo;analyse est
+consolidé en mémoire pour lier les lexèmes selon les règles de grammaire du
+langage. Ainsi, les tables de la clause <code>FROM</code> sont rattachées en tant que nœuds
+<code>RangeVar</code> à l&rsquo;attribut <code>fromClause</code> du nœud principal <code>SelectStmt</code>. Il en va de
+même pour la représentation des colonnes et de la clause <code>WHERE</code> de la requête
+à travers les nœuds <code>targetList</code> et <code>whereClause</code> respectivement.</p><p><img src=/img/fr/2022-09-29-query-tree-representation.png alt="Représentation d&amp;rsquo;un arbre d&amp;rsquo;analyse"></p><p>Cet arbre est ensuite transformé par une nouvelle étape de réécriture, chargée
+de réaliser des optimisations entre les nœuds et retirer les branches superflues.
+Entrent alors en scène deux autres mécanismes, à savoir l&rsquo;<strong>optimiseur</strong> (<em>planner</em>)
+et l&rsquo;<strong>exécuteur</strong> (<em>executor</em>), que je n&rsquo;aborderais pas dans cet article, qui
+consommeront l&rsquo;arbre ainsi finalisé pour construire le résultat de données à
+transmettre à l&rsquo;utilisateur.</p><hr><h2 id=reconstruire-un-arbre-abstrait>Reconstruire un arbre abstrait</h2><p>J&rsquo;ai récemment écrit des requêtes SQL dynamiques dans le cadre d&rsquo;un projet PL/pgSQL.
+Cette pratique est assez courante, il s&rsquo;agit d&rsquo;accoler plusieurs bouts d&rsquo;expressions
+pour écrire une requête SQL dont les parties (colonnes, tables, conditions) peuvent
+varier. Voici en substance, le prototype de ce code :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DO</span><span class=w> </span><span class=err>$</span><span class=n>prototype$</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>DECLARE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>r</span><span class=w> </span><span class=n>record</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_columns</span><span class=w> </span><span class=nb>text</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_tabname</span><span class=w> </span><span class=nb>text</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_values</span><span class=w> </span><span class=nb>text</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=err>$$</span><span class=w> </span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;test&#39;</span><span class=w> </span><span class=err>$$</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>value</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>v_tabname</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;table_name&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>string_agg</span><span class=p>(</span><span class=n>value</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;,&#39;</span><span class=p>)</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>v_columns</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;column_name&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>EXECUTE</span><span class=w> </span><span class=n>format</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=s1>&#39;INSERT INTO %s (%s) VALUES (%s);&#39;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>v_tabname</span><span class=p>,</span><span class=w> </span><span class=n>v_columns</span><span class=p>,</span><span class=w> </span><span class=n>v_values</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$</span><span class=n>prototype$</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Ici, le contenu de la table <code>config</code> est déterminant pour que ce code construise
+une requête <code>INSERT</code> syntaxiquement correcte. De plus, dans l&rsquo;éventualité plus que
+probable où la fonctionnalité ait besoin de s&rsquo;enrichir, ledit code se complexifie
+et rencontrera très certainement des difficultés de maintenance et d&rsquo;évolution.</p><p>Parlant à l&rsquo;un de mes <a href=https://github.com/dlax target=_blank rel=noopener>collègues</a> des complications évidentes que j&rsquo;allais
+rencontrer dans mon développement, ce dernier m&rsquo;oriente vers un pattern plus
+avancé pour rendre le code plus modulable à l&rsquo;aide d&rsquo;une abstraction supplémentaire,
+le susnommé <strong>AST</strong>. Cette méthode repose intégralement sur la représentation en
+arbre d&rsquo;un objet complexe qu&rsquo;il devient possible de manipuler et de modeler
+librement.</p><p>Dans le cas de mon exemple, il s&rsquo;agissait de :</p><ul><li>Construire la requête SQL sous la forme d&rsquo;un arbre syntaxique ;</li><li>Rendre à la requête sa forme textuelle pour l&rsquo;exécuter sans faute lexicale ni
+syntaxique.</li></ul><p>Dans les semaines qui suivirent, la <a href=https://twitter.com/fljdin/status/1538972129156337666 target=_blank rel=noopener>solution</a> se présenta à moi avec
+l&rsquo;extension <a href=https://github.com/pyramation/postgres-ast-deparser target=_blank rel=noopener>postgres-ast-deparser</a>, dédiée à la construction d&rsquo;arbres abstraits
+et la réécriture au format SQL de la requête (<em>deparsing</em>). Après quelques échanges
+avec son auteur Dan Lynch, je me suis servi d&rsquo;une série de fonctions pour
+améliorer mon prototype.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DO</span><span class=w> </span><span class=err>$</span><span class=n>prototype$</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>DECLARE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_relation</span><span class=w> </span><span class=n>jsonb</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_columns</span><span class=w> </span><span class=n>jsonb</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_values</span><span class=w> </span><span class=n>jsonb</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>to_jsonb</span><span class=p>(</span><span class=nb>ARRAY</span><span class=p>[</span><span class=nb>ARRAY</span><span class=p>[</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ast</span><span class=p>.</span><span class=n>a_const</span><span class=p>(</span><span class=n>v_val</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>ast</span><span class=p>.</span><span class=nb>integer</span><span class=p>(</span><span class=mi>1</span><span class=p>)),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ast</span><span class=p>.</span><span class=n>a_const</span><span class=p>(</span><span class=n>v_val</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>ast</span><span class=p>.</span><span class=n>string</span><span class=p>(</span><span class=s1>&#39;test&#39;</span><span class=p>))</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>]]);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>ast_helpers</span><span class=p>.</span><span class=n>range_var</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_schemaname</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=s1>&#39;public&#39;</span><span class=p>,</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_relname</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>value</span><span class=p>)</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>v_relation</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;table_name&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>jsonb_agg</span><span class=p>(</span><span class=n>ast</span><span class=p>.</span><span class=n>res_target</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_name</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>value</span><span class=p>))</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>v_columns</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;column_name&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>EXECUTE</span><span class=w> </span><span class=n>deparser</span><span class=p>.</span><span class=n>expression</span><span class=p>(</span><span class=n>ast</span><span class=p>.</span><span class=n>insert_stmt</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>v_relation</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>v_relation</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>v_cols</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>v_columns</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>v_selectStmt</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>ast</span><span class=p>.</span><span class=n>select_stmt</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_valuesLists</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>v_values</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_op</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=s1>&#39;SETOP_NONE&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>))</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;table_name&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$</span><span class=n>prototype$</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>L&rsquo;extension propose une série de méthodes dans les schémas <code>ast</code> et <code>ast_helpers</code>
+pour obtenir les nœuds de l&rsquo;arbre sous forme de JSONB. L&rsquo;imbrication de plusieurs
+appels permet de reconstruire l&rsquo;arbre dans sa totalité pour finalement obtenir la
+structure <code>InsertStmt</code> telle que définie par l&rsquo;analyseur syntaxique de PostgreSQL
+lui-même !</p><hr><h2 id=conclusion>Conclusion</h2><p>En manipulant des arbres sous forme de JSONB, j&rsquo;ai perçu l&rsquo;intérêt que peuvent
+avoir des projets comme <code>postgres-ast-deparser</code>. Ce dernier repose d&rsquo;ailleurs
+sur les travaux de la société qui édite <a href=https://pganalyze.com/ target=_blank rel=noopener>pganalyze</a> en
+proposant ni plus ni moins d&rsquo;utiliser le <em>parser</em> interne de PostgreSQL à l&rsquo;extérieur
+de ce dernier à l&rsquo;aide de la librairie <a href=https://github.com/pganalyze/libpg_query target=_blank rel=noopener>libpg_query</a> !</p><p>Les cas d&rsquo;usage sont nombreux, tels que la colorisation ou la validation syntaxique,
+reformater les sauts de lignes d&rsquo;une requête, sérialiser la requête pour modifier
+une partie de ses nœuds, etc. La <a href=https://pglast.readthedocs.io/en/v3/usage.html target=_blank rel=noopener>documentation</a> de <code>pglast</code> (un autre <em>parser</em>
+pour Python) propose d&rsquo;autres exemples d&rsquo;utilisation si d&rsquo;aventure, cet article
+a éveillé votre curiosité.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2022/04/21/halte-aux-regressions/>Halte aux régressions
+<small><time datetime=2022-04-21>21 avr 2022</time></small></a></li><li><a href=https://fljd.in/2022/03/11/conversions-implicites/>Conversions implicites
+<small><time datetime=2022-03-11>11 mars 2022</time></small></a></li><li><a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
+<small><time datetime=2021-07-16>16 juil 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-06-29>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
