@@ -1,6 +1,6 @@
 ---
 title: "Dessine-moi un arbre (abstrait)"
-translationKey: draw-me-a-abstract-tree
+translationKey: draw-me-an-abstract-tree
 slug: dessine-moi-un-arbre-abstrait
 categories: [postgresql]
 tags: [developpement]
@@ -106,7 +106,7 @@ langage. Ainsi, les tables de la clause `FROM` sont rattachées en tant que nœu
 même pour la représentation des colonnes et de la clause `WHERE` de la requête
 à travers les nœuds `targetList` et `whereClause` respectivement.
 
-![Représentation d'un arbre d'analyse](/img/fr/2022-09-29-query-tree-representation.png)
+![Représentation d'un arbre d'analyse](/img/fr/2022-06-29-representation-d-un-arbre-d-analyse.png)
 
 Cet arbre est ensuite transformé par une nouvelle étape de réécriture, chargée
 de réaliser des optimisations entre les nœuds et retirer les branches superflues.
