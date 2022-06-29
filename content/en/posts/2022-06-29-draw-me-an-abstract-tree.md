@@ -5,6 +5,7 @@ slug: draw-me-an-abstract-tree
 categories: [postgresql]
 tags: [developpement]
 date: 2022-06-29
+draft: no
 ---
 
 > The parser stage creates a parse tree using only fixed rules about the syntactic
