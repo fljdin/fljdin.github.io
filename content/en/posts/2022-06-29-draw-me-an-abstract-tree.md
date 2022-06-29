@@ -95,7 +95,7 @@ under their `RangeVar` node stored as an array into `fromClause` attribute. The
 same goes for the representation of columns and conditions through the `targetList` 
 and `whereClause` nodes respectively.
 
-![Parse tree representation](/img/en/2022-09-29-parse-tree-representation.png)
+![Parse tree representation](/img/en/2022-06-29-parse-tree-representation.png)
 
 Our parse tree is passed to an upper step, called rewriting, responsible for
 performing some optimizations and transformations to nodes and removing useless
