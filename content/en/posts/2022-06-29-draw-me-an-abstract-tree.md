@@ -3,9 +3,8 @@ title: "Draw me an (abstract) tree"
 translationKey: draw-me-an-abstract-tree
 slug: draw-me-an-abstract-tree
 categories: [postgresql]
-tags: [developpement]
+tags: [development]
 date: 2022-06-29
-draft: no
 ---
 
 > The parser stage creates a parse tree using only fixed rules about the syntactic
@@ -21,7 +20,7 @@ This passionating question (by a limited amount of people, of course) has been
 study by Stefan Simkovics during his [Master's Thesis][2] at Vienna University of 
 Technology in 1998.
 
-His remarquebable work was added in [official documentation][3] as "Overview of
+His remarkable work was added in [official documentation][3] as "Overview of
 PostgreSQL Internals", which is intended to share Simkovics' researchs in a
 simplified way to reach a larger audience.
 
