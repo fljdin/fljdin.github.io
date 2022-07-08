@@ -10,7 +10,7 @@ translationKey: a-propos
 
 I am a relational database expert who promote open-source through various posts
 about unlimitless alternative world. In this discovery noteboook, I want to share
-my tiny researchs on PostgreSQL fonctionnalities and keeping as simple as possible.
+my tiny researchs on PostgreSQL functionalities and keeping as simple as possible.
 
 All feedbacks are welcomed. Please feel free to contact and follow me on networks.
 

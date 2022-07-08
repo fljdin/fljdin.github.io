@@ -15,18 +15,18 @@ date: 2022-06-29
 
 [1]: https://www.postgresql.org/docs/14/parser-stage.html#id-1.10.3.6.4
 
-What is going on from a user sends his SQL query to getting back a data result?
+What is going on from when a user sends his SQL query to getting back a data result?
 This passionating question (by a limited amount of people, of course) has been
-study by Stefan Simkovics during his [Master's Thesis][2] at Vienna University of 
+studied by Stefan Simkovics during his [Master's Thesis][2] at Vienna University of 
 Technology in 1998.
 
 His remarkable work was added in [official documentation][3] as "Overview of
-PostgreSQL Internals", which is intended to share Simkovics' researchs in a
+PostgreSQL Internals", which is intended to share Simkovics' research in a
 simplified way to reach a larger audience.
 
 With this article, I'm thrilled to share recent thoughts about a subelement of
-theses internals, the parser one. It relies on a similar approach to compiling by
-using a advanced development pattern called [AST][4] (abstract syntax tree).
+this internals, the parser. It relies on a similar approach to compiling by
+using an advanced development pattern called [AST][4] (abstract syntax tree).
 
 [2]: https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/
 [3]: https://www.postgresql.org/docs/14/overview.html
@@ -38,15 +38,15 @@ using a advanced development pattern called [AST][4] (abstract syntax tree).
 
 ## From code to machine
 
-Writing statement as a bunch of words, as we do with SQL, involves a need of
-understanding this specific statement by the execution engine. A simple comparaison
-is common language, when grammar rules enforce the order of adjectives, nouns and
+Writing a statement as a bunch of words, as we do with SQL, involves a need of
+understanding this specific statement by the execution engine. A simple comparison
+is common language, when grammar rules enforce the order of adjectives, nouns, and
 pronouns so that two interlocutors can understand each other.
 
 In computing, this process is called [compilation][5] and transforms code
 instructions to their equivalent binary operations submitted to the machine. 
 Since the dawn of computer sciences, a few software programs have been responsible
-for analysing instructions, divided into several families:
+for analyzing instructions, divided into several families:
 
 [5]: https://en.wikipedia.org/wiki/Compiler
 
@@ -78,10 +78,10 @@ SELECT s.sname, se.pno
  WHERE s.sno > 2 AND s.sno = se.sno;
 ```
 
-Scanning step finds out every instruction's words and categorizes them into lexemes
+Scanning step finds out every instructions words and categorizes them into lexemes
 (reserved keywords, identifiers, operators, literals). If any syntax misleading
 is encoutered, like a coma before `FROM` keyword, query parsing is halt and an
-explicit error message is throwd back to user:
+explicit error message is thrown back to user:
 
 ```text
 ERROR:  syntax error at or near "FROM"
@@ -90,7 +90,7 @@ LINE 2:   FROM supplier s, sells se
 
 At the end, if parsed query is syntactically correct, a parse tree is built in
 memory to link lexemes according to the grammar rules of the language. Thus, the
-main node `SelectStmt` is composed by differents branches, like queried tables
+main node `SelectStmt` is composed by different branches, like queried tables
 under their `RangeVar` node stored as an array into `fromClause` attribute. The
 same goes for the representation of columns and conditions through the `targetList` 
 and `whereClause` nodes respectively.
@@ -99,7 +99,7 @@ and `whereClause` nodes respectively.
 
 Our parse tree is passed to an upper step, called rewriting, responsible for
 performing some optimizations and transformations to nodes and removing useless
-leafs. Then two others mechanisms take place, namely **planner** and **executor**.
+leaves. Then two others mechanisms take place, namely **planner** and **executor**.
 Our final parse tree will be use to build data result requested by user, but I
 will not discuss here.
 
@@ -145,11 +145,11 @@ $prototype$;
 Content of the `config` table is under the logic and could be critical when
 constructing a syntactically correct `INSERT` statement. In addition, in the more
 than likely event that my needs are getting finer, this procedural code will
-getting more complexe and finally may encounter troubles in maintenance and
+getting more complex and finally may encounter troubles in maintenance and
 scalability.
 
 Talking to one of my [colleagues][13] about the obvious complications that were
-growing in my prototype, he advices me to turn to a more advanced concept and make
+growing in my prototype, he advised me to turn to a more advanced concept and make
 my code more modular using a new abstraction level, aforementioned **AST** pattern.
 This method is entirely based on a tree representation of a complex object that we
 can manipulate and design easily.
@@ -210,14 +210,14 @@ parser itself!
 
 ## Conclusion
 
-By manipulating trees with JSONB, I realized how powerfull are projects like
-`postgres-ast-deparser`. This extension relies on a other work called 
+By manipulating trees with JSONB, I realized how powerful projects like
+`postgres-ast-deparser` are. This extension relies on a other work called 
 [libpg_query][16], provided by [pganalyze](https://pganalyze.com/) engineers, 
 which use the internal parser outside of PostgreSQL!
 
 [16]: https://github.com/pganalyze/libpg_query
 
-Use-cases may be numerous, like syntax highlighting or validation, prettying 
+Use cases may be numerous, like syntax highlighting or validation, prettying 
 query newlines or serializing a statement to easily drop or modify internal
 nodes, etc. Another parsing project wrote in Python, called `pglast`, suggests 
 you in its [documentation][17] more examples, if by chance, this article has 
