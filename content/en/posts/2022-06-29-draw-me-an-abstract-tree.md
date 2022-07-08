@@ -25,7 +25,7 @@ PostgreSQL Internals", which is intended to share Simkovics' research in a
 simplified way to reach a larger audience.
 
 With this article, I'm thrilled to share recent thoughts about a subelement of
-this internals, the parser. It relies on a similar approach to compiling by
+these internals, the parser. It relies on a similar approach to compiling by
 using an advanced development pattern called [AST][4] (abstract syntax tree).
 
 [2]: https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/
