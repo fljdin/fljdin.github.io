@@ -95,7 +95,7 @@ transactions logs, crash recovery fails and stops. At this point, your nerves an
 your backup policy are put to the test.
 
 To put it another way: in lacks of WAL or theirs archives, {{< u >}}your most 
-recent data are losts{{< /u >}}.
+recent data is lost{{< /u >}}.
 
 … And [pg_resetwal][2] will not bring them back to you.
 
@@ -174,7 +174,7 @@ LABEL: demo
 START TIMELINE: 1
 ```
 
-This file is located in root's archive and will be usefull in startup process of
+This file is located in root's archive and will be useful in startup process of
 our cluster, since it contains the checkpoint information needed on a recovery
 situation. In above example, the sequence number (LSN) is `0/16000060` and will
 be found in WAL `000000010000000000000016`. In a lack of a backup label file,
@@ -192,7 +192,7 @@ anecdotal (though essential) in backup architecture with PostgreSQL. It is (just
 a few-lines text file, only needed in some recovery processes.
 
 And yet, this small revolution caused by version 8.0 in January 2005 with its 
-new functionnality, continuous archiving and PITR mecanism, aroused the
+new functionality, continuous archiving and PITR mecanism, aroused the
 creativity of development team in the years that followed. The backup label
 evolved to gain modularity and stability.
 
@@ -236,8 +236,8 @@ contributions, I selected for you:
 
 - [Contribution][12] from Heikki Linnakangas (commit [41f9ffd9])
 
-  Proposed in 9.2, this patch fix abnormal behaviors on restauration from
-  the streaming backup functionnality. Backup label contains a new line that
+  Proposed in 9.2, this patch fix abnormal behaviors on restoration from
+  the streaming backup functionality. Backup label contains a new line that
   specify the method used between `pg_start_backup` or `streamed`;
 
   [12]: https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com
@@ -347,7 +347,7 @@ Backup label file has not been removed. Its content is still relevant in case of
 point-in-time recovery, but it loses that transitory state on disk and won't be
 written in data directory on `pg_start_backup()` call. Instead, administrator or
 backup script must keep session opened until `pg_stop_backup()` call in order to
-collect backup's metadata and rebuild backup label file needed by restauration
+collect backup's metadata and rebuild backup label file needed by restoration
 process.
 
 ```sql
