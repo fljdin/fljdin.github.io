@@ -28,7 +28,7 @@ surprise when the startup fails with the following error:</p><p><code>PANIC: cou
 between data files and fails to look after the nearest checkpoint record. Without
 transactions logs, crash recovery fails and stops. At this point, your nerves and
 your backup policy are put to the test.</p><p>To put it another way: in lacks of WAL or theirs archives, <u>your most
-recent data are losts</u>.</p><p>… And <a href=https://pgpedia.info/p/pg_resetwal.html target=_blank rel=noopener>pg_resetwal</a> will not bring them back to you.</p><hr><h2 id=and-comes-backup-label>And comes backup label</h2><p>After this lovely warning, we will consider that the archiving of transaction logs
+recent data is lost</u>.</p><p>… And <a href=https://pgpedia.info/p/pg_resetwal.html target=_blank rel=noopener>pg_resetwal</a> will not bring them back to you.</p><hr><h2 id=and-comes-backup-label>And comes backup label</h2><p>After this lovely warning, we will consider that the archiving of transaction logs
 is no longer an option when you are making backups. Make sure that these archives
 are stored in a secure place, or even a decentralized area so that they are
 accessible by all standby clusters when you need to trigger your failover plan.</p><p>For those who have reached this part of the post, you should not be too lost if
@@ -68,7 +68,7 @@ directory to find our long awaited backup label.</p><div class=highlight><pre ta
 </span></span><span class=line><span class=cl>START TIME: 2021-01-18 15:22:52 CET
 </span></span><span class=line><span class=cl>LABEL: demo
 </span></span><span class=line><span class=cl>START TIMELINE: 1
-</span></span></code></pre></div><p>This file is located in root&rsquo;s archive and will be usefull in startup process of
+</span></span></code></pre></div><p>This file is located in root&rsquo;s archive and will be useful in startup process of
 our cluster, since it contains the checkpoint information needed on a recovery
 situation. In above example, the sequence number (LSN) is <code>0/16000060</code> and will
 be found in WAL <code>000000010000000000000016</code>. In a lack of a backup label file,
@@ -76,7 +76,7 @@ startup process will only have the <a href=https://pgpedia.info/p/pg_control.htm
 checkpoint, with no guarantee that it is the right one.</p><hr><h2 id=the-glory-age>The glory age</h2><p>You will agree with me that content and interest of the backup label file are
 anecdotal (though essential) in backup architecture with PostgreSQL. It is (just)
 a few-lines text file, only needed in some recovery processes.</p><p>And yet, this small revolution caused by version 8.0 in January 2005 with its
-new functionnality, continuous archiving and PITR mecanism, aroused the
+new functionality, continuous archiving and PITR mecanism, aroused the
 creativity of development team in the years that followed. The backup label
 evolved to gain modularity and stability.</p><p>At this time, <code>pg_backbackup</code> was not yet available, and only an explicit call
 to the function <a href=https://pgpedia.info/p/pg_start_backup.html target=_blank rel=noopener>pg_start_backup()</a> allowed you to generate the <code>backup_label</code>
@@ -92,8 +92,8 @@ contributions, I selected for you:</p><ul><li><p><a href=https://www.postgresql.
 method to cancel a running backup. Calling the <code>pg_ctl stop</code> command in <em>fast</em>
 mode renames the file to <code>backup_label.old</code>;</p></li><li><p><a href=https://www.postgresql.org/message-id/flat/20120624213341.GA90986%40mr-paradox.net target=_blank rel=noopener>Contribution</a> from Dave Kerr (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=0f04fc67f71f7cb29ccedb2e7ddf443b9e52b958" target=_blank rel=noopener>0f04fc67</a>)</p><p>Appeared with 9.0.9 minor version, the <code>pg_start_backup()</code> method includes a
 <code>fsync()</code> call ensures the backup label to be written to disk. This commit
-guarantees the consistency of the backup during an external snapshot;</p></li><li><p><a href=https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com target=_blank rel=noopener>Contribution</a> from Heikki Linnakangas (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c" target=_blank rel=noopener>41f9ffd9</a>)</p><p>Proposed in 9.2, this patch fix abnormal behaviors on restauration from
-the streaming backup functionnality. Backup label contains a new line that
+guarantees the consistency of the backup during an external snapshot;</p></li><li><p><a href=https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com target=_blank rel=noopener>Contribution</a> from Heikki Linnakangas (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c" target=_blank rel=noopener>41f9ffd9</a>)</p><p>Proposed in 9.2, this patch fix abnormal behaviors on restoration from
+the streaming backup functionality. Backup label contains a new line that
 specify the method used between <code>pg_start_backup</code> or <code>streamed</code>;</p></li><li><p><a href=https://www.postgresql.org/message-id/flat/201108050646.p756kHC5023570%40ccmds32.silk.ntts.co.jp target=_blank rel=noopener>Contribution</a> from Jun Ishizuka and Fujii Masao (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=8366c7803ec3d0591cf2d1226fea1fee947d56c3" target=_blank rel=noopener>8366c780</a>)</p><p>With 9.2 and above, <code>pg_start_backup()</code> can be executed on a secondary
 cluster. The role (<code>standby</code> or <code>master</code>) of the instance from which the backup
 comes is retained in the backup label;</p></li><li><p><a href=https://www.postgresql.org/message-id/flat/CAB7nPqRosJNapKVW2QPwkN9%2BypfL4yiR4mcNFZcjxS2c8m%2BVkw%40mail.gmail.com target=_blank rel=noopener>Contribution</a> from Michael Paquier (commit <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=6271fceb8a4f07dafe9d67dcf7e849b319bb2647" target=_blank rel=noopener>6271fceb</a>)</p><p>Added in 11, a new <em>timeline</em> entry in backup label file joined the
@@ -149,7 +149,7 @@ removed in future versions.</p><p>Backup label file has not been removed. Its co
 point-in-time recovery, but it loses that transitory state on disk and won&rsquo;t be
 written in data directory on <code>pg_start_backup()</code> call. Instead, administrator or
 backup script must keep session opened until <code>pg_stop_backup()</code> call in order to
-collect backup&rsquo;s metadata and rebuild backup label file needed by restauration
+collect backup&rsquo;s metadata and rebuild backup label file needed by restoration
 process.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=n>label</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>,</span><span class=w> </span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>,</span><span class=w> </span><span class=n>fast</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>true</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_start_backup 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -----------------
@@ -197,5 +197,5 @@ In a <a href=https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0
 suggested that backup label content could be stored in memory to fix its main
 wickness:</p><blockquote><p>It might be easier/better to just keep the one exclusive slot in shared
 memory and store the backup label in it. We only allow one exclusive
-backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>To be continued!</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2022-06-30>2022</time>
+backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>To be continued!</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2022-07-16>2022</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
