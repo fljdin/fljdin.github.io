@@ -57,8 +57,8 @@ fichiers suivants.</p><div class=highlight><pre tabindex=0 class=chroma><code cl
 </span></span><span class=line><span class=cl><span class=k>[global]</span>
 </span></span><span class=line><span class=cl><span class=na>repo1-host</span><span class=o>=</span><span class=s>bkp1</span>
 </span></span><span class=line><span class=cl><span class=na>repo1-host-user</span><span class=o>=</span><span class=s>pgbr</span>
-</span></span></code></pre></div><p>Avant de pouvoir créer la stanza, il est nécessaire de démarrer l&rsquo;instance standby
-en mode <code>recovery</code> ; il suffit de positionner un fichier <code>standby.signal</code> dans
+</span></span></code></pre></div><p>Avant de pouvoir créer la stanza, il est nécessaire de démarrer l&rsquo;instance secondaire
+en mode <code>standby</code> ; il suffit de positionner un fichier <code>standby.signal</code> dans
 le répertoire de données et de redémarrer l&rsquo;instance :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>sudo pg_ctlcluster stop <span class=m>12</span> lab2
 </span></span><span class=line><span class=cl>sudo -u postgres touch /var/lib/postgresql/12/lab1/standby.signal
 </span></span><span class=line><span class=cl>sudo pg_ctlcluster start <span class=m>12</span> lab2
@@ -145,5 +145,5 @@ et de faire résoudre les noms de machines par le fichier <code>/etc/hosts</code
 fichiers de verrous (paramètre <code>--lock-path</code>) et le tour est joué !</p></div></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2019/12/19/le-jour-ou-tout-bascule/>Le jour où tout bascule
 <small><time datetime=2019-12-19>19 déc 2019</time></small></a></li><li><a href=https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/>La brêve histoire du fichier backup_label
 <small><time datetime=2021-01-19>19 janv 2021</time></small></a></li><li><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
-<small><time datetime=2021-08-24>24 août 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-07-16>2022</time>
+<small><time datetime=2021-08-24>24 août 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-09-09>2022</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
