@@ -91,8 +91,8 @@ repo1-host=bkp1
 repo1-host-user=pgbr
 ```
 
-Avant de pouvoir créer la stanza, il est nécessaire de démarrer l'instance standby 
-en mode `recovery` ; il suffit de positionner un fichier `standby.signal` dans 
+Avant de pouvoir créer la stanza, il est nécessaire de démarrer l'instance secondaire 
+en mode `standby` ; il suffit de positionner un fichier `standby.signal` dans 
 le répertoire de données et de redémarrer l'instance :
 
 ```sh
