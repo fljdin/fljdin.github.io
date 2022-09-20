@@ -1,0 +1,10 @@
+---
+- title: "Connaissez-vous ces extensions ?"
+  lang: fr
+  date: 2021-11-17
+  url: /documents/connaissez-vous-ces-extensions.reveal.pdf
+  video: https://www.youtube.com/watch?v=TrqxJOBACZM
+- title: "Que faire de pg_stat_monitor ?"
+  lang: fr
+  date: 2022-06-01
+  url: /documents/meetup-pg-lille_pg_stat_monitor.reveal.pdf

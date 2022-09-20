@@ -41,12 +41,18 @@ languages:
     weight: 1
     menu: 
       navigation:
-      - identifier: about
-        title: "À propos"
-        url: "/a-propos"
+      - identifier: talks
+        title: "Conférences"
+        url: "/conferences"
+        weight: 1
       - identifier: archives
         title: "Archives"
         url: "/archives"
+        weight: 2
+      - identifier: about
+        title: "À propos"
+        url: "/a-propos"
+        weight: 3
   en:
     title: "Discovery notebook"
     languageCode: en
@@ -55,9 +61,15 @@ languages:
     weight: 2
     menu:
       navigation:
-      - identifier: about
-        title: "About me"
-        url: "/en/about"
+      - identifier: talks
+        title: "Talks"
+        url: "/en/talks"
+        weight: 1
       - identifier: archives
         title: "Archives"
         url: "/en/archives"
+        weight: 2
+      - identifier: about
+        title: "About me"
+        url: "/en/about"
+        weight: 3

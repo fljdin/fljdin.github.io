@@ -1,0 +1,30 @@
+{{ define "main" }}
+{{ $current := (where ($.Site.Data.talks) "lang" "eq" $.Site.Language.Lang) }}
+{{ $others := (where ($.Site.Data.talks) "lang" "ne" $.Site.Language.Lang) }}
+
+<article class="page">
+  <h1 class="page-title">{{ .Title }}</h1>
+
+  <div class="posts">
+    <ul>
+      {{- range sort $current "date" "desc" }}
+        <li>{{ dateFormat "02 Jan 2006" .date}} » 
+          <a href="{{ .url }}">{{ .title }}</a>
+          {{- if isset . "video" -}}
+            &nbsp; (<a href="{{ .video }}">{{ i18n "video" }}</a>)
+          {{- end -}}
+        </li>
+      {{- end }}
+    </ul>
+  </div>
+
+  {{- if gt (len $others) 0 -}}
+    {{ range .Translations -}}
+    <div class="message translation">
+      <a href="{{ .Permalink }}">{{ i18n "transTalks" . }}</a>
+    </div>
+    {{- end }}
+  {{- end -}}
+
+</article>
+{{ end }}
