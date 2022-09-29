@@ -1,4 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>opensource on Carnet de découvertes</title><link>https://fljd.in/tags/opensource/</link><description>Recent content in opensource on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 06 Dec 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/opensource/index.xml" rel="self" type="application/rss+xml"/><item><title>Migrer vers PostgreSQL</title><link>https://fljd.in/2021/12/06/migrer-vers-postgresql/</link><pubDate>Mon, 06 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/12/06/migrer-vers-postgresql/</guid><description>&lt;p>Le marché de la migration en France est intense. Le Groupe de Travail
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>opensource on Carnet de découvertes</title><link>https://fljd.in/tags/opensource/</link><description>Recent content in opensource on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 29 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/opensource/index.xml" rel="self" type="application/rss+xml"/><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
+jours&lt;/a>, le groupe de développement du projet communautaire ont intégré &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target="_blank" rel="noopener">leurs
+récents travaux&lt;/a> pour accélérer les tâches d&amp;rsquo;automatisation et de compilation
+à l&amp;rsquo;aide du système de construction &lt;a href="https://mesonbuild.com/" target="_blank" rel="noopener">Meson&lt;/a>.&lt;/p>
+&lt;p>Ce chantier n&amp;rsquo;est pas anodin et redessine les contours de l&amp;rsquo;écosystème du moteur
+de bases de données open-source le plus avancé au monde. Depuis sa forme libre
+publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
+de plus en plus complexes à maintenir pour les nouvelles générations de
+contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
+amoureux et amoureuses du libre se tournent résolument vers l&amp;rsquo;avenir.&lt;/p></description></item><item><title>Migrer vers PostgreSQL</title><link>https://fljd.in/2021/12/06/migrer-vers-postgresql/</link><pubDate>Mon, 06 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/12/06/migrer-vers-postgresql/</guid><description>&lt;p>Le marché de la migration en France est intense. Le Groupe de Travail
 Inter-Entreprises PostgreSQL (PGGTIE) a même publié un &lt;a href="https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf" target="_blank" rel="noopener">guide de transition&lt;/a>
 à PostgreSQL à destination des entreprises françaises. Ce dernier est le fruit
 de près de cinq années de travaux au sein de plusieurs organismes publics et a
@@ -22,6 +31,14 @@ pgTAP dont j&amp;rsquo;avais déjà vanté les mérites dans un &lt;a href="http
 &lt;p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
 quelques DBA féru⋅es d&amp;rsquo;expérimentations, car &lt;code>pgenv&lt;/code> permet de compiler et
 d&amp;rsquo;exécuter toutes les versions majeures et mineures du système de base de données
-open-source le plus avancé du monde.&lt;/p></description></item><item><title>Reprenons sérieusement</title><link>https://fljd.in/2019/06/12/reprenons-serieusement/</link><pubDate>Wed, 12 Jun 2019 10:30:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/12/reprenons-serieusement/</guid><description>&lt;p>La série d&amp;rsquo;articles que je souhaite publier dans les mois et années à venir
-s&amp;rsquo;intègre dans un engagement personnel envers un domaine qui accapare mes journées
-de professionnel.&lt;/p></description></item></channel></rss>
+open-source le plus avancé du monde.&lt;/p></description></item><item><title>Quel avenir pour PostgreSQL ?</title><link>https://fljd.in/2019/07/04/quel-avenir-pour-postgresql/</link><pubDate>Thu, 04 Jul 2019 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/07/04/quel-avenir-pour-postgresql/</guid><description>&lt;p>À moins d&amp;rsquo;avoir passé la dernière décennie dans une grotte ou un service
+informatique vieillissant, chacun·e des acteur·rice·s de l&amp;rsquo;IT a dû entendre parler
+du projet PostgreSQL, ne serait-ce que son nom inintelligible. La page d&amp;rsquo;accueil
+est par ailleurs catégorique : il s&amp;rsquo;agit &lt;u>du moteur relationnel open-source
+le plus avancé au monde&lt;/u>. (&lt;em>&lt;a href="https://www.postgresql.org" target="_blank" rel="noopener">PostgreSQL: The World&amp;rsquo;s Most Advanced Open
+Source Relational Database&lt;/a>&lt;/em>)&lt;/p>
+&lt;p>Comment expliquer ce succès ? D&amp;rsquo;ailleurs, quelles sont les tendances du produit
+et comment s&amp;rsquo;articule la vie d&amp;rsquo;un logiciel aussi ambitieux ? Est-il possible de
+voir émerger en France un mouvement massif de migration vers ce moteur, alors
+même qu&amp;rsquo;Oracle et Microsoft ont une part de marché importante sur les grands
+secteurs de la santé, du bancaire ou de la grande distribution ?&lt;/p></description></item></channel></rss>

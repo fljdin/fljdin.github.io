@@ -1,4 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 29 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Dessine-moi un arbre (abstrait)</title><link>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</link><pubDate>Wed, 29 Jun 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</guid><description>&lt;blockquote>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 29 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
+jours&lt;/a>, le groupe de développement du projet communautaire ont intégré &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target="_blank" rel="noopener">leurs
+récents travaux&lt;/a> pour accélérer les tâches d&amp;rsquo;automatisation et de compilation
+à l&amp;rsquo;aide du système de construction &lt;a href="https://mesonbuild.com/" target="_blank" rel="noopener">Meson&lt;/a>.&lt;/p>
+&lt;p>Ce chantier n&amp;rsquo;est pas anodin et redessine les contours de l&amp;rsquo;écosystème du moteur
+de bases de données open-source le plus avancé au monde. Depuis sa forme libre
+publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
+de plus en plus complexes à maintenir pour les nouvelles générations de
+contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
+amoureux et amoureuses du libre se tournent résolument vers l&amp;rsquo;avenir.&lt;/p></description></item><item><title>Dessine-moi un arbre (abstrait)</title><link>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</link><pubDate>Wed, 29 Jun 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</guid><description>&lt;blockquote>
 &lt;p>L&amp;rsquo;étape d&amp;rsquo;analyse crée un arbre d&amp;rsquo;analyse qui n&amp;rsquo;utilise que les règles fixes
 de la structure syntaxique de SQL. Il ne fait aucune recherche dans les
 catalogues système. Il n&amp;rsquo;y a donc aucune possibilité de comprendre la sémantique
@@ -44,14 +53,4 @@ présentant les forces et les faiblesses du moteur.&lt;/p>
 promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
 Je trouvais intéressant de profiter de cette actualité pour partager mes
 réflexions du moment, entre ma vision du marché français et l&amp;rsquo;approche technique
-pour engager les migrations de données vers PostgreSQL.&lt;/p></description></item><item><title>Les corruptions silencieuses</title><link>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</link><pubDate>Tue, 28 Sep 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</guid><description>&lt;p>Parmi les drames universellement reconnus, les corruptions de données sont des
-événements mécaniques ou logiques qui surviennent à des moments imprévisibles.
-Tantôt il s&amp;rsquo;agira de l&amp;rsquo;âge avancé des secteurs disques, tantôt il s&amp;rsquo;agira d&amp;rsquo;une
-extinction inopinée d&amp;rsquo;un composant électrique ou d&amp;rsquo;une perte de paquet dans les
-protocoles de cache.&lt;/p>
-&lt;p>Bien que peu de personnes peuvent se vanter d&amp;rsquo;en avoir observé au cours de leur
-carrière, les corruptions sont particulièrement dévastatrices lorsqu&amp;rsquo;elles se
-sont propagées sur les supports de sauvegardes et détectées bien des jours, voire
-des semaines après l&amp;rsquo;incident. Les moteurs de bases de données sont très résilients
-face à ces destructions de données, en proposant des mécanismes de journalisation
-adaptés. Malgré cela, des précautions sont de mises.&lt;/p></description></item></channel></rss>
+pour engager les migrations de données vers PostgreSQL.&lt;/p></description></item></channel></rss>

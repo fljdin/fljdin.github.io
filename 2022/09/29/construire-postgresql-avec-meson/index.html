@@ -1,0 +1,113 @@
+<!doctype html><html lang=fr><head><title>Construire PostgreSQL avec Meson</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://twitter.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#twitter"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>Construire PostgreSQL avec Meson</a></h1><p class=post-date><time datetime=2022-09-29>29 sept 2022</time>
+- 7 minutes de lecture</p><p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les <a href=https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/ target=_blank rel=noopener>prochains
+jours</a>, le groupe de développement du projet communautaire ont intégré <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target=_blank rel=noopener>leurs
+récents travaux</a> pour accélérer les tâches d&rsquo;automatisation et de compilation
+à l&rsquo;aide du système de construction <a href=https://mesonbuild.com/ target=_blank rel=noopener>Meson</a>.</p><p>Ce chantier n&rsquo;est pas anodin et redessine les contours de l&rsquo;écosystème du moteur
+de bases de données open-source le plus avancé au monde. Depuis sa forme libre
+publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
+de plus en plus complexes à maintenir pour les nouvelles générations de
+contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
+amoureux et amoureuses du libre se tournent résolument vers l&rsquo;avenir.</p><p><img src=/img/fr/2022-09-29-andres-freund-e692323.png alt=patch></p><hr><h2 id=en-finir-avec-autoconf>En finir avec autoconf</h2><p>Un système de construction ou <em>build system</em> (ne vous y trompez pas, j&rsquo;ai une
+préférence pour la dénomination anglaise) est un ensemble d&rsquo;instructions,
+compris par un langage propre, qui facilite la compilation d&rsquo;un logiciel. Les
+ramifications d&rsquo;un projet, les dépendances et les librairies ou tout simplement
+l&rsquo;outillage interne, deviennent inexorablement la rançon d&rsquo;une complexité après
+plusieurs décennies d&rsquo;existence.</p><p>Le système le plus répandu est sans conteste <a href=https://en.wikipedia.org/wiki/Make_%28software%29 target=_blank rel=noopener>Make</a> et son fichier déclaratif
+<em>Makefile</em> qui contiendra les instructions de compilation. Son principe absolu
+consiste à transformer un fichier source (le code) en un autre fichier cible (le
+binaire). Dans un projet minimaliste, le <em>Makefile</em> suivant permet de générer le
+binaire <code>foo</code> si le code source <code>foo.c</code> ou son en-tête <code>foo.h</code> contiennent des
+nouveautés.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-make data-lang=make><span class=line><span class=cl><span class=c># ./Makefile
+</span></span></span><span class=line><span class=cl><span class=c></span><span class=nv>CC</span><span class=o>=</span>gcc
+</span></span><span class=line><span class=cl><span class=nv>CFLAGS</span><span class=o>=</span>-I.
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=nf>foo</span><span class=o>:</span> <span class=n>foo</span>.<span class=n>c</span> <span class=n>foo</span>.<span class=n>h</span>
+</span></span><span class=line><span class=cl>    <span class=k>$(</span>CC<span class=k>)</span> -o foo foo.c
+</span></span></code></pre></div><p>À l&rsquo;appel de la commande <code>make</code> à la racine du projet, le fichier <em>Makefile</em>
+sera parcouru pour détecter les cibles du projet et suivre les instructions
+selon les règles qui y sont renseignées pour construire les fichiers binaires.</p><p><img src=/img/fr/2022-09-29-makefile-workflow.png alt="Compilation par Makefile"></p><p>Une <a href=https://en.wikipedia.org/wiki/List_of_build_automation_software#Build_script_generation target=_blank rel=noopener>pratique plus sophistiquée</a> propose de générer ces instructions dans un
+format compatible avec le système de construction, lorsque celles-ci sont
+nombreuses, évolutives voire dépendantes d&rsquo;un contexte ou d&rsquo;un environnement tel
+que le système d&rsquo;exploitation ou l&rsquo;utilisation d&rsquo;une option spécifique.</p><p>Dans le cas du projet PostgreSQL, c&rsquo;est la suite <a href=https://en.wikipedia.org/wiki/GNU_Autotools target=_blank rel=noopener>GNU Autotools</a> qui a été
+partiellement retenue pour faciliter la création des binaires sur un ensemble de
+systèmes compatibles Unix. La génération repose sur les composants <em>Autoconf</em>
+(fichier <code>configure.ac</code>) et <em>Automake</em> (fichier <code>Makefile.am</code>) pour aboutir au
+même résultat que la commande <code>make</code> de notre précédent exemple. Dans les faits,
+seul le premier composant est véritablement employé pour préparer le script
+<code>configure</code> lors de la compilation de PostgreSQL.</p><p><img src=/img/fr/2022-09-29-autotools-workflow.png alt="Génération avec Autotools"></p><p>Comme le montre le diagramme ci-dessus, les étapes avant d&rsquo;obtenir le fichier
+binaire sont un peu plus nombreuses, et dépendent d&rsquo;un ensemble de fichiers
+d&rsquo;instructions qui deviennent complexes à rédiger sans introduire d&rsquo;incohérences
+ou de bogues.</p><p>C&rsquo;est d&rsquo;ailleurs l&rsquo;un des constats de la communauté qui, depuis fin 2021, a
+questionné la possibilité de passer sur un autre système de construction.</p><blockquote><p>Autoconf is showing its age, fewer and fewer contributors know how to wrangle
+it. Recursive make has a lot of hard to resolve dependency issues and slow
+incremental rebuilds.</p></blockquote><p>Le principal moteur de la réflexion, Andres Freund, annonçait dans un
+<a href=https://www.postgresql.org/message-id/20211012083721.hvixq4pnh2pixr3j%40alap3.anarazel.de target=_blank rel=noopener>message</a> sur <em>pgsql-hackers</em> qu&rsquo;il observait de bien meilleures performances
+avec une alternative bien plus moderne. Il y énonçait par ailleurs ses arguments
+pour en finir avec <em>Autoconf</em> :</p><ul><li><p>« <em>Autoconf</em> et <em>make</em> ne sont plus activement maintenus. Notamment <em>autoconf</em>
+qui reçoit à peine quelques correctifs mineurs. C&rsquo;est également des
+technologies que peu de monde veut utiliser &ndash; m4 d&rsquo;autoconf est effrayant et
+effraie les personnes qui démarrent bien plus récemment que nous autres, les
+<em>committers</em> » ;</p></li><li><p>« <em>make</em> en mode récursif comme nous l&rsquo;utilisons n&rsquo;est pas aussi bien employé
+que ce qu&rsquo;il devrait être. L&rsquo;une des raisons pour laquelle le nettoyage du
+<em>build</em> est si lent est que nous devons retrouver les dépendances dans un
+paquet d&rsquo;endroits. En malgré cela, il m&rsquo;arrive régulièrement de voir des
+<em>builds</em> incrémentaux échouer et nécessitant un nouveau <em>rebuild</em> » ;</p></li><li><p>« Et nous n&rsquo;avons pas uniquement un système de <em>build</em> basé sur <em>autoconf</em> et
+<em>make</em>, il y a surtout le projet de génération MSVC (<em>Microsoft Visual C++</em>)
+&ndash; ce machin que la plupart d&rsquo;entre nous ne veut pas toucher. Je pense qu&rsquo;en
+plus du fait qu&rsquo;il n&rsquo;y est pas facile de dérouler tous les tests, ce système
+est juste tout simplement différent de l&rsquo;autre, ce qui ne favorise pas l&rsquo;intérêt
+des développeurs sous Windows (et indirectement, la qualité de PostgreSQL sur
+Windows) » ;</p></li><li><p>« Le dernier gros problème que je vois avec la situation actuelle est qu&rsquo;il
+n&rsquo;y a aucun bon test d&rsquo;intégration. Le résultat de <code>make check-world</code> est très
+majoritairement illisible et impossible à analyser automatiquement. Ce qui
+impose à la <em><a href=https://buildfarm.postgresql.org/cgi-bin/show_status.pl target=_blank rel=noopener>buildfarm</a></em> de traiter les tests séparément afin que les
+erreurs puissent être repérées et tracées correctement. Cette approche n&rsquo;est
+malheureusement pas adaptée aux processeurs multicœurs et ralentit considérablement
+l&rsquo;ensemble des serveurs ».</p></li></ul><hr><h2 id=meson-une-alternative-moderne>Meson, une alternative moderne</h2><p>À l&rsquo;image des <em>Autotools</em>, <a href=https://mesonbuild.com/ target=_blank rel=noopener>Meson</a> est un système qui génère les instructions
+de compilation. Ce fut le choix qu&rsquo;a proposé Andres Freund à la communauté après
+l&rsquo;avoir analysé aux côtés de <a href=https://cmake.org/cmake/help/book/mastering-cmake/chapter/Why%20CMake.html# target=_blank rel=noopener>CMake</a> et <a href=https://bazel.build/about/vision target=_blank rel=noopener>Bazel</a>, deux autres compétiteurs
+bien connus du monde libre. Meson est écrit en Python et son but premier est de
+réduire la part d&rsquo;efforts des développeurs dans la rédaction d&rsquo;instructions au
+profit d&rsquo;une plus grande productivité sur le logiciel en tant que tel.</p><p>Le projet Meson s&rsquo;appuie sur un système de construction bas niveau appelé
+<a href=https://ninja-build.org/ target=_blank rel=noopener>ninja</a> qui se veut, d&rsquo;après son auteur <a href=https://neugierig.org/software/chromium/notes/2011/02/ninja.html target=_blank rel=noopener>Evan Martin</a>, être minimaliste
+et bien plus performant que <code>make</code>. Les instructions de compilation sont
+renseignées automatiquement par Meson dans le fichier <code>build.ninja</code> qui sera
+ensuite parcouru par la commande <code>ninja</code> pour compiler les sources en un fichier
+binaire.</p><p><img src=/img/fr/2022-09-29-meson-workflow.png alt="Génération avec Meson"></p><p>Pour reprendre mon projet minimaliste <code>foo</code>, le fichier <em>Makefile</em> est remplacé
+par le fichier <code>meson.build</code>, en y renseignant les méta-données du projet, le
+point d&rsquo;entrée du programme et le fichier binaire souhaité.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-rb data-lang=rb><span class=line><span class=cl><span class=c1># ./meson.build</span>
+</span></span><span class=line><span class=cl><span class=n>project</span><span class=p>(</span><span class=s1>&#39;foo&#39;</span><span class=p>,</span> <span class=s1>&#39;c&#39;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>executable</span><span class=p>(</span><span class=s1>&#39;foo&#39;</span><span class=p>,</span> <span class=s1>&#39;foo.c&#39;</span><span class=p>)</span>
+</span></span></code></pre></div><p>Meson est un jeune projet, dont la première sortie date de 2013. Bien qu&rsquo;il
+rougît de son âge face à CMake, il n&rsquo;en reste pas moins un concurrent qui ne
+cesse de <a href=https://gms.tf/the-rise-of-meson.html target=_blank rel=noopener>gagner du terrain</a> depuis la dernière décennie. Parmi les
+<a href=https://mesonbuild.com/Users.html target=_blank rel=noopener>projets</a> qui s&rsquo;appuient désormais sur Meson, je peux citer de très connus
+comme : <code>systemd</code>, Gnome et GTK+, QEMU, Xorg et Wayland&mldr; De quoi se parer
+d&rsquo;une forte communauté d&rsquo;utilisateurs dans les prochaines années !</p><p>Sur la page « <a href=https://mesonbuild.com/Use-of-Python.html target=_blank rel=noopener>Use of Python</a> » du projet, les créateurs de Meson se
+défendent d&rsquo;un reproche souvent adressé aux technologies modernes et affirment
+ne reposer que sur <code>python3</code> tout en interdisant l&rsquo;usage de modules externes,
+en gages de qualité et de compatibilité. Ainsi, le projet se veut accessible
+pour tous les systèmes d&rsquo;exploitation, faisait un pied de nez au mastodonte
+<em>Autotools</em> qui était très couplé au <em>shell</em> Unix dans son implémentation.</p><p>La décision pour le projet PostgreSQL de progressivement glisser vers Meson est
+le fruit de plusieurs mois de réflexion, avec pour ambition notamment de se
+passer du système <a href=https://github.com/postgres/postgres/tree/master/src/tools/msvc target=_blank rel=noopener>MSVC</a>, un ensemble de scripts Perl maison maintenus par
+une poignée de personnes pour compiler le logiciel sous Windows. En prime, les
+travaux d&rsquo;Andres démontrent un gain significatif dans les temps de <em>build</em>, ce
+qui ne paraît pas surprenant au regard du <em><a href=https://mesonbuild.com/ARM-performance-test.html target=_blank rel=noopener>benchmark</a></em> entre les deux
+systèmes sur une architecture ARM.</p><p><img src=/img/fr/2022-09-29-meson-autotools-benchmark-conf.png alt="Benchmark sur le temps de configuration"></p><p><img src=/img/fr/2022-09-29-meson-autotools-benchmark-build.png alt="Benchmark sur le temps de configuration"></p><blockquote><p>In any case, using Autotools for a modern C/C++ project in 2021 is like using
+CVS for source code version control in 2021: there are better tools available
+and thus it isn&rsquo;t very interesting to still consider the legacy solutions.</p><p><em>Citation de <a href=https://gms.tf/the-rise-of-meson.html target=_blank rel=noopener>Georg Sauthoff, The Rise of Meson</a>.</em></p></blockquote><hr><h2 id=conclusion>Conclusion</h2><p>La route empruntée semble la bonne, bien que le chemin soit encore long pour se
+débarrasser définitivement des résidus historiques d&rsquo;<em>Autoconf</em> dans le projet
+PostgreSQL. Lors de la dernière <em><a href=https://wiki.postgresql.org/wiki/PgCon_2022_Developer_Unconference#Meson_new_build_system_proposal target=_blank rel=noopener>Developer Unconference</a></em> qui s&rsquo;est tenue
+en ligne le 25 mai 2022 lors de l&rsquo;événement annuel du PgCon, les membres de la
+communauté ont statué sur les efforts à fournir pour porter ce chantier
+titanesque.</p><p>Avec un <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target=_blank rel=noopener>patch</a> de l&rsquo;ensemble des contributions rattaché à présent à la
+branche <em>master</em>, la plupart des systèmes d&rsquo;exploitation sont pris en compte
+avec notamment la compilation de PostgreSQL sur Windows à travers <code>ninja</code>. C&rsquo;est
+une première pierre qui est posée et une architecture qui grandira avec d&rsquo;autres
+améliorations dans un avenir proche.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li><li><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
+<small><time datetime=2021-08-24>24 août 2021</time></small></a></li><li><a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv
+<small><time datetime=2020-12-21>21 déc 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-09-29>2022</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
