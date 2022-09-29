@@ -1,7 +1,8 @@
 ---
 title: "Quel avenir pour PostgreSQL ?"
-date: 2019-07-04 11:00:00 +0100
 categories: [postgresql]
+tags: [opensource]
+date: 2019-07-04
 ---
 
 À moins d'avoir passé la dernière décennie dans une grotte ou un service 
