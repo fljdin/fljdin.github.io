@@ -23,7 +23,7 @@ amoureux et amoureuses du libre se tournent résolument vers l'avenir.
 
 <!--more-->
 
-![patch](/img/fr/2022-09-29-andres-freud-e692323.png)
+![patch](/img/fr/2022-09-29-andres-freund-e692323.png)
 
 ---
 
