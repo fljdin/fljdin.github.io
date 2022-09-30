@@ -30,8 +30,8 @@ amoureux et amoureuses du libre se tournent résolument vers l'avenir.
 ## En finir avec autoconf
 
 Un système de construction ou _build system_ (ne vous y trompez pas, j'ai une
-préférence pour la dénomination anglaise) est un ensemble d'instructions,
-compris par un langage propre, qui facilite la compilation d'un logiciel. Les
+préférence pour la dénomination anglaise) est un ensemble d'instructions dans
+une syntaxe qui lui est propre, qui facilite la compilation d'un logiciel. Les
 ramifications d'un projet, les dépendances et les librairies ou tout simplement
 l'outillage interne, deviennent inexorablement la rançon d'une complexité après
 plusieurs décennies d'existence.
@@ -92,7 +92,6 @@ graph LR
     M4 --\>|autoconf| C
 
     Am[makefile.am] --\>|automake| Mi[Makefile.in]
-    Am --\>|automake| Mi
     Ch --\>|automake| Mi
 
     C --\> Cs[config.status]
