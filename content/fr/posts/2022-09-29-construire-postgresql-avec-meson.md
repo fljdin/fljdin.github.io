@@ -254,8 +254,9 @@ titanesque.
 
 [17]: https://wiki.postgresql.org/wiki/PgCon_2022_Developer_Unconference#Meson_new_build_system_proposal
 
-Avec un [patch][1] de l'ensemble des contributions rattaché à présent à la
-branche _master_,  la plupart des systèmes d'exploitation sont pris en compte
-avec notamment la compilation de PostgreSQL sur Windows à travers `ninja`. C'est
-une première pierre qui est posée et une architecture qui grandira avec d'autres
-améliorations dans un avenir proche. 
+Avec ce récent [patch][1] rattaché à présent à la branche _master_, la
+construction des binaires sur la plupart des systèmes d'exploitation est
+implémentée, avec notamment la compilation de PostgreSQL sur Windows à travers
+`ninja`. C'est une première pierre qui est posée pour la prochaine version 16 en
+cours de développement et l'émergence d'une architecture qui grandira avec
+d'autres améliorations dans un avenir proche.
