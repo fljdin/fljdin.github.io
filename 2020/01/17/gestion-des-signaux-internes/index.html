@@ -76,26 +76,26 @@ juste avant l&rsquo;entrée dans sa boucle principale.</p><div class=highlight><
 </span></span></span><span class=line><span class=cl><span class=cm>   * Ignore all signals usually bound to some action in the postmaster,
 </span></span></span><span class=line><span class=cl><span class=cm>   * except for SIGHUP, SIGTERM, SIGUSR1, SIGUSR2, and SIGQUIT.
 </span></span></span><span class=line><span class=cl><span class=cm>   */</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGHUP</span><span class=p>,</span> <span class=n>SignalHandlerForConfigReload</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGINT</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGTERM</span><span class=p>,</span> <span class=n>SignalHandlerForShutdownRequest</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGQUIT</span><span class=p>,</span> <span class=n>pgarch_exit</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGALRM</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGPIPE</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGUSR1</span><span class=p>,</span> <span class=n>pgarch_waken</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGUSR2</span><span class=p>,</span> <span class=n>pgarch_waken_stop</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGHUP</span><span class=p>,</span> <span class=n>SignalHandlerForConfigReload</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGINT</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGTERM</span><span class=p>,</span> <span class=n>SignalHandlerForShutdownRequest</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGQUIT</span><span class=p>,</span> <span class=n>pgarch_exit</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGALRM</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGPIPE</span><span class=p>,</span> <span class=n>SIG_IGN</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGUSR1</span><span class=p>,</span> <span class=n>pgarch_waken</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGUSR2</span><span class=p>,</span> <span class=n>pgarch_waken_stop</span><span class=p>);</span>
 </span></span><span class=line><span class=cl>  <span class=cm>/* Reset some signals that are accepted by postmaster but not here */</span>
-</span></span><span class=line><span class=cl>  <span class=n>pqsignal</span><span class=p>(</span><span class=n>SIGCHLD</span><span class=p>,</span> <span class=n>SIG_DFL</span><span class=p>);</span>
-</span></span><span class=line><span class=cl>  <span class=n>PG_SETMASK</span><span class=p>(</span><span class=o>&amp;</span><span class=n>UnBlockSig</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pqsignal</span><span class=p>(</span><span class=n>SIGCHLD</span><span class=p>,</span> <span class=n>SIG_DFL</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>PG_SETMASK</span><span class=p>(</span><span class=o>&amp;</span><span class=n>UnBlockSig</span><span class=p>);</span>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>  <span class=cm>/*
 </span></span></span><span class=line><span class=cl><span class=cm>   * Identify myself via ps
 </span></span></span><span class=line><span class=cl><span class=cm>   */</span>
-</span></span><span class=line><span class=cl>  <span class=n>init_ps_display</span><span class=p>(</span><span class=s>&#34;archiver&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>init_ps_display</span><span class=p>(</span><span class=s>&#34;archiver&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>,</span> <span class=s>&#34;&#34;</span><span class=p>);</span>
 </span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>  <span class=n>pgarch_MainLoop</span><span class=p>();</span>
+</span></span><span class=line><span class=cl>  <span class=nf>pgarch_MainLoop</span><span class=p>();</span>
 </span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl>  <span class=n>exit</span><span class=p>(</span><span class=mi>0</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>exit</span><span class=p>(</span><span class=mi>0</span><span class=p>);</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
 </span></span></code></pre></div><p>La méthode <code>pqsignal</code> prend en paramètre la valeur <code>enum</code> du signal ainsi qu&rsquo;un
 pointeur de fonction selon l&rsquo;événement que l&rsquo;on veut provoquer. Dans PostgreSQL,
@@ -116,7 +116,7 @@ journal de transaction doit être archivé.</p><div class=highlight><pre tabinde
 </span></span><span class=line><span class=cl>  <span class=kt>int</span>      <span class=n>save_errno</span> <span class=o>=</span> <span class=n>errno</span><span class=p>;</span>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>  <span class=n>ConfigReloadPending</span> <span class=o>=</span> <span class=nb>true</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>  <span class=n>SetLatch</span><span class=p>(</span><span class=n>MyLatch</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=nf>SetLatch</span><span class=p>(</span><span class=n>MyLatch</span><span class=p>);</span>
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>  <span class=n>errno</span> <span class=o>=</span> <span class=n>save_errno</span><span class=p>;</span>
 </span></span><span class=line><span class=cl><span class=p>}</span>
@@ -140,7 +140,7 @@ la function <code>ProcessConfigFile()</code>.</p><div class=highlight><pre tabin
 </span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>ConfigReloadPending</span><span class=p>)</span>
 </span></span><span class=line><span class=cl>    <span class=p>{</span>
 </span></span><span class=line><span class=cl>      <span class=n>ConfigReloadPending</span> <span class=o>=</span> <span class=nb>false</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>      <span class=n>ProcessConfigFile</span><span class=p>(</span><span class=n>PGC_SIGHUP</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>      <span class=nf>ProcessConfigFile</span><span class=p>(</span><span class=n>PGC_SIGHUP</span><span class=p>);</span>
 </span></span><span class=line><span class=cl>    <span class=p>}</span>
 </span></span><span class=line><span class=cl>    <span class=p>...</span>
 </span></span><span class=line><span class=cl>  <span class=p>}</span> <span class=k>while</span> <span class=p>(</span><span class=o>!</span><span class=n>time_to_stop</span><span class=p>);</span>
@@ -159,7 +159,7 @@ configuration ou les <a href=https://www.postgresql.org/docs/current/functions-a
 toujours enrichissantes ! J&rsquo;espère que cet article vous a plu et que vous avez
 pris plaisir comme moi à parcourir quelques fichiers du code source du projet
 libre PostgreSQL !</div></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Écrire ses tests unitaires en SQL
-<small><time datetime=2020-05-14>14 mai 2020</time></small></a></li><li><a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Dessine-moi un arbre (abstrait)
-<small><time datetime=2022-06-29>29 juin 2022</time></small></a></li><li><a href=https://fljd.in/2022/04/21/halte-aux-regressions/>Halte aux régressions
-<small><time datetime=2022-04-21>21 avr 2022</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2022-09-30>2022</time>
+<small><time datetime=2020-05-14>14 mai 2020</time></small></a></li><li><a href=https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/>Le fenêtrage à la rescousse
+<small><time datetime=2023-02-10>10 févr 2023</time></small></a></li><li><a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Dessine-moi un arbre (abstrait)
+<small><time datetime=2022-06-29>29 juin 2022</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2023-02-10>2023</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

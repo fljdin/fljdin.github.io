@@ -1,4 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 29 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 10 Feb 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Le fenêtrage à la rescousse</title><link>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</link><pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</guid><description>&lt;p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
+valeurs agrégées ou relatives sur un ensemble de lignes qui se situent dans une
+« fenêtre » autours de la ligne courante. En utilisant de telles fonctions,
+n&amp;rsquo;importe qui peut créer des requêtes plus avancées et plus efficaces pour
+l&amp;rsquo;analyse de leur base de données.&lt;/p>
+&lt;p>Depuis plusieurs semaines, je contribue à un projet de conversion de modèles de
+données vers PostgreSQL, appelé &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a>. À cette occasion, j&amp;rsquo;ai
+(re)découvert la puissance de ces &lt;a href="https://www.postgresql.org/docs/current/functions-window.html" target="_blank" rel="noopener">fonctions de fenêtrage&lt;/a> avec le langage
+SQL. Dans cet article, je reviens sur un &lt;a href="https://github.com/cybertec-postgresql/db_migrator/pull/11" target="_blank" rel="noopener">cas concret&lt;/a> de transformation des
+bornes supérieures d&amp;rsquo;une table partitionnée en tableau de valeur.&lt;/p></description></item><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
 jours&lt;/a>, le groupe de développement du projet communautaire ont intégré &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target="_blank" rel="noopener">leurs
 récents travaux&lt;/a> pour accélérer les tâches d&amp;rsquo;automatisation et de compilation
 à l&amp;rsquo;aide du système de construction &lt;a href="https://mesonbuild.com/" target="_blank" rel="noopener">Meson&lt;/a>.&lt;/p>
@@ -43,14 +52,4 @@ chiffre &lt;code>4&lt;/code> mais l&amp;rsquo;opérateur &lt;code>||&lt;/code> p
 terrain concernant cette particularité logicielle et comprendre les effets de
 bord pour mieux les appréhender. Je prendrais un exemple assez spécifique du type
 &lt;code>oid&lt;/code> et d&amp;rsquo;un risque de transtypage pouvant perturber le stockage de &lt;em>Large
-Objects&lt;/em> dans une table, voire leur destruction non désirée.&lt;/p></description></item><item><title>Migrer vers PostgreSQL</title><link>https://fljd.in/2021/12/06/migrer-vers-postgresql/</link><pubDate>Mon, 06 Dec 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/12/06/migrer-vers-postgresql/</guid><description>&lt;p>Le marché de la migration en France est intense. Le Groupe de Travail
-Inter-Entreprises PostgreSQL (PGGTIE) a même publié un &lt;a href="https://www.postgresql.fr/_media/entreprises/guide-de-transition_v2.0.pdf" target="_blank" rel="noopener">guide de transition&lt;/a>
-à PostgreSQL à destination des entreprises françaises. Ce dernier est le fruit
-de près de cinq années de travaux au sein de plusieurs organismes publics et a
-pour ambition de démontrer l&amp;rsquo;intérêt de PostgreSQL aux décideurs techniques en
-présentant les forces et les faiblesses du moteur.&lt;/p>
-&lt;p>Le mois dernier, une traduction en anglais est &lt;a href="https://twitter.com/nthonynowocien/status/1458065335387578382" target="_blank" rel="noopener">sortie des cartons&lt;/a> pour
-promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
-Je trouvais intéressant de profiter de cette actualité pour partager mes
-réflexions du moment, entre ma vision du marché français et l&amp;rsquo;approche technique
-pour engager les migrations de données vers PostgreSQL.&lt;/p></description></item></channel></rss>
+Objects&lt;/em> dans une table, voire leur destruction non désirée.&lt;/p></description></item></channel></rss>
