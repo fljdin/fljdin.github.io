@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 10 Feb 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Le fenêtrage à la rescousse</title><link>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</link><pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</guid><description>&lt;p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
 valeurs agrégées ou relatives sur un ensemble de lignes qui se situent dans une
-« fenêtre » autours de la ligne courante. En utilisant de telles fonctions,
+« fenêtre » autour de la ligne courante. En utilisant de telles fonctions,
 n&amp;rsquo;importe qui peut créer des requêtes plus avancées et plus efficaces pour
 l&amp;rsquo;analyse de leur base de données.&lt;/p>
 &lt;p>Depuis plusieurs semaines, je contribue à un projet de conversion de modèles de
