@@ -7,7 +7,7 @@ date: 2023-02-10
 
 PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
 valeurs agrégées ou relatives sur un ensemble de lignes qui se situent dans une
-« fenêtre » autours de la ligne courante.  En utilisant de telles fonctions,
+« fenêtre » autour de la ligne courante.  En utilisant de telles fonctions,
 n'importe qui peut créer des requêtes plus avancées et plus efficaces pour
 l'analyse de leur base de données.
 
