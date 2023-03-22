@@ -37,7 +37,7 @@ précise de ce que les deux types de colonnes générées peuvent nous apporter�
 
 > Une colonne générée virtuelle n'occupe pas d'espace et est calculée à la
 > lecture. Une colonne générée virtuelle est donc équivalente à une vue, et une
-> colonne générée stockée à une vue matérialisée (sauf qu'elle sera toujours
+> colonne générée stockée est équivalente à une vue matérialisée (sauf qu'elle sera toujours
 > mise à jour automatiquement).
 
 Les cas d'utilisations sont multiples et permettent de définir au plus proche de
@@ -51,13 +51,13 @@ obtenir. Par exemple :
   PostGIS ;
 * Calcul de l'intervalle entre deux données temporelles, par exemple la durée
   d'exécution d'une tâche sur la base du début et de la fin de son exécution ;
-* Contrôler si une donnée de la ligne est valide en retournant `true` ou
+* Contrôle de la validité d'une ligne en retournant `true` ou
   `false`.
 
 Il fallut attendre la version 12 de PostgreSQL, sortie en octobre 2019, pour
 pouvoir bénéficier de la syntaxe standardisée `GENERATED ALWAYS AS`, bien que le
 respect de la norme soit partiel. Dans la course à la normalisation, les
-systèmes DB2 d'IBM et Oracle Database sont les plus avancées comme le montre
+systèmes DB2 d'IBM et Oracle Database sont les plus avancés comme le montre
 l'illustration ci-dessous, issue de l'article de Markus Winand.
 
 ![](/img/fr/2023-03-22-generated-columns-support.png)
@@ -93,7 +93,7 @@ Les instructions `INSERT` sont disponibles sur mon [dépôt Github][5].
 
 Cette transformation nécessite de considérer la colonne `code_hex` dans sa
 représentation hexadécimale grâce à une conversion en `bytea`. Ensuite, la
-méthode `get_byte` permet d'obtenir la valeur de chaque octet en valeur
+fonction `get_byte` de PostgreSQL permet d'obtenir la valeur de chaque octet en valeur
 décimale. Pour ma démonstration, je vais m'appuyer sur une fonction SQL qui sera
 responsable de l'extraction des trois octets et me retournera un type
 personnalisé.
@@ -119,7 +119,7 @@ ALTER TABLE colors
     GENERATED ALWAYS AS (hex_to_rgb(code_hex)) STORED;
 ```
 
-Lors de l'ajout d'une colonne, PostgreSQL va réécrire la table intégralement
+Attention : lors de l'ajout de cette colonne, PostgreSQL va réécrire la table intégralement
 vers un nouveau fichier. Il profite alors de cette étape pour calculer les
 données de la colonne générée et les stocker aux côtés des autres colonnes de
 chaque ligne.
