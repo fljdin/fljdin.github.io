@@ -19,8 +19,7 @@ Dans sa publication SQL:2003, la norme a introduit le concept de **colonnes
 générées** comme nouvelle spécification technique. Parfois appelées _colonnes
 calculées_ ou _colonnes virtuelles_, leurs valeurs dérivent de celles des autres
 colonnes de la table. [Un des articles][2] de Markus Winand passe au crible les
-différents systèmes du marché afin de dresser une liste exhaustive des
-implémentations qui respectent ce standard.
+différents systèmes du marché pour voir s'ils respectent ce standard.
 
 [2]: https://modern-sql.com/caniuse/generated-always-as
 
@@ -91,12 +90,12 @@ Les instructions `INSERT` sont disponibles sur mon [dépôt Github][5].
 [5]: https://github.com/fljdin/database-samples/blob/master/en-colors-code-hex.sql
 {{</ message >}}
 
-Cette transformation nécessite de considérer la colonne `code_hex` dans sa
+Cette transformation nécessite de manipuler la colonne `code_hex` dans sa
 représentation hexadécimale grâce à une conversion en `bytea`. Ensuite, la
 fonction `get_byte` de PostgreSQL permet d'obtenir la valeur de chaque octet en valeur
 décimale. Pour ma démonstration, je vais m'appuyer sur une fonction SQL qui sera
 responsable de l'extraction des trois octets et me retournera un type
-personnalisé.
+personnalisé `rgb`.
 
 ```sql
 CREATE DOMAIN color AS smallint CHECK (VALUE BETWEEN 0 AND 255);
