@@ -1,4 +1,15 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 10 Feb 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Le fenêtrage à la rescousse</title><link>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</link><pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</guid><description>&lt;p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 22 Mar 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Les colonnes générées</title><link>https://fljd.in/2023/03/22/les-colonnes-generees/</link><pubDate>Wed, 22 Mar 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/03/22/les-colonnes-generees/</guid><description>&lt;p>La norme ISO SQL/Foundation (&lt;a href="https://www.iso.org/standard/63556.html" target="_blank" rel="noopener">ISO/IEC 9075-2:2016&lt;/a>) fait partie du standard
+SQL et définit les règles pour la définition des relations et la manipulation
+des données. En adoptant cette norme, les moteurs de bases de données
+garantissent une interopérabilité avec leurs concurrents et permettent aux
+entreprises de bénéficier d&amp;rsquo;une plus grande flexibilité lorsqu&amp;rsquo;elles souhaitent
+passer de l&amp;rsquo;un à l&amp;rsquo;autre sans (trop) réécrire leur modèle de données ou leurs
+requêtes SQL.&lt;/p>
+&lt;p>Dans sa publication SQL:2003, la norme a introduit le concept de &lt;strong>colonnes
+générées&lt;/strong> comme nouvelle spécification technique. Parfois appelées &lt;em>colonnes
+calculées&lt;/em> ou &lt;em>colonnes virtuelles&lt;/em>, leurs valeurs dérivent de celles des autres
+colonnes de la table. &lt;a href="https://modern-sql.com/caniuse/generated-always-as" target="_blank" rel="noopener">Un des articles&lt;/a> de Markus Winand passe au crible les
+différents systèmes du marché pour voir s&amp;rsquo;ils respectent ce standard.&lt;/p></description></item><item><title>Le fenêtrage à la rescousse</title><link>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</link><pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</guid><description>&lt;p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
 valeurs agrégées ou relatives sur un ensemble de lignes qui se situent dans une
 « fenêtre » autour de la ligne courante. En utilisant de telles fonctions,
 n&amp;rsquo;importe qui peut créer des requêtes plus avancées et plus efficaces pour
@@ -43,13 +54,4 @@ logiciel dans la bonne direction.&lt;/p>
 &lt;p>Dans cet article, je souhaite explorer le système de tests tel qu&amp;rsquo;il est (et
 a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d&amp;rsquo;une
 extension communautaire. Si vous ne connaissiez pas l&amp;rsquo;outil &lt;code>pg_regress&lt;/code>, il
-n&amp;rsquo;aura plus de secret pour vous !&lt;/p></description></item><item><title>Conversions implicites</title><link>https://fljd.in/2022/03/11/conversions-implicites/</link><pubDate>Fri, 11 Mar 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/03/11/conversions-implicites/</guid><description>&lt;p>À l&amp;rsquo;image d&amp;rsquo;un langage de programmation classique, le SQL manipule des données
-typées, comme les chaînes de caractères, les dates ou des entiers numériques.
-Les opérations de transformations ou de comparaison diffèrent en fonction du
-type de données ; il ne sera pas possible de comparer le caractère &lt;code>A&lt;/code> avec le
-chiffre &lt;code>4&lt;/code> mais l&amp;rsquo;opérateur &lt;code>||&lt;/code> permettra la concaténation des deux éléments.&lt;/p>
-&lt;p>Dans cet article, je souhaite partager quelques anecdotes et problématiques de
-terrain concernant cette particularité logicielle et comprendre les effets de
-bord pour mieux les appréhender. Je prendrais un exemple assez spécifique du type
-&lt;code>oid&lt;/code> et d&amp;rsquo;un risque de transtypage pouvant perturber le stockage de &lt;em>Large
-Objects&lt;/em> dans une table, voire leur destruction non désirée.&lt;/p></description></item></channel></rss>
+n&amp;rsquo;aura plus de secret pour vous !&lt;/p></description></item></channel></rss>

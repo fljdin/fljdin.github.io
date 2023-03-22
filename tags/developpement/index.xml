@@ -1,4 +1,15 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>developpement on Carnet de découvertes</title><link>https://fljd.in/tags/developpement/</link><description>Recent content in developpement on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 10 Feb 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml"/><item><title>Le fenêtrage à la rescousse</title><link>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</link><pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</guid><description>&lt;p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>developpement on Carnet de découvertes</title><link>https://fljd.in/tags/developpement/</link><description>Recent content in developpement on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 22 Mar 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/developpement/index.xml" rel="self" type="application/rss+xml"/><item><title>Les colonnes générées</title><link>https://fljd.in/2023/03/22/les-colonnes-generees/</link><pubDate>Wed, 22 Mar 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/03/22/les-colonnes-generees/</guid><description>&lt;p>La norme ISO SQL/Foundation (&lt;a href="https://www.iso.org/standard/63556.html" target="_blank" rel="noopener">ISO/IEC 9075-2:2016&lt;/a>) fait partie du standard
+SQL et définit les règles pour la définition des relations et la manipulation
+des données. En adoptant cette norme, les moteurs de bases de données
+garantissent une interopérabilité avec leurs concurrents et permettent aux
+entreprises de bénéficier d&amp;rsquo;une plus grande flexibilité lorsqu&amp;rsquo;elles souhaitent
+passer de l&amp;rsquo;un à l&amp;rsquo;autre sans (trop) réécrire leur modèle de données ou leurs
+requêtes SQL.&lt;/p>
+&lt;p>Dans sa publication SQL:2003, la norme a introduit le concept de &lt;strong>colonnes
+générées&lt;/strong> comme nouvelle spécification technique. Parfois appelées &lt;em>colonnes
+calculées&lt;/em> ou &lt;em>colonnes virtuelles&lt;/em>, leurs valeurs dérivent de celles des autres
+colonnes de la table. &lt;a href="https://modern-sql.com/caniuse/generated-always-as" target="_blank" rel="noopener">Un des articles&lt;/a> de Markus Winand passe au crible les
+différents systèmes du marché pour voir s&amp;rsquo;ils respectent ce standard.&lt;/p></description></item><item><title>Le fenêtrage à la rescousse</title><link>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</link><pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/</guid><description>&lt;p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
 valeurs agrégées ou relatives sur un ensemble de lignes qui se situent dans une
 « fenêtre » autour de la ligne courante. En utilisant de telles fonctions,
 n&amp;rsquo;importe qui peut créer des requêtes plus avancées et plus efficaces pour
@@ -43,9 +54,4 @@ chiffre &lt;code>4&lt;/code> mais l&amp;rsquo;opérateur &lt;code>||&lt;/code> p
 terrain concernant cette particularité logicielle et comprendre les effets de
 bord pour mieux les appréhender. Je prendrais un exemple assez spécifique du type
 &lt;code>oid&lt;/code> et d&amp;rsquo;un risque de transtypage pouvant perturber le stockage de &lt;em>Large
-Objects&lt;/em> dans une table, voire leur destruction non désirée.&lt;/p></description></item><item><title>Parlons un peu des données externes</title><link>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</link><pubDate>Fri, 16 Jul 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/</guid><description>&lt;p>Depuis plusieurs semaines, j&amp;rsquo;étudie les nouveautés de la &lt;a href="https://www.postgresql.org/docs/14/release-14.html" target="_blank" rel="noopener">prochaine version majeure&lt;/a>
-de PostgreSQL avec un intérêt grandissant pour le connecteur &lt;a href="https://www.postgresql.org/docs/13/postgres-fdw.html" target="_blank" rel="noopener">postgres_fdw&lt;/a>.
-Cette extension assez folle n&amp;rsquo;a pas son équivalent sur les autres systèmes de
-bases de données du marché, et pour cause, PostgreSQL est l&amp;rsquo;un des rares à respecter
-la norme SQL/MED, sous-partie du langage SQL tel que défini par le standard
-&lt;a href="https://www.iso.org/standard/63476.html" target="_blank" rel="noopener">ISO/IEC 9075-9&lt;/a>.&lt;/p></description></item></channel></rss>
+Objects&lt;/em> dans une table, voire leur destruction non désirée.&lt;/p></description></item></channel></rss>
