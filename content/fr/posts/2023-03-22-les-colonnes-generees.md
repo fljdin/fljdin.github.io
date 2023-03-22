@@ -36,8 +36,8 @@ précise de ce que les deux types de colonnes générées peuvent nous apporter�
 
 > Une colonne générée virtuelle n'occupe pas d'espace et est calculée à la
 > lecture. Une colonne générée virtuelle est donc équivalente à une vue, et une
-> colonne générée stockée est équivalente à une vue matérialisée (sauf qu'elle sera toujours
-> mise à jour automatiquement).
+> colonne générée stockée est équivalente à une vue matérialisée (sauf qu'elle
+> sera toujours mise à jour automatiquement).
 
 Les cas d'utilisations sont multiples et permettent de définir au plus proche de
 la structure de la table, les informations transformées que les utilisateurs
@@ -50,8 +50,10 @@ obtenir. Par exemple :
   PostGIS ;
 * Calcul de l'intervalle entre deux données temporelles, par exemple la durée
   d'exécution d'une tâche sur la base du début et de la fin de son exécution ;
-* Contrôle de la validité d'une ligne en retournant `true` ou
-  `false`.
+* Contrôle de la validité d'une ligne en retournant `true` ou `false` ;
+* Extraction d'un élément depuis un type complexe comme `JSON` ou `ARRAY`,
+  notamment pour bénéficier de mécanismes comme la collecte de statistiques ou
+  l'indexation.
 
 Il fallut attendre la version 12 de PostgreSQL, sortie en octobre 2019, pour
 pouvoir bénéficier de la syntaxe standardisée `GENERATED ALWAYS AS`, bien que le
@@ -92,9 +94,9 @@ Les instructions `INSERT` sont disponibles sur mon [dépôt Github][5].
 
 Cette transformation nécessite de manipuler la colonne `code_hex` dans sa
 représentation hexadécimale grâce à une conversion en `bytea`. Ensuite, la
-fonction `get_byte` de PostgreSQL permet d'obtenir la valeur de chaque octet en valeur
-décimale. Pour ma démonstration, je vais m'appuyer sur une fonction SQL qui sera
-responsable de l'extraction des trois octets et me retournera un type
+fonction `get_byte` de PostgreSQL permet d'obtenir la valeur de chaque octet en
+valeur décimale. Pour ma démonstration, je vais m'appuyer sur une fonction SQL
+qui sera responsable de l'extraction des trois octets et me retournera un type
 personnalisé `rgb`.
 
 ```sql
@@ -102,7 +104,7 @@ CREATE DOMAIN color AS smallint CHECK (VALUE BETWEEN 0 AND 255);
 CREATE TYPE rgb AS (red color, green color, blue color);
 
 CREATE OR REPLACE FUNCTION hex_to_rgb(code char(6))
-RETURNS rgb LANGUAGE sql IMMUTABLE
+RETURNS rgb LANGUAGE sql IMMUTABLE PARALLEL SAFE
 RETURN (
   get_byte(concat('\x', code)::bytea, 0),
   get_byte(concat('\x', code)::bytea, 1),
@@ -118,10 +120,10 @@ ALTER TABLE colors
     GENERATED ALWAYS AS (hex_to_rgb(code_hex)) STORED;
 ```
 
-Attention : lors de l'ajout de cette colonne, PostgreSQL va réécrire la table intégralement
-vers un nouveau fichier. Il profite alors de cette étape pour calculer les
-données de la colonne générée et les stocker aux côtés des autres colonnes de
-chaque ligne.
+Attention : lors de l'ajout de cette colonne, PostgreSQL va réécrire la table
+intégralement vers un nouveau fichier. Il profite alors de cette étape pour
+calculer les données de la colonne générée et les stocker aux côtés des autres
+colonnes de chaque ligne.
 
 ```sql
 SELECT * FROM colors LIMIT 5;
@@ -147,10 +149,10 @@ inconvénients découlent de son implémentation :
 * L'ajout d'une nouvelle colonne générée implique la réécriture de la table,
   avec des verrous passablement contraignants sur des tables fortement
   sollicitées ;
-* Si le corps de la fonction est modifié, la transformation des données ne
-  s'appliquera qu'à la prochaine modification des lignes ;
 * À l'image d'un mauvais usage des triggers, les colonnes générées peuvent
   ralentir les opérations d'écriture (`INSERT` et `UPDATE`).
+* Si le corps de la fonction est modifié, la transformation des données ne
+  s'appliquera qu'à la prochaine modification des lignes ;
 
 S'engager sur la voie des colonnes générées ainsi proposées par PostgreSQL peut
 se révéler rédhibitoire pour certains besoins. Dans la continuité de ma
@@ -172,7 +174,7 @@ CREATE DOMAIN percent AS smallint CHECK (VALUE BETWEEN 0 AND 100);
 CREATE TYPE hsv AS (hue degree, saturation percent, value percent);
 
 CREATE OR REPLACE FUNCTION rgb_to_hsv(code rgb)
-RETURNS hsv LANGUAGE sql IMMUTABLE 
+RETURNS hsv LANGUAGE sql IMMUTABLE PARALLEL SAFE
 AS $$
   WITH color AS (
     SELECT 
@@ -224,7 +226,7 @@ attribut de la relation.
 
 ```sql
 CREATE OR REPLACE FUNCTION code_hsv(color colors)
-RETURNS hsv LANGUAGE sql IMMUTABLE
+RETURNS hsv LANGUAGE sql IMMUTABLE PARALLEL SAFE
 RETURN rgb_to_hsv(color.code_rgb);
 
 CREATE OR REPLACE VIEW colors_with_hsv AS
