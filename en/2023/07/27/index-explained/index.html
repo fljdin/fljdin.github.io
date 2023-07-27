@@ -165,8 +165,9 @@ blocks of the <code>mathematicians</code> table.</p><div class=highlight><pre ta
 </span></span></span><span class=line><span class=cl><span class=c1>--  (1,102) | 0d 47 61 75 73 73 00 00 | Gauss
 </span></span></span></code></pre></div><p>The results of the previous execution plans are now clear! As a reminder, we had
 an <code>Index Scan</code> node for the &ldquo;Gauss&rdquo; search and two <code>Bitmap Heap/Index Scan</code>
-nodes for the &ldquo;Cartan&rdquo; search.</p><p>The first search physically performs two reads in the index (blocks 3 and then</p><ol><li>before reading the data block <code>(1,102)</code>, making a total of three blocks,
-as mentionned by the execution plan (<code>Buffers: shared hit=3</code>).</li></ol><p>The second search also involves two reads in the index but retrieves two
+nodes for the &ldquo;Cartan&rdquo; search.</p><p>The first search physically performs two reads in the index (blocks 3 and then 1)
+before reading the data block <code>(1,102)</code>, making a total of three blocks,
+as mentionned by the execution plan (<code>Buffers: shared hit=3</code>).</p><p>The second search also involves two reads in the index but retrieves two
 distinct rows from two different locations in the table (addresses <code>(3,8)</code> and
 <code>(4,8)</code>), resulting in a total of four blocks, which aligns with the plan as
 well (<code>Buffers: shared hit=4</code>).</p><hr><p>Of course, examining the contents of indexes is not necessary for performance
