@@ -75,9 +75,9 @@ CREATE USER MAPPING FOR PUBLIC SERVER mysql
 ```
 
 L'opération de migration peut être réalisée en une seule commande pour les cas
-les plus simples (pas de procédure stockées, ni de types de colonnes exotiques)
+les plus simples (pas de procédure stockée, ni de types de colonnes exotiques)
 avec la méthode `db_migrate()`. Sinon, en plusieurs étapes, s'il est nécessaire
-de faire des ajustements comme le changement du types de colonne ou le retrait
+de faire des ajustements comme le changement du type de colonne ou le retrait
 d'une table dans le schéma cible.
 
 Lors du développement de l'extension `mysql_migration`, je suis parti de la base
@@ -97,10 +97,10 @@ SELECT db_migrate_prepare(
 ```
 
 Cette partie peut être relativement longue, puisqu'elle va permettre de
-rappatrier le modèle de données, que j'appelle le catalogue, sous la forme de
-plusieurs tables qui décrivent la structures des tables, le noms des colonnes ou
+rapatrier le modèle de données, que j'appelle le catalogue, sous la forme de
+plusieurs tables qui décrivent la structure des tables, le nom des colonnes ou
 les contraintes qui leur sont associées. L'extension importe également les
-sources de toutes les procédures stockées, les fonctions, les vues mais ne
+sources de toutes les procédures stockées, les fonctions, les vues, mais ne
 réalise pas leur conversion en PL/pgSQL (vous ne vous rendez pas compte du
 [travail que cela représente][7]).
 
@@ -203,10 +203,10 @@ budgétaires. La transition vers un système libre et sans licence commerciale
 comme PostgreSQL est toujours d'actualité, peut-être même plus urgente
 aujourd'hui en comparaison à la décennie qui vient de s'écouler.
 
-Et pourtant, avec mes lunettes de DBA, je ne me satisfait pas encore des outils
+Et pourtant, avec mes lunettes de DBA, je ne me satisfais pas encore des outils
 qui existent. J'aimerais qu'il y ait une nouvelle alternative, quelque chose
 d'universel et à portée de tout le monde. Si je me tourne aujourd'hui vers
-**db_migrator**, ce serait pour les principaux atoûts suivants :
+**db_migrator**, ce serait pour les principaux atouts suivants :
 
 * Une implémentation bas niveau au plus près de l'instance : avec le PL/pgSQL
   comme language exclusif. Cela n'aurait pas été possible bien sûr sans le
