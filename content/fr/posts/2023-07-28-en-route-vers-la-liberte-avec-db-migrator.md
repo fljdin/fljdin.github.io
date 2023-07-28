@@ -3,6 +3,7 @@ title: "En route vers la liberté avec db_migrator"
 categories: [postgresql,migration]
 tags: [opensource, sqlmed, developpement]
 date: 2023-07-28
+translationKey: "en-route-vers-la-liberte-avec-db-migrator"
 ---
 
 J'ai passé plusieurs semaines ces derniers mois à contribuer à l'extension
@@ -232,7 +233,7 @@ d'universel et à portée de tout le monde. Si je me tourne aujourd'hui vers
 [12]: https://wiki.postgresql.org/wiki/Foreign_data_wrappers
 [13]: https://github.com/cybertec-postgresql/ora_migrator#replication-functions
 
-Le chemin me semble encore long pour prétendre faire la moitié de ce que propose
-déjà Ora2Pg, à commencer par la conversion automatique qui n'est pas du tout à
-l'ordre du jour. Mais avec de petites avancées, régulières et réfléchies, qui
-sait ?
+Le chemin vers la liberté me semble encore long pour prétendre faire la moitié
+de ce que propose déjà Ora2Pg, à commencer par la conversion automatique qui
+n'est pas du tout à l'ordre du jour. Mais avec de petites avancées, régulières
+et réfléchies, qui sait ?
