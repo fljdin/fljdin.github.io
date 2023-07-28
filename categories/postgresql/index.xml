@@ -1,4 +1,11 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 22 Mar 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Les colonnes générées</title><link>https://fljd.in/2023/03/22/les-colonnes-generees/</link><pubDate>Wed, 22 Mar 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/03/22/les-colonnes-generees/</guid><description>&lt;p>La norme ISO SQL/Foundation (&lt;a href="https://www.iso.org/standard/63556.html" target="_blank" rel="noopener">ISO/IEC 9075-2:2016&lt;/a>) fait partie du standard
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 28 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>En route vers la liberté avec db_migrator</title><link>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</guid><description>&lt;p>J&amp;rsquo;ai passé plusieurs semaines ces derniers mois à contribuer à l&amp;rsquo;extension
+&lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a>. Rédigée uniquement en PL/pgSQL, elle permet de migrer les schémas
+et les données d&amp;rsquo;un système de bases de données vers PostgreSQL à l&amp;rsquo;aide des
+données externes que j&amp;rsquo;avais déjà présentées dans &lt;a href="https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/">un autre article&lt;/a>.&lt;/p>
+&lt;p>Dans cet article, je présente le fonctionnement de l&amp;rsquo;outil, sa philosophie et la
+raison d&amp;rsquo;être que je lui ai trouvée, alors même qu&amp;rsquo;il rejoint l&amp;rsquo;écosystème des
+projets libres déjà bien installés dans le paysage de la migration. Que vaut-il
+aux côtés d&amp;rsquo;&lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> ou de &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> ?&lt;/p></description></item><item><title>Les colonnes générées</title><link>https://fljd.in/2023/03/22/les-colonnes-generees/</link><pubDate>Wed, 22 Mar 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/03/22/les-colonnes-generees/</guid><description>&lt;p>La norme ISO SQL/Foundation (&lt;a href="https://www.iso.org/standard/63556.html" target="_blank" rel="noopener">ISO/IEC 9075-2:2016&lt;/a>) fait partie du standard
 SQL et définit les règles pour la définition des relations et la manipulation
 des données. En adoptant cette norme, les moteurs de bases de données
 garantissent une interopérabilité avec leurs concurrents et permettent aux
@@ -46,12 +53,4 @@ faciliter l&amp;rsquo;accès au plus grand nombre.&lt;/p>
 &lt;p>Dans cet article, je souhaite présenter de récentes découvertes sur l&amp;rsquo;une de ces
 phases internes, l&amp;rsquo;étape d&amp;rsquo;analyse, qui permet de manipuler une requête SQL sous
 une forme d&amp;rsquo;arbre et qui respecte un pattern de développement avancé nommé &lt;a href="https://fr.wikipedia.org/wiki/Arbre_de_la_syntaxe_abstraite" target="_blank" rel="noopener">AST&lt;/a>
-(&lt;em>abstract syntax tree&lt;/em>).&lt;/p></description></item><item><title>Halte aux régressions</title><link>https://fljd.in/2022/04/21/halte-aux-regressions/</link><pubDate>Thu, 21 Apr 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/04/21/halte-aux-regressions/</guid><description>&lt;p>Pour garantir la qualité du code d&amp;rsquo;un logiciel, rien de mieux que la validation
-par les tests. Ces derniers peuvent être de différentes natures (fonctionnels,
-intégration, unitaires, performance, etc.) et permettent de respecter une série
-d&amp;rsquo;exigences que s&amp;rsquo;imposent les développeurs pour maintenir et faire évoluer ledit
-logiciel dans la bonne direction.&lt;/p>
-&lt;p>Dans cet article, je souhaite explorer le système de tests tel qu&amp;rsquo;il est (et
-a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d&amp;rsquo;une
-extension communautaire. Si vous ne connaissiez pas l&amp;rsquo;outil &lt;code>pg_regress&lt;/code>, il
-n&amp;rsquo;aura plus de secret pour vous !&lt;/p></description></item></channel></rss>
+(&lt;em>abstract syntax tree&lt;/em>).&lt;/p></description></item></channel></rss>
