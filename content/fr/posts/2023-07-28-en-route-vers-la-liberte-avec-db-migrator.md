@@ -9,7 +9,7 @@ translationKey: "en-route-vers-la-liberte-avec-db-migrator"
 J'ai passé plusieurs semaines ces derniers mois à contribuer à l'extension
 [db_migrator]. Rédigée uniquement en PL/pgSQL, elle permet de migrer les schémas
 et les données d'un système de bases de données vers PostgreSQL à l'aide des
-données externes que j'avais déjà présentées dans [un autre article][1].
+données externes que j'avais déjà présentées il y a [quelques années][1].
 
 [db_migrator]: https://github.com/cybertec-postgresql/db_migrator
 [1]: /2021/07/16/parlons-un-peu-des-donnees-externes/
@@ -42,7 +42,7 @@ instance PostgreSQL puisse s'interfacer sur un autre système de stockage et en
 manipuler les données à travers les tables externes avec de simples requêtes
 SQL. Ainsi, pour peu qu'une communauté ait développé le _wrapper_, il est
 possible de consulter un catalogue distant, reproduire la structure des tables,
-ses relations et ses contraintes, et de [rappatrier les données][4] vers
+ses relations et ses contraintes, et de [rapatrier les données][4] vers
 PostgreSQL.
 
 [4]: /2021/12/06/migrer-vers-postgresql/
@@ -193,7 +193,7 @@ De très nombreux projets sont listés sur le [wiki communautaire][11]. Certains
 sont spécialisés pour un seul système, d'autres en migrent plusieurs. Une très
 grande majorité d'entre eux sont propriétaires ou n'ont plus de contribution
 récente. La plupart sont des boîtes noires et leur documentation peut paraître
-cryptique, voire quasi-inexistante.
+cryptique, voire quasi inexistante.
 
 [11]: https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL
 
@@ -210,7 +210,7 @@ d'universel et à portée de tout le monde. Si je me tourne aujourd'hui vers
 **db_migrator**, ce serait pour les principaux atouts suivants :
 
 * Une implémentation bas niveau au plus près de l'instance : avec le PL/pgSQL
-  comme language exclusif. Cela n'aurait pas été possible bien sûr sans le
+  comme langage exclusif. Cela n'aurait pas été possible bien sûr sans le
   développement prolifique des _[Foreign Data Wrappers][12]_ pour un grand
   nombre de systèmes ;
 

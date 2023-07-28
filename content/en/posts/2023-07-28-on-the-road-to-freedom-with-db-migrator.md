@@ -6,15 +6,15 @@ date: 2023-07-28
 translationKey: "en-route-vers-la-liberte-avec-db-migrator"
 ---
 
-Over the past few months, I have spent several weeks contributing to the
+Over the past months, I have spent several weeks contributing to the
 [db_migrator] extension. Written solely in PL/pgSQL, it enables the migration of
 schemas and data from a database system to PostgreSQL using the external data I
-had previously presented in [another article][1].
+had presented [few years ago][1].
 
 [db_migrator]: https://github.com/cybertec-postgresql/db_migrator
 [1]: https://fljd-in.translate.goog/2021/07/16/parlons-un-peu-des-donnees-externes/?_x_tr_sl=fr&_x_tr_tl=en&_x_tr_hl=fr&_x_tr_pto=wapp
 
-In this article, I present the functionality of the tool, its philosophy, and
+In this post, I present the functionality of the tool, its philosophy, and
 the reason I found for its existence, even though it joins the ecosystem of
 well-established open-source projects in the migration landscape. How does it
 compare to [Ora2Pg] or [pgloader] in terms of value and capabilities?
