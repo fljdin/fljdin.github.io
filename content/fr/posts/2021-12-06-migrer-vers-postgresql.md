@@ -1,7 +1,7 @@
 ---
 title: "Migrer vers PostgreSQL"
-categories: [postgresql]
-tags: [migration, sqlmed, opensource]
+categories: [postgresql, migration]
+tags: [sqlmed, opensource]
 date: 2021-12-06
 ---
 
