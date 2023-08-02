@@ -14,7 +14,7 @@ my tiny researchs on PostgreSQL functionalities and keeping as simple as possibl
 
 All feedbacks are welcomed. Please feel free to contact and follow me on networks.
 
-* https://twitter.com/fljdin
+* https://fosstodon.org/@fljdin
 * https://github.com/fljdin
 * https://www.linkedin.com/in/florent-jardin
 
