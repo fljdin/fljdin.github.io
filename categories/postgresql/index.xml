@@ -1,4 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 28 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>En route vers la liberté avec db_migrator</title><link>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</guid><description>&lt;p>J&amp;rsquo;ai passé plusieurs semaines ces derniers mois à contribuer à l&amp;rsquo;extension
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 11 Oct 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Les modes de transfert dans une migration</title><link>https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/</link><pubDate>Wed, 11 Oct 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/</guid><description>&lt;p>En informatique, un projet de migration consiste à changer un ou plusieurs
+composants techniques sans qu&amp;rsquo;aucun comportement des applications n&amp;rsquo;en soit
+impacté. Dans le paysage des bases de données (et le métier que j&amp;rsquo;exerce), il
+s&amp;rsquo;agira de choisir un nouveau système (comme PostgreSQL) en remplacement d&amp;rsquo;un
+autre (comme Oracle ou Microsoft SQL Server).&lt;/p>
+&lt;p>Dans un &lt;a href="https://fljd.in/2021/12/06/migrer-vers-postgresql/">précédent article&lt;/a>, je décrivais les étapes exhaustives pour
+réaliser une migration complète à l&amp;rsquo;aide de la technologie des &lt;em>Foreign Data
+Wrappers&lt;/em>, mais l&amp;rsquo;étape critique de transfert des données qui y était décrite ne
+s&amp;rsquo;adapte pas à toutes les situations. Voyons ensemble les alternatives qui
+permettent de couvrir une grande partie des besoins.&lt;/p></description></item><item><title>En route vers la liberté avec db_migrator</title><link>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</guid><description>&lt;p>J&amp;rsquo;ai passé plusieurs semaines ces derniers mois à contribuer à l&amp;rsquo;extension
 &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a>. Rédigée uniquement en PL/pgSQL, elle permet de migrer les schémas
 et les données d&amp;rsquo;un système de bases de données vers PostgreSQL à l&amp;rsquo;aide des
 données externes que j&amp;rsquo;avais déjà présentées il y a &lt;a href="https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/">quelques années&lt;/a>.&lt;/p>
@@ -34,23 +43,4 @@ de bases de données open-source le plus avancé au monde. Depuis sa forme libre
 publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
 de plus en plus complexes à maintenir pour les nouvelles générations de
 contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
-amoureux et amoureuses du libre se tournent résolument vers l&amp;rsquo;avenir.&lt;/p></description></item><item><title>Dessine-moi un arbre (abstrait)</title><link>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</link><pubDate>Wed, 29 Jun 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/</guid><description>&lt;blockquote>
-&lt;p>L&amp;rsquo;étape d&amp;rsquo;analyse crée un arbre d&amp;rsquo;analyse qui n&amp;rsquo;utilise que les règles fixes
-de la structure syntaxique de SQL. Il ne fait aucune recherche dans les
-catalogues système. Il n&amp;rsquo;y a donc aucune possibilité de comprendre la sémantique
-détaillée des opérations demandées.&lt;/p>
-&lt;p>(Documentation : &lt;a href="https://docs.postgresql.fr/14/parser-stage.html#id-1.10.3.6.4" target="_blank" rel="noopener">Processus de transformation&lt;/a>)&lt;/p>
-&lt;/blockquote>
-&lt;p>Que se passe-t-il entre l&amp;rsquo;instant où une requête SQL est soumise par l&amp;rsquo;utilisateur
-et l&amp;rsquo;envoi du résultat sous forme de lignes par le serveur PostgreSQL ? Cette
-question passionnante (pour une poignée de personnes, ne nous le cachons pas) a
-été étudiée par Stefan Simkovics durant &lt;a href="https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/" target="_blank" rel="noopener">sa thèse&lt;/a> pour l&amp;rsquo;université de
-technologie de Vienne en 1998.&lt;/p>
-&lt;p>Ces travaux ont notamment permis d&amp;rsquo;enrichir la &lt;a href="https://docs.postgresql.fr/14/overview.html" target="_blank" rel="noopener">documentation officielle&lt;/a> avec
-le chapitre « Présentation des mécanismes internes de PostgreSQL », qui reprend
-assez largement les observations de Simkovics de manière simplifiée pour en
-faciliter l&amp;rsquo;accès au plus grand nombre.&lt;/p>
-&lt;p>Dans cet article, je souhaite présenter de récentes découvertes sur l&amp;rsquo;une de ces
-phases internes, l&amp;rsquo;étape d&amp;rsquo;analyse, qui permet de manipuler une requête SQL sous
-une forme d&amp;rsquo;arbre et qui respecte un pattern de développement avancé nommé &lt;a href="https://fr.wikipedia.org/wiki/Arbre_de_la_syntaxe_abstraite" target="_blank" rel="noopener">AST&lt;/a>
-(&lt;em>abstract syntax tree&lt;/em>).&lt;/p></description></item></channel></rss>
+amoureux et amoureuses du libre se tournent résolument vers l&amp;rsquo;avenir.&lt;/p></description></item></channel></rss>

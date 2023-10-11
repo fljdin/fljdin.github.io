@@ -1,0 +1,113 @@
+<!doctype html><html lang=fr><head><title>Les modes de transfert dans une migration</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=utf-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>Les modes de transfert dans une migration</a></h1><p class=post-date><time datetime=2023-10-11>11 oct 2023</time>
+- 8 minutes de lecture</p><p>En informatique, un projet de migration consiste à changer un ou plusieurs
+composants techniques sans qu&rsquo;aucun comportement des applications n&rsquo;en soit
+impacté. Dans le paysage des bases de données (et le métier que j&rsquo;exerce), il
+s&rsquo;agira de choisir un nouveau système (comme PostgreSQL) en remplacement d&rsquo;un
+autre (comme Oracle ou Microsoft SQL Server).</p><p>Dans un <a href=/2021/12/06/migrer-vers-postgresql/>précédent article</a>, je décrivais les étapes exhaustives pour
+réaliser une migration complète à l&rsquo;aide de la technologie des <em>Foreign Data
+Wrappers</em>, mais l&rsquo;étape critique de transfert des données qui y était décrite ne
+s&rsquo;adapte pas à toutes les situations. Voyons ensemble les alternatives qui
+permettent de couvrir une grande partie des besoins.</p><div class=message>Les illustrations de cet article reprennent un schéma simple de chantier de
+migration où l&rsquo;on transfère les données d&rsquo;un système entre deux centres de données
+(<em>dc1</em> vers <em>dc2</em>). Dans la situation où les données ne sortent pas de
+l&rsquo;infrastructure de l&rsquo;hébergeur, il s&rsquo;agit d&rsquo;un simple transfert de deux
+serveurs distincts.</div><hr><h2 id=transfert-sans-réseau>Transfert sans réseau</h2><p><img src=/img/en/2023-10-networkless-transfer.png alt="Transfert indirect entre deux systèmes"></p><p>Plusieurs raisons peuvent justifier que les deux serveurs ne soient pas en
+connexion directe de l&rsquo;un à l&rsquo;autre. Comme l&rsquo;interdiction d&rsquo;ouvrir l&rsquo;accès à
+l&rsquo;instance source depuis Internet ou la complexité de configurer un lien
+sécurisé (VPN) entre les deux infrastructures.</p><p>Dans ce genre de scénario, il devient nécessaire de déverser les données en
+dehors de la base en garantissant la cohérence de ces dernières. Une sauvegarde
+physique de la base ou un export au format SQL sont des moyens fiables pour
+consolider une archive complète de la base.</p><p>L&rsquo;étape de transfert est opérée selon l&rsquo;imagination des équipes. Le plus simple
+reste le transfert sur un dépôt SFTP mis à disposition par le deuxième
+<em>datacenter</em> ou tout autre protocole qui contrôle l&rsquo;intégrité de l&rsquo;archive une
+fois transférée. La méthode la plus improbable que j&rsquo;ai pu observer, était le
+déplacement physique d&rsquo;une copie de l&rsquo;archive par une société spécialisée de
+coursiers, en voiture, en scooter, ou en avion selon la distance à parcourir.</p><p>Une fois l&rsquo;archive réceptionnée par les équipes et jugée intègre, il peut être
+nécessaire d&rsquo;importer les données dans une base tampon, pour peu que le format
+de fichiers (SQL ou propriétaire) ne soit pas encore compatible avec PostgreSQL.
+Dès ce moment précis, il est alors possible d&rsquo;importer les données dans la base
+cible en respectant l&rsquo;ordre de créations des objets et l&rsquo;insertion des données.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>très élevé</strong> (de plusieurs heures à plusieurs jours) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> avec les bons outils ;</li><li>Risque sur la cohérence des données <strong>très faible</strong> si les contrôles
+d&rsquo;intégrité sous réalisés à chaque étape.</li></ul><hr><h2 id=transfert-avec-intermédiaire>Transfert avec intermédiaire</h2><p><img src=/img/en/2023-10-intermediary-transfer.png alt="Transfert indirect avec un ETL"></p><p>Lorsque les systèmes sont hébergés au même endroit, la mise en place de règle de
+routage permet plus aisément de rendre possible la connexion entre les deux
+serveurs. Parmi les outils de migration, on retrouve la famille des ETL (pour
+<em>Extract Transform Load</em>) qui font office d&rsquo;intermédiaire entre les deux bases
+de données.</p><p>Ces outils fournissent une grande quantité de pilotes de connexion ainsi que des
+méthodes de transformation de la donnée pour orchestrer la migration sans avoir
+besoin d&rsquo;exporter la moindre table dans un fichier plat. L&rsquo;essentiel du travail
+est donc réalisé en mémoire et à l&rsquo;aide de plusieurs processeurs pour accélérer
+les opérations de transfert.</p><p>Bien que spécialisé pour les migrations vers PostgreSQL, je range l&rsquo;outil libre
+<a href=ora2pg.darold.net/>Ora2Pg</a> dans la catégorie des ETL. Il répond exactement à la définition
+précédente en ouvrant plusieurs connexions sur l&rsquo;instance source pour lire les
+table par paquet de 10 000 lignes (directive <code>DATA_LIMIT</code>) et en ouvrant
+d&rsquo;autres connexions sur l&rsquo;instance cible pour les insérer avec des instructions
+<code>COPY</code>, grâce à la méthode <a href=https://metacpan.org/pod/DBD::Pg#pg_putcopydata target=_blank rel=noopener><code>pg_putcopydata</code></a> du pilote <code>DBD::Pg</code>.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>élevé</strong> (plusieurs heures) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> avec les bons outils ;</li><li>Risque sur la cohérence des données <strong>très faible</strong>.</li></ul><hr><h2 id=transfert-en-direct>Transfert en direct</h2><p><img src=/img/en/2023-10-direct-transfer.png alt="Transfert direct"></p><p>Ce mode devrait vous paraître familier si vous êtes des habitué·es de mes
+articles (<em>abonnez-vous</em>) car le transfert direct entre un système tiers et
+PostgreSQL repose sur la technologie des <em>Foreign Data Wrappers</em>.</p><p>Cette solution permet d’ouvrir un canal direct entre l’instance PostgreSQL et
+l’instance distante par le biais de tables externes. Ainsi, il devient possible
+de consulter les données avec le langage SQL, pour peu qu&rsquo;un <em>wrapper</em> ait été
+développé pour communiquer avec le bon pilote.</p><p>Les opérations d&rsquo;extraction, de transfert et d&rsquo;insertion sont réalisées dans la
+même transaction : il s&rsquo;agit d&rsquo;une bête requête <code>INSERT INTO SELECT</code>. Cette
+méthode est bien <a href=https://www.migops.com/blog/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/ target=_blank rel=noopener>plus rapide</a> que le mode précédent puisque l&rsquo;on se
+débarrasse d&rsquo;un intermédiaire coûteux en ressources (ETL).</p><p>Bien que séduisante, la copie par <em>wrapper</em> peut être particulièrement lente
+pour les données larges (comme les <em>BLOB</em> d&rsquo;Oracle) car celles-ci ont une
+structure différente. Il est alors nécessaire de mixer les solutions : l&rsquo;une
+avec un transfert direct pour les tables sans données larges, et l&rsquo;autre avec un
+ETL pour optimiser plus finement le volume de lignes et la quantité de mémoire à
+allouer.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>élevé</strong> (de plusieurs minutes à plusieurs heures) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> voire <strong>élevée</strong> pour les données
+larges ;</li><li>Risque sur la cohérence des données <strong>très faible</strong>.</li></ul><hr><h2 id=transfert-avec-rattrapage-partiel>Transfert avec rattrapage partiel</h2><p><img src=/img/en/2023-10-dead-transfer.png alt="Transfert avec rattrapage"></p><p>Pour de très hautes volumétries où l&rsquo;interruption de service doit être la plus
+faible possible, les solutions citées plus haut peuvent être très limitantes. En
+effet, exporter/importer la totalité des données est une étape longue et
+incontournable.</p><p>Ce que j&rsquo;appelle le transfert avec « rattrapage partiel » consiste à identifier
+les tables les plus volumineuses dont la plupart des lignes sont mortes. Il faut
+avoir l&rsquo;assurance qu&rsquo;aucune modification de type <code>UPDATE</code> ou <code>DELETE</code> n&rsquo;ait lieu
+auprès de l&rsquo;équipe de développement et que la table présente une clé primaire
+dont les nouvelles valeurs lors d&rsquo;une insertion sont toujours supérieures à la
+précédente.</p><p>Ainsi, une première copie des données peut être réalisée à chaud, sans
+interruption de service où seules les lignes mortes seront déplacées vers le
+nouveau système. Selon la proportion sur le volume complet, cette étape peut
+faire économiser des dizaines d&rsquo;heures à l&rsquo;opération finale. En complément des
+opérations de transfert, il est nécessaire de maintenir un registre des valeurs
+de clé primaire qui permet de séparer les données mortes des données vivantes
+(ou à venir). Pour chaque table, cette valeur sera une sorte de point de reprise
+pour la phase de rattrapage.</p><p>Lors de l&rsquo;étape cruciale de bascule, toutes les tables vivantes seront
+intégralement copiées et les lignes des tables mortes dont la clé est supérieure
+à la valeur mémorisée seront sélectionnées puis insérées dans leur table
+respective. Une étude préalable doit déterminer si les index méritent d&rsquo;être
+créés lors de la première ou de la seconde étape de transfert, en fonction du
+temps effectif qu&rsquo;ils font perdre ou gagner sur l&rsquo;opération dans sa globalité.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>faible</strong> (plusieurs dizaines de minutes) ;</li><li>Complexité de mise en œuvre <strong>élevée</strong> ;</li><li>Risque sur la cohérence des données <strong>élevé</strong> si l&rsquo;équipe de développement
+n&rsquo;apporte pas toutes les garanties suffisantes dans le choix des tables
+mortes.</li></ul><hr><h2 id=transfert-avec-rejeu-des-transactions>Transfert avec rejeu des transactions</h2><p><img src=/img/en/2023-10-replay-transfer.png alt="Transfert avec rejeu des transactions"></p><p>Parler de « rejeu des transactions » revient très sobrement à parler de
+réplication physique ou de réplication logique. Chaque système propose des
+mécanismes qui lui sont propres et les outils à mettre en place peuvent donc
+varier. Je vous invite à vous pencher sur de brillants projets comme
+<a href=https://github.com/cybertec-postgresql/ora_migrator#replication target=_blank rel=noopener>ora_migrator</a> qui implémente une réplication par <em>triggers</em> avec Oracle et
+<a href=https://pgchameleon.org/ target=_blank rel=noopener>pg_chameleon</a> qui décode les journaux de transactions de MySQL.</p><p>L&rsquo;intérêt principal de ce mode de transfert repose sur la capacité du système à
+journaliser (<em>logging</em>) toutes les modifications qui lui ont été demandées et de
+les renseigner dans une succession de transactions. Ainsi, entre un instant <em>T0</em>
+et un instant <em>T1</em>, il devient possible de reproduire l&rsquo;ensemble des changements
+pour atteindre un état cohérent et fidèle.</p><p>Dans ce scénario, l&rsquo;opération requiert un chargement intégral et cohérent des
+données dans la base cible. Cette phase d&rsquo;initialisation se réalise sans
+interruption de service mais nécessite un soin particulier dans la supervision
+des disques ou les alertes du système source, car la capture des données provoque
+le maintien d&rsquo;un instantané (<em>snapshot</em>) qui peut devenir coûteux si le
+transfert s&rsquo;éternise.</p><p>À l&rsquo;issue de l&rsquo;initialisation, le rejeu peut démarrer à chaud sans pénaliser
+l&rsquo;activité de la base source de production. L&rsquo;outil consomme chaque événement
+dans l&rsquo;ordre d&rsquo;arrivée pour le transformer en écriture (<code>INSERT</code>, <code>UPDATE</code> ou
+<code>DELETE</code>) dans la base PostgreSQL. L&rsquo;opération de bascule consiste alors à
+interdire toute nouvelle modification sur le système source, attendre la fin du
+rejeu et changer les chaînes de connexions pour que les applications se
+connectent sur la nouvelle base PostgreSQL.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>très faible</strong> (quelques secondes) ;</li><li>Complexité de mise en œuvre <strong>élevée</strong> voire <strong>très élevée</strong> selon les
+solutions retenues ;</li><li>Risque sur la cohérence des données <strong>très élevé</strong> si l&rsquo;outil tombe en erreur
+pour une transaction qu&rsquo;il ne parvient pas à décoder lors de l&rsquo;étape de rejeu</li></ul><hr><h2 id=le-choix-est-libre>Le choix est libre</h2><p>Cette revue complète et exhaustive me hantait depuis quelque temps, car chaque
+projet de migration est différent. Dans la sphère des consultants que je
+fréquente et des projets libres que je surveille activement, j&rsquo;essaie de me
+convaincre qu&rsquo;il peut exister une solution universelle, capable d&rsquo;adresser
+chaque besoin et situation qui ont été dépeints dans cet article.</p><p>J&rsquo;ai délibérément évité de parler du projet <a href=https://debezium.io/ target=_blank rel=noopener>Debezium</a> car je n&rsquo;ai ni la
+maîtrise de Kafka, ni de compétence avancée en Java et encore moins de temps
+dédié à l&rsquo;étude de la myriade de connecteurs qui existe sur le marché. Et bien
+qu&rsquo;une <a href="https://youtu.be/IOJLFWXj4pA?si=FiQ7c2veWrNI2Yno" target=_blank rel=noopener>conférence</a> à ce sujet m&rsquo;est tenu en haleine en juin dernier, je ne
+peux tout simplement pas me résoudre à faire face à une telle complexité.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/>En route vers la liberté avec db_migrator
+<small><time datetime=2023-07-28>28 juil 2023</time></small></a></li><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2023-10-11>2023</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
