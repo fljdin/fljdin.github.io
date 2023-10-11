@@ -1,7 +1,7 @@
 ---
 title: "En route vers la liberté avec db_migrator"
-categories: [postgresql,migration]
-tags: [opensource, sqlmed, developpement]
+categories: [postgresql]
+tags: [sqlmed, developpement, migration]
 date: 2023-07-28
 translationKey: "en-route-vers-la-liberte-avec-db-migrator"
 ---
