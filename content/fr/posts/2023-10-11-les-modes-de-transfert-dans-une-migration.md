@@ -83,7 +83,7 @@ cible en respectant l'ordre de créations des objets et l'insertion des données
 * Temps d'interruption **très élevé** (de plusieurs heures à plusieurs jours) ;
 * Complexité de mise en œuvre **faible** avec les bons outils ;
 * Risque sur la cohérence des données **très faible** si les contrôles
-  d'intégrité sous réalisés à chaque étape.
+  d'intégrité sont réalisés à chaque étape.
 
 ---
 
@@ -313,23 +313,29 @@ connectent sur la nouvelle base PostgreSQL.
 * Complexité de mise en œuvre **élevée** voire **très élevée** selon les
   solutions retenues ;
 * Risque sur la cohérence des données **très élevé** si l'outil tombe en erreur
-  pour une transaction qu'il ne parvient pas à décoder lors de l'étape de rejeu
+  pour une transaction qu'il ne parvient pas à décoder lors de l'étape de rejeu.
 
 ---
 
 ## Le choix est libre
 
-Cette revue complète et exhaustive me hantait depuis quelque temps, car chaque
-projet de migration est différent. Dans la sphère des consultants que je
-fréquente et des projets libres que je surveille activement, j'essaie de me
-convaincre qu'il peut exister une solution universelle, capable d'adresser
-chaque besoin et situation qui ont été dépeints dans cet article.
+Cette revue complète et exhaustive me hantait depuis quelque temps, et il me
+semblait nécessaire de mettre en lumière les différentes contraintes que
+présente un projet de migration. Dans la sphère des consultants que je fréquente
+et des projets libres que je surveille activement, j'essaie de me convaincre
+qu'il peut exister une solution universelle, capable d'adresser chaque besoin et
+situation qui ont été dépeints dans cet article.
 
-J'ai délibérément évité de parler du projet [Debezium][7] car je n'ai ni la
-maîtrise de Kafka, ni de compétence avancée en Java et encore moins de temps
-dédié à l'étude de la myriade de connecteurs qui existe sur le marché. Et bien
-qu'une [conférence][8] à ce sujet m'est tenu en haleine en juin dernier, je ne
-peux tout simplement pas me résoudre à faire face à une telle complexité.
+J'ai délibérément évité de parler du projet [Debezium][7], car il repose sur de
+nombreuses briques techniques comme Kafka, Java et une myriade de connecteurs.
+Et bien qu'une [conférence][8] à ce sujet m'ait tenu en haleine en juin dernier,
+je n'ai pas encore eu l'occasion de mener un projet d'envergure qui justifiait
+un tel investissement humain dans sa mise en œuvre.
 
 [7]: https://debezium.io/
 [8]: https://youtu.be/IOJLFWXj4pA?si=FiQ7c2veWrNI2Yno
+
+Les outils libres ou payants sont nombreux, tous n'ont pas la même vocation ni
+la même philosophie. Privilégier l'un plutôt qu'un autre revient aux équipes en
+charge de la migration et de leur maturité technique mais au final, le choix est
+libre !
