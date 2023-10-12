@@ -28,7 +28,7 @@ nécessaire d&rsquo;importer les données dans une base tampon, pour peu que le 
 de fichiers (SQL ou propriétaire) ne soit pas encore compatible avec PostgreSQL.
 Dès ce moment précis, il est alors possible d&rsquo;importer les données dans la base
 cible en respectant l&rsquo;ordre de créations des objets et l&rsquo;insertion des données.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>très élevé</strong> (de plusieurs heures à plusieurs jours) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> avec les bons outils ;</li><li>Risque sur la cohérence des données <strong>très faible</strong> si les contrôles
-d&rsquo;intégrité sous réalisés à chaque étape.</li></ul><hr><h2 id=transfert-avec-intermédiaire>Transfert avec intermédiaire</h2><p><img src=/img/en/2023-10-intermediary-transfer.png alt="Transfert indirect avec un ETL"></p><p>Lorsque les systèmes sont hébergés au même endroit, la mise en place de règle de
+d&rsquo;intégrité sont réalisés à chaque étape.</li></ul><hr><h2 id=transfert-avec-intermédiaire>Transfert avec intermédiaire</h2><p><img src=/img/en/2023-10-intermediary-transfer.png alt="Transfert indirect avec un ETL"></p><p>Lorsque les systèmes sont hébergés au même endroit, la mise en place de règle de
 routage permet plus aisément de rendre possible la connexion entre les deux
 serveurs. Parmi les outils de migration, on retrouve la famille des ETL (pour
 <em>Extract Transform Load</em>) qui font office d&rsquo;intermédiaire entre les deux bases
@@ -99,15 +99,19 @@ interdire toute nouvelle modification sur le système source, attendre la fin du
 rejeu et changer les chaînes de connexions pour que les applications se
 connectent sur la nouvelle base PostgreSQL.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>très faible</strong> (quelques secondes) ;</li><li>Complexité de mise en œuvre <strong>élevée</strong> voire <strong>très élevée</strong> selon les
 solutions retenues ;</li><li>Risque sur la cohérence des données <strong>très élevé</strong> si l&rsquo;outil tombe en erreur
-pour une transaction qu&rsquo;il ne parvient pas à décoder lors de l&rsquo;étape de rejeu</li></ul><hr><h2 id=le-choix-est-libre>Le choix est libre</h2><p>Cette revue complète et exhaustive me hantait depuis quelque temps, car chaque
-projet de migration est différent. Dans la sphère des consultants que je
-fréquente et des projets libres que je surveille activement, j&rsquo;essaie de me
-convaincre qu&rsquo;il peut exister une solution universelle, capable d&rsquo;adresser
-chaque besoin et situation qui ont été dépeints dans cet article.</p><p>J&rsquo;ai délibérément évité de parler du projet <a href=https://debezium.io/ target=_blank rel=noopener>Debezium</a> car je n&rsquo;ai ni la
-maîtrise de Kafka, ni de compétence avancée en Java et encore moins de temps
-dédié à l&rsquo;étude de la myriade de connecteurs qui existe sur le marché. Et bien
-qu&rsquo;une <a href="https://youtu.be/IOJLFWXj4pA?si=FiQ7c2veWrNI2Yno" target=_blank rel=noopener>conférence</a> à ce sujet m&rsquo;est tenu en haleine en juin dernier, je ne
-peux tout simplement pas me résoudre à faire face à une telle complexité.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/>En route vers la liberté avec db_migrator
+pour une transaction qu&rsquo;il ne parvient pas à décoder lors de l&rsquo;étape de rejeu.</li></ul><hr><h2 id=le-choix-est-libre>Le choix est libre</h2><p>Cette revue complète et exhaustive me hantait depuis quelque temps, et il me
+semblait nécessaire de mettre en lumière les différentes contraintes que
+présente un projet de migration. Dans la sphère des consultants que je fréquente
+et des projets libres que je surveille activement, j&rsquo;essaie de me convaincre
+qu&rsquo;il peut exister une solution universelle, capable d&rsquo;adresser chaque besoin et
+situation qui ont été dépeints dans cet article.</p><p>J&rsquo;ai délibérément évité de parler du projet <a href=https://debezium.io/ target=_blank rel=noopener>Debezium</a>, car il repose sur de
+nombreuses briques techniques comme Kafka, Java et une myriade de connecteurs.
+Et bien qu&rsquo;une <a href="https://youtu.be/IOJLFWXj4pA?si=FiQ7c2veWrNI2Yno" target=_blank rel=noopener>conférence</a> à ce sujet m&rsquo;ait tenu en haleine en juin dernier,
+je n&rsquo;ai pas encore eu l&rsquo;occasion de mener un projet d&rsquo;envergure qui justifiait
+un tel investissement humain dans sa mise en œuvre.</p><p>Les outils libres ou payants sont nombreux, tous n&rsquo;ont pas la même vocation ni
+la même philosophie. Privilégier l&rsquo;un plutôt qu&rsquo;un autre revient aux équipes en
+charge de la migration et de leur maturité technique mais au final, le choix est
+libre !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/>En route vers la liberté avec db_migrator
 <small><time datetime=2023-07-28>28 juil 2023</time></small></a></li><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
-<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2023-10-11>2023</time>
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2023-10-12>2023</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
