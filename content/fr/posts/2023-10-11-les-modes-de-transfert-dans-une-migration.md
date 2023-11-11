@@ -3,6 +3,7 @@ title: "Les modes de transfert dans une migration"
 categories: [postgresql]
 tags: [migration]
 date: 2023-10-11
+translationKey: "les-modes-de-transfert-dans-une-migration"
 ---
 
 En informatique, un projet de migration consiste à changer un ou plusieurs
