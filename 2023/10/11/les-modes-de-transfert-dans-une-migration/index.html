@@ -1,6 +1,10 @@
 <!doctype html><html lang=fr><head><title>Les modes de transfert dans une migration</title>
 <link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
-<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>Les modes de transfert dans une migration</a></h1><p class=post-date><time datetime=2023-10-11>11 oct 2023</time>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>Les modes de transfert dans une migration</a></h1><p class=post-date><time datetime=2023-10-11>11 oct 2023</time>
 - 8 minutes de lecture</p><div class="message translation">This article is available in English: <a href=https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/>Transfer modes in a migration</a>
 <small>(2023-11-11)</small></div><p>En informatique, un projet de migration consiste à changer un ou plusieurs
 composants techniques sans qu&rsquo;aucun comportement des applications n&rsquo;en soit
@@ -14,7 +18,7 @@ permettent de couvrir une grande partie des besoins.</p><div class=message>Les i
 migration où l&rsquo;on transfère les données d&rsquo;un système entre deux centres de données
 (<em>dc1</em> vers <em>dc2</em>). Dans la situation où les données ne sortent pas de
 l&rsquo;infrastructure de l&rsquo;hébergeur, il s&rsquo;agit d&rsquo;un simple transfert de deux
-serveurs distincts.</div><hr><h2 id=transfert-sans-réseau>Transfert sans réseau</h2><p><img src=/img/en/2023-10-networkless-transfer.png alt="Transfert indirect entre deux systèmes"></p><p>Plusieurs raisons peuvent justifier que les deux serveurs ne soient pas en
+serveurs distincts.</div><hr><h2 id=transfert-sans-réseau>Transfert sans réseau</h2><p><img alt="Transfert indirect entre deux systèmes" src=/img/en/2023-10-networkless-transfer.png></p><p>Plusieurs raisons peuvent justifier que les deux serveurs ne soient pas en
 connexion directe de l&rsquo;un à l&rsquo;autre. Comme l&rsquo;interdiction d&rsquo;ouvrir l&rsquo;accès à
 l&rsquo;instance source depuis Internet ou la complexité de configurer un lien
 sécurisé (VPN) entre les deux infrastructures.</p><p>Dans ce genre de scénario, il devient nécessaire de déverser les données en
@@ -30,7 +34,7 @@ nécessaire d&rsquo;importer les données dans une base tampon, pour peu que le 
 de fichiers (SQL ou propriétaire) ne soit pas encore compatible avec PostgreSQL.
 Dès ce moment précis, il est alors possible d&rsquo;importer les données dans la base
 cible en respectant l&rsquo;ordre de créations des objets et l&rsquo;insertion des données.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>très élevé</strong> (de plusieurs heures à plusieurs jours) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> avec les bons outils ;</li><li>Risque sur la cohérence des données <strong>très faible</strong> si les contrôles
-d&rsquo;intégrité sont réalisés à chaque étape.</li></ul><hr><h2 id=transfert-avec-intermédiaire>Transfert avec intermédiaire</h2><p><img src=/img/en/2023-10-intermediary-transfer.png alt="Transfert indirect avec un ETL"></p><p>Lorsque les systèmes sont hébergés au même endroit, la mise en place de règle de
+d&rsquo;intégrité sont réalisés à chaque étape.</li></ul><hr><h2 id=transfert-avec-intermédiaire>Transfert avec intermédiaire</h2><p><img alt="Transfert indirect avec un ETL" src=/img/en/2023-10-intermediary-transfer.png></p><p>Lorsque les systèmes sont hébergés au même endroit, la mise en place de règle de
 routage permet plus aisément de rendre possible la connexion entre les deux
 serveurs. Parmi les outils de migration, on retrouve la famille des ETL (pour
 <em>Extract Transform Load</em>) qui font office d&rsquo;intermédiaire entre les deux bases
@@ -43,7 +47,7 @@ les opérations de transfert.</p><p>Bien que spécialisé pour les migrations ve
 précédente en ouvrant plusieurs connexions sur l&rsquo;instance source pour lire les
 table par paquet de 10 000 lignes (directive <code>DATA_LIMIT</code>) et en ouvrant
 d&rsquo;autres connexions sur l&rsquo;instance cible pour les insérer avec des instructions
-<code>COPY</code>, grâce à la méthode <a href=https://metacpan.org/pod/DBD::Pg#pg_putcopydata target=_blank rel=noopener><code>pg_putcopydata</code></a> du pilote <code>DBD::Pg</code>.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>élevé</strong> (plusieurs heures) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> avec les bons outils ;</li><li>Risque sur la cohérence des données <strong>très faible</strong>.</li></ul><hr><h2 id=transfert-en-direct>Transfert en direct</h2><p><img src=/img/en/2023-10-direct-transfer.png alt="Transfert direct"></p><p>Ce mode devrait vous paraître familier si vous êtes des habitué·es de mes
+<code>COPY</code>, grâce à la méthode <a href=https://metacpan.org/pod/DBD::Pg#pg_putcopydata target=_blank rel=noopener><code>pg_putcopydata</code></a> du pilote <code>DBD::Pg</code>.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>élevé</strong> (plusieurs heures) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> avec les bons outils ;</li><li>Risque sur la cohérence des données <strong>très faible</strong>.</li></ul><hr><h2 id=transfert-en-direct>Transfert en direct</h2><p><img alt="Transfert direct" src=/img/en/2023-10-direct-transfer.png></p><p>Ce mode devrait vous paraître familier si vous êtes des habitué·es de mes
 articles (<em>abonnez-vous</em>) car le transfert direct entre un système tiers et
 PostgreSQL repose sur la technologie des <em>Foreign Data Wrappers</em>.</p><p>Cette solution permet d’ouvrir un canal direct entre l’instance PostgreSQL et
 l’instance distante par le biais de tables externes. Ainsi, il devient possible
@@ -57,7 +61,7 @@ structure différente. Il est alors nécessaire de mixer les solutions : l&rsqu
 avec un transfert direct pour les tables sans données larges, et l&rsquo;autre avec un
 ETL pour optimiser plus finement le volume de lignes et la quantité de mémoire à
 allouer.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>élevé</strong> (de plusieurs minutes à plusieurs heures) ;</li><li>Complexité de mise en œuvre <strong>faible</strong> voire <strong>élevée</strong> pour les données
-larges ;</li><li>Risque sur la cohérence des données <strong>très faible</strong>.</li></ul><hr><h2 id=transfert-avec-rattrapage-partiel>Transfert avec rattrapage partiel</h2><p><img src=/img/en/2023-10-dead-transfer.png alt="Transfert avec rattrapage"></p><p>Pour de très hautes volumétries où l&rsquo;interruption de service doit être la plus
+larges ;</li><li>Risque sur la cohérence des données <strong>très faible</strong>.</li></ul><hr><h2 id=transfert-avec-rattrapage-partiel>Transfert avec rattrapage partiel</h2><p><img alt="Transfert avec rattrapage" src=/img/en/2023-10-dead-transfer.png></p><p>Pour de très hautes volumétries où l&rsquo;interruption de service doit être la plus
 faible possible, les solutions citées plus haut peuvent être très limitantes. En
 effet, exporter/importer la totalité des données est une étape longue et
 incontournable.</p><p>Ce que j&rsquo;appelle le transfert avec « rattrapage partiel » consiste à identifier
@@ -79,7 +83,7 @@ respective. Une étude préalable doit déterminer si les index méritent d&rsqu
 créés lors de la première ou de la seconde étape de transfert, en fonction du
 temps effectif qu&rsquo;ils font perdre ou gagner sur l&rsquo;opération dans sa globalité.</p><p><strong>Bilan de l&rsquo;opération</strong> :</p><ul><li>Temps d&rsquo;interruption <strong>faible</strong> (plusieurs dizaines de minutes) ;</li><li>Complexité de mise en œuvre <strong>élevée</strong> ;</li><li>Risque sur la cohérence des données <strong>élevé</strong> si l&rsquo;équipe de développement
 n&rsquo;apporte pas toutes les garanties suffisantes dans le choix des tables
-mortes.</li></ul><hr><h2 id=transfert-avec-rejeu-des-transactions>Transfert avec rejeu des transactions</h2><p><img src=/img/en/2023-10-replay-transfer.png alt="Transfert avec rejeu des transactions"></p><p>Parler de « rejeu des transactions » revient très sobrement à parler de
+mortes.</li></ul><hr><h2 id=transfert-avec-rejeu-des-transactions>Transfert avec rejeu des transactions</h2><p><img alt="Transfert avec rejeu des transactions" src=/img/en/2023-10-replay-transfer.png></p><p>Parler de « rejeu des transactions » revient très sobrement à parler de
 réplication physique ou de réplication logique. Chaque système propose des
 mécanismes qui lui sont propres et les outils à mettre en place peuvent donc
 varier. Je vous invite à vous pencher sur de brillants projets comme
@@ -115,5 +119,5 @@ la même philosophie. Privilégier l&rsquo;un plutôt qu&rsquo;un autre revient 
 charge de la migration et de leur maturité technique mais au final, le choix est
 libre !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/>En route vers la liberté avec db_migrator
 <small><time datetime=2023-07-28>28 juil 2023</time></small></a></li><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
-<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2023-11-11>2023</time>
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-02-23>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

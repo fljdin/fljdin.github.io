@@ -1,6 +1,10 @@
 <!doctype html><html lang=en><head><title>Draw me an (abstract) tree</title>
 <link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/en title="Florent Jardin">Florent Jardin</a>
-<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/en/talks>Talks</a>&nbsp;&nbsp;<a href=/en/archives>Archives</a>&nbsp;&nbsp;<a href=/en/about>About me</a></small></h3></header><main><article class=post><h1 class=post-title>Draw me an (abstract) tree</a></h1><p class=post-date><time datetime=2022-06-29>29 jun 2022</time>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/en/talks>Talks</a>&nbsp;&nbsp;<a href=/en/archives>Archives</a>&nbsp;&nbsp;<a href=/en/about>About me</a></small></h3></header><main><article class=post><h1 class=post-title>Draw me an (abstract) tree</a></h1><p class=post-date><time datetime=2022-06-29>29 jun 2022</time>
 - 5 minutes to read</p><div class="message translation">Cet article est disponible en Français : <a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Dessine-moi un arbre (abstrait)</a>
 <small>(2022-06-29)</small></div><blockquote><p>The parser stage creates a parse tree using only fixed rules about the syntactic
 structure of SQL. It does not make any lookups in the system catalogs, so there
@@ -38,7 +42,7 @@ memory to link lexemes according to the grammar rules of the language. Thus, the
 main node <code>SelectStmt</code> is composed by different branches, like queried tables
 under their <code>RangeVar</code> node stored as an array into <code>fromClause</code> attribute. The
 same goes for the representation of columns and conditions through the <code>targetList</code>
-and <code>whereClause</code> nodes respectively.</p><p><img src=/img/en/2022-06-29-parse-tree-representation.png alt="Parse tree representation"></p><p>Our parse tree is passed to an upper step, called rewriting, responsible for
+and <code>whereClause</code> nodes respectively.</p><p><img alt="Parse tree representation" src=/img/en/2022-06-29-parse-tree-representation.png></p><p>Our parse tree is passed to an upper step, called rewriting, responsible for
 performing some optimizations and transformations to nodes and removing useless
 leaves. Then two others mechanisms take place, namely <strong>planner</strong> and <strong>executor</strong>.
 Our final parse tree will be use to build data result requested by user, but I
@@ -114,5 +118,5 @@ which use the internal parser outside of PostgreSQL!</p><p>Use cases may be nume
 query newlines or serializing a statement to easily drop or modify internal
 nodes, etc. Another parsing project wrote in Python, called <code>pglast</code>, suggests
 you in its <a href=https://pglast.readthedocs.io/en/v3/usage.html target=_blank rel=noopener>documentation</a> more examples, if by chance, this article has
-aroused your curiosity.</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2023-11-11>2023</time>
+aroused your curiosity.</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2024-02-23>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

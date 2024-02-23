@@ -1,6 +1,10 @@
 <!doctype html><html lang=fr><head><title>La brêve histoire du fichier backup_label</title>
 <link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
-<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a><a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a><a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a><a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>La brêve histoire du fichier backup_label</a></h1><p class=post-date><time datetime=2021-01-19>19 janv 2021</time>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>La brêve histoire du fichier backup_label</a></h1><p class=post-date><time datetime=2021-01-19>19 janv 2021</time>
 - 12 minutes de lecture</p><div class="message translation">This article is available in English: <a href=https://fljd.in/en/2021/12/02/a-brief-history-of-backup-label/>A brief history of backup label</a>
 <small>(2021-12-02)</small></div><p>Je suis resté longtemps ignorant des mécanismes de <a href=https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf target=_blank rel=noopener>journalisation</a> et de <em>PITR</em>
 avec PostgreSQL alors même qu&rsquo;il s&rsquo;agit d&rsquo;un des fonctionnements critiques pour
@@ -19,7 +23,7 @@ de synchronisation à l&rsquo;œuvre dans PostgreSQL.</p><p>Parmi l&rsquo;un d&r
 en mémoire soient définitivement synchronisées dans les fichiers de données à des
 moments réguliers que l&rsquo;on appelle <code>CHECKPOINT</code>. Cette écriture en deux temps sur
 les disques apporte d&rsquo;excellentes performances et garantit qu&rsquo;aucun bloc modifié
-ne soit perdu lorsqu&rsquo;une transaction se termine correctement.</p><p><img src=/img/fr/2021-01-19-ecriture-differee-sur-disque.png alt="Écriture différée sur les disques"></p><p>Par ce mécanisme de journalisation, les fichiers de données de notre instance
+ne soit perdu lorsqu&rsquo;une transaction se termine correctement.</p><p><img alt="Écriture différée sur les disques" src=/img/fr/2021-01-19-ecriture-differee-sur-disque.png></p><p>Par ce mécanisme de journalisation, les fichiers de données de notre instance
 sont constamment en retard sur la véritable activité transactionnelle, et ce,
 jusqu&rsquo;au prochain <code>CHECKPOINT</code>. En cas d&rsquo;arrêt brutal du système, les blocs en
 attente de synchronisation (<em>dirty pages</em>) présents dans la mémoire <em>Shared Buffer</em>
@@ -227,5 +231,5 @@ le disque et ainsi corriger sa principale faiblesse :</p><blockquote><p>It migh
 memory and store the backup label in it. We only allow one exclusive
 backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>La suite au prochain épisode !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Construire une instance standby avec pgBackRest
 <small><time datetime=2019-11-07>7 nov 2019</time></small></a></li><li><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
-<small><time datetime=2021-08-24>24 août 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2023-11-11>2023</time>
+<small><time datetime=2021-08-24>24 août 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-02-23>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
