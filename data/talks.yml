@@ -8,3 +8,7 @@
   lang: fr
   date: 2022-06-01
   url: /documents/meetup-pg-lille_pg_stat_monitor.reveal.pdf
+- title: "Transpilation, d'un dialecte SQL à un autre"
+  lang: fr
+  date: 2024-02-07
+  url: /documents/transpilation-dialecte-sql.reveal.pdf
