@@ -1,0 +1,241 @@
+<!doctype html><html lang=en><head><title>An assistant to copy data from a remote server</title>
+<link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/en title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/en/talks>Talks</a>&nbsp;&nbsp;<a href=/en/archives>Archives</a>&nbsp;&nbsp;<a href=/en/about>About me</a></small></h3></header><main><article class=post><h1 class=post-title>An assistant to copy data from a remote server</a></h1><p class=post-date><time datetime=2024-05-28>28 may 2024</time>
+- 11 minutes to read</p><div class="message translation">Cet article est disponible en Français : <a href=https://fljd.in/2024/05/28/un-assistant-pour-copier-les-donnees-distantes/>Un assistant pour copier les données distantes</a>
+<small>(2024-05-28)</small></div><p>During the last PGSession organized by Dalibo, I wrote and led a <a href=https://dali.bo/wsfdw_html target=_blank rel=noopener>workshop</a>
+(french) on the migration to PostgreSQL using Foreign Data Wrappers, or FDW.
+This was an opportunity to present to the general public the <a href=https://github.com/cybertec-postgresql/db_migrator target=_blank rel=noopener><code>db_migrator</code></a>
+extension for which I wrote an <a href=/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/>article</a> on this blog.</p><p>While working on this workshop, we noticed that copying data with the
+<code>db_migrator</code> extension is not perfectly supported. Indeed, although there is a
+low-level function to distribute the transfer table by table over several
+processes, many situations will require writing a large number of SQL queries to
+get out of trouble. Over the following months, I worked on the design of an
+<a href=https://github.com/fljdin/fdw-assistant target=_blank rel=noopener>assistant</a> written in PL/pgSQL whose purpose is to simplify the generation
+of these queries.</p><hr><h2 id=data-transfer-without-an-assistant>Data transfer without an assistant</h2><p>There is no magic in the operation of copying data through a Foreign Data
+Wrapper. Everything boils down to a series of <code>INSERT</code> queries that must be
+executed in a predefined order. Let&rsquo;s take the 16 tables of the well-known
+&ldquo;Sakila&rdquo; data model (available at this <a href=https://github.com/ivanceras/sakila/raw/master/mysql-sakila-db target=_blank rel=noopener>address</a>) to illustrate the need for
+generating transfer queries.</p><p><img alt="ERD Base Sakila" src=/img/fr/2024-05-28-sakila-erp.jpg></p><p>For each MySQL table, I have a PostgreSQL database with the two following
+schemas:</p><ul><li><code>mysql</code>: the source schema containing the definition of the external tables
+via the <code>mysql_fdw</code> extension;</li><li><code>public</code>: the target schema where the data will be copied.</li></ul><p>Each external table is subject to a quick study to obtain the correct column
+type match, and their definition is kept in an SQL file for the project teams.
+For example, the <code>rental</code> foreign tables is defined as follows:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>rental</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>rental_id</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>rental_date</span><span class=w> </span><span class=k>timestamp</span><span class=w> </span><span class=k>without</span><span class=w> </span><span class=n>time</span><span class=w> </span><span class=k>zone</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>inventory_id</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>customer_id</span><span class=w> </span><span class=nb>smallint</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>return_date</span><span class=w> </span><span class=k>timestamp</span><span class=w> </span><span class=k>without</span><span class=w> </span><span class=n>time</span><span class=w> </span><span class=k>zone</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>staff_id</span><span class=w> </span><span class=nb>smallint</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>last_update</span><span class=w> </span><span class=k>timestamp</span><span class=w> </span><span class=k>without</span><span class=w> </span><span class=n>time</span><span class=w> </span><span class=k>zone</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=n>SERVER</span><span class=w> </span><span class=n>sakila_mysql</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>OPTIONS</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=n>dbname</span><span class=w> </span><span class=s1>&#39;sakila&#39;</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>	 </span><span class=k>table_name</span><span class=w> </span><span class=s1>&#39;rental&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><p>When creating the <code>public.rental</code> table that will host the data, it is
+opportune to decide whether we want to set up partitioning, something that
+<code>db_migrator</code> is able to identify and set up. For the example, I take back the
+strict structure using the <code>CREATE TABLE LIKE</code> syntax to create all my target
+tables.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>actor</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>actor</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>address</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>address</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>...</span><span class=w>
+</span></span></span></code></pre></div><p>Even before setting up an <code>INSERT</code> query generator, it is easy to see the form
+of these queries. Each line of the external table will be read through a global
+<code>SELECT</code>, then inserted into the target table. The migration script contains 16
+instructions, one for each table.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- insert.sql
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>actor</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>actor</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>address</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>address</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>store</span><span class=w> </span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>store</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>To benefit from several processes, I appreciate the <code>xargs</code> tool which allows
+distributing each line of the <code>insert.sql</code> file on a new <code>psql</code> session. This
+technique was presented in the February workshop, especially to parallelize the
+construction of indexes and primary keys, defined in an SQL file.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> xargs -P <span class=m>4</span> -a insert.sql -d <span class=s1>&#39;\n&#39;</span> -I % sh -c <span class=s1>&#39;psql -c &#34;%&#34;&#39;</span>
+</span></span><span class=line><span class=cl><span class=go>INSERT 0 16
+</span></span></span><span class=line><span class=cl><span class=go>INSERT 0 603
+</span></span></span><span class=line><span class=cl><span class=go>...
+</span></span></span><span class=line><span class=cl><span class=go>INSERT 0 16044
+</span></span></span></code></pre></div><p>This method is not perfect, it lacks verbosity, the SQL queries are static.
+Anyway, let&rsquo;s see the next part to discover what my assistant can bring.</p><hr><h2 id=demonstration-of-the-assistant>Demonstration of the assistant</h2><p>Unlike my other PL/pgSQL projects, this <a href=https://github.com/fljdin/fdw-assistant target=_blank rel=noopener>assistant</a> is not an extension and
+must be installed as a simple script. Once downloaded, it is sufficient to
+invoke it on the database of your choice with the following command:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> psql -d sakila -f fdw-assistant.sql 
+</span></span></code></pre></div><p>The default schema is named <code>assistant</code> and contains a <strong>configuration</strong> table
+simply called <code>config</code>. For each table to be migrated, one must insert a single
+line that will serve as the starting point for generating data migration
+queries. In the current version, we find the following parameters:</p><ul><li><code>source</code>: the external table containing the data to be copied;</li><li><code>target</code>: the target table where the data will be copied;</li><li><code>pkey</code>: the primary key column of the target table;</li><li><code>priority</code>: the lowest values define the tables to be processed first;</li><li><code>parts</code>: the number of processes to launch for copying the data;</li><li><code>trunc</code>: an option to empty the target table before copying the data;</li><li><code>condition</code>: a <code>WHERE</code> clause to filter the data to be copied;</li><li><code>batchsize</code>: the number of rows to copy before performing an intermediate
+<code>COMMIT</code>.</li></ul><p>To initialize this table in the first instance, it is necessary to know at least
+the primary key columns of each remote table. By reporting the information from
+the relational diagram of the Sakila database, we can fill the <code>config</code> table as
+follows:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>INSERT</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>config</span><span class=w> </span><span class=p>(</span><span class=k>source</span><span class=p>,</span><span class=w> </span><span class=n>target</span><span class=p>,</span><span class=w> </span><span class=n>pkey</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>VALUES</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>(</span><span class=s1>&#39;mysql.actor&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;public.actor&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;actor_id&#39;</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>(</span><span class=s1>&#39;mysql.address&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;public.address&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;address_id&#39;</span><span class=p>),</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>(</span><span class=s1>&#39;mysql.store&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;public.store&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;store_id&#39;</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><p>For each transfer, we indicate the source and target table, as well as the
+primary key column. The latter is required to sort the rows, split the transfer
+into several batches, and restart the transfer in case of interruption.</p><p>With this configuration, we can move on to the <strong>planning</strong> step. The <code>stage</code>
+and <code>job</code> tables are fed with new elements that will be used to drive and track
+the different transfers to be done.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>plan</span><span class=p>();</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>    target     |        invocation
+</span></span><span class=line><span class=cl>---------------+--------------------------
+</span></span><span class=line><span class=cl> customer      | CALL assistant.copy(1);
+</span></span><span class=line><span class=cl> address       | CALL assistant.copy(2);
+</span></span><span class=line><span class=cl> ...
+</span></span><span class=line><span class=cl>(16 rows)
+</span></span></code></pre></div><p>A view named <code>report</code> allows you to follow the progress of the different steps
+by joining the <code>stage</code> and <code>job</code> tables. It provides very useful elements to
+monitor the progress and throughput of the transfers.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>target</span><span class=p>,</span><span class=w> </span><span class=k>state</span><span class=p>,</span><span class=w> </span><span class=k>rows</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>report</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>stage_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>    target     |  state  | rows
+</span></span><span class=line><span class=cl>---------------+---------+------
+</span></span><span class=line><span class=cl> rental        | pending |    0
+</span></span><span class=line><span class=cl> actor         | pending |    0
+</span></span><span class=line><span class=cl> ...
+</span></span><span class=line><span class=cl>(16 rows)
+</span></span></code></pre></div><p>Rows returned by the <code>plan()</code> command can then be <strong>invoked</strong> one after the
+other with the <code>\gexec</code> meta-command of <code>psql</code>, or by using the file technique
+and distributing the queries with <code>xargs</code>.</p><p>Calling the <code>copy()</code> method is responsible for building the <code>INSERT</code> statement
+for copying data from a remote table to a local table. For example, for the
+<code>customer</code> table, the result of the call will be as follows:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CALL</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=k>copy</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>NOTICE:  Executing: TRUNCATE public.customer
+</span></span><span class=line><span class=cl>NOTICE:  Executing: SELECT count(customer_id) FROM mysql.customer 
+</span></span><span class=line><span class=cl>                    WHERE customer_id &gt; 0
+</span></span><span class=line><span class=cl>NOTICE:  Executing: INSERT INTO public.customer 
+</span></span><span class=line><span class=cl>                    SELECT customer_id, store_id, first_name, last_name, email,
+</span></span><span class=line><span class=cl>                           address_id, active, create_date, last_update 
+</span></span><span class=line><span class=cl>                    FROM mysql.customer 
+</span></span><span class=line><span class=cl>                    WHERE customer_id &gt; 0 ORDER BY customer_id
+</span></span><span class=line><span class=cl>CALL
+</span></span></code></pre></div><p>At the end of the transfer, the <code>report</code> view provides a summary of the operation.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>report</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>stage_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>target</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;public.customer&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>-[ RECORD 1 ]-------------------------
+</span></span><span class=line><span class=cl>stage_id  | 1
+</span></span><span class=line><span class=cl>target    | public.customer
+</span></span><span class=line><span class=cl>job_start | 2024-05-28 10:19:18.334917
+</span></span><span class=line><span class=cl>state     | completed
+</span></span><span class=line><span class=cl>rows      | 599
+</span></span><span class=line><span class=cl>total     | 599
+</span></span><span class=line><span class=cl>elapsed   | 00:00:00.081273
+</span></span><span class=line><span class=cl>rate      | 7370.22
+</span></span><span class=line><span class=cl>progress  | 1.00
+</span></span><span class=line><span class=cl>eti       | 00:00:00
+</span></span><span class=line><span class=cl>eta       | 2024-05-28 10:19:18.334917
+</span></span></code></pre></div><hr><h2 id=distribution-over-several-processes>Distribution over several processes</h2><p>As the assistant was designed, I felt the need to enrich the underlying queries
+to respond to other recurring use cases in the data migration domain. Among
+these, we find the ability to distribute the rows of the same table over several
+sessions, each with a <code>WHERE</code> clause based on the result of the Euclidean
+division (<em>modulo</em>) of the primary key.</p><p>To activate this feature, simply fill in the <code>parts</code> parameter in the <code>config</code>
+table. For example, for the <code>film</code> table, we can define:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>UPDATE</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>config</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>parts</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>4</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>target</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;public.film&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>This configuration takes effect during the next planning. The call to the
+<code>plan()</code> method then inserts four lines into the <code>job</code> table for the <code>film</code>
+table, each attached to a value between 0 and 3. The <code>condition</code> column is then
+enriched for the rows of the <code>task</code> table in view of the next step.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>invocation</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>plan</span><span class=p>(</span><span class=s1>&#39;{public.film}&#39;</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>        invocation
+</span></span><span class=line><span class=cl>--------------------------
+</span></span><span class=line><span class=cl> CALL assistant.copy(17);
+</span></span><span class=line><span class=cl> CALL assistant.copy(18);
+</span></span><span class=line><span class=cl> CALL assistant.copy(19);
+</span></span><span class=line><span class=cl> CALL assistant.copy(20);
+</span></span><span class=line><span class=cl>(4 rows)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>job_id</span><span class=p>,</span><span class=w> </span><span class=n>job</span><span class=p>.</span><span class=n>target</span><span class=p>,</span><span class=w> </span><span class=k>state</span><span class=p>,</span><span class=w> </span><span class=n>part</span><span class=p>,</span><span class=w> </span><span class=n>condition</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>job</span><span class=w> </span><span class=k>JOIN</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>task</span><span class=w> </span><span class=k>USING</span><span class=w> </span><span class=p>(</span><span class=n>job_id</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>stage_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>2</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> job_id | target |  state  | part |    condition
+</span></span><span class=line><span class=cl>--------+--------+---------+------+-----------------
+</span></span><span class=line><span class=cl>     17 | film   | pending |    0 | film_id % 4 = 0
+</span></span><span class=line><span class=cl>     18 | film   | pending |    1 | film_id % 4 = 1
+</span></span><span class=line><span class=cl>     19 | film   | pending |    2 | film_id % 4 = 2
+</span></span><span class=line><span class=cl>     20 | film   | pending |    3 | film_id % 4 = 3     
+</span></span></code></pre></div><p>When calling the <code>copy()</code> method, the assistant builds the <code>INSERT</code> queries
+based on the conditions previously defined. For example, for the first part of
+the <code>film</code> table, the trace indicates the <code>INSERT</code> queries that were generated.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CALL</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=k>copy</span><span class=p>(</span><span class=mi>17</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>NOTICE:  Executing: TRUNCATE public.film
+</span></span><span class=line><span class=cl>NOTICE:  Executing: SELECT count(film_id) FROM mysql.film 
+</span></span><span class=line><span class=cl>                    WHERE film_id &gt; 0 AND film_id % 4 = 0
+</span></span><span class=line><span class=cl>NOTICE:  Executing: INSERT INTO public.film 
+</span></span><span class=line><span class=cl>                    SELECT film_id, title, description, release_year, 
+</span></span><span class=line><span class=cl>                           language_id, original_language_id, rental_duration, 
+</span></span><span class=line><span class=cl>                           rental_rate, length, replacement_cost, rating,
+</span></span><span class=line><span class=cl>                           special_features, last_update 
+</span></span><span class=line><span class=cl>                    FROM mysql.film WHERE film_id &gt; 0 AND film_id % 4 = 0 
+</span></span><span class=line><span class=cl>                    ORDER BY film_id
+</span></span><span class=line><span class=cl>CALL
+</span></span></code></pre></div><p>The <code>TRUNCATE</code> operation only occurs for the session whose value of <code>part</code> is
+equal to 0. In the nominal case, this session is launched before all the others
+to respect the expected behavior in the configuration with the <code>trunc</code> column
+(<code>true</code> by default).</p><p>The obvious interest of this method is to obtain the best insertion rate for a
+given table, relying on the extraction power of the remote server and the
+writing capacity of the local server. The rate can be consulted with the
+<code>report</code> view, especially to compare two loads for the same table, like the
+example of the <code>film</code> table. The <code>rate</code> column is expressed in number of rows
+per second.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>stage_id</span><span class=p>,</span><span class=w> </span><span class=n>target</span><span class=p>,</span><span class=w> </span><span class=k>state</span><span class=p>,</span><span class=w> </span><span class=n>rate</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>report</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>target</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;public.film&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl> stage_id |   target    |   state   |   rate
+</span></span><span class=line><span class=cl>----------+-------------+-----------+----------
+</span></span><span class=line><span class=cl>        1 | public.film | completed | 19162.59
+</span></span><span class=line><span class=cl>        2 | public.film | completed | 51389.37
+</span></span></code></pre></div><hr><h2 id=restart-after-interruption>Restart after interruption</h2><p>The ability to restart a copy in batch mode in case of interruption is one of
+the reasons why the primary key must be filled in the configuration. The
+assistant relies on the last extracted primary key value (using a <code>RETURNING</code>
+clause) to know the next restart point. In designing this feature, I had to
+arbitrate the limitations imposed by this mechanism.</p><ul><li>Composite primary keys are not allowed, as the <code>RETURNING</code> clause can only
+return a single value;</li><li>Tables with composite primary keys cannot benefit from batch processing, and
+therefore cannot be restarted after interruption;</li><li>Data is systematically sorted during extraction, even if batch processing is
+not enabled;</li><li>The primary key column must be of numeric type.</li></ul><p>The activation of a batch processing consists of updating the <code>batchsize</code> column
+of the configuration table. Let&rsquo;s take the example of the <code>rental</code> table:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>UPDATE</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>config</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>batchsize</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1000</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>target</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;public.rental&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>invocation</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>plan</span><span class=p>(</span><span class=s1>&#39;{public.rental}&#39;</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>        invocation
+</span></span><span class=line><span class=cl>--------------------------
+</span></span><span class=line><span class=cl> CALL assistant.copy(21);
+</span></span><span class=line><span class=cl>(1 row)
+</span></span></code></pre></div><p>The data transfer from the <code>rental</code> table is then divided into batches of 1000
+rows. It is of course possible to combine this technique with parallelization,
+the <code>WHERE</code> clause will do most of the work of repartition to prevent the same
+line from being exported twice.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CALL</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=k>copy</span><span class=p>(</span><span class=mi>21</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>TRUNCATE public.rental
+</span></span><span class=line><span class=cl>SELECT count(rental_id) FROM mysql.rental WHERE rental_id &gt; 0
+</span></span><span class=line><span class=cl>INSERT INTO public.rental SELECT rental_id, ... 
+</span></span><span class=line><span class=cl>  FROM mysql.rental WHERE rental_id &gt; 0  ORDER BY rental_id LIMIT 1000
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>INSERT INTO public.rental SELECT rental_id, ... 
+</span></span><span class=line><span class=cl>  FROM mysql.rental WHERE rental_id &gt; 16005  ORDER BY rental_id LIMIT 1000
+</span></span><span class=line><span class=cl>INSERT INTO public.rental SELECT rental_id, ... 
+</span></span><span class=line><span class=cl>  FROM mysql.rental WHERE rental_id &gt; 16049  ORDER BY rental_id LIMIT 1000
+</span></span><span class=line><span class=cl>CALL
+</span></span></code></pre></div><p>As soon as a query no longer returns any rows, the assistant considers that the
+transfer is complete. The <code>job</code> table is updated at each iteration to follow the
+last value of the primary key sequence.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>target</span><span class=p>,</span><span class=w> </span><span class=n>lastseq</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=n>job</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>stage_id</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>3</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>target</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;public.rental&#39;</span><span class=p>::</span><span class=n>regclass</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>    target     | lastseq
+</span></span><span class=line><span class=cl>---------------+---------
+</span></span><span class=line><span class=cl> public.rental |   16049
+</span></span></code></pre></div><p>In case of interruption, it is possible to restart the transfer by calling the
+<code>copy()</code> method with the same task identifier. The assistant takes care of
+resuming the transfer from the last known primary key value.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CALL</span><span class=w> </span><span class=n>assistant</span><span class=p>.</span><span class=k>copy</span><span class=p>(</span><span class=mi>21</span><span class=p>);</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>NOTICE:  Executing: SELECT count(rental_id) FROM mysql.rental
+</span></span><span class=line><span class=cl>                    WHERE rental_id &gt; 16049
+</span></span><span class=line><span class=cl>NOTICE:  Executing: INSERT INTO public.rental SELECT rental_id, ...
+</span></span><span class=line><span class=cl>                    FROM mysql.rental WHERE rental_id &gt; 16049  
+</span></span><span class=line><span class=cl>                    ORDER BY rental_id LIMIT 1000
+</span></span><span class=line><span class=cl>CALL
+</span></span></code></pre></div><hr><h2 id=conclusion>Conclusion</h2><p>The design of such a tool was a small personal challenge in line with my
+<a href="https://fljd-in.translate.goog/2021/12/06/migrer-vers-postgresql/?_x_tr_sl=en&_x_tr_tl=fr&_x_tr_hl=fr&_x_tr_pto=wapp" target=_blank rel=noopener>research</a> on migration to PostgreSQL with the exclusive help of Foreign Data
+Wrappers. My main source of inspiration remains the <a href=https://github.com/fljdin/dispatch target=_blank rel=noopener>Ora2Pg</a> project, one of
+the most advanced open-source tools to date in the field of migration.</p><p>I am aware of the technical limitations of this assistant, and the tinkering
+that remains to be done to make life easier for a consultant like me. In another
+article, I would like to present another tool called <a href=https://github.com/fljdin/dispatch target=_blank rel=noopener>dispatch</a> that I have
+been maintaining for some time and with which I answer questions about
+orchestration and traceability of migration steps.</p><p>By taking a step back, the basic concepts are there, any other tool in other
+languages could perfectly emerge and enrich the open-source ecosystem in the
+quest for migration to PostgreSQL.</p></article><aside class=related><h3>Suggested posts</h3><ul class=related-posts><li><a href=https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/>On the road to freedom with db_migrator
+<small><time datetime=2023-07-28>28 jul 2023</time></small></a></li><li><a href=https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/>Transfer modes in a migration
+<small><time datetime=2023-11-11>11 nov 2023</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-05-28>2024</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
