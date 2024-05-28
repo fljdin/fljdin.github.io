@@ -3,6 +3,7 @@ title: "Un assistant pour copier les données distantes"
 categories: [postgresql]
 tags: [sqlmed, developpement, migration]
 date: 2024-05-28
+translationKey: "fdw-assistant"
 ---
 
 Lors de la dernière [PGSession 16][1], j'ai rédigé et animé un [atelier][2] de
@@ -51,8 +52,8 @@ les deux schémas suivants :
 
 Chaque table externe fait l'objet d'une étude rapide pour obtenir la bonne
 correspondance de type de colonne, et leur définition est conservée dans un
-fichier SQL à destination des équipes du projet. Par exemple, les deux tables
-`rental` sont définies comme suit :
+fichier SQL à destination des équipes du projet. Par exemple, la table externe
+`rental` est définie comme suit :
 
 ```sql
 CREATE FOREIGN TABLE mysql.rental (
