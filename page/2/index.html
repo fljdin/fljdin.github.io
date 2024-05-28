@@ -1,10 +1,18 @@
-<!doctype html><html lang=fr><head><meta name=generator content="Hugo 0.124.1"><title>Carnet de découvertes</title>
+<!doctype html><html lang=fr><head><meta name=generator content="Hugo 0.126.1"><title>Carnet de découvertes</title>
 <link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=alternate type=application/rss+xml title="Carnet de découvertes" href=https://fljd.in/index.xml><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
 <small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
 <a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Dessine-moi un arbre (abstrait)</a></h1><time datetime=2022-06-29 class=post-date>29 juin 2022</time><blockquote><p>L&rsquo;étape d&rsquo;analyse crée un arbre d&rsquo;analyse qui n&rsquo;utilise que les règles fixes
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2022/09/29/construire-postgresql-avec-meson/>Construire PostgreSQL avec Meson</a></h1><time datetime=2022-09-29 class=post-date>29 sept 2022</time><p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les <a href=https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/ target=_blank rel=noopener>prochains
+jours</a>, le groupe de développement du projet communautaire ont intégré <a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target=_blank rel=noopener>leurs
+récents travaux</a> pour accélérer les tâches d&rsquo;automatisation et de compilation
+à l&rsquo;aide du système de construction <a href=https://mesonbuild.com/ target=_blank rel=noopener>Meson</a>.</p><p>Ce chantier n&rsquo;est pas anodin et redessine les contours de l&rsquo;écosystème du moteur
+de bases de données open-source le plus avancé au monde. Depuis sa forme libre
+publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
+de plus en plus complexes à maintenir pour les nouvelles générations de
+contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
+amoureux et amoureuses du libre se tournent résolument vers l&rsquo;avenir.</p><small>» <a href=https://fljd.in/2022/09/29/construire-postgresql-avec-meson/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Dessine-moi un arbre (abstrait)</a></h1><time datetime=2022-06-29 class=post-date>29 juin 2022</time><blockquote><p>L&rsquo;étape d&rsquo;analyse crée un arbre d&rsquo;analyse qui n&rsquo;utilise que les règles fixes
 de la structure syntaxique de SQL. Il ne fait aucune recherche dans les
 catalogues système. Il n&rsquo;y a donc aucune possibilité de comprendre la sémantique
 détaillée des opérations demandées.</p><p>(Documentation : <a href=https://docs.postgresql.fr/14/parser-stage.html#id-1.10.3.6.4 target=_blank rel=noopener>Processus de transformation</a>)</p></blockquote><p>Que se passe-t-il entre l&rsquo;instant où une requête SQL est soumise par l&rsquo;utilisateur
@@ -41,15 +49,6 @@ présentant les forces et les faiblesses du moteur.</p><p>Le mois dernier, une t
 promouvoir davantage ce mouvement vers le logiciel libre dans les autres pays.
 Je trouvais intéressant de profiter de cette actualité pour partager mes
 réflexions du moment, entre ma vision du marché français et l&rsquo;approche technique
-pour engager les migrations de données vers PostgreSQL.</p><small>» <a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2021/09/28/les-corruptions-silencieuses/>Les corruptions silencieuses</a></h1><time datetime=2021-09-28 class=post-date>28 sept 2021</time><p>Parmi les drames universellement reconnus, les corruptions de données sont des
-événements mécaniques ou logiques qui surviennent à des moments imprévisibles.
-Tantôt il s&rsquo;agira de l&rsquo;âge avancé des secteurs disques, tantôt il s&rsquo;agira d&rsquo;une
-extinction inopinée d&rsquo;un composant électrique ou d&rsquo;une perte de paquet dans les
-protocoles de cache.</p><p>Bien que peu de personnes peuvent se vanter d&rsquo;en avoir observé au cours de leur
-carrière, les corruptions sont particulièrement dévastatrices lorsqu&rsquo;elles se
-sont propagées sur les supports de sauvegardes et détectées bien des jours, voire
-des semaines après l&rsquo;incident. Les moteurs de bases de données sont très résilients
-face à ces destructions de données, en proposant des mécanismes de journalisation
-adaptés. Malgré cela, des précautions sont de mises.</p><small>» <a href=https://fljd.in/2021/09/28/les-corruptions-silencieuses/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/3/>Page précédente</a>
-<a class="pagination-item newer" href=/>Page suivante</a></div></main><footer class=footer><small>&copy; 2019-<time datetime=2024-03-21>2024</time>
+pour engager les migrations de données vers PostgreSQL.</p><small>» <a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/3/>Page précédente</a>
+<a class="pagination-item newer" href=/>Page suivante</a></div></main><footer class=footer><small>&copy; 2019-<time datetime=2024-05-28>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
