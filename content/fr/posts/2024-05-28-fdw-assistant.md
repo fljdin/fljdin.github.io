@@ -2,27 +2,14 @@
 title: "Un assistant pour copier les données distantes"
 categories: [postgresql]
 tags: [sqlmed, developpement, migration]
-date: 2024-05-20
-draft: true
+date: 2024-05-28
 ---
-
-<!--
-trame à développer dans l'article
-
-- synthèse du workshop publié en février 2024 par Dalibo https://dali.bo/wsfdw_html
-- l'assistant complète l'étape de copie des données distantes
-- présenter les avantages de l'assistant
-  - tri des données sur la clé primaire
-  - redémarrer depuis la dernière séquence rappatriée
-  - répartition sur plusieurs processus basée sur le modulo de la clé primaire
-- démonstration de l'assistant
--->
 
 Lors de la dernière [PGSession 16][1], j'ai rédigé et animé un [atelier][2] de
 trois heures au sujet de la migration vers PostgreSQL à l'aide des Foreign Data
 Wrappers, ou FDW. Ce fut notamment l'occasion de présenter au grand public,
-l'extension [`db_migrator`][3] pour laquelle j'avais dédié un [article][4] sur
-ce blog.
+l'extension [`db_migrator`][3] pour laquelle j'ai dédié un [article][4] sur ce
+blog.
 
 [1]: https://blog.dalibo.com/2023/12/08/pgsession16_programme.html
 [2]: https://dali.bo/wsfdw_html
@@ -82,34 +69,19 @@ OPTIONS (
 	 dbname 'sakila',
 	 table_name 'rental'
 );
-
-CREATE TABLE public.rental (LIKE mysql.rental);
 ```
-
-<!--
-CREATE TABLE public.actor (LIKE mysql.actor);
-CREATE TABLE public.address (LIKE mysql.address);
-CREATE TABLE public.category (LIKE mysql.category);
-CREATE TABLE public.city (LIKE mysql.city);
-CREATE TABLE public.country (LIKE mysql.country);
-CREATE TABLE public.customer (LIKE mysql.customer);
-CREATE TABLE public.film (LIKE mysql.film);
-CREATE TABLE public.film_actor (LIKE mysql.film_actor);
-CREATE TABLE public.film_category (LIKE mysql.film_category);
-CREATE TABLE public.film_text (LIKE mysql.film_text);
-CREATE TABLE public.inventory (LIKE mysql.inventory);
-CREATE TABLE public.language (LIKE mysql.language);
-CREATE TABLE public.payment (LIKE mysql.payment);
-CREATE TABLE public.rental (LIKE mysql.rental);
-CREATE TABLE public.staff (LIKE mysql.staff);
-CREATE TABLE public.store (LIKE mysql.store);
--->
 
 Lors de la création de la table `public.rental` qui accueillera les données, il
 est opportun de décider si nous souhaitons mettre en place un partitionnement,
-chose que `db_migrator` est capable d'identifier et de mettre en place. Dans le
-cas de notre exemple, la structure reste inchangée à l'aide de la syntaxe
-`CREATE TABLE LIKE`.
+chose que `db_migrator` est capable d'identifier et de mettre en place. Pour
+l'exemple, je reprends la structure stricte à l'aide de la syntaxe `CREATE TABLE
+LIKE` pour créer toutes mes tables cibles.
+
+```sql
+CREATE TABLE public.actor (LIKE mysql.actor);
+CREATE TABLE public.address (LIKE mysql.address);
+...
+```
 
 Avant même de mettre en place un générateur de requêtes `INSERT`, il est aisé
 d'entrevoir la former de celles-ci. Chaque ligne de la table externe sera lue à
@@ -120,19 +92,7 @@ migration contient ainsi 16 instructions, une pour chaque table.
 -- insert.sql
 INSERT INTO public.actor SELECT * FROM mysql.actor;
 INSERT INTO public.address SELECT * FROM mysql.address;
-INSERT INTO public.category SELECT * FROM mysql.category;
-INSERT INTO public.city SELECT * FROM mysql.city;
-INSERT INTO public.country SELECT * FROM mysql.country;
-INSERT INTO public.customer SELECT * FROM mysql.customer;
-INSERT INTO public.film SELECT * FROM mysql.film;
-INSERT INTO public.film_actor SELECT * FROM mysql.film_actor;
-INSERT INTO public.film_category SELECT * FROM mysql.film_category;
-INSERT INTO public.film_text SELECT * FROM mysql.film_text;
-INSERT INTO public.inventory SELECT * FROM mysql.inventory;
-INSERT INTO public.language SELECT * FROM mysql.language;
-INSERT INTO public.payment SELECT * FROM mysql.payment;
-INSERT INTO public.rental SELECT * FROM mysql.rental;
-INSERT INTO public.staff SELECT * FROM mysql.staff;
+...
 INSERT INTO public.store SELECT * FROM mysql.store;
 ```
 
@@ -142,30 +102,11 @@ Cette technique était présentée dans l'atelier de février, notamment pour
 paralléliser la construction des index et des clés primaires, définis dans un
 fichier SQL.
 
-<!--
-export PGHOST=localhost
-export PGDATABASE=sakila
--->
-
-```sh
-xargs -P 4 -a insert.sql -d '\n' -I % sh -c 'psql -c "%"'
-```
-```text
+```console
+$ xargs -P 4 -a insert.sql -d '\n' -I % sh -c 'psql -c "%"'
 INSERT 0 16
 INSERT 0 603
-INSERT 0 600
-INSERT 0 200
-INSERT 0 109
-INSERT 0 599
-INSERT 0 1000
-INSERT 0 1000
-INSERT 0 5462
-INSERT 0 1000
-INSERT 0 6
-INSERT 0 4581
-INSERT 0 2
-INSERT 0 2
-INSERT 0 16049
+...
 INSERT 0 16044
 ```
 
@@ -181,8 +122,8 @@ Contrairement à mes autres projets en PL/pgSQL, cet [assistant][5] n'est pas un
 extension et s'installe comme un vulgaire script. Une fois téléchargé, il suffit
 de l'invoquer sur la base de données de votre choix avec la commande suivante :
 
-```sh
-psql -d sakila -f fdw-assistant.sql 
+```console
+$ psql -d sakila -f fdw-assistant.sql 
 ```
 
 Le schéma par défaut se nomme `assistant` et contient une table de
@@ -211,19 +152,7 @@ INSERT INTO assistant.config (source, target, pkey)
 VALUES
   ('mysql.actor', 'public.actor', 'actor_id'),
   ('mysql.address', 'public.address', 'address_id'),
-  ('mysql.category', 'public.category', 'category_id'),
-  ('mysql.city', 'public.city', 'city_id'),
-  ('mysql.country', 'public.country', 'country_id'),
-  ('mysql.customer', 'public.customer', 'customer_id'),
-  ('mysql.film', 'public.film', 'film_id'),
-  ('mysql.film_actor', 'public.film_actor', 'actor_id'),
-  ('mysql.film_category', 'public.film_category', 'film_id'),
-  ('mysql.film_text', 'public.film_text', 'film_id'),
-  ('mysql.inventory', 'public.inventory', 'inventory_id'),
-  ('mysql.language', 'public.language', 'language_id'),
-  ('mysql.payment', 'public.payment', 'payment_id'),
-  ('mysql.rental', 'public.rental', 'rental_id'),
-  ('mysql.staff', 'public.staff', 'staff_id'),
+  ...
   ('mysql.store', 'public.store', 'store_id');
 ```
 
@@ -231,12 +160,6 @@ Pour chaque transfert, nous indiquons la table source et la table cible, ainsi
 que la colonne de clé primaire. Cette dernière est requise pour trier les
 lignes, découper le transfert en plusieurs lots (_batchs_) et redémarrer le
 transfert en cas d'interruption. 
-
-{{< message >}}
-Pour le moment, seules les clés primaires à une seule colonne sont supportées,
-mais il me semble qu'il soit possible de gérer les clés composites sans trop de
-difficulté.
-{{< /message >}}
 
 À l'aide de cette configuration, nous pouvons passer à la **planification**. Les
 tables `stage` et `job` sont alimentées avec de nouveaux éléments qui serviront
@@ -424,7 +347,7 @@ les limitations qu'impose ce mécanisme.
 
 - Les clés primaires ne doivent pas être composées, car la clause `RETURNING`
   ne peut retourner qu'une seule valeur ;
-- Les tables dont les colonnes sont composées ne peuvent pas bénéficier du
+- Les tables dont la clé primaire est composée ne peuvent pas bénéficier du
   traitement par lot, et donc de la reprise après interruption ;
 - Les données sont systématiquement triées lors de l'extraction, même si le
   traitement par lot n'est pas activé ;
@@ -448,7 +371,7 @@ SELECT invocation FROM assistant.plan('{public.rental}');
 ```
 
 Le transfert des données de la table `rental` est alors découpé en lots de 1000
-lignes. Il est bien sûr possible de mixer cette technique avec la
+lignes. Il est bien sûr possible de combiner cette technique avec la
 parallélisation, la clause `WHERE` réalisera l'essentiel du travail de
 répartition pour empêcher que la même ligne soit exportée deux fois.
 
