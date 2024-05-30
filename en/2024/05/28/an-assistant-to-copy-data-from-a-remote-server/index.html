@@ -19,8 +19,8 @@ of these queries.</p><hr><h2 id=data-transfer-without-an-assistant>Data transfer
 Wrapper. Everything boils down to a series of <code>INSERT</code> queries that must be
 executed in a predefined order. Let&rsquo;s take the 16 tables of the well-known
 &ldquo;Sakila&rdquo; data model (available at this <a href=https://github.com/ivanceras/sakila/raw/master/mysql-sakila-db target=_blank rel=noopener>address</a>) to illustrate the need for
-generating transfer queries.</p><p><img alt="ERD Base Sakila" src=/img/fr/2024-05-28-sakila-erp.jpg></p><p>For each MySQL table, I have a PostgreSQL database with the two following
-schemas:</p><ul><li><code>mysql</code>: the source schema containing the definition of the external tables
+generating transfer queries.</p><p><img alt="ERD Base Sakila" src=/img/fr/2024-05-28-sakila-erp.jpg></p><p>For the purpose of this article, I have a PostgreSQL database with the two
+following schemas that I will use in my demonstrations:</p><ul><li><code>mysql</code>: the source schema containing the definition of the external tables
 via the <code>mysql_fdw</code> extension;</li><li><code>public</code>: the target schema where the data will be copied.</li></ul><p>Each external table is subject to a quick study to obtain the correct column
 type match, and their definition is kept in an SQL file for the project teams.
 For example, the <code>rental</code> foreign tables is defined as follows:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>FOREIGN</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>rental</span><span class=w> </span><span class=p>(</span><span class=w>
@@ -44,7 +44,7 @@ strict structure using the <code>CREATE TABLE LIKE</code> syntax to create all m
 tables.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>actor</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>actor</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=k>public</span><span class=p>.</span><span class=n>address</span><span class=w> </span><span class=p>(</span><span class=k>LIKE</span><span class=w> </span><span class=n>mysql</span><span class=p>.</span><span class=n>address</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w></span><span class=p>...</span><span class=w>
-</span></span></span></code></pre></div><p>Even before setting up an <code>INSERT</code> query generator, it is easy to see the form
+</span></span></span></code></pre></div><p>Even before setting up an <code>INSERT</code> query generator, it is easy to see the look
 of these queries. Each line of the external table will be read through a global
 <code>SELECT</code>, then inserted into the target table. The migration script contains 16
 instructions, one for each table.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- insert.sql
@@ -237,5 +237,5 @@ orchestration and traceability of migration steps.</p><p>By taking a step back, 
 languages could perfectly emerge and enrich the open-source ecosystem in the
 quest for migration to PostgreSQL.</p></article><aside class=related><h3>Suggested posts</h3><ul class=related-posts><li><a href=https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/>On the road to freedom with db_migrator
 <small><time datetime=2023-07-28>28 jul 2023</time></small></a></li><li><a href=https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/>Transfer modes in a migration
-<small><time datetime=2023-11-11>11 nov 2023</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-05-28>2024</time>
+<small><time datetime=2023-11-11>11 nov 2023</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-05-30>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
