@@ -41,8 +41,9 @@ generating transfer queries.
 
 ![ERD Base Sakila](/img/fr/2024-05-28-sakila-erp.jpg)
 
-For each MySQL table, I have a PostgreSQL database with the two following
-schemas:
+
+For the purpose of this article, I have a PostgreSQL database with the two
+following schemas that I will use in my demonstrations:
 
 - `mysql`: the source schema containing the definition of the external tables
   via the `mysql_fdw` extension;
@@ -81,7 +82,7 @@ CREATE TABLE public.address (LIKE mysql.address);
 ...
 ```
 
-Even before setting up an `INSERT` query generator, it is easy to see the form
+Even before setting up an `INSERT` query generator, it is easy to see the look
 of these queries. Each line of the external table will be read through a global
 `SELECT`, then inserted into the target table. The migration script contains 16
 instructions, one for each table.

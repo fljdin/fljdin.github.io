@@ -43,8 +43,8 @@ besoin de génération des requêtes de transfert.
 
 ![ERD Base Sakila](/img/fr/2024-05-28-sakila-erp.jpg)
 
-Pour chaque table côté MySQL, je dispose d'une base de données PostgreSQL avec
-les deux schémas suivants :
+Pour la pédagogie de cet article, je dispose d'une base de données PostgreSQL
+avec les deux schémas suivants que j'utiliserai dans mes démonstrations :
 
 - `mysql` : le schéma source contenant la définition des tables externes via
   l'extension `mysql_fdw` ;
@@ -85,7 +85,7 @@ CREATE TABLE public.address (LIKE mysql.address);
 ```
 
 Avant même de mettre en place un générateur de requêtes `INSERT`, il est aisé
-d'entrevoir la former de celles-ci. Chaque ligne de la table externe sera lue à
+d'entrevoir la forme de celles-ci. Chaque ligne de la table externe sera lue à
 travers un `SELECT` global, puis insérée dans la table cible. Le script de
 migration contient ainsi 16 instructions, une pour chaque table.
 
