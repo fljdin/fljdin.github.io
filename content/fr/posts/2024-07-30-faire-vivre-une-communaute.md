@@ -2,7 +2,7 @@
 title: "Faire vivre une communauté"
 categories: [postgresql]
 tags: [opensource, conferences]
-date: 2024-07-30
+date: "2024-07-30 09:30:00"
 translationKey: "how-to-keep-a-community-alive"
 ---
 
