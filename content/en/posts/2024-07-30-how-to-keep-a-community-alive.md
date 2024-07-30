@@ -51,12 +51,6 @@ been a convenience for more than 10 years, and most French groups are registered
 
 ![Map of PUGs in France](/img/en/2024-07-30-map-of-pugs-in-france.png)
 
-La création d'un PUG reconnu par la communauté internationale est un processus simple, qui nécessite
-de constituer un groupe d'organisation et de postuler à l'adresse e-mail `usergroups@postgresql.org`.
-Le groupe doit respecter un certain nombre de règles, prévues par la [charte des PUGs][6], et doit
-s'engager à respecter les valeurs de la communauté PostgreSQL. En substance, voici les points qu'il
-faut retenir :
-
 The creation of a PUG recognized by the international community is a simple process, which requires
 to form an organizing committee and to apply to the email address `usergroups@postgresql.org`.
 The group must respect a number of rules, provided by the [PUG policy][6], and must commit to
