@@ -3,6 +3,7 @@ title: "Faire vivre une communauté"
 categories: [postgresql]
 tags: [opensource, conferences]
 date: 2024-07-30
+translationKey: "how-to-keep-a-community-alive"
 ---
 
 Le [PG Day France](https://pgday.fr/) s'est tenu les 11 et 12 juin derniers à Lille, ma ville natale.
@@ -237,3 +238,8 @@ et qui, sans le savoir, m'ont permis d'ajuster le format et le contenu de nos Me
 pour leur sympathie et leur accueil chaleureux. C'était également l'opportunité de mettre en avant les intervenants
 et les intervenantes qui ont accepté de partager leur expérience et leur expertise lors des Meetup PostgreSQL Lille.
 Un grand merci à elles et à eux d'avoir vécu l'aventure avec moi !
+
+Enfin, j'ai été heureux que ce retour d'expérience puisse faire écho à quelques personnes dans la salle, qui
+m'ont félicité pour le travail accompli et m'ont informé de leur intention de se lancer dans l'organisation
+de Meetup dans leur propre ville. C'est une belle récompense pour moi, et cela me donne envie de poursuivre
+mon engagement et de donner l'exemple pour la promotion de PostgreSQL en France.
