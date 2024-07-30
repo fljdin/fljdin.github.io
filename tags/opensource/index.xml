@@ -1,4 +1,12 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Opensource on Carnet de découvertes</title><link>https://fljd.in/tags/opensource/</link><description>Recent content in Opensource on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Thu, 29 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/opensource/index.xml" rel="self" type="application/rss+xml"/><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Opensource on Carnet de découvertes</title><link>https://fljd.in/tags/opensource/</link><description>Recent content in Opensource on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 30 Jul 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/opensource/index.xml" rel="self" type="application/rss+xml"/><item><title>Faire vivre une communauté</title><link>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</link><pubDate>Tue, 30 Jul 2024 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</guid><description>&lt;p>Le &lt;a href="https://pgday.fr/" target="_blank" rel="noopener">PG Day France&lt;/a> s&amp;rsquo;est tenu les 11 et 12 juin derniers à Lille, ma ville natale.
+Il s&amp;rsquo;agit de l&amp;rsquo;événement de la communauté française de PostgreSQL qui pose ses valises dans une
+ville différente chaque année. L&amp;rsquo;occasion était trop belle pour moi et j&amp;rsquo;y ai rencontré de nombreuses
+personnes venant de toute la France et de ses alentours, pour discuter de PostgreSQL au cours
+de deux jours d&amp;rsquo;ateliers et de conférences.&lt;/p>
+&lt;p>Pour cette édition, j&amp;rsquo;ai eu le plaisir de prendre la parole et de faire un retour d&amp;rsquo;expérience
+sur l&amp;rsquo;animation du groupe Meetup local dont j&amp;rsquo;ai repris les rennes il y a maintenant quatre ans.
+Dans cet article, je souhaite retranscrire les principaux points abordés lors de cette présentation,
+en attendant que la vidéo de la conférence soit mise en ligne.&lt;/p></description></item><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
 jours&lt;/a>, le groupe de développement du projet communautaire ont intégré &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target="_blank" rel="noopener">leurs
 récents travaux&lt;/a> pour accélérer les tâches d&amp;rsquo;automatisation et de compilation
 à l&amp;rsquo;aide du système de construction &lt;a href="https://mesonbuild.com/" target="_blank" rel="noopener">Meson&lt;/a>.&lt;/p>
@@ -31,14 +39,4 @@ pgTAP dont j&amp;rsquo;avais déjà vanté les mérites dans un &lt;a href="http
 &lt;p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
 quelques DBA féru⋅es d&amp;rsquo;expérimentations, car &lt;code>pgenv&lt;/code> permet de compiler et
 d&amp;rsquo;exécuter toutes les versions majeures et mineures du système de base de données
-open-source le plus avancé du monde.&lt;/p></description></item><item><title>Quel avenir pour PostgreSQL ?</title><link>https://fljd.in/2019/07/04/quel-avenir-pour-postgresql/</link><pubDate>Thu, 04 Jul 2019 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/07/04/quel-avenir-pour-postgresql/</guid><description>&lt;p>À moins d&amp;rsquo;avoir passé la dernière décennie dans une grotte ou un service
-informatique vieillissant, chacun·e des acteur·rice·s de l&amp;rsquo;IT a dû entendre parler
-du projet PostgreSQL, ne serait-ce que son nom inintelligible. La page d&amp;rsquo;accueil
-est par ailleurs catégorique : il s&amp;rsquo;agit &lt;u>du moteur relationnel open-source
-le plus avancé au monde&lt;/u>. (&lt;em>&lt;a href="https://www.postgresql.org" target="_blank" rel="noopener">PostgreSQL: The World&amp;rsquo;s Most Advanced Open
-Source Relational Database&lt;/a>&lt;/em>)&lt;/p>
-&lt;p>Comment expliquer ce succès ? D&amp;rsquo;ailleurs, quelles sont les tendances du produit
-et comment s&amp;rsquo;articule la vie d&amp;rsquo;un logiciel aussi ambitieux ? Est-il possible de
-voir émerger en France un mouvement massif de migration vers ce moteur, alors
-même qu&amp;rsquo;Oracle et Microsoft ont une part de marché importante sur les grands
-secteurs de la santé, du bancaire ou de la grande distribution ?&lt;/p></description></item></channel></rss>
+open-source le plus avancé du monde.&lt;/p></description></item></channel></rss>
