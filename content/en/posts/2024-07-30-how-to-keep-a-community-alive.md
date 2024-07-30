@@ -19,7 +19,7 @@ posted online.
 <!--more-->
 
 {{< message >}}
-The slides of my presentation are [available at this address](/documents/pgdayfr-how-to-keep-a-community-alive.pdf).
+The slides of my presentation are [available at this address](/documents/pgdayfr-faire-vivre-une-communaute.pdf) (french).
 {{< /message >}}
 
 ---
