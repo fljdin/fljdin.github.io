@@ -237,7 +237,6 @@ INSERT INTO locations VALUES
 -->
 
 ```sql
-
 WITH RECURSIVE loc AS (
     SELECT id, parentid, location, locationtype
       FROM locations
