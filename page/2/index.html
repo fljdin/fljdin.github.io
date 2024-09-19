@@ -1,10 +1,20 @@
-<!doctype html><html lang=fr><head><meta name=generator content="Hugo 0.130.0"><title>Carnet de découvertes</title>
+<!doctype html><html lang=fr><head><meta name=generator content="Hugo 0.134.2"><title>Carnet de découvertes</title>
 <link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=alternate type=application/rss+xml title="Carnet de découvertes" href=https://fljd.in/index.xml><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
 <small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
 <a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/>Le fenêtrage à la rescousse</a></h1><time datetime=2023-02-10 class=post-date>10 févr 2023</time><p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2023/03/22/les-colonnes-generees/>Les colonnes générées</a></h1><time datetime=2023-03-22 class=post-date>22 mars 2023</time><p>La norme ISO SQL/Foundation (<a href=https://www.iso.org/standard/63556.html target=_blank rel=noopener>ISO/IEC 9075-2:2016</a>) fait partie du standard
+SQL et définit les règles pour la définition des relations et la manipulation
+des données. En adoptant cette norme, les moteurs de bases de données
+garantissent une interopérabilité avec leurs concurrents et permettent aux
+entreprises de bénéficier d&rsquo;une plus grande flexibilité lorsqu&rsquo;elles souhaitent
+passer de l&rsquo;un à l&rsquo;autre sans (trop) réécrire leur modèle de données ou leurs
+requêtes SQL.</p><p>Dans sa publication SQL:2003, la norme a introduit le concept de <strong>colonnes
+générées</strong> comme nouvelle spécification technique. Parfois appelées <em>colonnes
+calculées</em> ou <em>colonnes virtuelles</em>, leurs valeurs dérivent de celles des autres
+colonnes de la table. <a href=https://modern-sql.com/caniuse/generated-always-as target=_blank rel=noopener>Un des articles</a> de Markus Winand passe au crible les
+différents systèmes du marché pour voir s&rsquo;ils respectent ce standard.</p><small>» <a href=https://fljd.in/2023/03/22/les-colonnes-generees/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2023/02/10/le-fenetrage-a-la-rescousse/>Le fenêtrage à la rescousse</a></h1><time datetime=2023-02-10 class=post-date>10 févr 2023</time><p>PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
 valeurs agrégées ou relatives sur un ensemble de lignes qui se situent dans une
 « fenêtre » autour de la ligne courante. En utilisant de telles fonctions,
 n&rsquo;importe qui peut créer des requêtes plus avancées et plus efficaces pour
@@ -40,14 +50,6 @@ d&rsquo;exigences que s&rsquo;imposent les développeurs pour maintenir et faire
 logiciel dans la bonne direction.</p><p>Dans cet article, je souhaite explorer le système de tests tel qu&rsquo;il est (et
 a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d&rsquo;une
 extension communautaire. Si vous ne connaissiez pas l&rsquo;outil <code>pg_regress</code>, il
-n&rsquo;aura plus de secret pour vous !</p><small>» <a href=https://fljd.in/2022/04/21/halte-aux-regressions/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2022/03/11/conversions-implicites/>Conversions implicites</a></h1><time datetime=2022-03-11 class=post-date>11 mars 2022</time><p>À l&rsquo;image d&rsquo;un langage de programmation classique, le SQL manipule des données
-typées, comme les chaînes de caractères, les dates ou des entiers numériques.
-Les opérations de transformations ou de comparaison diffèrent en fonction du
-type de données ; il ne sera pas possible de comparer le caractère <code>A</code> avec le
-chiffre <code>4</code> mais l&rsquo;opérateur <code>||</code> permettra la concaténation des deux éléments.</p><p>Dans cet article, je souhaite partager quelques anecdotes et problématiques de
-terrain concernant cette particularité logicielle et comprendre les effets de
-bord pour mieux les appréhender. Je prendrais un exemple assez spécifique du type
-<code>oid</code> et d&rsquo;un risque de transtypage pouvant perturber le stockage de <em>Large
-Objects</em> dans une table, voire leur destruction non désirée.</p><small>» <a href=https://fljd.in/2022/03/11/conversions-implicites/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/3/>Page précédente</a>
-<a class="pagination-item newer" href=/>Page suivante</a></div></main><footer class=footer><small>&copy; 2019-<time datetime=2024-07-30>2024</time>
+n&rsquo;aura plus de secret pour vous !</p><small>» <a href=https://fljd.in/2022/04/21/halte-aux-regressions/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/3/>Page précédente</a>
+<a class="pagination-item newer" href=/>Page suivante</a></div></main><footer class=footer><small>&copy; 2019-<time datetime=2024-09-19>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

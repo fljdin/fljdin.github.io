@@ -1,4 +1,12 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Faire vivre une communauté</title><link>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</link><pubDate>Tue, 30 Jul 2024 09:30:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</guid><description>&lt;p>Le &lt;a href="https://pgday.fr/" target="_blank" rel="noopener">PG Day France&lt;/a> s&amp;rsquo;est tenu les 11 et 12 juin derniers à Lille, ma ville natale.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Les types hiérarchiques</title><link>https://fljd.in/2024/09/19/les-types-hierarchiques/</link><pubDate>Thu, 19 Sep 2024 13:20:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/09/19/les-types-hierarchiques/</guid><description>&lt;p>Bien que la norme SQL définisse un ensemble de règles pour que les systèmes de bases
+de données puissent être interchangeables, il existe de petites singularités dans la
+nature. À ce titre, le type de données &lt;code>hierarchyid&lt;/code> fourni par SQL Server est un
+exemple flagrant. Si vous êtes amené à basculer vers PostgreSQL, deux solutions s&amp;rsquo;offrent
+à vous.&lt;/p>
+&lt;p>Une première et plus simple consiste à lier chaque nœud à son parent à l&amp;rsquo;aide d&amp;rsquo;une nouvelle
+colonne &lt;code>parentid&lt;/code> et d&amp;rsquo;y appliquer une contrainte de clé étrangère. Une autre approche,
+plus complète, consiste à utiliser l&amp;rsquo;extension &lt;code>ltree&lt;/code>. Cet article traite de ce dernier
+cas.&lt;/p></description></item><item><title>Faire vivre une communauté</title><link>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</link><pubDate>Tue, 30 Jul 2024 09:30:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</guid><description>&lt;p>Le &lt;a href="https://pgday.fr/" target="_blank" rel="noopener">PG Day France&lt;/a> s&amp;rsquo;est tenu les 11 et 12 juin derniers à Lille, ma ville natale.
 Il s&amp;rsquo;agit de l&amp;rsquo;événement de la communauté française de PostgreSQL qui pose ses valises dans une
 ville différente chaque année. L&amp;rsquo;occasion était trop belle pour moi et j&amp;rsquo;y ai rencontré de nombreuses
 personnes venant de toute la France et de ses alentours, pour discuter de PostgreSQL au cours
@@ -33,15 +41,4 @@ données externes que j&amp;rsquo;avais déjà présentées il y a &lt;a href="h
 &lt;p>Dans cet article, je présente le fonctionnement de l&amp;rsquo;outil, sa philosophie et la
 raison d&amp;rsquo;être que je lui ai trouvée, alors même qu&amp;rsquo;il rejoint l&amp;rsquo;écosystème des
 projets libres déjà bien installés dans le paysage de la migration. Que vaut-il
-aux côtés d&amp;rsquo;&lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> ou de &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> ?&lt;/p></description></item><item><title>Les colonnes générées</title><link>https://fljd.in/2023/03/22/les-colonnes-generees/</link><pubDate>Wed, 22 Mar 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/03/22/les-colonnes-generees/</guid><description>&lt;p>La norme ISO SQL/Foundation (&lt;a href="https://www.iso.org/standard/63556.html" target="_blank" rel="noopener">ISO/IEC 9075-2:2016&lt;/a>) fait partie du standard
-SQL et définit les règles pour la définition des relations et la manipulation
-des données. En adoptant cette norme, les moteurs de bases de données
-garantissent une interopérabilité avec leurs concurrents et permettent aux
-entreprises de bénéficier d&amp;rsquo;une plus grande flexibilité lorsqu&amp;rsquo;elles souhaitent
-passer de l&amp;rsquo;un à l&amp;rsquo;autre sans (trop) réécrire leur modèle de données ou leurs
-requêtes SQL.&lt;/p>
-&lt;p>Dans sa publication SQL:2003, la norme a introduit le concept de &lt;strong>colonnes
-générées&lt;/strong> comme nouvelle spécification technique. Parfois appelées &lt;em>colonnes
-calculées&lt;/em> ou &lt;em>colonnes virtuelles&lt;/em>, leurs valeurs dérivent de celles des autres
-colonnes de la table. &lt;a href="https://modern-sql.com/caniuse/generated-always-as" target="_blank" rel="noopener">Un des articles&lt;/a> de Markus Winand passe au crible les
-différents systèmes du marché pour voir s&amp;rsquo;ils respectent ce standard.&lt;/p></description></item></channel></rss>
+aux côtés d&amp;rsquo;&lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> ou de &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> ?&lt;/p></description></item></channel></rss>
