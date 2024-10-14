@@ -1,4 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Les types hiérarchiques</title><link>https://fljd.in/2024/09/19/les-types-hierarchiques/</link><pubDate>Thu, 19 Sep 2024 13:20:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/09/19/les-types-hierarchiques/</guid><description>&lt;p>Bien que la norme SQL définisse un ensemble de règles pour que les systèmes de bases
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Poissons et coquillages</title><link>https://fljd.in/2024/10/14/poissons-et-coquillages/</link><pubDate>Mon, 14 Oct 2024 10:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/10/14/poissons-et-coquillages/</guid><description>&lt;p>En tant que pur produit académique des années 2010, mon langage de script de prédilection a
+toujours été le Bash (&lt;em>Bourne Again Shell&lt;/em>). Non sans ignorer qu&amp;rsquo;il ait pu en exister d&amp;rsquo;autres, je
+ne me suis jamais vraiment tourné vers d&amp;rsquo;autres shells pour automatiser les tâches du quotidien
+dans mon métier de DBA.&lt;/p>
+&lt;p>Et pour cause, j&amp;rsquo;ai administré des centaines de serveurs de distributions très variées et il
+n&amp;rsquo;était pas bien vu d&amp;rsquo;installer des dépendances systèmes lourdes pour enrichir des scripts Python
+ou Perl. Nous apprenions donc à écrire des scripts portables et universels, compatibles partout
+où nous déposions nos valises.&lt;/p>
+&lt;p>Me suis-je enfermé dans un dogme conservateur, en m&amp;rsquo;interdisant &lt;em>de facto&lt;/em> à me tourner vers des
+shells modernes et bien plus aisés à appréhender ?&lt;/p></description></item><item><title>Les types hiérarchiques</title><link>https://fljd.in/2024/09/19/les-types-hierarchiques/</link><pubDate>Thu, 19 Sep 2024 13:20:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/09/19/les-types-hierarchiques/</guid><description>&lt;p>Bien que la norme SQL définisse un ensemble de règles pour que les systèmes de bases
 de données puissent être interchangeables, il existe de petites singularités dans la
 nature. À ce titre, le type de données &lt;code>hierarchyid&lt;/code> fourni par SQL Server est un
 exemple flagrant. Si vous êtes amené à basculer vers PostgreSQL, deux solutions s&amp;rsquo;offrent
@@ -34,11 +43,4 @@ autre (comme Oracle ou Microsoft SQL Server).&lt;/p>
 réaliser une migration complète à l&amp;rsquo;aide de la technologie des &lt;em>Foreign Data
 Wrappers&lt;/em>, mais l&amp;rsquo;étape critique de transfert des données qui y était décrite ne
 s&amp;rsquo;adapte pas à toutes les situations. Voyons ensemble les alternatives qui
-permettent de couvrir une grande partie des besoins.&lt;/p></description></item><item><title>En route vers la liberté avec db_migrator</title><link>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/</guid><description>&lt;p>J&amp;rsquo;ai passé plusieurs semaines ces derniers mois à contribuer à l&amp;rsquo;extension
-&lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a>. Rédigée uniquement en PL/pgSQL, elle permet de migrer les schémas
-et les données d&amp;rsquo;un système de bases de données vers PostgreSQL à l&amp;rsquo;aide des
-données externes que j&amp;rsquo;avais déjà présentées il y a &lt;a href="https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/">quelques années&lt;/a>.&lt;/p>
-&lt;p>Dans cet article, je présente le fonctionnement de l&amp;rsquo;outil, sa philosophie et la
-raison d&amp;rsquo;être que je lui ai trouvée, alors même qu&amp;rsquo;il rejoint l&amp;rsquo;écosystème des
-projets libres déjà bien installés dans le paysage de la migration. Que vaut-il
-aux côtés d&amp;rsquo;&lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> ou de &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> ?&lt;/p></description></item></channel></rss>
+permettent de couvrir une grande partie des besoins.&lt;/p></description></item></channel></rss>
