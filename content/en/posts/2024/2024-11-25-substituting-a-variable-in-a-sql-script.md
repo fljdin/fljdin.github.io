@@ -1,34 +1,33 @@
 ---
-title: "Substituer une variable dans un script SQL"
+title: "Substituting a variable in a SQL script"
 categories: [postgresql]
 tags: [developpement, migration]
 date: "2024-11-25 09:00:00 +0100"
 translationKey: "substituting-a-variable-in-a-sql-script"
 ---
 
-Il est fréquent de vouloir automatiser une tâche répétitive en la scriptant
-rapidement, puis à force d'itérations, de l'enrichir, voire de l'intégrer dans
-la base de code d'un projet. À ce jeu, les outils comme SQL*Plus et psql peuvent
-être de puissants alliés et des interpréteurs aussi pertinents que Bash ou
-Python.
+In a world where we constantly seek to automate repetitive tasks, it is common
+to write down a query in a script, make it more convenient, and eventually
+integrate the whole thing into a project's codebase. Tools like SQL*Plus and
+psql can be powerful allies in this game, as relevant as Bash or Python
+interpreters.
 
-Dans le cadre des projets de migration que je mène régulièrement, il m'arrive de
-tomber sur ces scripts, en grand nombre. Certains ont la particularité de
-proposer des paramètres d'entrée, traités par SQL*Plus avec le mécanisme très
-confortable de substitution de variables. Dans cet article, je partage quelques
-astuces pour convertir certains aspects de ces scripts grâce aux fonctionnalités
-équivalentes que l'on retrouve sur l'outil psql de PostgreSQL.
+In several projects I have been involved in, I have come across a large number
+of those kinds of scripts. Some of them have the particularity of offering input
+parameters, processed by SQL*Plus with the very comfortable mechanism named
+variable substitution. In this article, I share some tips to convert them to an
+equivalent syntax that PostgreSQL's psql tool can parse and manage.
 
 <!--more-->
 
 ---
 
-## Substituer une variable...
+## Substituting a variable...
 
-Comme point de départ, penchons-nous sur la syntaxe supportée par l'outil
-d'Oracle avec un exemple fil rouge. Nous incarnons un utilisateur qui souhaite
-obtenir le résultat des ventes d'une société factice, en appliquant deux filtres
-basés sur un numéro produit et deux dates passées en paramètres.
+As a starting point, let's look at the syntax supported by Oracle's tool with a
+progressive example. We stand in the shoes of a user who wants to get the result
+of sales from a dummy company, applying two filters based on a product
+identifier and two dates passed as parameters.
 
 ```sql
 -- sqlplus-report-01.sql
@@ -62,19 +61,19 @@ TOTAL_AMOUNT
      1378.98
 ```
 
-Comme nous pouvons l'observer, la substitution s'opère en SQL*Plus dès que le
-caractère `&` est rencontré, que son contenu soit ou non entouré de guillemets
-simples. En début de script, j'ai appliqué une stratégie simple en définissant
-une variable avec un nom évocateur, pour faciliter la lisibilité et la
-maintenance du script et ne plus s'accommoder des variables nommées selon leur
-position dans la liste des arguments.
+As shown above, the substitution takes place in SQL*Plus as soon as the `&`
+symbol is encountered, whether its content is surrounded by single quotes or
+not. At the beginning of the script, I applied a simple strategy by defining
+each variable with a meaningful name, to facilitate the readability and
+maintenance of the script. We don't want to rely on variables named according to
+their position in the list of arguments.
 
 ---
 
-Pour obtenir un résultat équivalent avec psql, nous devons effectuer une
-[assignation][1] de variables en dehors du script, avec l'option `-v` ou `--set`
-fournie par psql. Ces variables seront alors substituées dans le script à l'aide
-du mécanisme d'[interpolation][2].
+psql can provide a similar feature, but the syntax is slightly different. We
+have to [assign][1] variables outside the script, using the `-v` or `--set`
+option. These variables will then be substituted in the script using the
+[interpolation][2] system.
 
 [1]: https://psql-tips.org/psql_tips_all.html#tip037
 [2]: https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-INTERPOLATION
@@ -100,20 +99,20 @@ $      -v start_date='2024-11-01' -v end_date='2024-11-30'
       1378.98
 ```
 
-La reprise du script original est tout à fait triviale, on y retrouve une
-syntaxe similaire avec le caractère `:` en lieu et place de `&`. Toutefois, si
-la variable doit être comprise entre deux guillemets simples, nous constatons
-que le caractère `:` doit être saisi à l'extérieur et non à l'intérieur.
+From this point, we can see that the conversion is quite straightforward. The
+substitution syntax is similar with the `:` character instead of `&`. However,
+if the variable states as a literal string, we must use the `:` character
+outside the quotes and not inside.
 
 ---
 
-## ... dans un bloc anonyme
+## ... in an anonymous block
 
-Les choses se gâtent lorsque le script devient plus complexe, et nécessite de
-manipuler nos précédentes variables dans un bloc anonyme PL/SQL. Reprenons notre
-script pour l'enrichir d'un message personnalisé si le produit demandé n'existe
-pas. Une première lecture sur la table `products` peut, éventuellement,
-retourner l'exception `NO_DATA_FOUND` que nous souhaitons intercepter.
+Things get complicated when the script becomes more complex and requires us to
+manipulate our previous variables in an anonymous PL/SQL block. Let's take our
+script back to enhance it with a personalized message if the requested product
+does not exist. A first read on the `products` table should eventually raise the
+`NO_DATA_FOUND` exception that we want to catch.
 
 ```sql
 -- sqlplus-report-02.sql
@@ -161,11 +160,9 @@ Product 120 does not exist
 
 ---
 
-Du côté de notre alternative PostgreSQL et son invite de commande psql, il
-apparaît qu'un bloc anonyme en PL/pgSQL ne permet pas de réaliser la
-substitution comme nous le souhaitons. Si nous tentons de réaliser un contrôle
-avec le renvoi d'une exception, nous obtenons une erreur de syntaxe, car la
-variable n'est pas substituée.
+Unfortunately, our beloved psql command-line interface does not support the
+ubstitution of variables in an anonymous block and any attempt to do so will
+result in a syntax error.
 
 ```sql
 -- psql-report-02-wrong.sql
@@ -204,11 +201,9 @@ LINE 5:   p_start date := :'start_date'::date;
                           ^
 ```
 
-Fort heureusement, psql ne nous laisse pas sans ressource. Les méta-commandes
-qu'il propose peuvent nous permettre d'obtenir le même résultat, moyennant une
-réécriture plus profonde du script. Nous allons utiliser la méta-commande
-`\gset` pour stocker l'état du produit puis la méta-commande `\if` pour réaliser
-le contrôle.
+Do not panic! psql provides us with a way to achieve the same result, with a
+deeper rewrite of the script. We will use the `\gset` meta-command to store the
+product state and then the `\if` meta-command to perform the control.
 
 ```sql
 -- psql-report-02.sql
@@ -242,18 +237,16 @@ Product 120 does not exist
 
 ---
 
-## ... à tout prix
+## ... at any costs
 
-Il est probable que les méta-commandes de psql ne viennent pas à bout de toutes
-les ingéniosités (et aberrations) que peuvent réserver les scripts compatibles
-avec SQL*Plus. Progressons encore avec une évolution plus complexe de notre
-exemple.
+In the wild, it may happen that psql meta-commands are not enough to handle all
+the intricacies (and absurdities) that SQL*Plus-compatible scripts can present.
+Let's move on with a more complex need we want to address.
 
-Notre utilisateur souhaite à présent obtenir un score de performance pour la
-période de vente de son produit, en comparant avec la période précédente. Nous
-aurions besoin ici d'un curseur pour réutiliser plusieurs fois la même requête
-de calcul des ventes ainsi que d'une fonction pour calculer le score de
-performance en gérant correctement la division possible par zéro.
+Our user now wants to get a performance score for the sales period of his
+product, comparing it with the previous period. We would need a cursor here to
+reuse the same sales calculation query multiple times and a function to compute
+a score by handling the possible division by zero.
 
 ```sql
 -- sqlplus-report-03.sql
@@ -323,23 +316,22 @@ Total amount: 1378.98
 Performance score: 162.99
 ```
 
-Bien que l'exemple soit volontairement simpliste et qu'il puisse faire appel à
-une [fonction de fenêtrage][3], nous allons jouer le jeu de la conversion du
-script au plus proche de sa syntaxe originale. Pour cela, identifions les
-faiblesses du PL/pgSQL.
+Of course, the example is deliberately simplistic and could be addressed by a
+[window function][3] (fr), but we will play the game of converting the script as
+close as possible to its original syntax. To do this, let's identify the
+weaknesses of PL/pgSQL.
 
 [3]: /2023/02/10/le-fenetrage-a-la-rescousse/
 
 ---
 
-**Les routines éphémères ne sont pas prises en charge**
+**Temporary routines are not supported**
 
-Le langage PL/pgSQL n'autorise pas la déclaration de fonctions ou de procédures
-stockées dont la portée serait exclusive au contexte d'exécution. La seule
-alternative est de définir globalement la routine, afin qu'elle soit connue de
-l'analyseur syntaxique et exécutée correctement. Dans le cas présent, je ne
-souhaite pas que la fonction persiste après l'appel de mon script. Qu'à cela ne
-tienne, nous pouvons créer une fonction temporaire dans le schéma `pg_temp` !
+PL/pgSQL language does not allow the declaration of stored functions or storeed
+procedures inside an anonymous block. The only alternative is to define it
+globally, so that it is known to the parser and executed correctly. In this
+present case, I do not want the function to persist after the call of my script.
+No problem, we can create a temporary function in the `pg_temp` schema!
 
 ```sql
 -- temp-function.sql
@@ -368,36 +360,32 @@ psql:temp-function.sql:16: NOTICE:  Score: <NULL>
 DO
 ```
 
-La fonction `pg_temp.score(numeric, numeric)` est dès lors accessible dans le
-reste de notre bloc anonyme, et ce, uniquement pour la durée de la session. La
-gestion des exceptions est conforme au besoin, il a suffit de remplacer
-`ZERO_DIVIDE` par `division_by_zero` comme le stipule la [documentation][4].
+The `pg_temp.score(numeric, numeric)` function is now accessible within the
+block, and only for the duration of the session. Exception handling respects the
+expressed need. We just had to replace `ZERO_DIVIDE` with `division_by_zero` as
+describe in the [documentation][4].
 
 [4]: https://www.postgresql.org/docs/current/errcodes-appendix.html
 
-**La substitution ne s'applique pas dans un bloc anonyme**
+**SQL substitution is not supported**
 
-Comme nous l'avons vu précédemment, la substitution n'intervient pas lorsque
-nous nous trouvons dans un bloc de code PL/pgSQL. Pour contourner cette
-limitation, nous allons devoir utiliser les [variables de session
-personnalisées][5] mises à disposition pour l'écosystème d'extensions avec
-PostgreSQL.
+Our main issue strikes back: substitution does not occur when we are in a
+PL/pgSQL block. To work around this limitation, we will have to use the [custom
+session variables][5] made available for the PostgreSQL extension ecosystem.
 
 [5]: https://www.postgresql.org/docs/current/runtime-config-custom.html
 
-Ces variables peuvent être manipulées aussi bien en psql avec le mot-clé `SET`
-qu'en SQL ou en PL/pgSQL avec les fonctions [`current_setting`][6] et
-[`set_config`][7]. La seule contrainte consiste à leur définir un préfixe qui
-n'entre pas en conflit avec celui d'autres variables déjà déclarées dans notre
-instance.
+Those variables can be manipulated as well in psql with the `SET` keyword as in
+SQL or PL/pgSQL with the [`current_setting`][6] and [`set_config`][7] functions.
+The only constraint is to define a prefix that does not conflict with that of
+other variables already declared in our instance.
 
 [6]: https://pgpedia.info/c/current_setting.html
 [7]: https://pgpedia.info/s/set_config.html
 
-Pour revenir à notre exercice de conversion, cela signifie que nos paramètres
-de script peuvent être montés en variables de session dans les toutes premières
-instructions. Dès que nous sommes dans un bloc anonyme, il convient alors de les
-rappeler dans des variables classiques comme le montre le code suivant :
+It means that our parameters can be set as session variables in the very
+beginning of the script. As soon as we are in an anonymous block, we must then
+assign them back to regular variables as shown in the following code:
 
 ```sql
 SET my.product_id = :product_id;
@@ -415,10 +403,10 @@ END;
 $$;
 ```
 
-**Conversion complète**
+**Full conversion**
 
-Toutes ces astuces mises bout à bout permet d'obtenir une nouvelle version du
-script, converti de PL/SQL à PL/pgSQL :
+A new version of the script, converted from PL/SQL to PL/pgSQL, can be obtained
+with all previous tricks put together:
 
 ```sql
 -- psql-report-03.sql
@@ -490,18 +478,19 @@ psql:psql-report-03.sql:55: NOTICE:  Performance score: 162.99
 
 ## Conclusion
 
-Convertir un script SQL*Plus pour qu'il devienne compatible avec l'outil psql de
-PostgreSQL est un exercice surmontable, pour peu que l'on connaisse les bonnes
-astuces et alternatives qui répondent au besoin initial. Bien sûr, une
-traduction un pour un, en conservant la syntaxe et un semblant de lisibilité,
-pourrait s'avérer plus ardue que l'exemple que j'ai concocté.
+This kind of rewriting becomes affordable when we know the right tricks, without
+losing sight of the initial goal. Of course, a one-to-one translation, by
+preserving the syntax and the original intent, could be more challenging than
+that blog post example.
 
-Je reste toujours sceptique face à celles et ceux qui souhaitent conserver ce
-genre de pratiques de développement, que je trouve obsolètes. Migrer vers
-PostgreSQL n'est-il pas l'occasion de moderniser sa base de code, ou de
-questionner son rapport à la technologie ? Dans notre exemple, comme je l'avais
-mentionné, il est possible d'obtenir le même résultat en une seule requête SQL,
-sans avoir à recourir à un bloc anonyme PL/pgSQL.
+I'm a bit skeptical about those who want to keep such development practices.
+They seem outdated to me. Isn't migrating to PostgreSQL an opportunity to
+modernize our codebase or to question our relationship with technology? In our
+example, as I previously mentioned, it is possible to get the same result in a
+single SQL, combining meta-commands, variables substitution, common-table
+expressions, and a the `LAG` window function.
+
+In that way, we throw away the PL/pgSQL block and its limitations.
 
 ```sql
 -- psql-report-04.sql
@@ -551,8 +540,8 @@ $      -v start_date='2024-11-01' -v end_date='2024-11-30'
 ```
 
 {{< message >}}
-Tous les scripts de cet article, ainsi que les commandes DDL pour construire
-le modèle de données, sont disponibles cette [adresse][8].
+You can find all the scripts of this article, as well as the DDL commands to
+the data model, at this [address][8].
 
 [8]: https://gist.github.com/fljdin/45d9ece1c9aba054c85cfbede09c95fd
 {{< /message >}}
