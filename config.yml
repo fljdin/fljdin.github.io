@@ -1,6 +1,9 @@
 baseURL: https://fljd.in
 theme: fljdin
 
+params:
+  author: Florent Jardin
+
 rssLimit: 5
 pagination:
   pagerSize: 5
