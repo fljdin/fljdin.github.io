@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pages on Discovery notebook</title><link>https://fljd.in/en/pages/</link><description>Recent content in Pages on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><atom:link href="https://fljd.in/en/pages/index.xml" rel="self" type="application/rss+xml"/><item><title>About me</title><link>https://fljd.in/en/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/about/</guid><description>&lt;blockquote>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pages on Discovery notebook</title><link>https://fljd.in/en/pages/</link><description>Recent content in Pages on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor/><atom:link href="https://fljd.in/en/pages/index.xml" rel="self" type="application/rss+xml"/><item><title>About me</title><link>https://fljd.in/en/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author/><guid>https://fljd.in/en/about/</guid><description>&lt;blockquote>
 &lt;p>Discovery notebook from a DBA powered by passion and curiosity.&lt;/p>
 &lt;/blockquote>
 &lt;img class="profile-avatar" src="https://fljd.in/img/avatar.jpg" alt="Florent Jardin" }} />
@@ -13,4 +13,4 @@ my tiny researchs on PostgreSQL functionalities and keeping as simple as possibl
 &lt;/ul>
 &lt;hr>
 &lt;p>This website is powered by &lt;a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo&lt;/a> and doesn&amp;rsquo;t use any tracking
-tools or traffic analysis system.&lt;/p></description></item><item><title>Talks</title><link>https://fljd.in/en/talks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/talks/</guid><description/></item></channel></rss>
+tools or traffic analysis system.&lt;/p></description></item><item><title>Talks</title><link>https://fljd.in/en/talks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author/><guid>https://fljd.in/en/talks/</guid><description/></item></channel></rss>
