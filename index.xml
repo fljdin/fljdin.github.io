@@ -1,4 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor/><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Poissons et coquillages</title><link>https://fljd.in/2024/10/14/poissons-et-coquillages/</link><pubDate>Mon, 14 Oct 2024 10:30:00 +0200</pubDate><author/><guid>https://fljd.in/2024/10/14/poissons-et-coquillages/</guid><description>&lt;p>En tant que pur produit académique des années 2010, mon langage de script de prédilection a
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Carnet de découvertes</title><link>https://fljd.in/</link><description>Recent content on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor/><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/index.xml" rel="self" type="application/rss+xml"/><item><title>Substituer une variable dans un script SQL</title><link>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author/><guid>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</guid><description>&lt;p>Il est fréquent de vouloir automatiser une tâche répétitive en la scriptant
+rapidement, puis à force d&amp;rsquo;itérations, de l&amp;rsquo;enrichir, voire de l&amp;rsquo;intégrer dans
+la base de code d&amp;rsquo;un projet. À ce jeu, les outils comme SQL*Plus et psql peuvent
+être de puissants alliés et des interpréteurs aussi pertinents que Bash ou
+Python.&lt;/p>
+&lt;p>Dans le cadre des projets de migration que je mène régulièrement, il m&amp;rsquo;arrive de
+tomber sur ces scripts, en grand nombre. Certains ont la particularité de
+proposer des paramètres d&amp;rsquo;entrée, traités par SQL*Plus avec le mécanisme très
+confortable de substitution de variables. Dans cet article, je partage quelques
+astuces pour convertir certains aspects de ces scripts grâce aux fonctionnalités
+équivalentes que l&amp;rsquo;on retrouve sur l&amp;rsquo;outil psql de PostgreSQL.&lt;/p></description></item><item><title>Poissons et coquillages</title><link>https://fljd.in/2024/10/14/poissons-et-coquillages/</link><pubDate>Mon, 14 Oct 2024 10:30:00 +0200</pubDate><author/><guid>https://fljd.in/2024/10/14/poissons-et-coquillages/</guid><description>&lt;p>En tant que pur produit académique des années 2010, mon langage de script de prédilection a
 toujours été le Bash (&lt;em>Bourne Again Shell&lt;/em>). Non sans ignorer qu&amp;rsquo;il ait pu en exister d&amp;rsquo;autres, je
 ne me suis jamais vraiment tourné vers d&amp;rsquo;autres shells pour automatiser les tâches du quotidien
 dans mon métier de DBA.&lt;/p>
@@ -34,13 +44,4 @@ qu&amp;rsquo;il existe une fonction de bas niveau pour répartir sur plusieurs p
 transfert table à table, de nombreuses situations devront exiger de rédiger un
 grand nombre de requêtes SQL pour se tirer d&amp;rsquo;affaire. Au cours des mois qui
 suivirent, je me suis attelé à la conception d&amp;rsquo;un &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> écrit en
-PL/pgSQL dont le but est de simplifier la génération de ces requêtes.&lt;/p></description></item><item><title>Les modes de transfert dans une migration</title><link>https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/</link><pubDate>Wed, 11 Oct 2023 00:00:00 +0000</pubDate><author/><guid>https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/</guid><description>&lt;p>En informatique, un projet de migration consiste à changer un ou plusieurs
-composants techniques sans qu&amp;rsquo;aucun comportement des applications n&amp;rsquo;en soit
-impacté. Dans le paysage des bases de données (et le métier que j&amp;rsquo;exerce), il
-s&amp;rsquo;agira de choisir un nouveau système (comme PostgreSQL) en remplacement d&amp;rsquo;un
-autre (comme Oracle ou Microsoft SQL Server).&lt;/p>
-&lt;p>Dans un &lt;a href="https://fljd.in/2021/12/06/migrer-vers-postgresql/">précédent article&lt;/a>, je décrivais les étapes exhaustives pour
-réaliser une migration complète à l&amp;rsquo;aide de la technologie des &lt;em>Foreign Data
-Wrappers&lt;/em>, mais l&amp;rsquo;étape critique de transfert des données qui y était décrite ne
-s&amp;rsquo;adapte pas à toutes les situations. Voyons ensemble les alternatives qui
-permettent de couvrir une grande partie des besoins.&lt;/p></description></item></channel></rss>
+PL/pgSQL dont le but est de simplifier la génération de ces requêtes.&lt;/p></description></item></channel></rss>

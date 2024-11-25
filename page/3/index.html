@@ -3,7 +3,20 @@
 <a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2022/04/21/halte-aux-regressions/>Halte aux régressions</a></h1><time datetime=2022-04-21 class=post-date>21 avr 2022</time><p>Pour garantir la qualité du code d&rsquo;un logiciel, rien de mieux que la validation
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Dessine-moi un arbre (abstrait)</a></h1><time datetime=2022-06-29 class=post-date>29 juin 2022</time><blockquote><p>L&rsquo;étape d&rsquo;analyse crée un arbre d&rsquo;analyse qui n&rsquo;utilise que les règles fixes
+de la structure syntaxique de SQL. Il ne fait aucune recherche dans les
+catalogues système. Il n&rsquo;y a donc aucune possibilité de comprendre la sémantique
+détaillée des opérations demandées.</p><p>(Documentation : <a href=https://docs.postgresql.fr/14/parser-stage.html#id-1.10.3.6.4 target=_blank rel=noopener>Processus de transformation</a>)</p></blockquote><p>Que se passe-t-il entre l&rsquo;instant où une requête SQL est soumise par l&rsquo;utilisateur
+et l&rsquo;envoi du résultat sous forme de lignes par le serveur PostgreSQL ? Cette
+question passionnante (pour une poignée de personnes, ne nous le cachons pas) a
+été étudiée par Stefan Simkovics durant <a href=https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/ target=_blank rel=noopener>sa thèse</a> pour l&rsquo;université de
+technologie de Vienne en 1998.</p><p>Ces travaux ont notamment permis d&rsquo;enrichir la <a href=https://docs.postgresql.fr/14/overview.html target=_blank rel=noopener>documentation officielle</a> avec
+le chapitre « Présentation des mécanismes internes de PostgreSQL », qui reprend
+assez largement les observations de Simkovics de manière simplifiée pour en
+faciliter l&rsquo;accès au plus grand nombre.</p><p>Dans cet article, je souhaite présenter de récentes découvertes sur l&rsquo;une de ces
+phases internes, l&rsquo;étape d&rsquo;analyse, qui permet de manipuler une requête SQL sous
+une forme d&rsquo;arbre et qui respecte un pattern de développement avancé nommé <a href=https://fr.wikipedia.org/wiki/Arbre_de_la_syntaxe_abstraite target=_blank rel=noopener>AST</a>
+(<em>abstract syntax tree</em>).</p><small>» <a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2022/04/21/halte-aux-regressions/>Halte aux régressions</a></h1><time datetime=2022-04-21 class=post-date>21 avr 2022</time><p>Pour garantir la qualité du code d&rsquo;un logiciel, rien de mieux que la validation
 par les tests. Ces derniers peuvent être de différentes natures (fonctionnels,
 intégration, unitaires, performance, etc.) et permettent de respecter une série
 d&rsquo;exigences que s&rsquo;imposent les développeurs pour maintenir et faire évoluer ledit
@@ -36,12 +49,6 @@ carrière, les corruptions sont particulièrement dévastatrices lorsqu&rsquo;el
 sont propagées sur les supports de sauvegardes et détectées bien des jours, voire
 des semaines après l&rsquo;incident. Les moteurs de bases de données sont très résilients
 face à ces destructions de données, en proposant des mécanismes de journalisation
-adaptés. Malgré cela, des précautions sont de mises.</p><small>» <a href=https://fljd.in/2021/09/28/les-corruptions-silencieuses/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile</a></h1><time datetime=2021-08-24 class=post-date>24 août 2021</time><p>Jusqu&rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
-sauvegardes de fichiers personnels réalisées naïvement avec un script <code>rsync</code>.
-C&rsquo;est honteux dans nos métiers, mais l&rsquo;adage du cordonnier s&rsquo;est vérifié avec
-moi lors de l&rsquo;exécution d&rsquo;un vulgaire <code>find $NOVAR/ -delete</code> durant des tests.</p><p>Après cet épisode et l&rsquo;amertume d&rsquo;avoir perdu quelques travaux, ou la surprise
-de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
-erreur, je me suis tourné vers l&rsquo;outil incontournable dont tous mes collègues me
-parlaient : <a href=https://borgbackup.readthedocs.io/en/stable/ target=_blank rel=noopener>BorgBackup</a></p><small>» <a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/4/>Page précédente</a>
+adaptés. Malgré cela, des précautions sont de mises.</p><small>» <a href=https://fljd.in/2021/09/28/les-corruptions-silencieuses/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/4/>Page précédente</a>
 <a class="pagination-item newer" href=/page/2/>Page suivante</a></div></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-25>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

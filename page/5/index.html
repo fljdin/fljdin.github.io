@@ -3,7 +3,14 @@
 <a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv</a></h1><time datetime=2020-12-21 class=post-date>21 déc 2020</time><p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/>La brêve histoire du fichier backup_label</a></h1><time datetime=2021-01-19 class=post-date>19 janv 2021</time><p>Je suis resté longtemps ignorant des mécanismes de <a href=https://public.dalibo.com/archives/publications/glmf108_postgresql_et_ses_journaux_de_transactions.pdf target=_blank rel=noopener>journalisation</a> et de <em>PITR</em>
+avec PostgreSQL alors même qu&rsquo;il s&rsquo;agit d&rsquo;un des fonctionnements critiques pour
+la durabilité des données d&rsquo;une instance. Mieux comprendre ces concepts m&rsquo;aurait
+permis à une époque, d&rsquo;être plus serein lors de la mise en place de sauvegardes
+et surtout au moment de leur restauration !</p><p>Dans cet article, je vous propose de revenir sur un fichier anecdotique qui a
+fait parlé de lui pendant plusieurs années : le fichier <code>backup_label</code>.
+Qui est-il et à quoi sert-il ? Comment a-t-il évolué depuis sa création en
+version 8.0 de PostgreSQL et qu&rsquo;adviendra-t-il de lui dans les prochaines années ?</p><small>» <a href=https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/>Compiler et patcher avec pgenv</a></h1><time datetime=2020-12-21 class=post-date>21 déc 2020</time><p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
 efficace répondant au nom de <a href=https://github.com/theory/pgenv target=_blank rel=noopener>pgenv</a>, un gestionnaire des versions PostgreSQL.
 Ce projet est publié sous licence MIT par David E. Wheeler, auteur de l&rsquo;extension
 pgTAP dont j&rsquo;avais déjà vanté les mérites dans un <a href=/2020/05/14/ecrire-ses-tests-unitaires-en-sql>autre article</a>.</p><p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
@@ -22,16 +29,6 @@ notion de TOAST avec PostgreSQL. Je trouvais la dénomination amusante, bien
 qu&rsquo;étrange, pour nommer le mécanisme de stockage étendu « <em>The Oversized-Attribute
 Storage Technique</em> ». Bien que l&rsquo;acronyme ne fasse pas de référence culinaire,
 on peut retrouver dans la <a href=https://www.postgresql.org/docs/13/storage-toast.html target=_blank rel=noopener>documentation officielle</a> qu&rsquo;il s&rsquo;agissait d&rsquo;une
-petite révolution et de la meilleure chose depuis le pain en tranches.</p><small>» <a href=https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Tour d'horizon de PgBouncer</a></h1><time datetime=2020-08-21 class=post-date>21 août 2020</time><blockquote><p>Les programmes de regroupement de connexions (<em>pooling</em>) vous permettent de
-réduire la surcharge liée à la base de données lorsque le nombre de connexions
-physiques réduit les performances. Ceci est particulièrement pertinent sous
-Windows, où les limitations du système empêchent un grand nombre de connexions.
-C&rsquo;est également vital pour les applications Web où le nombre de connexions peut
-devenir très important.</p><p>(Source : <a href=https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration target=_blank rel=noopener>https://wiki.postgresql.org</a>)</p></blockquote><p>Je n&rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
-projet PostgreSQL pour aborder l&rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
-des deux seuls <em>poolers</em> de connexions largement répandus. Le produit est
-déconcertant de facilité, sa documentation et la littérature qui gravitent sur
-Internet sont claires et unanimes : PgBouncer améliorera grandement les
-performances de votre instance PostgreSQL !</p><small>» <a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/6/>Page précédente</a>
+petite révolution et de la meilleure chose depuis le pain en tranches.</p><small>» <a href=https://fljd.in/2020/10/12/toast-la-meilleure-chose-depuis-le-pain-en-tranches/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/6/>Page précédente</a>
 <a class="pagination-item newer" href=/page/4/>Page suivante</a></div></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-25>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

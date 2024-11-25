@@ -1,4 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Discovery notebook</title><link>https://fljd.in/en/categories/postgresql/</link><description>Recent content in Postgresql on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor/><lastBuildDate>Thu, 19 Sep 2024 13:20:00 +0200</lastBuildDate><atom:link href="https://fljd.in/en/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Hierarchical data types</title><link>https://fljd.in/en/2024/09/19/hierarchical-data-types/</link><pubDate>Thu, 19 Sep 2024 13:20:00 +0200</pubDate><author/><guid>https://fljd.in/en/2024/09/19/hierarchical-data-types/</guid><description>&lt;p>The SQL standard defines a set of rules so that database systems can be interchangeable,
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Discovery notebook</title><link>https://fljd.in/en/categories/postgresql/</link><description>Recent content in Postgresql on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor/><lastBuildDate>Mon, 25 Nov 2024 09:00:00 +0100</lastBuildDate><atom:link href="https://fljd.in/en/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Substituting a variable in a SQL script</title><link>https://fljd.in/en/2024/11/25/substituting-a-variable-in-a-sql-script/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author/><guid>https://fljd.in/en/2024/11/25/substituting-a-variable-in-a-sql-script/</guid><description>&lt;p>In a world where we constantly seek to automate repetitive tasks, it is common
+to write down a query in a script, make it more convenient, and eventually
+integrate the whole thing into a project&amp;rsquo;s codebase. Tools like SQL*Plus and
+psql can be powerful allies in this game, as relevant as Bash or Python
+interpreters.&lt;/p>
+&lt;p>In several projects I have been involved in, I have come across a large number
+of those kinds of scripts. Some of them have the particularity of offering input
+parameters, processed by SQL*Plus with the very comfortable mechanism named
+variable substitution. In this article, I share some tips to convert them to an
+equivalent syntax that PostgreSQL&amp;rsquo;s psql tool can parse and manage.&lt;/p></description></item><item><title>Hierarchical data types</title><link>https://fljd.in/en/2024/09/19/hierarchical-data-types/</link><pubDate>Thu, 19 Sep 2024 13:20:00 +0200</pubDate><author/><guid>https://fljd.in/en/2024/09/19/hierarchical-data-types/</guid><description>&lt;p>The SQL standard defines a set of rules so that database systems can be interchangeable,
 but there are small singularities in the wild. In this regard, the &lt;code>hierarchyid&lt;/code> data type
 provided by SQL Server is a striking example. If you are switching to PostgreSQL, two
 solutions are available to you.&lt;/p>
@@ -29,11 +38,4 @@ Server).&lt;/p>
 &lt;p>In a &lt;a href="https://fljd.in/2021/12/06/migrer-vers-postgresql/">previous article&lt;/a> (French), I described exhaustive steps to perform a
 complete migration using Foreign Data Wrappers technology. However, the critical
 data transfer step described there does not suit all situations. Let&amp;rsquo;s explore
-together the alternatives that cover a large portion of the needs.&lt;/p></description></item><item><title>On the road to freedom with db_migrator</title><link>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author/><guid>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</guid><description>&lt;p>Over the past months, I have spent several weeks contributing to the
-&lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a> extension. Written solely in PL/pgSQL, it enables the migration of
-schemas and data from a database system to PostgreSQL using the external data I
-had presented &lt;a href="https://fljd-in.translate.goog/2021/07/16/parlons-un-peu-des-donnees-externes/?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">few years ago&lt;/a>.&lt;/p>
-&lt;p>In this post, I present the functionality of the tool, its philosophy, and
-the reason I found for its existence, even though it joins the ecosystem of
-well-established open-source projects in the migration landscape. How does it
-compare to &lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> or &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> in terms of value and capabilities?&lt;/p></description></item></channel></rss>
+together the alternatives that cover a large portion of the needs.&lt;/p></description></item></channel></rss>

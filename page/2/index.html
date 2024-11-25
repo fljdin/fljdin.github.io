@@ -3,7 +3,15 @@
 <a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/>En route vers la liberté avec db_migrator</a></h1><time datetime=2023-07-28 class=post-date>28 juil 2023</time><p>J&rsquo;ai passé plusieurs semaines ces derniers mois à contribuer à l&rsquo;extension
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/>Les modes de transfert dans une migration</a></h1><time datetime=2023-10-11 class=post-date>11 oct 2023</time><p>En informatique, un projet de migration consiste à changer un ou plusieurs
+composants techniques sans qu&rsquo;aucun comportement des applications n&rsquo;en soit
+impacté. Dans le paysage des bases de données (et le métier que j&rsquo;exerce), il
+s&rsquo;agira de choisir un nouveau système (comme PostgreSQL) en remplacement d&rsquo;un
+autre (comme Oracle ou Microsoft SQL Server).</p><p>Dans un <a href=/2021/12/06/migrer-vers-postgresql/>précédent article</a>, je décrivais les étapes exhaustives pour
+réaliser une migration complète à l&rsquo;aide de la technologie des <em>Foreign Data
+Wrappers</em>, mais l&rsquo;étape critique de transfert des données qui y était décrite ne
+s&rsquo;adapte pas à toutes les situations. Voyons ensemble les alternatives qui
+permettent de couvrir une grande partie des besoins.</p><small>» <a href=https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/>En route vers la liberté avec db_migrator</a></h1><time datetime=2023-07-28 class=post-date>28 juil 2023</time><p>J&rsquo;ai passé plusieurs semaines ces derniers mois à contribuer à l&rsquo;extension
 <a href=https://github.com/cybertec-postgresql/db_migrator target=_blank rel=noopener>db_migrator</a>. Rédigée uniquement en PL/pgSQL, elle permet de migrer les schémas
 et les données d&rsquo;un système de bases de données vers PostgreSQL à l&rsquo;aide des
 données externes que j&rsquo;avais déjà présentées il y a <a href=/2021/07/16/parlons-un-peu-des-donnees-externes/>quelques années</a>.</p><p>Dans cet article, je présente le fonctionnement de l&rsquo;outil, sa philosophie et la
@@ -35,19 +43,6 @@ de bases de données open-source le plus avancé au monde. Depuis sa forme libre
 publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
 de plus en plus complexes à maintenir pour les nouvelles générations de
 contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
-amoureux et amoureuses du libre se tournent résolument vers l&rsquo;avenir.</p><small>» <a href=https://fljd.in/2022/09/29/construire-postgresql-avec-meson/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Dessine-moi un arbre (abstrait)</a></h1><time datetime=2022-06-29 class=post-date>29 juin 2022</time><blockquote><p>L&rsquo;étape d&rsquo;analyse crée un arbre d&rsquo;analyse qui n&rsquo;utilise que les règles fixes
-de la structure syntaxique de SQL. Il ne fait aucune recherche dans les
-catalogues système. Il n&rsquo;y a donc aucune possibilité de comprendre la sémantique
-détaillée des opérations demandées.</p><p>(Documentation : <a href=https://docs.postgresql.fr/14/parser-stage.html#id-1.10.3.6.4 target=_blank rel=noopener>Processus de transformation</a>)</p></blockquote><p>Que se passe-t-il entre l&rsquo;instant où une requête SQL est soumise par l&rsquo;utilisateur
-et l&rsquo;envoi du résultat sous forme de lignes par le serveur PostgreSQL ? Cette
-question passionnante (pour une poignée de personnes, ne nous le cachons pas) a
-été étudiée par Stefan Simkovics durant <a href=https://archive.org/details/Enhancement_of_the_ANSI_SQL_Implementation_of_PostgreSQL/ target=_blank rel=noopener>sa thèse</a> pour l&rsquo;université de
-technologie de Vienne en 1998.</p><p>Ces travaux ont notamment permis d&rsquo;enrichir la <a href=https://docs.postgresql.fr/14/overview.html target=_blank rel=noopener>documentation officielle</a> avec
-le chapitre « Présentation des mécanismes internes de PostgreSQL », qui reprend
-assez largement les observations de Simkovics de manière simplifiée pour en
-faciliter l&rsquo;accès au plus grand nombre.</p><p>Dans cet article, je souhaite présenter de récentes découvertes sur l&rsquo;une de ces
-phases internes, l&rsquo;étape d&rsquo;analyse, qui permet de manipuler une requête SQL sous
-une forme d&rsquo;arbre et qui respecte un pattern de développement avancé nommé <a href=https://fr.wikipedia.org/wiki/Arbre_de_la_syntaxe_abstraite target=_blank rel=noopener>AST</a>
-(<em>abstract syntax tree</em>).</p><small>» <a href=https://fljd.in/2022/06/29/dessine-moi-un-arbre-abstrait/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/3/>Page précédente</a>
+amoureux et amoureuses du libre se tournent résolument vers l&rsquo;avenir.</p><small>» <a href=https://fljd.in/2022/09/29/construire-postgresql-avec-meson/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/3/>Page précédente</a>
 <a class="pagination-item newer" href=/>Page suivante</a></div></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-25>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
