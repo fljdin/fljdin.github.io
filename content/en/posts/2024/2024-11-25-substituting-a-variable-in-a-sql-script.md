@@ -178,7 +178,7 @@ BEGIN
     FROM products
    WHERE product_id = :product_id;
    
-  SELECT COALESCE(SUM(amount)) INTO p_sum
+  SELECT COALESCE(SUM(amount), 0) INTO p_sum
     FROM orders
    WHERE product_id = p_id
      AND order_date BETWEEN p_start AND p_end;
@@ -220,7 +220,7 @@ SELECT NOT EXISTS(
   \quit
 \endif
 
-SELECT COALESCE(SUM(amount)) AS total_amount
+SELECT COALESCE(SUM(amount), 0) AS total_amount
   FROM orders
   JOIN products USING (product_id)
  WHERE product_id = :product_id
