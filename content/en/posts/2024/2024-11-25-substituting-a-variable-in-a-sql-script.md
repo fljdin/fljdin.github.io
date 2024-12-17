@@ -317,11 +317,11 @@ Performance score: 162.99
 ```
 
 Of course, the example is deliberately simplistic and could be addressed by a
-[window function][3] (fr), but we will play the game of converting the script as
+[window function][3], but we will play the game of converting the script as
 close as possible to its original syntax. To do this, let's identify the
 weaknesses of PL/pgSQL.
 
-[3]: /2023/02/10/le-fenetrage-a-la-rescousse/
+[3]: /en/2024/12/17/window-functions-to-the-rescue/
 
 ---
 

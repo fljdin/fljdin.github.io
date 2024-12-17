@@ -3,6 +3,7 @@ title: "Le fenêtrage à la rescousse"
 categories: [postgresql]
 tags: [developpement]
 date: 2023-02-10
+translationKey: "window-functions-to-the-rescue"
 ---
 
 PostgreSQL propose un certain nombre de fonctions qui permettent de calculer des
