@@ -15,7 +15,7 @@ data transfer step described there does not suit all situations. Let&rsquo;s exp
 together the alternatives that cover a large portion of the needs.</p><div class=message>The illustrations in this article depict a simple migration project scenario
 where data is transferred from one system to another between two data centers
 (<em>dc1</em> to <em>dc2</em>). In a situation where the data does not leave the hosting
-infrastructure, it is a straightforward transfer between two separate servers.</div><hr><h2 id=transfer-without-a-network>Transfer without a network</h2><p><img alt="Indirect transfer between two systems" src=/img/en/2023-10-networkless-transfer.png></p><p>Several reasons can justify that the two servers are not in direct connection
+infrastructure, it is a straightforward transfer between two separate servers.</div><hr><h2 id=transfer-without-a-network>Transfer without a network</h2><p><img src=/img/en/2023-10-networkless-transfer.png alt="Indirect transfer between two systems"></p><p>Several reasons can justify that the two servers are not in direct connection
 with each other. This includes the prohibition of opening access to the source
 instance from the internet or the complexity of configuring a secure link (VPN)
 between the two infrastructures.</p><p>In such a scenario, it becomes necessary to dump the data outside the database
@@ -31,7 +31,7 @@ to import the data into a buffer database, provided that the file format (SQL or
 proprietary) is not yet compatible with PostgreSQL. From this precise moment, it
 is then possible to import the data into the target database respecting the
 order of object creations and data insertion.</p><p><strong>Operation Summary</strong>:</p><ul><li><strong>Very high</strong> downtime (from several hours to several days);</li><li>Implementation complexity is <strong>low</strong> with the right tools;</li><li>Risk of data consistency issues is <strong>very low</strong> if integrity checks are
-performed at each step.</li></ul><hr><h2 id=transfer-with-intermediary>Transfer with intermediary</h2><p><img alt="Indirect transfer with an ETL" src=/img/en/2023-10-intermediary-transfer.png></p><p>When the systems are hosted in the same location, setting up routing rules
+performed at each step.</li></ul><hr><h2 id=transfer-with-intermediary>Transfer with intermediary</h2><p><img src=/img/en/2023-10-intermediary-transfer.png alt="Indirect transfer with an ETL"></p><p>When the systems are hosted in the same location, setting up routing rules
 allows for easier connection between the two servers. Among the migration tools,
 we find the family of ETL (Extract Transform Load) tools that act as
 intermediaries between the two databases.</p><p>These tools provide a large number of connection drivers as well as data
@@ -42,7 +42,7 @@ tool <a href=ora2pg.darold.net/>Ora2Pg</a> in the category of ETL. It precisely 
 definition by opening multiple connections to the source instance to read tables
 in batches of 10,000 rows (using the <code>DATA_LIMIT</code> directive) and opening other
 connections to the target instance to insert them with <code>COPY</code> instructions,
-thanks to the <a href=https://metacpan.org/pod/DBD::Pg#pg_putcopydata target=_blank rel=noopener><code>pg_putcopydata</code></a> method of the <code>DBD::Pg</code> driver.</p><p><strong>Operation Summary</strong>:</p><ul><li><strong>High</strong> downtime (several hours);</li><li><strong>Low</strong> implementation complexity with the right tools;</li><li><strong>Very low</strong> risk to data consistency.</li></ul><hr><h2 id=direct-transfer>Direct transfer</h2><p><img alt="Direct transfer" src=/img/en/2023-10-direct-transfer.png></p><p>This mode should feel familiar if you are a regular reader (subscribe!) because
+thanks to the <a href=https://metacpan.org/pod/DBD::Pg#pg_putcopydata target=_blank rel=noopener><code>pg_putcopydata</code></a> method of the <code>DBD::Pg</code> driver.</p><p><strong>Operation Summary</strong>:</p><ul><li><strong>High</strong> downtime (several hours);</li><li><strong>Low</strong> implementation complexity with the right tools;</li><li><strong>Very low</strong> risk to data consistency.</li></ul><hr><h2 id=direct-transfer>Direct transfer</h2><p><img src=/img/en/2023-10-direct-transfer.png alt="Direct transfer"></p><p>This mode should feel familiar if you are a regular reader (subscribe!) because
 direct transfer between a third-party system and PostgreSQL relies on the
 technology of Foreign Data Wrappers.</p><p>This solution opens a direct channel between the PostgreSQL instance and the
 remote instance through external tables. Thus, it becomes possible to query the
@@ -54,7 +54,7 @@ intermediary (ETL).</p><p>Although appealing, copying through a wrapper can be p
 data (such as Oracle&rsquo;s BLOBs) because they have a different structure. It is
 then necessary to mix solutions: one with a direct transfer for tables without
 large data and the other with an ETL to optimize the volume of rows and the
-amount of memory to allocate.</p><p><strong>Operation Summary</strong>:</p><ul><li><strong>Downtime</strong>: <strong>High</strong> (from several minutes to several hours);</li><li><strong>Implementation Complexity</strong>: <strong>Low</strong> to <strong>High</strong> for large data;</li><li><strong>Risk to Data Consistency</strong>: <strong>Very Low</strong>.</li></ul><hr><h2 id=partial-catch-up-transfer>Partial catch-up transfer</h2><p><img alt="Partial catch-up transfer" src=/img/en/2023-10-dead-transfer.png></p><p>For very large volumes where service interruption must be kept to a minimum, the
+amount of memory to allocate.</p><p><strong>Operation Summary</strong>:</p><ul><li><strong>Downtime</strong>: <strong>High</strong> (from several minutes to several hours);</li><li><strong>Implementation Complexity</strong>: <strong>Low</strong> to <strong>High</strong> for large data;</li><li><strong>Risk to Data Consistency</strong>: <strong>Very Low</strong>.</li></ul><hr><h2 id=partial-catch-up-transfer>Partial catch-up transfer</h2><p><img src=/img/en/2023-10-dead-transfer.png alt="Partial catch-up transfer"></p><p>For very large volumes where service interruption must be kept to a minimum, the
 solutions mentioned above can be very limiting. Exporting/importing the entire
 dataset is a lengthy and unavoidable step.</p><p>What I refer to as the &ldquo;partial catch-up transfer&rdquo; involves identifying the
 largest tables with mostly dead rows. It requires assurance that no <code>UPDATE</code> or
@@ -72,7 +72,7 @@ selected and then inserted into their respective table. A preliminary study must
 determine whether indexes deserve to be created during the first or second
 transfer step, depending on the effective time they save or consume throughout
 the entire operation.</p><p><strong>Operation Summary</strong>:</p><ul><li><strong>Low</strong> downtime (several tens of minutes);</li><li><strong>High</strong> implementation complexity;</li><li><strong>High</strong> risk of data consistency issues if the development team does not
-provide sufficient guarantees in choosing dead tables.</li></ul><hr><h2 id=transfer-with-transaction-replay>Transfer with transaction replay</h2><p><img alt="Transfer with transaction replay" src=/img/en/2023-10-replay-transfer.png></p><p>Speaking of &ldquo;transaction replay&rdquo; is essentially referring to physical
+provide sufficient guarantees in choosing dead tables.</li></ul><hr><h2 id=transfer-with-transaction-replay>Transfer with transaction replay</h2><p><img src=/img/en/2023-10-replay-transfer.png alt="Transfer with transaction replay"></p><p>Speaking of &ldquo;transaction replay&rdquo; is essentially referring to physical
 replication or logical replication. Each system has its own mechanisms, and the
 tools to implement them can vary. I recommend looking into excellent projects
 like <a href=https://github.com/cybertec-postgresql/ora_migrator#replication target=_blank rel=noopener>ora_migrator</a>, which implements replication using triggers with Oracle,
@@ -104,5 +104,5 @@ significant human investment in its implementation.</p><p>There are numerous fre
 Choosing one over another depends on the migration teams and their technical
 maturity, but ultimately, the choice is free!</p></article><aside class=related><h3>Suggested posts</h3><ul class=related-posts><li><a href=https://fljd.in/en/2024/11/25/substituting-a-variable-in-a-sql-script/>Substituting a variable in a SQL script
 <small><time datetime=2024-11-25>25 nov 2024</time></small></a></li><li><a href=https://fljd.in/en/2024/05/28/an-assistant-to-copy-data-from-a-remote-server/>An assistant to copy data from a remote server
-<small><time datetime=2024-05-28>28 may 2024</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+<small><time datetime=2024-05-28>28 may 2024</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

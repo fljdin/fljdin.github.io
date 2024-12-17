@@ -59,7 +59,7 @@ Nous avions vu à l&rsquo;instant les droits et le propriétaire, l&rsquo;<em>in
 également de stocker les horodatages de création ou de modification ainsi que
 l&rsquo;adresse physique des données du fichier sur le disque.</p><p>Ainsi, pour chaque fichier sur notre système lui est associé un <em>inode</em>. La
 représentation suivante permet donc de comprendre la relation entre un lien
-symbolique et un répertoire.</p><p><img alt="Relation entre symlink et directory" src=/img/fr/2020-04-23-symlink-directory.png></p><h2 id=le-mode---link-de-pg_upgrade>Le mode --link de <code>pg_upgrade</code></h2><p>Les choses sont devenues passionnantes lorsque j&rsquo;ai découvert la notion de lien
+symbolique et un répertoire.</p><p><img src=/img/fr/2020-04-23-symlink-directory.png alt="Relation entre symlink et directory"></p><h2 id=le-mode---link-de-pg_upgrade>Le mode --link de <code>pg_upgrade</code></h2><p>Les choses sont devenues passionnantes lorsque j&rsquo;ai découvert la notion de lien
 physique, ou <em>hardlink</em>, qu&rsquo;il était possible de créer entre deux fichiers. Ce
 n&rsquo;est en rien une nouveauté, car inclu dans les systèmes Unix depuis longtemps
 mais ça m&rsquo;a permis de comprendre davantage l&rsquo;intérêt des fameux <em>inodes</em>.</p><p>Puisqu&rsquo;un exemple concret parle toujours de lui-même, je propose d&rsquo;étudier la
@@ -117,7 +117,7 @@ les blocs de données de la table <code>pgbench_accounts</code> résident à la 
 physique.</p><p>À la différence du lien symbolique, ce type de lien rattache un fichier non pas
 à un autre fichier, mais au numéro d&rsquo;<em>inode</em> d&rsquo;un autre fichier. L&rsquo;attribut
 <code>Links</code> de ma commande <code>stat</code> correspond au nombre de liens sur l&rsquo;<em>inode</em> en
-question. Une représentation de cette relation pourait être la suivante :</p><p><img alt="Relation hardlink entre deux fichiers" src=/img/fr/2020-04-23-hardlink-pgbench_accounts.png></p><p>Les avantages sont doubles dans le cas d&rsquo;une migration majeure :</p><ul><li><strong>Temps de copie des données quasi-nul</strong> : le modèle de données est importé dans
+question. Une représentation de cette relation pourait être la suivante :</p><p><img src=/img/fr/2020-04-23-hardlink-pgbench_accounts.png alt="Relation hardlink entre deux fichiers"></p><p>Les avantages sont doubles dans le cas d&rsquo;une migration majeure :</p><ul><li><strong>Temps de copie des données quasi-nul</strong> : le modèle de données est importé dans
 la nouvelle instance et les fichiers de données sont liés à ceux de la version
 précédente ;</li><li><strong>Économie d&rsquo;espace disque</strong> : la migration n&rsquo;a pas besoin du double d&rsquo;espace
 disque.</li></ul><p>En contrepartie :</p><ul><li><strong>Pas de retour arrière</strong> : chacune des deux instances disposent de fichiers
@@ -168,7 +168,7 @@ fichiers de données.</p><div class=highlight><pre tabindex=0 class=chroma><code
 fichier maintenu par le lien physique de la version précédente a été vidé lors
 de l&rsquo;opération <code>VACUUM FULL</code> et pèse à présent zéro octet. Mais il n&rsquo;a pas été
 supprimé ! Nous nous retrouvons avec un fichier et son <em>inode</em> en trop sur le
-serveur.</p><p><img alt="Nouvel inode après un VACUUM FULL" src=/img/fr/2020-04-23-hardlink-after-vacuum-full.png></p><p>Sur un système de fichiers, le nombre maximal de fichiers que l&rsquo;on peut créer est
+serveur.</p><p><img src=/img/fr/2020-04-23-hardlink-after-vacuum-full.png alt="Nouvel inode après un VACUUM FULL"></p><p>Sur un système de fichiers, le nombre maximal de fichiers que l&rsquo;on peut créer est
 défini par la quantité d&rsquo;<em>inodes</em> disponibles, alors autant faire le ménage dès
 que possible pour ne pas atteindre cette limite. D&rsquo;autant plus que la suppression
 du répertoire <code>9.6/data</code> est proposée à la fin de la migration par l&rsquo;outil
@@ -184,5 +184,5 @@ documentation précise que la copie des fichiers est <em>pratiquement instantan�
 n&rsquo;affecte pas l&rsquo;ancienne instance.</p><p>Peut-être l&rsquo;occasion de creuser le sujet dans un prochain article ?</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/>Les statistiques au service du plan d'exécution
 <small><time datetime=2020-07-01>1 juil 2020</time></small></a></li><li><a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
 <small><time datetime=2021-04-23>23 avr 2021</time></small></a></li><li><a href=https://fljd.in/2020/01/17/gestion-des-signaux-internes/>Gestion des signaux internes
-<small><time datetime=2020-01-17>17 janv 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+<small><time datetime=2020-01-17>17 janv 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

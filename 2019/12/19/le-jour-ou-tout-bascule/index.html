@@ -17,7 +17,7 @@ les archives de journaux de transactions, et ces derniers seront déplacés sur 
 serveur secondaire avec la commande <code>rsync</code>.</p><p>Et puisque la version 12 apporte des nouveautés notables sur la gestion d&rsquo;une
 réplication, nous l&rsquo;employerons dans cet article pour configurer nos instances
 sans le fichier <code>recovery.conf</code>. Pour la facilité de lecture, je baptiserai
-volontairement les deux serveurs : <code>batman</code> et <code>robin</code>.</p><p><img alt="Architecture simplifiée" src=/img/fr/2019-12-19-architecture-batman-robin.png></p><p>L&rsquo;instance <code>batman</code> dispose de la configuration suivante :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># postgresql.auto.conf</span>
+volontairement les deux serveurs : <code>batman</code> et <code>robin</code>.</p><p><img src=/img/fr/2019-12-19-architecture-batman-robin.png alt="Architecture simplifiée"></p><p>L&rsquo;instance <code>batman</code> dispose de la configuration suivante :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># postgresql.auto.conf</span>
 </span></span><span class=line><span class=cl><span class=na>port</span> <span class=o>=</span> <span class=s>5432</span>
 </span></span><span class=line><span class=cl><span class=na>archive_mode</span> <span class=o>=</span> <span class=s>on</span>
 </span></span><span class=line><span class=cl><span class=na>wal_log_hints</span> <span class=o>=</span> <span class=s>on</span>
@@ -79,7 +79,7 @@ quoi parle-t-il ?</p><p>Et l&rsquo;architecture globale vous revient en mémoire
 l&rsquo;instance secondaire est utilisée pour répartir la charge de lecture entre chaque
 nœud à l&rsquo;aide de l&rsquo;attribut de préférence <code>target_session_attrs</code> (<a href=https://www.postgresql.org/docs/12/libpq-connect.html#id-1.7.3.8.3.6 target=_blank rel=noopener>documentation</a>)
 et aucun mécanisme d&rsquo;éviction en cas de <em>split-brain</em> ou de VIP flottante n&rsquo;ont
-été déployés sur vos serveurs…</p><p><img alt="Split brain applicatif" src=/img/fr/2019-12-19-split-brain.png></p><h2 id=synchronisation>Synchronisation</h2><p>L&rsquo;urgence impose d&rsquo;intervenir sur les chaînes de connexion pour réduire le risque
+été déployés sur vos serveurs…</p><p><img src=/img/fr/2019-12-19-split-brain.png alt="Split brain applicatif"></p><h2 id=synchronisation>Synchronisation</h2><p>L&rsquo;urgence impose d&rsquo;intervenir sur les chaînes de connexion pour réduire le risque
 de modification sur la mauvaise <em>timeline</em>. Vous recommandez à l&rsquo;équipe support
 de retirer l&rsquo;IP <code>batman</code> de tout ce qui s&rsquo;apparente à un fichier <code>settings_db.xml</code> :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>postgresql://app@batman,robin/gotham?target_session_attrs<span class=o>=</span>read-write
 </span></span><span class=line><span class=cl><span class=c1># devient</span>
@@ -142,7 +142,7 @@ réplication, dont <code>primary_conninfo</code> et les fichiers <code>standby.s
 que la zone d&rsquo;archivage (<code>batcave</code>) réside donc sur le même serveur que l&rsquo;instance
 nouvellement primaire <code>robin</code> et pourrait être un risque en cas de surincident.
 De manière générale, il est recommandé d&rsquo;externaliser systématiquement les archives
-et les sauvegardes !</p><p><img alt="Situation après la synchronisation" src=/img/fr/2019-12-19-architecture-apres-rsync.png></p><p>Vous y conviendrez, cette étape était particulièrement coton pour l&rsquo;envisager
+et les sauvegardes !</p><p><img src=/img/fr/2019-12-19-architecture-apres-rsync.png alt="Situation après la synchronisation"></p><p>Vous y conviendrez, cette étape était particulièrement coton pour l&rsquo;envisager
 dans une situation passablement stressante. Voyons ensemble l&rsquo;autre solution plus
 adaptée à notre scénario : la commande <code>pg_rewind</code>.</p><h3 id=deuxième-méthode>Deuxième méthode</h3><p>La situation reste inchangée, <em>i.e.</em> l&rsquo;instance <code>batman</code> est primaire sur une
 ancienne <em>timeline</em> et doit être resynchronisée avec <code>robin</code> pour obtenir toutes
@@ -233,9 +233,9 @@ parcouru l&rsquo;ensemble des outils disponibles nativement avec PostgreSQL.</p>
 d&rsquo;archivage sur un système de fichiers redondé pour se prévenir de l&rsquo;absence
 d&rsquo;un nœud. Le diagramme suivant présenterait alors le moins de risque possible
 tout en assurant un niveau de service acceptable, avec un minimum d&rsquo;actions en
-cas de bascule :</p><p><img alt="Architecture complète" src=/img/fr/2019-12-19-architecture-complete.png></p><p>La détection de panne et la bascule automatique sont des thématiques récurrentes
+cas de bascule :</p><p><img src=/img/fr/2019-12-19-architecture-complete.png alt="Architecture complète"></p><p>La détection de panne et la bascule automatique sont des thématiques récurrentes
 lorsque l&rsquo;on exprime un besoin de haute-disponibilité. Durant l&rsquo;année 2019, une
 série d&rsquo;outils tiers ont assis leur réputation avec notamment <a href=https://patroni.readthedocs.io/en/latest/ target=_blank rel=noopener>patroni</a> de
 Zalando qui propose intelligemment l&rsquo;usage de <code>pg_rewind</code> dans son fonctionnement.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Construire une instance standby avec pgBackRest
-<small><time datetime=2019-11-07>7 nov 2019</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+<small><time datetime=2019-11-07>7 nov 2019</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

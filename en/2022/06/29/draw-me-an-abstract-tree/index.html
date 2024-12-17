@@ -41,7 +41,7 @@ memory to link lexemes according to the grammar rules of the language. Thus, the
 main node <code>SelectStmt</code> is composed by different branches, like queried tables
 under their <code>RangeVar</code> node stored as an array into <code>fromClause</code> attribute. The
 same goes for the representation of columns and conditions through the <code>targetList</code>
-and <code>whereClause</code> nodes respectively.</p><p><img alt="Parse tree representation" src=/img/en/2022-06-29-parse-tree-representation.png></p><p>Our parse tree is passed to an upper step, called rewriting, responsible for
+and <code>whereClause</code> nodes respectively.</p><p><img src=/img/en/2022-06-29-parse-tree-representation.png alt="Parse tree representation"></p><p>Our parse tree is passed to an upper step, called rewriting, responsible for
 performing some optimizations and transformations to nodes and removing useless
 leaves. Then two others mechanisms take place, namely <strong>planner</strong> and <strong>executor</strong>.
 Our final parse tree will be use to build data result requested by user, but I
@@ -117,5 +117,5 @@ which use the internal parser outside of PostgreSQL!</p><p>Use cases may be nume
 query newlines or serializing a statement to easily drop or modify internal
 nodes, etc. Another parsing project wrote in Python, called <code>pglast</code>, suggests
 you in its <a href=https://pglast.readthedocs.io/en/v3/usage.html target=_blank rel=noopener>documentation</a> more examples, if by chance, this article has
-aroused your curiosity.</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+aroused your curiosity.</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

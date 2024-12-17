@@ -19,7 +19,7 @@ PL/pgSQL dont le but est de simplifier la génération de ces requêtes.</p><hr>
 Data Wrapper. Tout se résume à une série de requêtes <code>INSERT</code> qui doivent être
 exécutées dans un ordre prédéfini. Prenons les 16 tables du modèle de données
 très connu « Sakila » (disponible à cette <a href=https://github.com/ivanceras/sakila/raw/master/mysql-sakila-db target=_blank rel=noopener>adresse</a>), pour illustrer le
-besoin de génération des requêtes de transfert.</p><p><img alt="ERD Base Sakila" src=/img/fr/2024-05-28-sakila-erp.jpg></p><p>Pour la pédagogie de cet article, je dispose d&rsquo;une base de données PostgreSQL
+besoin de génération des requêtes de transfert.</p><p><img src=/img/fr/2024-05-28-sakila-erp.jpg alt="ERD Base Sakila"></p><p>Pour la pédagogie de cet article, je dispose d&rsquo;une base de données PostgreSQL
 avec les deux schémas suivants que j&rsquo;utiliserai dans mes démonstrations :</p><ul><li><code>mysql</code> : le schéma source contenant la définition des tables externes via
 l&rsquo;extension <code>mysql_fdw</code> ;</li><li><code>public</code> : le schéma cible où les données seront copiées.</li></ul><p>Chaque table externe fait l&rsquo;objet d&rsquo;une étude rapide pour obtenir la bonne
 correspondance de type de colonne, et leur définition est conservée dans un
@@ -249,5 +249,5 @@ outil dans d&rsquo;autres langages pourrait parfaitement émerger et enrichir
 l&rsquo;écosystème open-source dans la quête de la migration vers PostgreSQL.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/>En route vers la liberté avec db_migrator
 <small><time datetime=2023-07-28>28 juil 2023</time></small></a></li><li><a href=https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/>Substituer une variable dans un script SQL
 <small><time datetime=2024-11-25>25 nov 2024</time></small></a></li><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
-<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+<small><time datetime=2021-12-06>6 déc 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

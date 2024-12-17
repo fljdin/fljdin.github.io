@@ -19,7 +19,7 @@ or <strong>transaction logs</strong>. Taken together, these changes represent a 
 disk activity compared to random writings of others processes at work in PostgreSQL.</p><p>Among them, the <code>checkpointer</code> process ensures that new data in memory is permanently
 synchronized in the data files and that at regular times called <code>CHECKPOINT</code>. This
 on-disk two-step writing provides excellent performance and ensures that modified
-blocks are not lost when a transaction ends successfully.</p><p><img alt="Asynchroneous writes on disks" src=/img/en/2021-12-asynchronous-writes.png></p><p>Because of transaction logging, all data files of our cluster are late on real
+blocks are not lost when a transaction ends successfully.</p><p><img src=/img/en/2021-12-asynchronous-writes.png alt="Asynchroneous writes on disks"></p><p>Because of transaction logging, all data files of our cluster are late on real
 transactional workload, until the next <code>CHECKPOINT</code> moment. In case of an unexpected
 interruption (like a memory crash), dirty pages will be lost and data files are
 called <strong>inconsistents</strong>, as they contain data that can be too old or uncommitted.</p><p>In such situations, cluster service will be able to restart by applying losted
@@ -201,5 +201,5 @@ In a <a href=https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0
 suggested that backup label content could be stored in memory to fix its main
 wickness:</p><blockquote><p>It might be easier/better to just keep the one exclusive slot in shared
 memory and store the backup label in it. We only allow one exclusive
-backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>To be continued!</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>To be continued!</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

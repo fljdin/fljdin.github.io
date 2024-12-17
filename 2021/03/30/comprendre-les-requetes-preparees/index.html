@@ -13,7 +13,7 @@ des attaques par <a href=https://fr.wikipedia.org/wiki/Injection_SQL target=_bla
 par la douloureuse expérience du terrain. Bien que les nombreuses couches
 d&rsquo;abstraction les rendent aujourd&rsquo;hui inopérantes grâce aux échappements ou à la
 validation des données en entrée, ces attaques sont encore possibles dès que la
-requête est écrite en pur SQL.</p><p><img alt="Exploit of a mom" src=/img/fr/2021-03-30-exploits_of_a_mom.png></p><p><em>Source : <a href=https://xkcd.com/327 target=_blank rel=noopener>https://xkcd.com/327</a></em></p><p>L&rsquo;une des meilleures approches pour éviter ces attaques, repose sur la séparation
+requête est écrite en pur SQL.</p><p><img src=/img/fr/2021-03-30-exploits_of_a_mom.png alt="Exploit of a mom"></p><p><em>Source : <a href=https://xkcd.com/327 target=_blank rel=noopener>https://xkcd.com/327</a></em></p><p>L&rsquo;une des meilleures approches pour éviter ces attaques, repose sur la séparation
 des requêtes et de leurs paramètres au moment de leur exécution. L&rsquo;instruction,
 dite <strong>préparée</strong>, est ainsi intégralement analysée et le positionnement des valeurs
 est connu à l&rsquo;avance. Toute tentative d&rsquo;injection est réduite à néant.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>PREPARE</span><span class=w> </span><span class=n>get_notation</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>text</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w>
@@ -160,7 +160,7 @@ positionné sur <code>auto</code>, sa valeur par défaut.</p><ul><li>Exécution 
 les phases de préparation et d&rsquo;exécution est sans surprise. Alors que le temps
 de préparation (<em>Parse, Rewrite, Plan</em>) est supérieur au temps d&rsquo;exécution pour des instructions non
 préparées, il s&rsquo;annule intégralement sur un volume de plusieurs milliers de
-requêtes exécutées dans la même session avec l&rsquo;utilisation d&rsquo;un plan générique.</p><p><img alt="Répartition des temps d&rsquo;exécution" src=/img/fr/2021-03-30-repartition-temps-de-reponse.png></p><div class=message>Le graphique ci-dessus reprend les temps moyens de chaque étape d&rsquo;une requête
+requêtes exécutées dans la même session avec l&rsquo;utilisation d&rsquo;un plan générique.</p><p><img src=/img/fr/2021-03-30-repartition-temps-de-reponse.png alt="Répartition des temps d&rsquo;exécution"></p><div class=message>Le graphique ci-dessus reprend les temps moyens de chaque étape d&rsquo;une requête
 unitaire à l&rsquo;issue d&rsquo;une vingtaine de traitements <code>pgbench</code> pour 10 000
 transactions.</div><hr><h2 id=pour-aller-plus-loin>Pour aller plus loin</h2><p>Que ce soit pour se protéger des injections ou pour atteindre de hautes
 performances, j&rsquo;ai voulu montrer dans cet article qu&rsquo;il pouvait être bénéfique
@@ -173,5 +173,5 @@ l&rsquo;extension <a href=https://github.com/dimitri/preprepare target=_blank re
 l&rsquo;ouverture de la session.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/07/16/parlons-un-peu-des-donnees-externes/>Parlons un peu des données externes
 <small><time datetime=2021-07-16>16 juil 2021</time></small></a></li><li><a href=https://fljd.in/2021/06/09/les-intervalles-de-valeurs/>Les intervalles de valeurs
 <small><time datetime=2021-06-09>9 juin 2021</time></small></a></li><li><a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
-<small><time datetime=2021-04-23>23 avr 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+<small><time datetime=2021-04-23>23 avr 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

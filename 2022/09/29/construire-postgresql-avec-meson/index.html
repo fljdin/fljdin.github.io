@@ -12,7 +12,7 @@ de bases de données open-source le plus avancé au monde. Depuis sa forme libre
 publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
 de plus en plus complexes à maintenir pour les nouvelles générations de
 contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
-amoureux et amoureuses du libre se tournent résolument vers l&rsquo;avenir.</p><p><img alt=patch src=/img/fr/2022-09-29-andres-freund-e692323.png></p><hr><h2 id=en-finir-avec-autoconf>En finir avec autoconf</h2><p>Un système de construction ou <em>build system</em> (ne vous y trompez pas, j&rsquo;ai une
+amoureux et amoureuses du libre se tournent résolument vers l&rsquo;avenir.</p><p><img src=/img/fr/2022-09-29-andres-freund-e692323.png alt=patch></p><hr><h2 id=en-finir-avec-autoconf>En finir avec autoconf</h2><p>Un système de construction ou <em>build system</em> (ne vous y trompez pas, j&rsquo;ai une
 préférence pour la dénomination anglaise) est un ensemble d&rsquo;instructions dans
 une syntaxe qui lui est propre, qui facilite la compilation d&rsquo;un logiciel. Les
 ramifications d&rsquo;un projet, les dépendances et les librairies ou tout simplement
@@ -30,7 +30,7 @@ nouveautés.</p><div class=highlight><pre tabindex=0 class=chroma><code class=la
 </span></span><span class=line><span class=cl>    <span class=k>$(</span>CC<span class=k>)</span> -o foo foo.c
 </span></span></code></pre></div><p>À l&rsquo;appel de la commande <code>make</code> à la racine du projet, le fichier <em>Makefile</em>
 sera parcouru pour détecter les cibles du projet et suivre les instructions
-selon les règles qui y sont renseignées pour construire les fichiers binaires.</p><p><img alt="Compilation par Makefile" src=/img/fr/2022-09-29-makefile-workflow.png></p><p>Une <a href=https://en.wikipedia.org/wiki/List_of_build_automation_software#Build_script_generation target=_blank rel=noopener>pratique plus sophistiquée</a> propose de générer ces instructions dans un
+selon les règles qui y sont renseignées pour construire les fichiers binaires.</p><p><img src=/img/fr/2022-09-29-makefile-workflow.png alt="Compilation par Makefile"></p><p>Une <a href=https://en.wikipedia.org/wiki/List_of_build_automation_software#Build_script_generation target=_blank rel=noopener>pratique plus sophistiquée</a> propose de générer ces instructions dans un
 format compatible avec le système de construction, lorsque celles-ci sont
 nombreuses, évolutives voire dépendantes d&rsquo;un contexte ou d&rsquo;un environnement tel
 que le système d&rsquo;exploitation ou l&rsquo;utilisation d&rsquo;une option spécifique.</p><p>Dans le cas du projet PostgreSQL, c&rsquo;est la suite <a href=https://en.wikipedia.org/wiki/GNU_Autotools target=_blank rel=noopener>GNU Autotools</a> qui a été
@@ -39,7 +39,7 @@ systèmes compatibles Unix. La génération repose sur les composants <em>Autoco
 (fichier <code>configure.ac</code>) et <em>Automake</em> (fichier <code>Makefile.am</code>) pour aboutir au
 même résultat que la commande <code>make</code> de notre précédent exemple. Dans les faits,
 seul le premier composant est véritablement employé pour préparer le script
-<code>configure</code> lors de la compilation de PostgreSQL.</p><p><img alt="Génération avec Autotools" src=/img/fr/2022-09-29-autotools-workflow.png></p><p>Comme le montre le diagramme ci-dessus, les étapes avant d&rsquo;obtenir le fichier
+<code>configure</code> lors de la compilation de PostgreSQL.</p><p><img src=/img/fr/2022-09-29-autotools-workflow.png alt="Génération avec Autotools"></p><p>Comme le montre le diagramme ci-dessus, les étapes avant d&rsquo;obtenir le fichier
 binaire sont un peu plus nombreuses, et dépendent d&rsquo;un ensemble de fichiers
 d&rsquo;instructions qui deviennent complexes à rédiger sans introduire d&rsquo;incohérences
 ou de bogues.</p><p>C&rsquo;est d&rsquo;ailleurs l&rsquo;un des constats de la communauté qui, depuis fin 2021, a
@@ -78,7 +78,7 @@ profit d&rsquo;une plus grande productivité sur le logiciel en tant que tel.</p
 et bien plus performant que <code>make</code>. Les instructions de compilation sont
 renseignées automatiquement par Meson dans le fichier <code>build.ninja</code> qui sera
 ensuite parcouru par la commande <code>ninja</code> pour compiler les sources en un fichier
-binaire.</p><p><img alt="Génération avec Meson" src=/img/fr/2022-09-29-meson-workflow.png></p><p>Pour reprendre mon projet minimaliste <code>foo</code>, le fichier <em>Makefile</em> est remplacé
+binaire.</p><p><img src=/img/fr/2022-09-29-meson-workflow.png alt="Génération avec Meson"></p><p>Pour reprendre mon projet minimaliste <code>foo</code>, le fichier <em>Makefile</em> est remplacé
 par le fichier <code>meson.build</code>, en y renseignant les méta-données du projet, le
 point d&rsquo;entrée du programme et le fichier binaire souhaité.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-rb data-lang=rb><span class=line><span class=cl><span class=c1># ./meson.build</span>
 </span></span><span class=line><span class=cl><span class=n>project</span><span class=p>(</span><span class=s1>&#39;foo&#39;</span><span class=p>,</span> <span class=s1>&#39;c&#39;</span><span class=p>)</span>
@@ -99,7 +99,7 @@ passer du système <a href=https://github.com/postgres/postgres/tree/master/src/
 une poignée de personnes pour compiler le logiciel sous Windows. En prime, les
 travaux d&rsquo;Andres démontrent un gain significatif dans les temps de <em>build</em>, ce
 qui ne paraît pas surprenant au regard du <em><a href=https://mesonbuild.com/ARM-performance-test.html target=_blank rel=noopener>benchmark</a></em> entre les deux
-systèmes sur une architecture ARM.</p><p><img alt="Benchmark sur le temps de configuration" src=/img/fr/2022-09-29-meson-autotools-benchmark-conf.png></p><p><img alt="Benchmark sur le temps de configuration" src=/img/fr/2022-09-29-meson-autotools-benchmark-build.png></p><blockquote><p>In any case, using Autotools for a modern C/C++ project in 2021 is like using
+systèmes sur une architecture ARM.</p><p><img src=/img/fr/2022-09-29-meson-autotools-benchmark-conf.png alt="Benchmark sur le temps de configuration"></p><p><img src=/img/fr/2022-09-29-meson-autotools-benchmark-build.png alt="Benchmark sur le temps de configuration"></p><blockquote><p>In any case, using Autotools for a modern C/C++ project in 2021 is like using
 CVS for source code version control in 2021: there are better tools available
 and thus it isn&rsquo;t very interesting to still consider the legacy solutions.</p><p><em>Citation de <a href=https://gms.tf/the-rise-of-meson.html target=_blank rel=noopener>Georg Sauthoff, The Rise of Meson</a>.</em></p></blockquote><hr><h2 id=conclusion>Conclusion</h2><p>La route empruntée semble la bonne, bien que le chemin soit encore long pour se
 débarrasser définitivement des résidus historiques d&rsquo;<em>Autoconf</em> dans le projet
@@ -114,5 +114,5 @@ cours de développement et l&rsquo;émergence d&rsquo;une architecture qui grand
 d&rsquo;autres améliorations dans un avenir proche.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2024/07/30/faire-vivre-une-communaute/>Faire vivre une communauté
 <small><time datetime=2024-07-30>30 juil 2024</time></small></a></li><li><a href=https://fljd.in/2021/12/06/migrer-vers-postgresql/>Migrer vers PostgreSQL
 <small><time datetime=2021-12-06>6 déc 2021</time></small></a></li><li><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
-<small><time datetime=2021-08-24>24 août 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-11-27>2024</time>
+<small><time datetime=2021-08-24>24 août 2021</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2024-12-17>2024</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
