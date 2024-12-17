@@ -1,4 +1,11 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Discovery notebook</title><link>https://fljd.in/en/categories/postgresql/</link><description>Recent content in Postgresql on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 25 Nov 2024 09:00:00 +0100</lastBuildDate><atom:link href="https://fljd.in/en/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Substituting a variable in a SQL script</title><link>https://fljd.in/en/2024/11/25/substituting-a-variable-in-a-sql-script/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/11/25/substituting-a-variable-in-a-sql-script/</guid><description>&lt;p>In a world where we constantly seek to automate repetitive tasks, it is common
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Discovery notebook</title><link>https://fljd.in/en/categories/postgresql/</link><description>Recent content in Postgresql on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 17 Dec 2024 14:00:00 +0200</lastBuildDate><atom:link href="https://fljd.in/en/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Window functions to the rescue</title><link>https://fljd.in/en/2024/12/17/window-functions-to-the-rescue/</link><pubDate>Tue, 17 Dec 2024 14:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/12/17/window-functions-to-the-rescue/</guid><description>&lt;p>PostgreSQL comes with a variety of functions that allow you to group rows into a
+&amp;ldquo;window&amp;rdquo; and perform calculations on that window. By using these functions, you
+can create more advanced and efficient queries for analyzing your database.&lt;/p>
+&lt;p>In early 2023, I contributed to a project that converts data models to
+PostgreSQL, called &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a>. On this occasion, I (re)discovered the
+power of these &lt;a href="https://www.postgresql.org/docs/current/functions-window.html" target="_blank" rel="noopener">window functions&lt;/a> with the SQL language. In this article, I
+revisit a &lt;a href="https://github.com/cybertec-postgresql/db_migrator/pull/11" target="_blank" rel="noopener">specific case&lt;/a> of transforming the upper bounds of a partitioned
+table into an array of boundaries.&lt;/p></description></item><item><title>Substituting a variable in a SQL script</title><link>https://fljd.in/en/2024/11/25/substituting-a-variable-in-a-sql-script/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/11/25/substituting-a-variable-in-a-sql-script/</guid><description>&lt;p>In a world where we constantly seek to automate repetitive tasks, it is common
 to write down a query in a script, make it more convenient, and eventually
 integrate the whole thing into a project&amp;rsquo;s codebase. Tools like SQL*Plus and
 psql can be powerful allies in this game, as relevant as Bash or Python
@@ -30,12 +37,4 @@ low-level function to distribute the transfer table by table over several
 processes, many situations will require writing a large number of SQL queries to
 get out of trouble. Over the following months, I worked on the design of an
 &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> written in PL/pgSQL whose purpose is to simplify the generation
-of these queries.&lt;/p></description></item><item><title>Transfer modes in a migration</title><link>https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/</link><pubDate>Sat, 11 Nov 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/</guid><description>&lt;p>In computer science, a migration project involves changing one or more technical
-components without impacting any application behaviors. In the realm of
-databases (and the profession I practice), it will involve choosing a new system
-(such as PostgreSQL) to replace another (such as Oracle or Microsoft SQL
-Server).&lt;/p>
-&lt;p>In a &lt;a href="https://fljd.in/2021/12/06/migrer-vers-postgresql/">previous article&lt;/a> (French), I described exhaustive steps to perform a
-complete migration using Foreign Data Wrappers technology. However, the critical
-data transfer step described there does not suit all situations. Let&amp;rsquo;s explore
-together the alternatives that cover a large portion of the needs.&lt;/p></description></item></channel></rss>
+of these queries.&lt;/p></description></item></channel></rss>

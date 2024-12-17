@@ -3,7 +3,14 @@
 <a href=https://fosstodon.org/@fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/en/talks>Talks</a>&nbsp;&nbsp;<a href=/en/archives>Archives</a>&nbsp;&nbsp;<a href=/en/about>About me</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/>On the road to freedom with db_migrator</a></h1><time datetime=2023-07-28 class=post-date>28 jul 2023</time><p>Over the past months, I have spent several weeks contributing to the
+&nbsp;&nbsp;<a href=/en/talks>Talks</a>&nbsp;&nbsp;<a href=/en/archives>Archives</a>&nbsp;&nbsp;<a href=/en/about>About me</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/>Transfer modes in a migration</a></h1><time datetime=2023-11-11 class=post-date>11 nov 2023</time><p>In computer science, a migration project involves changing one or more technical
+components without impacting any application behaviors. In the realm of
+databases (and the profession I practice), it will involve choosing a new system
+(such as PostgreSQL) to replace another (such as Oracle or Microsoft SQL
+Server).</p><p>In a <a href=/2021/12/06/migrer-vers-postgresql/>previous article</a> (French), I described exhaustive steps to perform a
+complete migration using Foreign Data Wrappers technology. However, the critical
+data transfer step described there does not suit all situations. Let&rsquo;s explore
+together the alternatives that cover a large portion of the needs.</p><small>» <a href=https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/>Read more</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/>On the road to freedom with db_migrator</a></h1><time datetime=2023-07-28 class=post-date>28 jul 2023</time><p>Over the past months, I have spent several weeks contributing to the
 <a href=https://github.com/cybertec-postgresql/db_migrator target=_blank rel=noopener>db_migrator</a> extension. Written solely in PL/pgSQL, it enables the migration of
 schemas and data from a database system to PostgreSQL using the external data I
 had presented <a href="https://fljd-in.translate.goog/2021/07/16/parlons-un-peu-des-donnees-externes/?_x_tr_sl=fr&_x_tr_tl=en&_x_tr_hl=fr&_x_tr_pto=wapp" target=_blank rel=noopener>few years ago</a>.</p><p>In this post, I present the functionality of the tool, its philosophy, and
