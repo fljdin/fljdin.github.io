@@ -1,7 +1,0 @@
-- { text: 'Flux RSS', url: /index.xml, icon: rss }
-- { text: 'Mastodon', url: 'https://fosstodon.org/@fljdin', icon: mastodon}
-- { text: 'GitHub', url: 'https://github.com/fljdin', icon: github }
-- { text: 'LinkedIn', url: 'https://www.linkedin.com/in/florent-jardin', icon: linkedin }
-
-# - { text: 'Français', url: '/', icon: flag-fr }
-# - { text: 'English', url: '/en', icon: flag-en }

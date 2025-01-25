@@ -1,15 +1,13 @@
 {{ $icons := resources.Get "img/social-icons.svg" }}
 <header class="homepage">
   <h3 class="homepage-title">
-    <a href="{{ .Site.BaseURL | relLangURL }}" title="{{ .Site.Author.name }}">{{ .Site.Author.name }}</a>
+    <a href="{{ .Site.BaseURL | relLangURL }}" title="{{ .Site.Author }}">{{ .Site.Author }}</a>
     <small>
-      {{ range $.Site.Data.navigation -}}
-        {{if isset . "icon" -}}
-        <a href="{{ .url }}"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#" .icon }}"></use></svg></a>
-        {{ else if eq $.Site.Language.Lang .lang }}
-        &nbsp;&nbsp;<a href="{{ .url }}">{{ .text  }}</a>
-        {{- end }}
-      {{- end }}
+      <a href="/index.xml"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#rss" }}"></use></svg></a>
+      <a href="https://fosstodon.org/@fljdin" rel="me" ><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#mastodon" }}"></use></svg></a>
+      <a href="https://github.com/fljdin"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#github" }}"></use></svg></a>
+      <a href="https://www.linkedin.com/in/florent-jardin"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#linkedin" }}"></use></svg></a>
+      
       {{ range $.Site.Menus.navigation -}}
         &nbsp;&nbsp;<a href="{{ .URL }}">{{ .Title  }}</a>
       {{- end }}
