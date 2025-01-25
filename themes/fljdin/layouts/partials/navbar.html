@@ -1,7 +1,7 @@
 {{ $icons := resources.Get "img/social-icons.svg" }}
 <header class="homepage">
   <h3 class="homepage-title">
-    <a href="{{ .Site.BaseURL | relLangURL }}" title="{{ .Site.Author }}">{{ .Site.Author }}</a>
+    <a href="{{ .Site.BaseURL | relLangURL }}" title="{{ .Site.Params.Author }}">{{ .Site.Params.Author }}</a>
     <small>
       <a href="/index.xml"><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#rss" }}"></use></svg></a>
       <a href="https://fosstodon.org/@fljdin" rel="me" ><svg class="svg-icon"><use xlink:href="{{ print $icons.Permalink "#mastodon" }}"></use></svg></a>
