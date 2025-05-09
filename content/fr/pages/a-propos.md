@@ -15,7 +15,8 @@ tâchant de les rendre simples d'accès pour les administrateur⋅rices de tout 
 
 Vous pouvez me contacter et me suivre par l'un des réseaux suivants.
 
-* https://fosstodon.org/@fljdin
+* https://mastodon.tedomum.net/@fljdin 
+  (anciennement https://fosstodon.org/@fljdin)
 * https://github.com/fljdin
 * https://www.linkedin.com/in/florent-jardin
 
