@@ -35,3 +35,7 @@
   lang: fr
   date: 2025-02-04
   url: /documents/epitech-summit-mon-ami-b-tree.pdf
+- title: "Partionnement par UUID v7"
+  lang: fr
+  date: 2025-06-04
+  url: /documents/pgdayfr-2025-lightning-talk-partitionnement-uuidv7.pdf
