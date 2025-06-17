@@ -3,6 +3,7 @@ theme: fljdin
 
 params:
   author: Florent Jardin
+  fediverse: "@fljdin@mastodon.tedomum.net"
 
 rssLimit: 5
 pagination:
