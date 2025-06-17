@@ -1,4 +1,11 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in Postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 25 Nov 2024 09:00:00 +0100</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Substituer une variable dans un script SQL</title><link>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</guid><description>&lt;p>Il est fréquent de vouloir automatiser une tâche répétitive en la scriptant
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Carnet de découvertes</title><link>https://fljd.in/categories/postgresql/</link><description>Recent content in Postgresql on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 17 Jun 2025 10:45:00 +0200</lastBuildDate><atom:link href="https://fljd.in/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Le partitionnement par UUID v7</title><link>https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/</link><pubDate>Tue, 17 Jun 2025 10:45:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/</guid><description>&lt;p>Au dernier PG Day 2025, j’ai pris la parole pour présenter une méthode de
+conception que je juge mature et astucieuse : le partitionnement temporel
+avec le type UUID et sa version 7.&lt;/p>
+&lt;p>Le support de présentation est disponible à cette &lt;a href="https://fljd.in/documents/pgdayfr-2025-lightning-talk-partitionnement-uuidv7.pdf">adresse&lt;/a> et je reprendrais
+dans cet article, les exemples en guise de démonstration. Je vous propose de
+passer en détail ce que j’ai pu y dire, et ne pas y dire faute de temps.
+Également, je vous invite à lire ou redécouvrir mes recherches sur le
+&lt;a href="https://fljd.in/2021/04/23/le-partitionnement-par-hachage/">partitionnement par hachage&lt;/a>.&lt;/p></description></item><item><title>Substituer une variable dans un script SQL</title><link>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</guid><description>&lt;p>Il est fréquent de vouloir automatiser une tâche répétitive en la scriptant
 rapidement, puis à force d&amp;rsquo;itérations, de l&amp;rsquo;enrichir, voire de l&amp;rsquo;intégrer dans
 la base de code d&amp;rsquo;un projet. À ce jeu, les outils comme SQL*Plus et psql peuvent
 être de puissants alliés et des interpréteurs aussi pertinents que Bash ou
@@ -35,13 +42,4 @@ qu&amp;rsquo;il existe une fonction de bas niveau pour répartir sur plusieurs p
 transfert table à table, de nombreuses situations devront exiger de rédiger un
 grand nombre de requêtes SQL pour se tirer d&amp;rsquo;affaire. Au cours des mois qui
 suivirent, je me suis attelé à la conception d&amp;rsquo;un &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> écrit en
-PL/pgSQL dont le but est de simplifier la génération de ces requêtes.&lt;/p></description></item><item><title>Les modes de transfert dans une migration</title><link>https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/</link><pubDate>Wed, 11 Oct 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/</guid><description>&lt;p>En informatique, un projet de migration consiste à changer un ou plusieurs
-composants techniques sans qu&amp;rsquo;aucun comportement des applications n&amp;rsquo;en soit
-impacté. Dans le paysage des bases de données (et le métier que j&amp;rsquo;exerce), il
-s&amp;rsquo;agira de choisir un nouveau système (comme PostgreSQL) en remplacement d&amp;rsquo;un
-autre (comme Oracle ou Microsoft SQL Server).&lt;/p>
-&lt;p>Dans un &lt;a href="https://fljd.in/2021/12/06/migrer-vers-postgresql/">précédent article&lt;/a>, je décrivais les étapes exhaustives pour
-réaliser une migration complète à l&amp;rsquo;aide de la technologie des &lt;em>Foreign Data
-Wrappers&lt;/em>, mais l&amp;rsquo;étape critique de transfert des données qui y était décrite ne
-s&amp;rsquo;adapte pas à toutes les situations. Voyons ensemble les alternatives qui
-permettent de couvrir une grande partie des besoins.&lt;/p></description></item></channel></rss>
+PL/pgSQL dont le but est de simplifier la génération de ces requêtes.&lt;/p></description></item></channel></rss>

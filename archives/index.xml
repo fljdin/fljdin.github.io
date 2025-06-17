@@ -1,4 +1,11 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Substituer une variable dans un script SQL</title><link>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</guid><description>&lt;p>Il est fréquent de vouloir automatiser une tâche répétitive en la scriptant
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Archives on Carnet de découvertes</title><link>https://fljd.in/archives/</link><description>Recent content in Archives on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Sun, 18 Oct 2099 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/archives/index.xml" rel="self" type="application/rss+xml"/><item><title>Le partitionnement par UUID v7</title><link>https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/</link><pubDate>Tue, 17 Jun 2025 10:45:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/</guid><description>&lt;p>Au dernier PG Day 2025, j’ai pris la parole pour présenter une méthode de
+conception que je juge mature et astucieuse : le partitionnement temporel
+avec le type UUID et sa version 7.&lt;/p>
+&lt;p>Le support de présentation est disponible à cette &lt;a href="https://fljd.in/documents/pgdayfr-2025-lightning-talk-partitionnement-uuidv7.pdf">adresse&lt;/a> et je reprendrais
+dans cet article, les exemples en guise de démonstration. Je vous propose de
+passer en détail ce que j’ai pu y dire, et ne pas y dire faute de temps.
+Également, je vous invite à lire ou redécouvrir mes recherches sur le
+&lt;a href="https://fljd.in/2021/04/23/le-partitionnement-par-hachage/">partitionnement par hachage&lt;/a>.&lt;/p></description></item><item><title>Substituer une variable dans un script SQL</title><link>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</link><pubDate>Mon, 25 Nov 2024 09:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/</guid><description>&lt;p>Il est fréquent de vouloir automatiser une tâche répétitive en la scriptant
 rapidement, puis à force d&amp;rsquo;itérations, de l&amp;rsquo;enrichir, voire de l&amp;rsquo;intégrer dans
 la base de code d&amp;rsquo;un projet. À ce jeu, les outils comme SQL*Plus et psql peuvent
 être de puissants alliés et des interpréteurs aussi pertinents que Bash ou
@@ -33,15 +40,4 @@ de deux jours d&amp;rsquo;ateliers et de conférences.&lt;/p>
 &lt;p>Pour cette édition, j&amp;rsquo;ai eu le plaisir de prendre la parole et de faire un retour d&amp;rsquo;expérience
 sur l&amp;rsquo;animation du groupe Meetup local dont j&amp;rsquo;ai repris les rennes il y a maintenant quatre ans.
 Dans cet article, je souhaite retranscrire les principaux points abordés lors de cette présentation,
-en attendant que la vidéo de la conférence soit mise en ligne.&lt;/p></description></item><item><title>Un assistant pour copier les données distantes</title><link>https://fljd.in/2024/05/28/un-assistant-pour-copier-les-donnees-distantes/</link><pubDate>Tue, 28 May 2024 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/05/28/un-assistant-pour-copier-les-donnees-distantes/</guid><description>&lt;p>Lors de la dernière &lt;a href="https://blog.dalibo.com/2023/12/08/pgsession16_programme.html" target="_blank" rel="noopener">PGSession 16&lt;/a>, j&amp;rsquo;ai rédigé et animé un &lt;a href="https://dali.bo/wsfdw_html" target="_blank" rel="noopener">atelier&lt;/a> de
-trois heures au sujet de la migration vers PostgreSQL à l&amp;rsquo;aide des Foreign Data
-Wrappers, ou FDW. Ce fut notamment l&amp;rsquo;occasion de présenter au grand public,
-l&amp;rsquo;extension &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">&lt;code>db_migrator&lt;/code>&lt;/a> pour laquelle j&amp;rsquo;ai dédié un &lt;a href="https://fljd.in/2023/07/28/en-route-vers-la-liberte-avec-db_migrator/">article&lt;/a> sur ce
-blog.&lt;/p>
-&lt;p>Au cours de cet atelier, nous pouvons constater que la copie des données avec
-l&amp;rsquo;extension &lt;code>db_migrator&lt;/code> n&amp;rsquo;est pas parfaitement prise en charge. En effet, bien
-qu&amp;rsquo;il existe une fonction de bas niveau pour répartir sur plusieurs processus le
-transfert table à table, de nombreuses situations devront exiger de rédiger un
-grand nombre de requêtes SQL pour se tirer d&amp;rsquo;affaire. Au cours des mois qui
-suivirent, je me suis attelé à la conception d&amp;rsquo;un &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> écrit en
-PL/pgSQL dont le but est de simplifier la génération de ces requêtes.&lt;/p></description></item></channel></rss>
+en attendant que la vidéo de la conférence soit mise en ligne.&lt;/p></description></item></channel></rss>
