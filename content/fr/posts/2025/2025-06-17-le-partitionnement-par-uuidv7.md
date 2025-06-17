@@ -2,7 +2,7 @@
 title: "Le partitionnement par UUID v7"
 categories: [postgresql]
 tags: [developpement]
-date: "2025-06-17 09:00:00 +0200"
+date: "2025-06-17 10:45:00 +0200"
 ---
 
 Au dernier PG Day 2025, j’ai pris la parole pour présenter une méthode de
@@ -162,12 +162,12 @@ données UUID de trois nouvelles versions (6, 7 et 8). Un UUID (ou _Universally
 Unique IDentifier_) est une donnée encodée sur 16 octets, garantissant une
 unicité à travers le temps (son heure de génération) et l’espace (son serveur de
 génération). Les UUID sont redoutables dans un contexte de systèmes distribués
-où chaque participant peut créer de la donnée (une ligne) qui n’entre pas en
-collision avec aucune autre du système.
+où chaque participant peut créer de la donnée (une ligne) sans risque de collision
+avec une autre donnée.
 
 [4]: https://www.rfc-editor.org/rfc/rfc9562
 
-La structure d’un UUID se voit doté d’un _timestamp UNIX_ d’une précision à la
+La structure d’un UUID v7 se voit doté d’un _timestamp UNIX_ d’une précision à la
 milliseconde, encodé dans les 48 premiers bits de sa valeur. Cette version est
 un compromis entre la randomicité et la praticité. Les bénéfices vous paraîtront
 limpides à l’issue de cet article.
@@ -176,10 +176,11 @@ limpides à l’issue de cet article.
 
 La version 7 était unanimement attendue, car elle apporte une réponse bien plus
 appropriée pour l’indexation dans les bases de données, offrant à la fois une
-unicité et une sortabilité pour les champs. De plus, de par cet accroissement
-monotone des UUID au fil du temps, la gestion interne d’un index B-Tree se voit
-naturellement facilitée avec un équilibrage moins fréquent et une prédictibilité
-dans ses performances.
+unicité et une sortabilité pour les champs. Auparavant, l’indexation sur une
+donnée UUID v4 était désastreuse pour le cache et la fragmentation. Avec cet
+accroissement monotone des UUID au fil du temps, la gestion interne d’un index
+B-Tree se voit naturellement facilitée avec un équilibrage moins fréquent et une
+prédictibilité dans ses performances.
 
 Une [publication récente][5] annonçait des gains significatifs entre la version
 4 et la version 7, sur les insertions, les consultations par index ainsi que sur
@@ -225,11 +226,11 @@ Additionally, an alias uuidv4() is added for the existing
 gen_random_uuid() SQL function to maintain consistency.
 ```
 
-Vous me voyez venir ? À l’aide de cette nouvelle RFC, il devient possible de
-disposer d’une ligne dont sa colonne d’identité contient sa date de sa création !
-Le tout sans surcoût pour le stockage, car chaque ligne consommera 16 octets
-pour sa colonne de clé primaire, autant qu’un `bigint` (8 octets) et un
-`timestamp` (8 octets) réunis !
+Vous me voyez venir ? À l’aide de cette nouvelle RFC, il devient possible de
+disposer d’une colonne d’identité contenant une valeur temporelle et qui devient
+_de facto_, une candidate idéale pour la clé de partitionnement. Le tout sans
+surcoût pour le stockage, car chaque champ UUID consommera 16 octets, autant
+qu’un `bigint` (8 octets) et un `timestamp` (8 octets) réunis !
 
 ![](/img/fr/2025-06-partitionnement-uuidv7-05.png)
 
@@ -239,7 +240,7 @@ pour sa colonne de clé primaire, autant qu’un `bigint` (8 octets) et un
 
 L’idée originale me vient d’un [article][10] de Daniel Vérité, lu l’été dernier,
 alors même que la RFC venait de sortir, mais que le patch dans PostgreSQL était
-bloqué par la période de gel pour la sortie de la version 17. Il était question
+bloqué par la période de gel avant la sortie de la version 17. Il était question
 de pouvoir implémenter ses propres méthodes en PL/pgSQL sur les versions en
 vigueur, sans attendre la version 18.
 
@@ -284,9 +285,9 @@ $$ LANGUAGE sql stable strict parallel safe;
 ```
 
 Grâce à cette fonction, il est possible d’obtenir les bornes d’une partition en
-ne conservant que la donnée temporelle d’un UUID et remplissant le reste par des
-zéros (et quelques bits fixes). Pour la table `foo`, on se retrouve dès lors avec
-la partition qui respecte les valeurs comprises entre juin et juillet.
+ne conservant que la donnée temporelle d’un UUID et en remplissant le reste par
+des zéros (et quelques bits fixes). Pour la table `foo`, on se retrouve dès lors
+avec la partition qui respecte les valeurs comprises entre juin et juillet.
 
 ```text
                   Partitioned table "public.foo"
@@ -380,10 +381,9 @@ SELECT * FROM partman.partition_data_time(
 ## Le mot de la fin
 
 Les articles que j’ai énoncés précédemment me conforte dans l’idée que le type
-UUID dans sa version 7 repousse les limites connus de PostgreSQL, notamment pour
-ce cas d’usage du partitionnement par date.
+UUID dans sa version 7 est une belle opportunité pour l’adoption de PostgreSQL,
+notamment pour ce cas d’usage du partitionnement par date.
 
 L’accueil que cette rapide présentation a reçu m’a fait également l’effet d’un
-appel d’air par les utilisateurices de PostgreSQL, voyant dans l’UUID un moyen
-de pousser les limites du moteur de base de données relationnel et open-source
-le plus avancé au monde.
+appel d’air par l’audience, voyant dans l’UUID un moyen de pousser les limites
+du moteur de base de données relationnel et open-source le plus avancé au monde.
