@@ -17,8 +17,7 @@ physiques réduit les performances. Ceci est particulièrement pertinent sous
 Windows, où les limitations du système empêchent un grand nombre de connexions.
 C&amp;rsquo;est également vital pour les applications Web où le nombre de connexions peut
 devenir très important.&lt;/p>
-&lt;p>(Source : &lt;a href="https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration" target="_blank" rel="noopener">https://wiki.postgresql.org&lt;/a>)&lt;/p>
-&lt;/blockquote>
+&lt;p>(Source : &lt;a href="https://wiki.postgresql.org/wiki/Replication,_Clustering,_and_Connection_Pooling#Connection_Pooling_and_Acceleration" target="_blank" rel="noopener">https://wiki.postgresql.org&lt;/a>)&lt;/p>&lt;/blockquote>
 &lt;p>Je n&amp;rsquo;ai pas trouvé meilleure approche que la traduction du wiki communautaire du
 projet PostgreSQL pour aborder l&amp;rsquo;outil PgBouncer, faisant partie avec Pgpool-II,
 des deux seuls &lt;em>poolers&lt;/em> de connexions largement répandus. Le produit est
@@ -36,5 +35,4 @@ près ce que propose PostgreSQL pour garantir les performances de vos requêtes.
 rapidement un élément dans l&amp;rsquo;ouvrage, sans être contraint de le lire intégralement.
 (&lt;a href="https://fr.wikipedia.org/wiki/Index_terminologique" target="_blank" rel="noopener">Wikipédia&lt;/a>)&lt;/p>
 &lt;p>&lt;u>Index de base de données&lt;/u> : structure de données qui
-permet de retrouver rapidement les données. (&lt;a href="https://fr.wikipedia.org/wiki/Index_%28base_de_donn%C3%A9es%29" target="_blank" rel="noopener">Wikipédia&lt;/a>)&lt;/p>
-&lt;/blockquote></description></item></channel></rss>
+permet de retrouver rapidement les données. (&lt;a href="https://fr.wikipedia.org/wiki/Index_%28base_de_donn%C3%A9es%29" target="_blank" rel="noopener">Wikipédia&lt;/a>)&lt;/p>&lt;/blockquote></description></item></channel></rss>
