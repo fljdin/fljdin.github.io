@@ -5,7 +5,447 @@ l&amp;rsquo;ensemble des experts ont individuellement déterminé qu&amp;rsquo;a
 n&amp;rsquo;était envisageable.&lt;/p>
 &lt;p>Quels moyens a-t-on avec une architecture PostgreSQL dans son plus simple appareil
 pour réaliser une bascule des rôles et raccrocher les instances secondaires au
-nouveau primaire fraîchement élu ?&lt;/p></description></item><item><title>Construire une instance standby avec pgBackRest</title><link>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</link><pubDate>Thu, 07 Nov 2019 16:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</guid><description>&lt;p>Pour cette démonstration, j&amp;rsquo;utilise le système Debian et dispose de deux instances
+nouveau primaire fraîchement élu ?&lt;/p>
+&lt;hr>
+&lt;h2 id="mise-en-place">Mise en place&lt;/h2>
+&lt;p>Partons du postulat que l&amp;rsquo;architecture la plus simple en terme de haute-disponibilité
+avec PostgreSQL est constituée de deux services avec une réplication physique
+d&amp;rsquo;une instance primaire vers une instance secondaire.&lt;/p>
+&lt;p>Pour des raisons de coûts, aucun serveur supplémentaire n&amp;rsquo;est alloué pour accueillir
+les archives de journaux de transactions, et ces derniers seront déplacés sur le
+serveur secondaire avec la commande &lt;code>rsync&lt;/code>.&lt;/p>
+&lt;p>Et puisque la version 12 apporte des nouveautés notables sur la gestion d&amp;rsquo;une
+réplication, nous l&amp;rsquo;employerons dans cet article pour configurer nos instances
+sans le fichier &lt;code>recovery.conf&lt;/code>. Pour la facilité de lecture, je baptiserai
+volontairement les deux serveurs : &lt;code>batman&lt;/code> et &lt;code>robin&lt;/code>.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2019-12-19-architecture-batman-robin.png" alt="Architecture simplifiée">&lt;/p>
+&lt;p>L&amp;rsquo;instance &lt;code>batman&lt;/code> dispose de la configuration suivante :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># postgresql.auto.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">port&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">5432&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">archive_mode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">on&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">wal_log_hints&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">on&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">archive_command&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">&amp;#39;rsync -a %p robin:/opt/batcave/%f&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">restore_command&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">&amp;#39;cp /opt/batcave/%f %p&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">archive_cleanup_command&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">&amp;#39;pg_archivecleanup /opt/batcave %r&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">primary_conninfo&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">&amp;#39;host=batman user=streamer&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le fichier &lt;code>postgresql.auto.conf&lt;/code> permet de surcharger les valeurs présentes dans
+le fichier standard &lt;code>postgresql.conf&lt;/code> et, avantage certain sur une distribution
+Debian &amp;amp; co, il est accessible dans le répertoire de données &lt;code>PGDATA&lt;/code> et pourra
+être copié en l&amp;rsquo;état vers toutes les instances secondaires au moment de leur
+création.&lt;/p>
+&lt;p>Cette étape par ailleurs repose sur un outil simple et fourni avec toutes les
+versions PostgreSQL : &lt;code>pg_basebackup&lt;/code>. L&amp;rsquo;unique prérequis est de disposer d&amp;rsquo;un
+compte de réplication sur l&amp;rsquo;instance à répliquer et que le serveur distant puisse
+réaliser une authentification valide (fichier &lt;code>pg_hba.conf&lt;/code>).&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">cd&lt;/span> /opt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup --host&lt;span class="o">=&lt;/span>batman --user&lt;span class="o">=&lt;/span>streamer &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --pgdata&lt;span class="o">=&lt;/span>robin --wal-method&lt;span class="o">=&lt;/span>stream --checkpoint&lt;span class="o">=&lt;/span>fast
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">touch robin/standby.signal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_ctl start -D robin
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Un autre outil existe pour contrôler l&amp;rsquo;état d&amp;rsquo;une instance en scannant le contenu
+du fichier &lt;code>PGDATA/global/pg_control&lt;/code>, notamment pour savoir si notre serveur est
+primaire ou secondaire et s&amp;rsquo;il réplique les journaux de transactions :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">pg_controldata -D robin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># pg_control version number: 1201&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Catalog version number: 201909212&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Database system identifier: 6771436906102136159&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Database cluster state: in archive recovery&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Latest checkpoint location: 0/A000098&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Latest checkpoint&amp;#39;s REDO location: 0/A000060&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Latest checkpoint&amp;#39;s REDO WAL file: 00000001000000000000000A&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># wal_level setting: replica&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># wal_log_hints setting: on&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># WAL block size: 8192&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Data page checksum version: 0&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="la-bascule">La bascule&lt;/h2>
+&lt;p>À présent, mettons de la forme à notre incident.&lt;/p>
+&lt;p>Vous revenez de pause déjeûner aux alentours de 13:30 et le service support est
+alerté depuis midi de la perte d&amp;rsquo;un composant réseau sur votre &lt;em>datacenter&lt;/em>
+principal. Toute la charge a basculé et les services web sont redirigées
+correctement… Pas de bol, les frontaux remontent des erreurs et la navigation
+est en mode dégradé : l&amp;rsquo;instance secondaire est en lecture seule, et l&amp;rsquo;on vous
+attendait pour corriger le tir !&lt;/p>
+&lt;p>Ni une ni deux, un accès au serveur &lt;code>robin&lt;/code> et une commande solutionnent le
+problème :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">pg_ctl promote -D robin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># FATAL: terminating walreceiver process due to administrator command&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: invalid record length at 0/A000148: wanted 24, got 0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: redo done at 0/A000110&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: selected new timeline ID: 2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: archive recovery complete&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: database system is ready to accept connections&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;instance &lt;code>robin&lt;/code> est donc promue, elle acceptera toutes les demandes d&amp;rsquo;écriture
+en contrepartie d&amp;rsquo;une nouvelle ligne de temps (&lt;em>timeline&lt;/em>) dédiée aux futures
+transactions.&lt;/p>
+&lt;p>Je passe la scène des grandes accolades et chaleureux compliments qui n&amp;rsquo;auront
+jamais lieu car les équipes ont déjà d&amp;rsquo;autres chats à fouetter ; après tout,
+soyez réaliste, vous n&amp;rsquo;avez exécuté qu&amp;rsquo;une seule commande ! Autant dire, vous
+prenez votre pause, et alors que coule votre café, vous apprenez par
+l&amp;rsquo;intermédiaire du &lt;em>delivery manager&lt;/em> que le client rencontre des dégradations
+de performance sur son &lt;em>backoffice&lt;/em> depuis la perte du nœud &lt;code>batman&lt;/code>. Mais, de
+quoi parle-t-il ?&lt;/p>
+&lt;p>Et l&amp;rsquo;architecture globale vous revient en mémoire. Une goûte perle votre front :
+l&amp;rsquo;instance secondaire est utilisée pour répartir la charge de lecture entre chaque
+nœud à l&amp;rsquo;aide de l&amp;rsquo;attribut de préférence &lt;code>target_session_attrs&lt;/code> (&lt;a href="https://www.postgresql.org/docs/12/libpq-connect.html#id-1.7.3.8.3.6" target="_blank" rel="noopener">documentation&lt;/a>)
+et aucun mécanisme d&amp;rsquo;éviction en cas de &lt;em>split-brain&lt;/em> ou de VIP flottante n&amp;rsquo;ont
+été déployés sur vos serveurs…&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2019-12-19-split-brain.png" alt="Split brain applicatif">&lt;/p>
+&lt;h2 id="synchronisation">Synchronisation&lt;/h2>
+&lt;p>L&amp;rsquo;urgence impose d&amp;rsquo;intervenir sur les chaînes de connexion pour réduire le risque
+de modification sur la mauvaise &lt;em>timeline&lt;/em>. Vous recommandez à l&amp;rsquo;équipe support
+de retirer l&amp;rsquo;IP &lt;code>batman&lt;/code> de tout ce qui s&amp;rsquo;apparente à un fichier &lt;code>settings_db.xml&lt;/code> :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">postgresql://app@batman,robin/gotham?target_session_attrs&lt;span class="o">=&lt;/span>read-write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># devient&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">postgresql://app@robin/gotham?target_session_attrs&lt;span class="o">=&lt;/span>read-write
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Les performances ne sont bien évidemment pas meilleures, mais tout risque de perte
+de données lié au &lt;em>split-brain&lt;/em> est écarté. Le timing est parfait, car au même
+moment, l&amp;rsquo;équipe système vous informe que l&amp;rsquo;intervention au &lt;em>datacenter&lt;/em> a permis
+la remise en réseau des serveurs, toujours actifs.&lt;/p>
+&lt;p>Votre rôle consiste donc à rétablir la synchronisation entre &lt;code>batman&lt;/code> et &lt;code>robin&lt;/code>
+pour accomplir leur mission de répartition de charge. La première méthode disponible
+réside dans le duo gagnant &lt;code>pg_start/stop_backup()&lt;/code> et &lt;code>rsync&lt;/code> pour réaliser à
+la main une sauvegarde physique différentielle.&lt;/p>
+&lt;h3 id="première-méthode">Première méthode&lt;/h3>
+&lt;p>Puisque la sauvegarde exclusive est annoncée obsolète depuis la version 9.6,
+nous déclarerons le début d&amp;rsquo;une sauvegarde concurrente sur l&amp;rsquo;instance primaire
+&lt;code>robin&lt;/code> à l&amp;rsquo;aide de la commande suivante et nous maintiendrons la connexion :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_start_backup&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;rsync the batman&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_start_backup
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- -----------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 0/15000028
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Sur le nœud &lt;code>batman&lt;/code>, on peut alors transférer les données avec l&amp;rsquo;option
+&lt;code>--whole-file&lt;/code> de la commande rsync pour réduire le risque de corruption des
+fichiers de données :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">cd&lt;/span> /opt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_ctl stop -D batman
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rsync robin:/opt/robin/ batman --archive --checksum --whole-file
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>À l&amp;rsquo;issue de cette copie victorieuse, n&amp;rsquo;oubliez pas de lancer la commande
+&lt;code>pg_stop_backup()&lt;/code> sur l&amp;rsquo;instance primaire pour finaliser la sauvegarde et la
+rendre valide.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">labelfile&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stop_backup&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gx&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- -[ RECORD 1 ]-------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- labelfile | START WAL LOCATION: 0/15000028 (file 000000020000000000000015)+
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- | CHECKPOINT LOCATION: 0/15000060 +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- | BACKUP METHOD: streamed +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- | BACKUP FROM: master +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- | START TIME: 2019-12-17 16:21:21 CET +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- | LABEL: rsync the batman +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- | START TIMELINE: 2 +
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La dernière étape devient bordélique, mais n&amp;rsquo;ayez crainte, ça ne dure pas
+longtemps. Les commandes sont à exécuter sur l&amp;rsquo;instance secondaire &lt;code>batman&lt;/code> et
+s&amp;rsquo;assurent notamment que l&amp;rsquo;instance redémarre avec les bons paramètres de
+réplication, dont &lt;code>primary_conninfo&lt;/code> et les fichiers &lt;code>standby.signal&lt;/code> et
+&lt;code>backup_label&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sed -i -e &lt;span class="s1">&amp;#39;s/batman/robin/g&amp;#39;&lt;/span> batman/postgresql.auto.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rsync robin:/opt/robin/pg_wal/ batman/pg_wal &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --archive --checksum --whole-file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># récupération des instructions backup_label présentes dans &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># le fichier .backup généré par la commande pg_stop_backup()&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">grep -iv ^stop batman/pg_wal/000000020000000000000015.00000028.backup &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &amp;gt; batman/backup_label
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rm batman/postmaster.pid
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">touch batman/standby.signal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_ctl start -D batman
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: entering standby mode&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;00000002.history&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;000000020000000000000015&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: redo starts at 0/15000028&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: consistent recovery state reached at 0/15000138&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: database system is ready to accept read only connections&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: invalid record length at 0/16000148: wanted 24, got 0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: started streaming WAL from primary at 0/16000000 on timeline 2&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;état intermédiaire de notre cluster peut être visualisé comme suit. On constate
+que la zone d&amp;rsquo;archivage (&lt;code>batcave&lt;/code>) réside donc sur le même serveur que l&amp;rsquo;instance
+nouvellement primaire &lt;code>robin&lt;/code> et pourrait être un risque en cas de surincident.
+De manière générale, il est recommandé d&amp;rsquo;externaliser systématiquement les archives
+et les sauvegardes !&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2019-12-19-architecture-apres-rsync.png" alt="Situation après la synchronisation">&lt;/p>
+&lt;p>Vous y conviendrez, cette étape était particulièrement coton pour l&amp;rsquo;envisager
+dans une situation passablement stressante. Voyons ensemble l&amp;rsquo;autre solution plus
+adaptée à notre scénario : la commande &lt;code>pg_rewind&lt;/code>.&lt;/p>
+&lt;h3 id="deuxième-méthode">Deuxième méthode&lt;/h3>
+&lt;p>La situation reste inchangée, &lt;em>i.e.&lt;/em> l&amp;rsquo;instance &lt;code>batman&lt;/code> est primaire sur une
+ancienne &lt;em>timeline&lt;/em> et doit être resynchronisée avec &lt;code>robin&lt;/code> pour obtenir toutes
+les modifications réalisées depuis sa promotion.&lt;/p>
+&lt;p>Comme suggéré dans la &lt;a href="https://www.postgresql.org/docs/12/app-pgrewind.html#id-1.9.5.9.8" target="_blank" rel="noopener">documentation&lt;/a>, le compte de réplication &lt;code>streamer&lt;/code>
+doit disposer des droits d&amp;rsquo;exécution sur certaines fontions internes pour
+utiliser l&amp;rsquo;outil &lt;code>pg_rewind&lt;/code> correctement :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="err">\&lt;/span>&lt;span class="k">connect&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">postgres&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">GRANT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXECUTE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_ls_dir&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">boolean&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">boolean&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">streamer&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">GRANT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXECUTE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stat_file&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">boolean&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">streamer&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">GRANT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXECUTE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_read_binary_file&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">streamer&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">GRANT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXECUTE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_read_binary_file&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">bigint&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">bigint&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">boolean&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">streamer&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Sur le serveur &lt;code>batman&lt;/code>, l&amp;rsquo;instance doit être arrêtée avant de lancer la
+synchronisation et le contenu de la zone d&amp;rsquo;archivage &lt;code>batcave&lt;/code> doit être copié
+manuellement vers le répertoire de récupération &lt;code>pg_wal&lt;/code> ; il s&amp;rsquo;agit de reproduire
+l&amp;rsquo;instruction &lt;code>restore_command&lt;/code> que ne peut pas exécuter l&amp;rsquo;instance lorsqu&amp;rsquo;elle
+est éteinte.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">pg_ctl stop -D batman
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rsync robin:/opt/batcave/ batman/pg_wal &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --archive --checksum --whole-file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_rewind -D batman &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --source-server&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;host=robin user=streamer dbname=postgres&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># pg_rewind: servers diverged at WAL location 0/8000060 on timeline 1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># pg_rewind: rewinding from last common checkpoint at 0/7000060 on timeline 1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># pg_rewind: Done!&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le résultat de la commande &lt;code>pg_rewind&lt;/code> nous informe que &lt;code>batman&lt;/code> est revenu à
+la position de sa &lt;em>timeline&lt;/em> au moment de la promotion de &lt;code>robin&lt;/code>. Cette opération
+repose sur un format étendu des journaux de transactions, désactivé par défaut.
+Les plus attentifs auront constaté le paramètre &lt;code>wal_log_hints=on&lt;/code>(&lt;a href="https://www.postgresql.org/docs/12/runtime-config-wal.html#GUC-WAL-LOG-HINTS" target="_blank" rel="noopener">documentation&lt;/a>)
+dans le fichier &lt;code>postgresql.auto.conf&lt;/code> en début d&amp;rsquo;article, qui est l&amp;rsquo;un des
+prérequis de l&amp;rsquo;outil &lt;code>pg_rewind&lt;/code>.&lt;/p>
+&lt;blockquote>
+&lt;p>pg_rewind requires that the target server either has the wal_log_hints option
+enabled in postgresql.conf or data checksums enabled when the cluster was
+initialized with initdb. Neither of these are currently on by default.
+full_page_writes must also be set to on, but is enabled by default.&lt;/p>&lt;/blockquote>
+&lt;div class="message">Pour certains au fond de la salle, cette opération correspond à l&amp;rsquo;instruction
+&lt;code>FLASHBACK DATABASE&lt;/code> sur un moteur Oracle Database lorsque l&amp;rsquo;on souhaite
+reconstruire une instance Dataguard.&lt;/div>
+&lt;p>La dernière étape consiste à modifier la chaîne &lt;code>primary_conninfo&lt;/code> et ajouter le
+fichier &lt;code>standby.signal&lt;/code> avant de démarrer l&amp;rsquo;instance &lt;code>batman&lt;/code> :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sed -i -e &lt;span class="s1">&amp;#39;s/batman/robin/g&amp;#39;&lt;/span> batman/postgresql.auto.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">touch batman/standby.signal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_ctl start -D batman
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: entering standby mode&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;00000002.history&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;000000010000000000000007&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: redo starts at 0/7000028&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;000000020000000000000008&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: started streaming WAL from primary at 0/9000000 on timeline 2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: consistent recovery state reached at 0/904B5C8&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="inversion-des-rôles">Inversion des rôles&lt;/h2>
+&lt;p>Cette opération permet la remise en place des rôles à leur état nominal. Ainsi,
+&lt;code>batman&lt;/code> reprendra le contrôle et &lt;code>robin&lt;/code> deviendra son second. Les étapes sont
+relativement simples :&lt;/p>
+&lt;ul>
+&lt;li>Arrêter proprement l&amp;rsquo;instance &lt;code>robin&lt;/code> pour écrire les caches sur disque,
+notamment les dernières transactions dans les journaux mais également, pour
+envoyer toutes les modifications à travers le flux de réplication vers &lt;code>batman&lt;/code> ;&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">pg_ctl stop -D robin
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>Contrôler optionnellement que les positions sont identiques entre les deux
+instances ;&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">pg_controldata -D robin &lt;span class="p">|&lt;/span> grep -iE &lt;span class="s2">&amp;#34;(cluster state|checkpoint location)&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Database cluster state: shut down&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Latest checkpoint location: 0/A000028&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_controldata -D batman &lt;span class="p">|&lt;/span> grep -iE &lt;span class="s2">&amp;#34;(cluster state|checkpoint location)&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Database cluster state: in archive recovery&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Latest checkpoint location: 0/A000028&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>Promouvoir la nouvelle instance primaire &lt;code>batman&lt;/code> ;&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">pg_ctl promote -D batman
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: received promote request&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: redo done at 0/A000028&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: selected new timeline ID: 3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: archive recovery complete&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;00000002.history&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: database system is ready to accept connections&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>Configurer &lt;code>robin&lt;/code> en instance secondaire et la démarrer.&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">touch robin/standby.signal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_ctl start -D robin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;00000003.history&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: entering standby mode&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;00000003.history&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;00000003000000000000000A&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: restored log file &amp;#34;00000002.history&amp;#34; from archive&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: consistent recovery state reached at 0/A0000A0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: redo starts at 0/A0000A0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: database system is ready to accept read only connections&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># LOG: started streaming WAL from primary at 0/B000000 on timeline 3&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Depuis la version 12, le paramètre &lt;code>recovery_target_timeline&lt;/code> est défini sur la
+valeur &lt;code>latest&lt;/code> par défaut, ce qui permet à l&amp;rsquo;instance secondaire de détecter le
+saut de &lt;em>timeline&lt;/em> provoqué par une promotion et de raccrocher correctement les
+transactions à répliquer avant de se connecter en &lt;em>streaming&lt;/em> à l&amp;rsquo;instance primaire.&lt;/p>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>L&amp;rsquo;architecture proposée répond à plusieurs problématiques assez fréquentes mais
+présente un certain nombre d&amp;rsquo;inconvénients. À travers cet article, nous avons
+parcouru l&amp;rsquo;ensemble des outils disponibles nativement avec PostgreSQL.&lt;/p>
+&lt;p>Comme rappelé précédemment, il est fortement conseillé de décentraliser la zone
+d&amp;rsquo;archivage sur un système de fichiers redondé pour se prévenir de l&amp;rsquo;absence
+d&amp;rsquo;un nœud. Le diagramme suivant présenterait alors le moins de risque possible
+tout en assurant un niveau de service acceptable, avec un minimum d&amp;rsquo;actions en
+cas de bascule :&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2019-12-19-architecture-complete.png" alt="Architecture complète">&lt;/p>
+&lt;p>La détection de panne et la bascule automatique sont des thématiques récurrentes
+lorsque l&amp;rsquo;on exprime un besoin de haute-disponibilité. Durant l&amp;rsquo;année 2019, une
+série d&amp;rsquo;outils tiers ont assis leur réputation avec notamment &lt;a href="https://patroni.readthedocs.io/en/latest/" target="_blank" rel="noopener">patroni&lt;/a> de
+Zalando qui propose intelligemment l&amp;rsquo;usage de &lt;code>pg_rewind&lt;/code> dans son fonctionnement.&lt;/p></description></item><item><title>Construire une instance standby avec pgBackRest</title><link>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</link><pubDate>Thu, 07 Nov 2019 16:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/</guid><description>&lt;p>Pour cette démonstration, j&amp;rsquo;utilise le système Debian et dispose de deux instances
 en version 12, d&amp;rsquo;un serveur de sauvegarde et du paquet &lt;code>pgbackrest&lt;/code> pour mettre
 en place une réplication et observer les nouveautés concernant la &lt;a href="https://paquier.xyz/postgresql-2/postgres-12-recovery-change/" target="_blank" rel="noopener">disparition&lt;/a>
-du fichier &lt;code>recovery.conf&lt;/code>.&lt;/p></description></item></channel></rss>
+du fichier &lt;code>recovery.conf&lt;/code>.&lt;/p>
+&lt;p>Pour faciliter le transfert des WAL et des sauvegardes PITR, j&amp;rsquo;ajoute un compte
+utilisateur &lt;code>pgbr&lt;/code> sur le serveur de sauvegarde, accessible à partir des deux
+instances avec un partage de clé SSH. &lt;em>(Conseil : toujours externaliser les
+sauvegardes de bases de données sur un système et un stockage indépendant de
+l&amp;rsquo;infrastructure de production PostgreSQL…)&lt;/em>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sudo useradd -s /bin/bash -md /etc/pgbackrest pgbr
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo mv /etc/pgbackrest.conf /etc/pgbackrest/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo chown pgbr: /etc/pgbackrest/pgbackrest.conf &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> /var/log/pgbackrest /var/lib/pgbackrest
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La réplication par flux (&lt;em>streaming&lt;/em>) est assurée par un compte dédié nommé
+&lt;code>streamer&lt;/code>, autorisé à se connecter sur les instances PostgreSQL du sous-réseau
+grâce à l&amp;rsquo;ajout d&amp;rsquo;une entrée dans le fichier &lt;code>pg_hba.conf&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sudo -u postgres createuser --replication --pwprompt streamer
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># pg_hba.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Allow replication connections from trusted subnet, by a user with the&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># replication privilege.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">host replication streamer 10.1.0.0/28 md5&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;em>Le fichier &lt;code>.pgpass&lt;/code> est déposé sur chaque serveur pour le compte &lt;code>postgres&lt;/code>,
+afin d&amp;rsquo;assurer la connexion du compte &lt;code>streamer&lt;/code> sans saisie de mot de passe.&lt;/em>&lt;/p>
+&lt;hr>
+&lt;p>Dans ce scénario, les archives générées par l&amp;rsquo;instance primaire seront déplacées
+sur le serveur de sauvegarde et l&amp;rsquo;instance standby les consultera au besoin. La
+planification des sauvegardes sera sous la responsabilité de l&amp;rsquo;utilisateur &lt;code>pgbr&lt;/code>
+avec une administration distante. La configuration fine se découpe dans les
+fichiers suivants.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># /etc/pgbackrest/bkp1.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[lab]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg1-host&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">lab1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg2-host&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">lab2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg1-host-user&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg2-host-user&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg1-path&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">/var/lib/postgresql/12/lab1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg2-path&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">/var/lib/postgresql/12/lab2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg1-host-config&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">/etc/pgbackrest/lab1.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg2-host-config&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">/etc/pgbackrest/lab2.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[global]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">start-fast&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">y&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">log-level-console&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">info&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">repo1-retention-full&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">repo1-path&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">/var/lib/pgbackrest&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># /etc/pgbackrest/lab1.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[lab]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg1-path&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">/var/lib/postgresql/12/lab1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[global]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">repo1-host&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">bkp1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">repo1-host-user&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">pgbr&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># /etc/pgbackrest/lab2.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[lab]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">pg1-path&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">/var/lib/postgresql/12/lab2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">recovery-option&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">recovery_target_timeline=latest&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">recovery-option&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">primary_conninfo=host=lab1 port=5432 user=streamer&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[global]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">repo1-host&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">bkp1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">repo1-host-user&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">pgbr&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Avant de pouvoir créer la stanza, il est nécessaire de démarrer l&amp;rsquo;instance secondaire
+en mode &lt;code>standby&lt;/code> ; il suffit de positionner un fichier &lt;code>standby.signal&lt;/code> dans
+le répertoire de données et de redémarrer l&amp;rsquo;instance :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sudo pg_ctlcluster stop &lt;span class="m">12&lt;/span> lab2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo -u postgres touch /var/lib/postgresql/12/lab1/standby.signal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo pg_ctlcluster start &lt;span class="m">12&lt;/span> lab2
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>À partir de ce moment, et même si les deux instances ne partagent pas les mêmes
+données, je peux créer la stanza avec l&amp;rsquo;outil &lt;code>pgbackrest&lt;/code> sur mon serveur de
+sauvegarde avec l&amp;rsquo;utilisateur dédié.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sudo -u pgbr pgbackrest stanza-create &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --stanza&lt;span class="o">=&lt;/span>lab --config&lt;span class="o">=&lt;/span>/etc/pgbackrest/bkp1.conf
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Dès ce moment, mon instance, consciente de l&amp;rsquo;espace de stockage distant, peut
+envoyer ses archives de WAL &lt;em>via&lt;/em> la commande &lt;code>archive-push&lt;/code> de &lt;code>pgbackrest&lt;/code>.
+Un redémarrage est requis pour activer le mode archive.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SYSTEM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">archive_mode&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">on&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SYSTEM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">archive_command&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;pgbackrest archive-push %p --stanza=lab --config=/etc/pgbackrest/lab1.conf&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et pour finir, une première sauvegarde complète peut être lancée sur le serveur
+de sauvegarde pour assurer la construction de l&amp;rsquo;instance standby.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sudo -u pgbr pgbackrest backup --stanza&lt;span class="o">=&lt;/span>lab --config&lt;span class="o">=&lt;/span>/etc/pgbackrest/bkp1.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo -u pgbr pgbackrest info
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stanza: lab&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># status: ok&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># cipher: none&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># db (current)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># wal archive min/max (12-1): 000000010000000000000008/000000010000000000000008&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">#&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># full backup: 20191107-103443F&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># timestamp start/stop: 2019-11-07 10:34:43 / 2019-11-07 10:35:09&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># wal start/stop: 000000010000000000000008 / 000000010000000000000008&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># database size: 23.5MB, backup size: 23.5MB&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># repository size: 2.8MB, repository backup size: 2.8MB&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La sauvegarde de l&amp;rsquo;instance primaire peut être restaurée sur la seconde instance
+avec les options &lt;code>--delta&lt;/code> et &lt;code>--type=standby&lt;/code> pour écraser les fichiers erronés
+et ajouter le descripteur &lt;code>standby.signal&lt;/code> dans le répertoire de données. pgBackRest
+se charge de configurer les options de réplication dans le fichier
+&lt;code>postgresql.auto.conf&lt;/code>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sudo pg_ctlcluster stop &lt;span class="m">12&lt;/span> lab2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo -u postgres pgbackrest restore --stanza&lt;span class="o">=&lt;/span>lab &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --delta --type&lt;span class="o">=&lt;/span>standby --config&lt;span class="o">=&lt;/span>/etc/pgbackrest/lab2.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo pg_ctlcluster start &lt;span class="m">12&lt;/span> lab2
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Tadaa ! Une connexion est alors établie entre les deux nœuds et l&amp;rsquo;on constate
+que l&amp;rsquo;utilisateur &lt;code>streamer&lt;/code> rejoue en asynchrone les transactions de l&amp;rsquo;instance
+primaire vers l&amp;rsquo;instance standby.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">select&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stat_replication&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- -[ RECORD 1 ]----+------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- pid | 8893
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- usesysid | 16384
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- usename | streamer
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- application_name | 12/lab2
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- client_addr | 10.1.0.1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- client_hostname |
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- client_port | 38820
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- backend_start | 2019-11-07 10:50:22.424464+00
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- backend_xmin |
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- state | streaming
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- sent_lsn | 0/A000060
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- write_lsn | 0/A000060
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- flush_lsn | 0/A000060
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- replay_lsn | 0/A000060
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- write_lag | 00:00:00.001095
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- flush_lag | 00:00:00.004415
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- replay_lag | 00:00:00.004696
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- sync_priority | 0
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- sync_state | async
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- reply_time | 2019-11-07 12:39:59.595595+00
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="message">&lt;p>Pour la rédaction de cet article, je n&amp;rsquo;ai pas véritablement utilisé trois serveurs,
+mais bien un seul en réalité. L&amp;rsquo;astuce pour faire tourner deux instances sur le
+même port 5432 consiste à ajouter des IP virtuelles sur l&amp;rsquo;interface du serveur
+et de faire résoudre les noms de machines par le fichier &lt;code>/etc/hosts&lt;/code> local.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">sudo ip add add 10.1.0.1/28 dev ens6
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo ip add add 10.1.0.2/28 dev ens6
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo ip add add 10.1.0.3/28 dev ens6
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Les instances doivent ensuite être installées/configurées avec les bons paramètres
+&lt;code>listen_addresses&lt;/code> et &lt;code>unix_socket_directories&lt;/code> comme suivent :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">sudo apt-get install -y postgresql-common
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo vim /etc/postgresql-common/createcluster.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-get install -y postgresql-12
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo -u postgres mkdir -p /var/run/postgresql/lab{1,2}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo pg_createcluster 12 lab1 \
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --pgoption listen_addresses=&amp;#39;10.1.0.1&amp;#39; --pgoption port=5432 \
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --pgoption unix_socket_directories=/var/run/postgresql/lab1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo pg_createcluster 12 lab2 \
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --pgoption listen_addresses=&amp;#39;10.1.0.2&amp;#39; --pgoption port=5432 \
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --pgoption unix_socket_directories=/var/run/postgresql/lab2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo pg_ctlcluster 12 lab1 start
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo pg_ctlcluster 12 lab2 start
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Quelques ajustements de droits sur le répertoire &lt;code>/tmp/pgbackrest&lt;/code> pour les
+fichiers de verrous (paramètre &lt;code>--lock-path&lt;/code>) et le tour est joué !&lt;/p>
+&lt;/div></description></item></channel></rss>

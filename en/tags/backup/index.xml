@@ -6,4 +6,268 @@ intervention!&lt;/p>
 &lt;p>By reading this post, I will come back to an amusing file that used to be a
 topic of discussion over the past decade: the backup label file. What is it and
 what is it used for? How has it be enhanced from its origin with PostgreSQL 8.0
-and what could be expected from him over the next years?&lt;/p></description></item></channel></rss>
+and what could be expected from him over the next years?&lt;/p>
+&lt;hr>
+&lt;h2 id="once-upon-a-time-there-was-transaction-logging">Once upon a time there was transaction logging&lt;/h2>
+&lt;p>As an introduction and to better understand this post, it seems good to me to
+explain that each changing operation in PostgreSQL, like an &lt;code>UPDATE&lt;/code> or an &lt;code>INSERT&lt;/code>,
+is written a first time on &lt;code>COMMIT&lt;/code> in a group of files, which is called &lt;em>WAL&lt;/em>
+or &lt;strong>transaction logs&lt;/strong>. Taken together, these changes represent a low cost to
+disk activity compared to random writings of others processes at work in PostgreSQL.&lt;/p>
+&lt;p>Among them, the &lt;code>checkpointer&lt;/code> process ensures that new data in memory is permanently
+synchronized in the data files and that at regular times called &lt;code>CHECKPOINT&lt;/code>. This
+on-disk two-step writing provides excellent performance and ensures that modified
+blocks are not lost when a transaction ends successfully.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/en/2021-12-asynchronous-writes.png" alt="Asynchroneous writes on disks">&lt;/p>
+&lt;p>Because of transaction logging, all data files of our cluster are late on real
+transactional workload, until the next &lt;code>CHECKPOINT&lt;/code> moment. In case of an unexpected
+interruption (like a memory crash), dirty pages will be lost and data files are
+called &lt;strong>inconsistents&lt;/strong>, as they contain data that can be too old or uncommitted.&lt;/p>
+&lt;p>In such situations, cluster service will be able to restart by applying losted
+changes thanks to transaction logs written in WAL files. This rebuilding process
+of data files to their consistent state is simply called &lt;strong>crash recovery&lt;/strong>.&lt;/p>
+&lt;div class="message">In PostgreSQL 8.0 and above, this mecanism laid the foundation for priceless
+functionalities, like Point In Time Recovery or standby replication with Log
+Shipping to a secondary cluster.&lt;/div>
+&lt;p>Whether after a crash or data restoration, data files must be consistent during
+the startup stage in order to accept write access to data again. What a terrible
+surprise when the startup fails with the following error:&lt;/p>
+&lt;p>&lt;code>PANIC: could not locate a valid checkpoint record&lt;/code>&lt;/p>
+&lt;p>At this moment of startup stage, the cluster does not find any consistent point
+between data files and fails to look after the nearest checkpoint record. Without
+transactions logs, crash recovery fails and stops. At this point, your nerves and
+your backup policy are put to the test.&lt;/p>
+&lt;p>To put it another way: in lacks of WAL or theirs archives, &lt;u>your most
+recent data is lost&lt;/u>.&lt;/p>
+&lt;p>… And &lt;a href="https://pgpedia.info/p/pg_resetwal.html" target="_blank" rel="noopener">pg_resetwal&lt;/a> will not bring them back to you.&lt;/p>
+&lt;hr>
+&lt;h2 id="and-comes-backup-label">And comes backup label&lt;/h2>
+&lt;p>After this lovely warning, we will consider that the archiving of transaction logs
+is no longer an option when you are making backups. Make sure that these archives
+are stored in a secure place, or even a decentralized area so that they are
+accessible by all standby clusters when you need to trigger your failover plan.&lt;/p>
+&lt;p>For those who have reached this part of the post, you should not be too lost if
+I tell you that the &lt;em>backup label&lt;/em> file is a component of a larger concept called:
+backup.&lt;/p>
+&lt;blockquote>
+&lt;p>The backup history file is just a small text file. It contains the label string
+you gave to &lt;code>pg_basebackup&lt;/code>, as well as the starting and ending times and WAL
+segments of the backup. If you used the label to identify the associated dump
+file, then the archived history file is enough to tell you which dump file to
+restore.&lt;/p>
+&lt;p>Source: &lt;a href="https://www.postgresql.org/docs/13/continuous-archiving.html#BACKUP-BASE-BACKUP" target="_blank" rel="noopener">Making a Base Backup&lt;/a>&lt;/p>&lt;/blockquote>
+&lt;p>Let’s see the simplest behavior of this documentation-praised tool &lt;a href="https://www.postgresql.org/docs/13/app-pgbasebackup.html" target="_blank" rel="noopener">pg_basebackup&lt;/a>
+by creating a &lt;code>tar&lt;/code> archive of my running cluster.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pg_basebackup --label=demo --pgdata=backups --format=tar \
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --checkpoint=fast --verbose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: initiating base backup, waiting for checkpoint to complete
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: checkpoint completed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: write-ahead log start point: 0/16000028 on timeline 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: starting background WAL receiver
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: created temporary replication slot &amp;#34;pg_basebackup_15594&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: write-ahead log end point: 0/16000100
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: waiting for background process to finish streaming ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: syncing data to disk ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: renaming backup_manifest.tmp to backup_manifest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_basebackup: base backup completed
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Since version 10, option &lt;code>--wal-method&lt;/code> is setted on &lt;code>stream&lt;/code> by default, which
+means that all present and future WAL segments in subdirectory &lt;code>pg_wal&lt;/code> will be
+written in a dedicated archive next to the backup, thanks to a temporary
+replication slot.&lt;/p>
+&lt;p>Since version 13, this tool creates a new manifest backup file in order to verify
+the integrity of our backup with &lt;a href="https://pgpedia.info/p/pg_verifybackup.html" target="_blank" rel="noopener">pg_verifybackup&lt;/a>. Let&amp;rsquo;s explore our working
+directory to find our long awaited backup label.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ tree backups/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">backups/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── backup_manifest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── base.tar
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── pg_wal.tar
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ tar -xf backups/base.tar --to-stdout backup_label
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START WAL LOCATION: 0/16000028 (file 000000010000000000000016)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CHECKPOINT LOCATION: 0/16000060
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BACKUP METHOD: streamed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BACKUP FROM: master
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START TIME: 2021-01-18 15:22:52 CET
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LABEL: demo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START TIMELINE: 1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This file is located in root&amp;rsquo;s archive and will be useful in startup process of
+our cluster, since it contains the checkpoint information needed on a recovery
+situation. In above example, the sequence number (LSN) is &lt;code>0/16000060&lt;/code> and will
+be found in WAL &lt;code>000000010000000000000016&lt;/code>. In a lack of a backup label file,
+startup process will only have the &lt;a href="https://pgpedia.info/p/pg_control.html" target="_blank" rel="noopener">control file&lt;/a> to obtain the most recent
+checkpoint, with no guarantee that it is the right one.&lt;/p>
+&lt;hr>
+&lt;h2 id="the-glory-age">The glory age&lt;/h2>
+&lt;p>You will agree with me that content and interest of the backup label file are
+anecdotal (though essential) in backup architecture with PostgreSQL. It is (just)
+a few-lines text file, only needed in some recovery processes.&lt;/p>
+&lt;p>And yet, this small revolution caused by version 8.0 in January 2005 with its
+new functionality, continuous archiving and PITR mecanism, aroused the
+creativity of development team in the years that followed. The backup label
+evolved to gain modularity and stability.&lt;/p>
+&lt;p>At this time, &lt;code>pg_backbackup&lt;/code> was not yet available, and only an explicit call
+to the function &lt;a href="https://pgpedia.info/p/pg_start_backup.html" target="_blank" rel="noopener">pg_start_backup()&lt;/a> allowed you to generate the &lt;code>backup_label&lt;/code>
+file in which were the &lt;a href="https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411" target="_blank" rel="noopener">following&lt;/a> four entries to support hot backup:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="cp"># backend/access/transam/xlog.c
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&lt;/span>&lt;span class="nf">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">fp&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;START WAL LOCATION: %X/%X (file %s)&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s">&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">startpoint&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">xlogid&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">startpoint&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">xrecoff&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">xlogfilename&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">fp&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;CHECKPOINT LOCATION: %X/%X&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s">&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">checkpointloc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">xlogid&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">checkpointloc&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">xrecoff&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">fp&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;START TIME: %s&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s">&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">strfbuf&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">fp&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;LABEL: %s&lt;/span>&lt;span class="se">\n&lt;/span>&lt;span class="s">&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">backupidstr&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>All next versions brought various fixes or enhancements. Among the notable
+contributions, I selected for you:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>&lt;a href="https://www.postgresql.org/message-id/flat/D960CB61B694CF459DCFB4B0128514C201ED284B%40exadv11.host.magwien.gv.at" target="_blank" rel="noopener">Contribution&lt;/a> from Laurenz Albe (commit &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c979a1fefafcc83553bf218c7f2270cad77ea31d" target="_blank" rel="noopener">c979a1fe&lt;/a>)&lt;/p>
+&lt;p>Published with 8.4 version, &lt;code>xlog.c&lt;/code> codefile is extended with an internal
+method to cancel a running backup. Calling the &lt;code>pg_ctl stop&lt;/code> command in &lt;em>fast&lt;/em>
+mode renames the file to &lt;code>backup_label.old&lt;/code>;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a href="https://www.postgresql.org/message-id/flat/20120624213341.GA90986%40mr-paradox.net" target="_blank" rel="noopener">Contribution&lt;/a> from Dave Kerr (commit &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=0f04fc67f71f7cb29ccedb2e7ddf443b9e52b958" target="_blank" rel="noopener">0f04fc67&lt;/a>)&lt;/p>
+&lt;p>Appeared with 9.0.9 minor version, the &lt;code>pg_start_backup()&lt;/code> method includes a
+&lt;code>fsync()&lt;/code> call ensures the backup label to be written to disk. This commit
+guarantees the consistency of the backup during an external snapshot;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a href="https://www.postgresql.org/message-id/flat/4E40F710.6000404%40enterprisedb.com" target="_blank" rel="noopener">Contribution&lt;/a> from Heikki Linnakangas (commit &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=41f9ffd928b6fdcedd685483e777b0fa71ece47c" target="_blank" rel="noopener">41f9ffd9&lt;/a>)&lt;/p>
+&lt;p>Proposed in 9.2, this patch fix abnormal behaviors on restoration from
+the streaming backup functionality. Backup label contains a new line that
+specify the method used between &lt;code>pg_start_backup&lt;/code> or &lt;code>streamed&lt;/code>;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a href="https://www.postgresql.org/message-id/flat/201108050646.p756kHC5023570%40ccmds32.silk.ntts.co.jp" target="_blank" rel="noopener">Contribution&lt;/a> from Jun Ishizuka and Fujii Masao (commit &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=8366c7803ec3d0591cf2d1226fea1fee947d56c3" target="_blank" rel="noopener">8366c780&lt;/a>)&lt;/p>
+&lt;p>With 9.2 and above, &lt;code>pg_start_backup()&lt;/code> can be executed on a secondary
+cluster. The role (&lt;code>standby&lt;/code> or &lt;code>master&lt;/code>) of the instance from which the backup
+comes is retained in the backup label;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;a href="https://www.postgresql.org/message-id/flat/CAB7nPqRosJNapKVW2QPwkN9%2BypfL4yiR4mcNFZcjxS2c8m%2BVkw%40mail.gmail.com" target="_blank" rel="noopener">Contribution&lt;/a> from Michael Paquier (commit &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=6271fceb8a4f07dafe9d67dcf7e849b319bb2647" target="_blank" rel="noopener">6271fceb&lt;/a>)&lt;/p>
+&lt;p>Added in 11, a new &lt;em>timeline&lt;/em> entry in backup label file joined the
+previous information to compare its value with thoses contained in WAL needed
+by recovery process;&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>As you may understand, during an amount of years, the ability to take a consistent
+backup leaded on two distinct ways: &lt;code>pg_start_backup()&lt;/code> and &lt;code>pg_basebackup&lt;/code>. The
+first and historical one was deeply impacted by regular commentaries about an
+unwanted behavior with it &amp;ldquo;exclusive&amp;rdquo; mode.&lt;/p>
+&lt;p>Let us look at an example with PostgreSQL 13:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_start_backup&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;demo&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_start_backup
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- -----------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 0/1D000028
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ kill -ABRT $(head -1 data/postmaster.pid)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ cat data/backup_label
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START WAL LOCATION: 0/1D000028 (file 00000001000000000000001D)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CHECKPOINT LOCATION: 0/1D000060
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BACKUP METHOD: pg_start_backup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BACKUP FROM: master
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START TIME: 2021-01-18 16:49:57 CET
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LABEL: demo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START TIMELINE: 1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>ABRT&lt;/code> signal interrupts the &lt;code>postmaster&lt;/code> process of the cluster in the
+violent way and an internal routine, called &lt;code>CancelBackup&lt;/code>, won&amp;rsquo;t be triggered
+correctly in order to rename our backup label to &lt;code>backup_label.old&lt;/code>. On a normal
+production workload, all transactions logs are recycled or even archived as
+activity involves more new transactions. On restart of our interrupted instance,
+the backup label inside data directory will be read by mistake with an errouneous
+checkpoint record requested by the recovery process.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">LOG: database system was shut down at 2021-01-18 17:08:43 CET
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LOG: invalid checkpoint record
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">FATAL: could not locate required checkpoint record
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">HINT: If you are restoring from a backup, touch &amp;#34;data/recovery.signal&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and add required recovery options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> If you are not restoring from a backup, try removing the file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;data/backup_label&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Be careful: removing &amp;#34;data/backup_label&amp;#34; will result in a corrupt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cluster if restoring from a backup.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LOG: startup process (PID 19320) exited with exit code 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LOG: aborting startup due to startup process failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LOG: database system is shut down
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The complete message only appeared with PostgreSQL 12 as an &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=c900c15269f0f900d666bd1b0c6df3eff5098678" target="_blank" rel="noopener">explicite warning&lt;/a>
+in documentation of the backup label, following long discussions on throwing away
+this particular mode or not. In one of theses threads, we can read a remarquable
+&lt;a href="https://www.postgresql.org/message-id/CA&amp;#43;TgmoaGvpybE=xvJeg9Jc92c-9ikeVz3k-_Hg9=mdG05u=e=g@mail.gmail.com" target="_blank" rel="noopener">advocacy&lt;/a> written by Robert Haas who looks back on the success of this
+feature since its creation and points out the frequent confusion encountered by
+users who do not understand either complexity or clear instructions from the
+documentation.&lt;/p>
+&lt;p>From these days of darkness, a dedicated note has been added.&lt;/p>
+&lt;blockquote>
+&lt;p>This type of backup can only be taken on a primary and does not allow concurrent
+backups. Moreover, because it creates a backup label file, as described below,
+it can block automatic restart of the master server after a crash. On the other
+hand, the erroneous removal of this file from a backup or standby is a common
+mistake, which can result in serious data corruption.&lt;/p>
+&lt;p>Source: &lt;a href="https://www.postgresql.org/docs/12/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP-EXCLUSIVE" target="_blank" rel="noopener">Making an Exclusive Low-Level Backup&lt;/a>&lt;/p>&lt;/blockquote>
+&lt;hr>
+&lt;h2 id="next-generation">Next generation&lt;/h2>
+&lt;p>This well-known drawback &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=7117685461af50f50c03f43e6a622284c8d54694" target="_blank" rel="noopener">has been addressed&lt;/a> by the development team in
+september 2016 when releasing PostgreSQL 9.6 with &amp;ldquo;non-exclusive&amp;rdquo; backups. Since
+then, exclusive backup mode is tagged as deprecated by developers and could be
+removed in future versions.&lt;/p>
+&lt;p>Backup label file has not been removed. Its content is still relevant in case of
+point-in-time recovery, but it loses that transitory state on disk and won&amp;rsquo;t be
+written in data directory on &lt;code>pg_start_backup()&lt;/code> call. Instead, administrator or
+backup script must keep session opened until &lt;code>pg_stop_backup()&lt;/code> call in order to
+collect backup&amp;rsquo;s metadata and rebuild backup label file needed by restoration
+process.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_start_backup&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">label&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;demo&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">exclusive&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">fast&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_start_backup
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- -----------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 0/42000028
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">labelfile&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stop_backup&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">exclusive&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- labelfile
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ----------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- START WAL LOCATION: 0/42000028 (file 000000010000000000000042)+
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- CHECKPOINT LOCATION: 0/42000060 +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- BACKUP METHOD: streamed +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- BACKUP FROM: master +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- START TIME: 2021-01-18 18:17:16 CET +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- LABEL: demo +
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- START TIMELINE: 1 +
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>There is another easy way to retrieve this content, especially if archiving is
+configured. At the end of backup, metadata are written in a history file &lt;code>.backup&lt;/code>
+inside &lt;code>pg_wal&lt;/code> and a &lt;code>.ready&lt;/code> file is added in &lt;code>archive_status&lt;/code> directory,
+waiting for archiving. A quick search into our WAL repository can lead us to a
+ready-to-use file.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ find archives -type f -not -size 16M
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">archives/000000010000000000000016.00000028.backup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ grep -iv ^stop archives/000000010000000000000016.00000028.backup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START WAL LOCATION: 0/42000028 (file 000000010000000000000042)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CHECKPOINT LOCATION: 0/42000060
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BACKUP METHOD: streamed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BACKUP FROM: master
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START TIME: 2021-01-18 18:17:16 CET
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LABEL: demo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">START TIMELINE: 1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>With a fresh new architecture for non-exclusive concurrent backup system, various
+backup tools have emerged, more powerful and modular than &lt;code>pg_basebackup&lt;/code>. Among
+well-known third-party tools, you might hear of &lt;a href="https://pgbackrest.org/" target="_blank" rel="noopener">pgBackRest&lt;/a> written in C,
+&lt;a href="https://www.pgbarman.org/" target="_blank" rel="noopener">Barman&lt;/a> written in Python, or even &lt;a href="https://dalibo.github.io/pitrery/" target="_blank" rel="noopener">pitrery&lt;/a> written in Bash. Moreover, these
+tools do a pretty well-done job, avoiding a painful effort for every administrator
+in maintaining their complex scripts.&lt;/p>
+&lt;hr>
+&lt;h2 id="moral-of-the-story">Moral of the story&lt;/h2>
+&lt;p>Over releases, backup label file has endured many storms and twists to result in
+a more elegant way to perform physical backup and restoration with PostgreSQL.&lt;/p>
+&lt;p>If you are administrating database cluster, especially in virtualized engine,
+I warmly recommend you to check your backup policies and associated tools. It is
+not so uncommon for hypervisors to take a system snapshot in exclusive mode
+with &lt;code>pg_start_backup()&lt;/code> as a pre-hook.&lt;/p>
+&lt;p>Above specialized third-party softwares could/must be tested. If they do not fit
+your needs, you may study others tricks to make our backups in a concurrent way,
+as this &lt;a href="https://www.commandprompt.com/blog/postgresql-non-exclusive-base-Backup-bash/" target="_blank" rel="noopener">example&lt;/a> with a temporary file made by &lt;code>mkfifo&lt;/code> command.&lt;/p>
+&lt;p>Old-fashion exclusive backup is deprecated but not removed (yet). It is a real
+concern that remains in a standstill, since last Commitfest in &lt;a href="https://commitfest.postgresql.org/28/1913/" target="_blank" rel="noopener">July 2020&lt;/a>.
+In a &lt;a href="https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0bd4bf0d%40pgmasters.net" target="_blank" rel="noopener">thread&lt;/a>, contributor David Steele (who made pgBackRest, by the way)
+suggested that backup label content could be stored in memory to fix its main
+wickness:&lt;/p>
+&lt;blockquote>
+&lt;p>It might be easier/better to just keep the one exclusive slot in shared
+memory and store the backup label in it. We only allow one exclusive
+backup now so it wouldn&amp;rsquo;t be a loss in functionality.&lt;/p>&lt;/blockquote>
+&lt;p>To be continued!&lt;/p></description></item></channel></rss>

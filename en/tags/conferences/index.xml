@@ -5,4 +5,151 @@ to discuss PostgreSQL during two days of workshops and conferences.&lt;/p>
 &lt;p>For this edition, I had the pleasure of speaking and sharing my experience on the animation of
 the local Meetup group that I took over four years ago. In this article, I want to write down the
 main points discussed during this presentation, while waiting for the video of the conference to be
-posted online.&lt;/p></description></item></channel></rss>
+posted online.&lt;/p>
+&lt;div class="message">The slides of my presentation are &lt;a href="https://fljd.in/documents/pgdayfr-faire-vivre-une-communaute.pdf">available at this address&lt;/a> (french).&lt;/div>
+&lt;hr>
+&lt;h2 id="what-is-a-pug">What is a PUG?&lt;/h2>
+&lt;p>A « PUG » is a PostgreSQL User Group, a community of PostgreSQL users who meet regularly to exchange
+about PostgreSQL. These local communities are common, especially for free software, and allow users
+to share their experiences and knowledge about the software.&lt;/p>
+&lt;p>Lille is a city with a rich economic ecosystem, and many communities are active in the region, such as
+the &lt;a href="https://www.meetup.com/fr-FR/chtijug/" target="_blank" rel="noopener">Ch&amp;rsquo;ti JUG&lt;/a> (&lt;em>Java User Group&lt;/em>), the &lt;a href="https://www.meetup.com/GDG-Lille/" target="_blank" rel="noopener">GDG Lille&lt;/a> (&lt;em>Google Developer Group&lt;/em>), &lt;a href="https://www.meetup.com/fr-FR/nord-agile/" target="_blank" rel="noopener">Nord Agile&lt;/a>
+or &lt;a href="https://www.meetup.com/Software-Craftsmanship-Lille/" target="_blank" rel="noopener">Software Craft Lille&lt;/a>. What could be more natural than wanting to offer a handful of this audience
+more meetings with PostgreSQL?&lt;/p>
+&lt;p>A &lt;a href="https://www.postgresql.org/community/user-groups/" target="_blank" rel="noopener">dedicated page&lt;/a> of the PostgreSQL project lists the different PUGs around the world, and it is possible
+to find groups in many countries, including France. At the time of writing my presentation, I counted 62 global
+groups, including 5 in France: Paris, Lyon, Nantes (not referenced), Toulouse and Lille.&lt;/p>
+&lt;p>Meetup&amp;rsquo;s platform is often used to organize meetings, and as proof, 46 PUGs are affiliated with it. This has
+been a convenience for more than 10 years, and most French groups are registered there.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/en/2024-07-30-map-of-pugs-in-france.png" alt="Map of PUGs in France">&lt;/p>
+&lt;p>The creation of a PUG recognized by the international community is a simple process, which requires
+to form an organizing committee and to apply to the email address &lt;code>usergroups@postgresql.org&lt;/code>.
+The group must respect a number of rules, provided by the &lt;a href="https://www.postgresql.org/about/policies/user-groups/" target="_blank" rel="noopener">PUG policy&lt;/a>, and must commit to
+respecting the values of the PostgreSQL community. In essence, here are the points to remember:&lt;/p>
+&lt;ul>
+&lt;li>The group must be open to all, without discrimination.&lt;/li>
+&lt;li>Meetings must be proposed at least once every two years.&lt;/li>
+&lt;li>Meetings must not be subject to a non-disclosure agreement (NDA).&lt;/li>
+&lt;li>Meetings are attached to the geographical area of the group.&lt;/li>
+&lt;li>A company cannot be represented at 50% or more in the organizing committee.&lt;/li>
+&lt;li>The selection of conferences is at the discretion of the organizing committee.&lt;/li>
+&lt;li>Companies can promote their products and services, if their activities facilitate
+the adoption of PostgreSQL and if the content presented is technical in nature.&lt;/li>
+&lt;li>The group must disclose the names of sponsors, and may mention them in the
+introduction of meetings.&lt;/li>
+&lt;li>The PUG must adopt a code of conduct and can use &lt;a href="https://www.postgresql.org/about/policies/coc/fr/" target="_blank" rel="noopener">the one from the PostgreSQL community&lt;/a>.&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="genesis-of-the-group">Genesis of the group&lt;/h2>
+&lt;p>The Meetup PostgreSQL Lille group was founded on February 25, 2016 on the eponymous platform. At the time,
+the idea of reproducing the Paris&amp;rsquo;s Meetup format was shared between Guillaume Lelarge and Pierre Hilbert,
+two Lille residents who regularly crossed paths at events. One of the main motivations was to promote free
+software with a sharing of feedback to inspire other local actors.&lt;/p>
+&lt;p>At that time, I myself attended events organized by the Meetup Oracle Paris and Province group, and I followed
+with interest the conferences about PostgreSQL in my region. The first meeting of the PG Lille group took place
+on &lt;a href="https://www.meetup.com/meetup-postgresql-lille/events/231446425/" target="_blank" rel="noopener">June 24, 2016&lt;/a>, in the premises of Decathlon Campus (Villeneuve D&amp;rsquo;Ascq, 59). I was seduced by the format
+and the relaxed atmosphere, and I have kept an excellent memory of it.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/en/2024-07-30-first-meetup-pg-lille.png" alt="First Meetup PG Lille">&lt;/p>
+&lt;p>However, the regularity of the meetings did not meet the expectations of the project. The next event was scheduled
+more than a year later, on October 17, 2017, and it was the only one I could not attend. Guillaume and Pierre&amp;rsquo;s
+professional commitments did not allow them to keep up the pace, and the group remained dormant for more than three
+years.&lt;/p>
+&lt;p>I took the decision to take over the group in 2019, by offering Pierre to transfer me the administration rights
+of the group. My arrival at Dalibo as a PostgreSQL consultant gave me the opportunity to meet passionate experts,
+including Guillaume Lelarge and Stefan Fercot, who encouraged me to take over the project.&lt;/p>
+&lt;p>With a quality professional network on Twitter at the time, I was able to quickly mobilize a team of volunteers
+to organize the Meetup of &lt;a href="https://www.meetup.com/meetup-postgresql-lille/events/267319389/" target="_blank" rel="noopener">January 28, 2020&lt;/a>. I have been supported by Stefan Fercot (Dalibo), Stéphane Definin
+(Think) and Sébastien Freiss (SFEIR) to make this renewal a small success.&lt;/p>
+&lt;p>&amp;hellip; Unfortunately, in March of the same year, the COVID-19 pandemic forced the group to suspend its projects
+and I did not have the courage to propose online content, much to the chagrin of the group&amp;rsquo;s members.
+For the record, no other Meetup group in France was spared by the health crisis and the restrictions in force.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/en/2024-07-30-timeline-meetups.png" alt="Timeline of Meetups">&lt;/p>
+&lt;p>Two additional years of pause were imposed on the group, before the health situation stabilized. In 2022, I
+contacted Lætitia Avrot, a very active member of the French community, to revive activities and find a dynamic
+and a rhythm for its members. The event of &lt;a href="https://www.meetup.com/meetup-postgresql-lille/events/284819405/" target="_blank" rel="noopener">April 14, 2022&lt;/a> was a relief for me, seeing that I could still
+count on the participation of the community.&lt;/p>
+&lt;p>To this day, no more shadows have come to darken the picture, and the group has been able to resume
+the regular organization of meetings, from two to three per year. The community has expanded, and the
+organizing committee has been strengthened with the arrival of Yoann La Cancellera in 2023, who has
+allowed in particular to submit a request for recognition within the international community, on
+February 24, 2023.&lt;/p>
+&lt;hr>
+&lt;h2 id="how-to-meetup">How-to Meetup&lt;/h2>
+&lt;p>To conclude this feedback, I wanted to share all the necessary steps to organize a Meetup, focusing on
+the crucial points of success and pitfalls to avoid.&lt;/p>
+&lt;p>&lt;strong>Welcome&lt;/strong> : find the venue for the event&lt;/p>
+&lt;p>As the PG Day France changes location every year, the Meetup PG Lille group has chosen to vary the
+venues for each meeting. This allows you to discover new spaces and stimulate inter-community curiosity.
+Local companies are often delighted to be able to host technical events, and this helps to strengthen
+ties between local actors.&lt;/p>
+&lt;p>Searching for a venue is often the first step in organizing a Meetup. It is important to find a space
+that can accommodate between ten and forty people, with access to public transport or parking nearby.
+To do this, I have had the opportunity to use several strategies:&lt;/p>
+&lt;ul>
+&lt;li>Chinest whispers: ask your professional contacts if they know of potential hosting locations&lt;/li>
+&lt;li>Social networks: post an announcement on Twitter or LinkedIn to solicit spontaneous proposals or leads
+to explore&lt;/li>
+&lt;li>Privatization of a space: contact coworking spaces or meeting rooms to get a rental quote&lt;/li>
+&lt;li>Partnering with other groups: propose a partnership with another Meetup group to share rental costs
+or to benefit from an already identified hosting location&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Speakers&lt;/strong>: find &lt;u>two&lt;/u> varied presentations&lt;/p>
+&lt;p>From the beginning, Pierre and Guillaume have chosen to offer two technical presentations to vary the
+topics and formats. This allows to reach a wider audience and to meet the expectations of the group&amp;rsquo;s
+members. This formula has been used for subsequent meetings, and has been a success every time.&lt;/p>
+&lt;p>Finding speakers is a time-consuming and patience-testing task. Often, a chance meeting or an informal
+discussion can lead to a presentation proposal. It is best to build a pool of resource persons who can
+be called upon when needed. It is not always easy, it is a long-term job, but it is worth it.&lt;/p>
+&lt;p>Spread the word, ask your colleagues, friends, and professional contacts if they are interested in
+sharing their experience or expertise, or if they know someone who might be interested.&lt;/p>
+&lt;p>&lt;strong>Networking&lt;/strong>: extend the evening with a community highlight&lt;/p>
+&lt;p>From my point of view, this is the &lt;strong>most important&lt;/strong> step in organizing a Meetup. (laughs!)&lt;/p>
+&lt;p>It&amp;rsquo;s the moment when group members can exchange, discuss, share, and meet. It&amp;rsquo;s a highlight of the evening
+that I particularly cherish, and that is intimately linked to the success of the event. Networking is what
+best promotes serendipity, chance encounters, sharing experiences, and creating lasting bonds. I discuss
+the group&amp;rsquo;s upcoming projects with members and the organizing committee, and I take notes on everyone&amp;rsquo;s
+expectations and listen to their suggestions.&lt;/p>
+&lt;p>Of course, it is important to provide drinks and snacks to extend the evening. It is necessary to provide
+a space to facilitate circulation and the natural creation of small discussion groups. The choice of a
+sponsor is mainly motivated by the coverage of these costs, with an invoice or an expense report as proof.&lt;/p>
+&lt;p>Until now, no incidents have been reported, and participants respect the few safety and conduct rules that
+are announced at the beginning of the evening.&lt;/p>
+&lt;p>&lt;strong>Communication&lt;/strong>: reach the registration limit&lt;/p>
+&lt;p>This step is to be taken seriously a month before the event. It is about maximizing the visibility of the
+event to reach the maximum capacity set by the venue hosting the event. To do this, I have had the opportunity
+to use several methods:&lt;/p>
+&lt;ul>
+&lt;li>Beeing as exhaustive as possible in the event description (date, location, schedule, program, sponsors,
+visuals, etc.)&lt;/li>
+&lt;li>Creating regular content on social networks to remind the date of the event and the registration modalities
+(LinkedIn majority, Twitter in the past)&lt;/li>
+&lt;li>Asking event participants to share the event on their social networks or their company networks&lt;/li>
+&lt;li>Informing the French community with the &lt;code>pgsql-fr-generale&lt;/code> mailing list to reach a wider audience, or even
+to inspire other groups to organize Meetups (who knows?)&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Visual identity&lt;/strong> (optional)&lt;/p>
+&lt;p>We worked with Yoann on the redesign of the Meetup group&amp;rsquo;s visual identity with a new logo and a new graphic
+charter in the last few months. It&amp;rsquo;s cosmetic, but it allows us to give a more professional image and a strong
+identity within the existing Lille communities. We hope to make a small place and a small notoriety in the local
+landscape.&lt;/p>
+&lt;p>We have delegated the creation of the event thumbnail twice, and I recommend working with a graphic designer
+or a designer to get a professional and neat result. Until one of the members around me is qualified enough,
+we do with the means at hand.&lt;/p>
+&lt;p>Last but not least, and it was our little pride of the year, we have given ourselves a Slonik logo, the PostgreSQL
+mascot. The creation process relied heavily on the new AI generation tools, and we were blown away by the quality
+of the result. A big thank you to &lt;a href="https://www.instagram.com/_ekpyrosis/" target="_blank" rel="noopener">Isaac&lt;/a> for his invaluable help in the
+retouching and adjustments of the logo.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/en/2024-07-30-meetup-pg-lille-logo.png" alt="Meetup PG Lille Logo">&lt;/p>
+&lt;hr>
+&lt;h2 id="acknowledgements">Acknowledgements&lt;/h2>
+&lt;p>During this conference, I thanked a lot of people. In particular, the members of the PostgreSQL France
+association, for their trust they have given us, Matthieu Cornillon and myself, for accepting our application
+file for the choice of the city of Lille this year 2024.&lt;/p>
+&lt;p>One of the slides of my presentation was dedicated to all the companies that hosted our meetings, and who, without
+knowing it, allowed me to adjust the format and content of our Meetups. A thank you to them for their sympathy
+and warm welcome. It was also an opportunity to highlight the speakers who agreed to share their experience and
+expertise during the PostgreSQL Lille Meetups. A big thank you to them for living the adventure with me!&lt;/p>
+&lt;p>After the conference, I felt that feedback had a positive impact on the audience, with a few people coming to
+me to congratulate me on the work done and inform me of their intention to organize a Meetup in their own city.
+It was a nice reward for me, and it made me want to continue my commitment and set an example for the promotion
+of PostgreSQL in France.&lt;/p></description></item></channel></rss>

@@ -5,11 +5,345 @@ moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/
 &lt;p>Après cet épisode et l&amp;rsquo;amertume d&amp;rsquo;avoir perdu quelques travaux, ou la surprise
 de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
 erreur, je me suis tourné vers l&amp;rsquo;outil incontournable dont tous mes collègues me
-parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p></description></item><item><title>De Jekyll à Hugo</title><link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link><pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid><description>&lt;p>Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
+parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p>
+&lt;hr>
+&lt;h2 id="des-atouts-séduisants">Des atouts séduisants&lt;/h2>
+&lt;p>Cela fait à présent deux années que je travaille au quotidien sur Linux pour mon
+activité professionnelle. Étant responsable de mon matériel et des données que
+je manipule, il n&amp;rsquo;existe pas de politique particulière pour les sauvegardes
+régulières ni le stockage de celles-ci.&lt;/p>
+&lt;p>Mon précédent script était passablement trivial, à savoir :&lt;/p>
+&lt;ul>
+&lt;li>Sauvegarder une copie unique des documents courants ;&lt;/li>
+&lt;li>Sauvegarder une liste des fichiers de configuration, appelés &lt;em>dotfiles&lt;/em> ;&lt;/li>
+&lt;li>Exclure les projets contenant un répertoire &lt;code>.git&lt;/code> ;&lt;/li>
+&lt;li>Exclure les fichiers de plus de 200 Mo.&lt;/li>
+&lt;/ul>
+&lt;p>Le tout sur une clé USB de 8 Go, chiffrée avec le système &lt;a href="https://fr.wikipedia.org/wiki/LUKS" target="_blank" rel="noopener">LUKS&lt;/a> pour se
+prévenir de la perte ou du vol dans un espace public dudit support.&lt;/p>
+&lt;p>Borg (son petit nom), permet de répondre correctement à l&amp;rsquo;ensemble de ces
+points, et le fait à merveille. En bénéficiant de la déduplication et de la
+compression, j&amp;rsquo;ai pu conserver ma clé USB et m&amp;rsquo;engager dans la rédaction d&amp;rsquo;un
+&lt;a href="https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef" target="_blank" rel="noopener">nouveau script&lt;/a> plus complet.&lt;/p>
+&lt;p>&lt;strong>Exclusion de fichiers et de répertoires&lt;/strong>&lt;/p>
+&lt;p>Certains fichiers ou répertoires cachés vivent leur vie sur nos postes, et un
+fichier d&amp;rsquo;exclusion peut être transmis à Borg pour ne pas les inclure dans la
+routine de sauvegarde. Le mien est relativement léger pour le moment, et
+pourrait s&amp;rsquo;enrichir avec l&amp;rsquo;expérience.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/borg/exclude.list &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.git
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.vagrant
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.local
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.cache
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.mozilla
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.thunderbird
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.config/chromium
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.config/discord
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.npm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.cpan
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>Déduplication et rétention d&amp;rsquo;une semaine&lt;/strong>&lt;/p>
+&lt;p>Le gain remarquable entre mon script et la nouvelle solution que m&amp;rsquo;offre Borg
+réside dans son algorithme de déduplication, où la version d&amp;rsquo;un fichier n&amp;rsquo;est
+stockée qu&amp;rsquo;une seule fois jusqu&amp;rsquo;à une éventuelle modification, permettant de ne
+conserver qu&amp;rsquo;une copie de mes documents sur une bien plus longue période avec
+un coût de stockage ridiculement faible.&lt;/p>
+&lt;p>À chaque exécution, je demande le rapport de sauvegarde avec l&amp;rsquo;option &lt;code>--stats&lt;/code>
+dont voici un exemplaire sur l&amp;rsquo;exécution de ce matin.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Archive name: florent-2021-08-24T08:42:05
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Archive fingerprint: be38707dd52f5a86f8e75fe3ad4997aae58b3016366a988b7cb37ce3b
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Time &lt;span class="o">(&lt;/span>start&lt;span class="o">)&lt;/span>: Tue, 2021-08-24 08:42:06
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Time &lt;span class="o">(&lt;/span>end&lt;span class="o">)&lt;/span>: Tue, 2021-08-24 08:42:06
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Duration: 0.96 seconds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Number of files: &lt;span class="m">3720&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Utilization of max. archive size: 0%
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Original size Compressed size Deduplicated size
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This archive: 2.11 GB 1.78 GB 480.51 kB
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All archives: 12.63 GB 10.67 GB 1.75 GB
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Unique chunks Total chunks
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Chunk index: &lt;span class="m">3974&lt;/span> &lt;span class="m">25888&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour une semaine de rétention, l&amp;rsquo;espace total consommé sur le montage USB
+n&amp;rsquo;excède pas (encore) les 1,75 Go alors que les images décompressées pèsent au
+total 12,63 Go que ne parvennait pas à stocker mon ancien script sur plusieurs
+jours.&lt;/p>
+&lt;p>Au passage, la durée d&amp;rsquo;exécution est significativement réduite chaque jour grâce
+à ce mécanisme, qui ne sélectionne que les nouveautés d&amp;rsquo;une exécution à l&amp;rsquo;autre.&lt;/p>
+&lt;p>&lt;strong>Un montage virtuel pour naviguer dans le temps&lt;/strong>&lt;/p>
+&lt;p>L&amp;rsquo;outil propose deux options pour la restauration :&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>extract&lt;/code> pour restaurer le contenu d&amp;rsquo;une archive dans le répertoire courant
+(&lt;a href="https://borgbackup.readthedocs.io/en/stable/usage/extract.html" target="_blank" rel="noopener">doc&lt;/a>) ;&lt;/li>
+&lt;li>&lt;code>mount&lt;/code> pour visualiser les fichiers ou dossiers à restaurer, voire les
+déplacer manuellement dans le répertoire cible avec un outil graphique
+(&lt;a href="https://borgbackup.readthedocs.io/en/stable/usage/mount.html" target="_blank" rel="noopener">doc&lt;/a>).&lt;/li>
+&lt;/ul>
+&lt;p>Cette seconde proposition est particulièrement utile pour naviguer d&amp;rsquo;une archive
+à une autre, à la recherche d&amp;rsquo;un fichier perdu dans le temps. Le montage
+s&amp;rsquo;effectue à l&amp;rsquo;aide du système de fichiers &lt;a href="https://www.kernel.org/doc/html/latest/filesystems/fuse.html" target="_blank" rel="noopener">FUSE&lt;/a> qui ne nécessite aucun
+droit administrateur.&lt;/p>
+&lt;p>Pour être utilisé à partir de Borg, le paquet &lt;code>python-llfuse&lt;/code> sera requis selon
+votre distribution.&lt;/p>
+&lt;h2 id="planification-avec-systemctl">Planification avec systemctl&lt;/h2>
+&lt;p>Ce fut une découverte lors de mes lectures émerveillées de la &lt;a href="https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef" target="_blank" rel="noopener">documentation&lt;/a>
+et des &lt;a href="https://wiki.archlinux.org/title/Borg_backup_%28Fran%C3%A7ais%29" target="_blank" rel="noopener">ressources&lt;/a> de la communauté française d&amp;rsquo;Archlinux. N&amp;rsquo;étant pas
+particulièrement fan de &lt;code>cron&lt;/code> pour un usage personnel, j&amp;rsquo;ai suivi à la lettre
+la configuration d&amp;rsquo;un service utilisateur et du &lt;em>timer&lt;/em> associé pour garantir le
+lancement de la sauvegarde chaque jour, 30 minutes après le démarrage de mon
+système.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># .config/systemd/user/borg.service&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Unit]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Description&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">Borg backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Service]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">oneshot&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">ExecStart&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">%h/.bin/borg-create.sh&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># .config/systemd/user/borg.timer&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Unit]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Description&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">Daily Borg backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Documentation&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">man:borg&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Timer]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">OnBootSec&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">30min&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">OnUnitActiveSec&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">1d&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Install]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">WantedBy&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">timers.target&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Une fois le service activé, je n&amp;rsquo;ai qu&amp;rsquo;à attendre chaque matin la notification
+de fin de sauvegarde pour consulter les rapports avec la commande &lt;code>journalctl&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">journalctl --user -xeu borg.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">août &lt;span class="m">24&lt;/span> 08:42:02 florent systemd&lt;span class="o">[&lt;/span>877&lt;span class="o">]&lt;/span>: Starting Borg backup...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">août &lt;span class="m">24&lt;/span> 08:42:27 florent systemd&lt;span class="o">[&lt;/span>877&lt;span class="o">]&lt;/span>: Finished Borg backup.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">août &lt;span class="m">24&lt;/span> 08:42:27 florent systemd&lt;span class="o">[&lt;/span>877&lt;span class="o">]&lt;/span>: borg.service: Consumed 1.535s CPU time.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>De trop nombreux utilisateurs (Windows notamment) comptent sur leur miraculeuse
+corbeille, jusqu&amp;rsquo;à ce qu&amp;rsquo;une véritable suppression ne survienne ou qu&amp;rsquo;un disque
+défaillant fasse des siennes. Pour s&amp;rsquo;assurer qu&amp;rsquo;une donnée ne disparaisse pas
+définitivement, la sauvegarde doit être correctement mise en place, idéalement
+sur plusieurs périodes et sur plusieurs supports.&lt;/p>
+&lt;p>Le conseil vaut aussi bien pour les bases de données que pour les fichiers
+personnels : une sauvegarde n&amp;rsquo;est fiable que si la restauration de son
+contenu est possible. Une corruption de l&amp;rsquo;archive, une erreur dans l&amp;rsquo;exécution
+du script ou une mise à jour majeure de l&amp;rsquo;outil de sauvegarde sont autant de
+situations qui peuvent rendre vos sauvegardes irrécupérables.&lt;/p>
+&lt;p>Prenez soin de vos sauvegardes.&lt;/p></description></item><item><title>De Jekyll à Hugo</title><link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link><pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid><description>&lt;p>Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
 plusieurs &lt;em>frameworks&lt;/em> depuis quelques années. Vous avez peut-être entendu parler
 de &lt;a href="https://github.com/jekyll/jekyll" target="_blank" rel="noopener">Jekyll&lt;/a>, &lt;a href="https://github.com/vercel/next.js" target="_blank" rel="noopener">Next.js&lt;/a>, &lt;a href="https://github.com/gatsbyjs/gatsby" target="_blank" rel="noopener">Gastby&lt;/a> ou &lt;a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo&lt;/a> ? Je ne cite que les plus
 sollicités par la communauté sur GitHub, mais il en existe des centaines.&lt;/p>
-&lt;p>Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p></description></item><item><title>La conviction du dimanche soir</title><link>https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/</link><pubDate>Sun, 15 Dec 2019 08:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/</guid><description>&lt;p>Il y a parfois des projets qui émergent de nulle part, d&amp;rsquo;autres qui mûrissent
+&lt;p>Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p>
+&lt;hr>
+&lt;p>Pour de louables raisons, je m&amp;rsquo;étais engagé &lt;a href="https://fljd.in/2019/06/12/reprenons-serieusement">l&amp;rsquo;année dernière&lt;/a> à auto-héberger
+mon nouvel espace d&amp;rsquo;expression personnel. J&amp;rsquo;y ai découvert avec intérêt et amusement
+de nombreuses technologies que j&amp;rsquo;ai pliées, réinstallées, transformées pour les
+adapter à mon besoin. Sans trop rentrer dans les détails, j&amp;rsquo;ai fini par avoir :&lt;/p>
+&lt;ul>
+&lt;li>un serveur VPS chez OVH pour un coût de 3,99€ par mois&lt;/li>
+&lt;li>une routine mensuelle de renouvellement de certificat avec &lt;a href="https://pypi.org/project/certbot/" target="_blank" rel="noopener">certbot&lt;/a>&lt;/li>
+&lt;li>une instance &lt;a href="https://github.com/eclipse-theia/theia" target="_blank" rel="noopener">Theia&lt;/a> dans un conteneur Docker&lt;/li>
+&lt;li>une image Jekyll 4.1.0 que j&amp;rsquo;invoquais dans Docker&lt;/li>
+&lt;li>deux dépôts GitHub privés pour les articles (&lt;em>posts&lt;/em>) et les brouillons (&lt;em>drafts&lt;/em>)&lt;/li>
+&lt;li>le thème &lt;a href="https://github.com/poole/poole" target="_blank" rel="noopener">Poole&lt;/a>, léger et modulable… que j&amp;rsquo;ai modulé&lt;/li>
+&lt;/ul>
+&lt;p>Alors que la question de conserver ou non le serveur VPS se pose pour la nouvelle
+année qui démarre bientôt (il devient agé, limité, pour ne pas dire sénil), j&amp;rsquo;ai
+remis récemment en cause mon attachement pour le &lt;em>framework&lt;/em> &lt;strong>Jekyll&lt;/strong>, si élégant
+à l&amp;rsquo;époque.&lt;/p>
+&lt;p>Le machin repose sur des dépendances Ruby. Aussi nombreuses (ou presque) qu&amp;rsquo;un
+nouveau projet en Node.js. J&amp;rsquo;ai mangé du &lt;code>Gemfile&lt;/code> par le passé, aussi je n&amp;rsquo;ai eu
+aucune réelle difficulté à installer les quelques modules nécessaires à la
+concrétisation de mon projet. En voici le contenu :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ruby" data-lang="ruby">&lt;span class="line">&lt;span class="cl">&lt;span class="n">source&lt;/span> &lt;span class="s2">&amp;#34;https://rubygems.org&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">gem&lt;/span> &lt;span class="s2">&amp;#34;jekyll&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;~&amp;gt; 4.1.0&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">gem&lt;/span> &lt;span class="s2">&amp;#34;classifier-reborn&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># If you have any plugins, put them here!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">group&lt;/span> &lt;span class="ss">:jekyll_plugins&lt;/span> &lt;span class="k">do&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">gem&lt;/span> &lt;span class="s2">&amp;#34;jekyll-paginate-v2&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">gem&lt;/span> &lt;span class="s1">&amp;#39;jekyll-target-blank&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;~&amp;gt; 2.0&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">gem&lt;/span> &lt;span class="s1">&amp;#39;jekyll-time-to-read&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et c&amp;rsquo;est tout.&lt;/p>
+&lt;p>Je n&amp;rsquo;avais besoin que de la pagination et de l&amp;rsquo;estimation du temps de lecture par
+article. Mine de rien, ça me semblait un peu grossier d&amp;rsquo;exiger que ces simples
+modules ne soient pas intégrés nativement. J&amp;rsquo;ai donc engagé mes recherches et le
+portage du présent site sur l&amp;rsquo;une des autres solutions, à savoir &lt;strong>Hugo&lt;/strong>.&lt;/p>
+&lt;hr>
+&lt;h2 id="migre-moi-ça-pti-con">Migre moi ça, p&amp;rsquo;ti con&lt;/h2>
+&lt;p>Et les développeurs de Hugo n&amp;rsquo;y sont pas allé de main morte pour asseoir leur
+logiciel dans ce paysage turbulent : ils intègrent un assistant de migration
+spécialement pour un projet Jekyll en récupérant ses fichiers &lt;code>.md&lt;/code> et ses
+ressources statiques. En soit, la chose n&amp;rsquo;est pas complexe et le résultat est
+au rendez-vous. Mais…&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ hugo import jekyll blog blog_hugo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Importing...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Congratulations! 128 post(s) imported!
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Now, start Hugo by yourself:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ cd blog_hugo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ git clone https://github.com/spf13/herring-cove.git themes/herring-cove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ hugo server --theme=herring-cove
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Bien sûr, l&amp;rsquo;assistant propose un thème pour embellir le projet en lieu et place
+d&amp;rsquo;une transposition du language &lt;a href="https://jekyllrb.com/docs/liquid/" target="_blank" rel="noopener">Liquid&lt;/a> sur lequel repose les fichiers
+modèles de Jekyll. C&amp;rsquo;est plus simple mais… ce n&amp;rsquo;est pas réellement ce que je
+souhaitais.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-12-09-hugo-import-from-jekyll.png" alt="Un thème par défaut pas sans défaut">&lt;/p>
+&lt;p>Autant le rendu des articles est impeccable avec ce thème, autant la navigation
+est assez pauvre à mon goût. Bien évidemment, c&amp;rsquo;est bien suffisant pour n&amp;rsquo;importe
+qui. Mais voilà. Mon thème principal me manquait et malheureusement pour moi,
+il n&amp;rsquo;existait pas pour Hugo.&lt;/p>
+&lt;hr>
+&lt;h2 id="de-longues-soirées-dhiver">De longues soirées d&amp;rsquo;hiver&lt;/h2>
+&lt;p>J&amp;rsquo;aime les choses simples. Et j&amp;rsquo;aime encore plus les comprendre en profondeur.
+C&amp;rsquo;est pour cette raison que je me suis lancé plusieurs heures dans la lecture
+assidue de la documentation très riche sur &lt;a href="https://gohugo.io/documentation/" target="_blank" rel="noopener">gohugo.io&lt;/a>. Les concepts sont
+assez différents et le passage n&amp;rsquo;a pas été si évident que cela. Je vous propose
+un florilège des astuces qu&amp;rsquo;il m&amp;rsquo;a fallu découvrir pour proposer le portage
+intégral de mon site.&lt;/p>
+&lt;h3 id="les-permaliens">Les permaliens&lt;/h3>
+&lt;p>Jekyll et Hugo proposent une gestion fine des URL à l&amp;rsquo;aide du paramètre
+&lt;code>permalinks&lt;/code> pour reconstruire l&amp;rsquo;adresse d&amp;rsquo;une page ou d&amp;rsquo;un article et favoriser
+son référencement. Cependant, leur paramètrage par défaut diffère et il est
+nécessaire de retrouver le comportement de &lt;a href="https://jekyllrb.com/docs/permalinks/" target="_blank" rel="noopener">l&amp;rsquo;un&lt;/a> avec &lt;a href="https://gohugo.io/content-management/urls/#permalinks" target="_blank" rel="noopener">l&amp;rsquo;autre&lt;/a>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">permalinks&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">posts&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">/:year/:month/:day/:slug&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour ma part, j&amp;rsquo;ai privilégié le dérivé &lt;code>:slug&lt;/code> pour être en mesure de surcharger
+la dernière portion de l&amp;rsquo;URL dans les rares cas où le titre était malformé entre
+Jekyll et Hugo. Par exemple pour mon article « &lt;a href="https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/">Tour d&amp;rsquo;horizon de PgBouncer&lt;/a> »
+où l&amp;rsquo;apostrophe n&amp;rsquo;était pas remplacée par le tiret et où je ne voulais pas
+perdre le référencement, j&amp;rsquo;ai pu contourner le problème avec l&amp;rsquo;ajout d&amp;rsquo;une simple
+ligne en en-tête du fichier Markdown.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nn">---&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;Tour d&amp;#39;horizon de PgBouncer&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">slug&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">tour-d-horizon-de-pgbouncer&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nn">---&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Il m&amp;rsquo;a également fallu découvrir un paramètre particulier pour ne pas prendre en
+compte les accents présents dans les titres lors de la génération du &lt;em>slug&lt;/em>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">removePathAccents&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="syndication-automatique-du-contenu">Syndication automatique du contenu&lt;/h3>
+&lt;p>Pour le coup, j&amp;rsquo;ai bénéficié d&amp;rsquo;une simplification dans mon projet grâce au support
+natif et avancé des flux RSS. Alors qu&amp;rsquo;avec Jekyll, je devais maintenir mes
+fichiers &lt;code>feed.xml&lt;/code> et &lt;code>atom.xml&lt;/code> à la racine du projet, j&amp;rsquo;ai découvert avec Hugo
+la notion de &lt;em>&lt;a href="https://gohugo.io/content-management/taxonomies/" target="_blank" rel="noopener">taxonomie&lt;/a>&lt;/em> qui permet la classification des articles. La
+taxonomie regroupe autant les sections, les catégories et les &lt;em>tags&lt;/em>, et je trouve
+ça astucieux.&lt;/p>
+&lt;p>Imaginons une arborescence très simple avec une page et un article :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">content/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pages
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── a-propos.md
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── posts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── 2020-11-18-quelques-outils-meconnus.md
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Sans configuration supplémentaire, Hugo générera le contenu statique pour chacun
+des éléments du projet, en consultant notamment les en-têtes pour extraire les
+informations &lt;code>categories&lt;/code> et &lt;code>tags&lt;/code> des articles.&lt;/p>
+&lt;p>La magie opère avec un ensemble de fichiers &lt;code>index.xml&lt;/code> regroupant les éléments
+d&amp;rsquo;une même taxonomie.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">public/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── 2020
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── 11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── 18
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── quelques-outils-meconnus
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── categories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── postgresql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pages
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── a-propos
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   │   └── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── tags
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── administration
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    └── index.xml
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="la-colorisation-syntaxique">La colorisation syntaxique&lt;/h3>
+&lt;p>À ce sujet, j&amp;rsquo;ai eu une petite surprise avec les balises HTML jusqu&amp;rsquo;à ce que je
+me penche sur la &lt;a href="https://gohugo.io/content-management/syntax-highlighting/#generate-syntax-highlighter-css" target="_blank" rel="noopener">documentation&lt;/a>. En effet, par défaut, Hugo transforme un
+bloc de code Markdown en série de balises stylisées.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;highlight&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pre&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#f8f8f2;background-color:#272822;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> -moz-tab-size:4;-o-tab-size:4;tab-size:4&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">code&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;language-sql&amp;#34;&lt;/span> &lt;span class="na">data-lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;sql&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>CREATE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>TABLE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> people (
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> id BIGINT
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>GENERATED&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ALWAYS &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>AS&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>IDENTITY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> details jsonb,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>PRIMARY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>KEY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (id)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> );
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">code&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">pre&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Puisque mon thème original proposait une feuille de style au format &lt;a href="https://sass-lang.com/" target="_blank" rel="noopener">SASS&lt;/a>
+spécfiquement pour la colorisation syntaxique, j&amp;rsquo;ai tenté d&amp;rsquo;activer l&amp;rsquo;un des
+paramètres de Hugo pour utiliser les classes de style plutôt que le comportement
+ci-dessus.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">pygmentsUseClasses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le résultat était inespéré avec les classes reconnus par mes règles CSS.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;highlight&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pre&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;chroma&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">code&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;language-sql&amp;#34;&lt;/span> &lt;span class="na">data-lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;sql&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>CREATE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>TABLE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>people&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>(&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>id&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;nb&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>BIGINT&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>GENERATED&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>ALWAYS&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>AS&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>IDENTITY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>,&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>details&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>jsonb&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>,&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>PRIMARY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>KEY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>(&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>id&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>);&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">code&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">pre&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="les-balises-html-dans-le-markdown">Les balises HTML dans le Markdown&lt;/h3>
+&lt;p>Mes fichiers Markdown contenaient des balises HTML pour quelques effets visuels,
+à savoir des encarts d&amp;rsquo;avertissement &lt;code>&amp;lt;div&amp;gt;&lt;/code>, du surlignage &lt;code>&amp;lt;u&amp;gt;&lt;/code> et de très
+(trop) nombreux exposants &lt;code>&amp;lt;sup&amp;gt;&lt;/code> pour mes sources d&amp;rsquo;articles. Pour cet aspect,
+Hugo est plus restrictif que Jekyll et ignore tout bonnement les balises dans le
+rendu de ses pages.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!-- raw HTML omitted --&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour le coup, je n&amp;rsquo;ai pas cherché s&amp;rsquo;il existait un paramètre de configuration
+qui me permettrait de lever la restriction. Ma solution de contournement fut
+d&amp;rsquo;utiliser les composants &lt;em>shortcodes&lt;/em> pour mes quelques exceptions et la
+&lt;a href="https://gohugo.io/templates/shortcode-templates/" target="_blank" rel="noopener">documentation&lt;/a> était bien suffisante pour y parvenir sereinement.&lt;/p>
+&lt;p>Par exemple pour mes encarts, j&amp;rsquo;ai gagné en facilité de rédaction avec la méthode
+&lt;code>markdownify&lt;/code> fourni par le système de rendu, et je n&amp;rsquo;écris plus que du Markdown
+dans mes fichiers !&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!-- layout/shortcodes/message.html --&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;message&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>{{ .Inner | markdownify }}&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!-- content/posts/exemple.md --&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{\{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">message&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}\}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Exemple de rendu avec un lien de [documentation][17].
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{\{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="p">/&lt;/span>&lt;span class="nt">message&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}\}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;em>Ne pas s&amp;rsquo;attarder sur les &lt;code>\&lt;/code> qui ne servent qu&amp;rsquo;à échapper les accolades.&lt;/em>&lt;/p>
+&lt;hr>
+&lt;h2 id="en-bref">En bref&lt;/h2>
+&lt;p>Au-delà des quelques paramètrages ou réécriture Markdown qui m&amp;rsquo;ont fait perdre
+du temps, Hugo présente bien plus de fonctionnalités natives que ne le fait
+Jekyll. Je dresse une liste non exhausitive des apports qui m&amp;rsquo;ont convaincu à
+passer le cap.&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://gohugo.io/templates/pagination/" target="_blank" rel="noopener">Pagination&lt;/a> simple et intégrée&lt;/li>
+&lt;li>&lt;a href="https://gohugo.io/variables/page/#page-variables" target="_blank" rel="noopener">Temps estimé de lecture&lt;/a> avec la variable &lt;code>.ReadingTime&lt;/code>&lt;/li>
+&lt;li>Génération des pages &lt;a href="https://forestry.io/blog/hugo-vs-jekyll-benchmark/" target="_blank" rel="noopener">nettement plus rapide&lt;/a>&lt;/li>
+&lt;li>Portabilité du logiciel avec &lt;strong>zéro&lt;/strong> dépendance système&lt;/li>
+&lt;/ul>
+&lt;p>Pour conclure, je me suis résolu à héberger le projet et le rendu des pages sur
+GitHub, en suivant les &lt;a href="https://gohugo.io/hosting-and-deployment/hosting-on-github/" target="_blank" rel="noopener">instructions&lt;/a> détaillées. La &lt;a href="https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site" target="_blank" rel="noopener">bascule&lt;/a> du nom de
+domaine a ainsi été opérée ce midi et je n&amp;rsquo;ai plus à me préoccuper de mon ancienne
+instance VPS ni du certificat à renouveller auprès de Let&amp;rsquo;s Encrypt.&lt;/p></description></item><item><title>La conviction du dimanche soir</title><link>https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/</link><pubDate>Sun, 15 Dec 2019 08:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/12/15/la-conviction-du-dimanche-soir/</guid><description>&lt;p>Il y a parfois des projets qui émergent de nulle part, d&amp;rsquo;autres qui mûrissent
 d&amp;rsquo;années en années. Certains mêmes peuvent être déclenchés par l&amp;rsquo;heureuse
 rencontre de deux inconnus, ou alors par la simple volonté de combler un vide.
 Aussi, dimanche dernier, je me suis plongé dans la lecture d&amp;rsquo;un &lt;a href="https://www.oreilly.com/library/view/learn-c-the/9780133124385/" target="_blank" rel="noopener">livre technique&lt;/a>
@@ -21,6 +355,103 @@ informatique, très bas niveau, dont font l&amp;rsquo;impasse de nombreux étudi
 moi durant ma licence), avait des choses à m&amp;rsquo;apprendre pour progresser dans ma
 compréhension du logiciel libre ?&lt;/p>
 &lt;p>Je ne sais pas, mais j&amp;rsquo;ai eu comme la conviction d&amp;rsquo;être passer à côté d&amp;rsquo;une
-évidence…&lt;/p></description></item><item><title>Reprenons sérieusement</title><link>https://fljd.in/2019/06/12/reprenons-serieusement/</link><pubDate>Wed, 12 Jun 2019 10:30:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/12/reprenons-serieusement/</guid><description>&lt;p>La série d&amp;rsquo;articles que je souhaite publier dans les mois et années à venir
+évidence…&lt;/p>
+&lt;hr>
+&lt;p>Le &lt;a href="https://fr.wikipedia.org/wiki/C_%28langage%29" target="_blank" rel="noopener">langage C&lt;/a> fait partie des fondations de nos logiciels actuels. Il a émergé
+dans les années 1970 sous les mains de l&amp;rsquo;ingénieur &lt;a href="https://fr.wikipedia.org/wiki/Dennis_Ritchie" target="_blank" rel="noopener">Dennis Ritchie&lt;/a> à l&amp;rsquo;occasion
+de la réécriture du système d&amp;rsquo;exploitation UNIX. Ce grand monsieur fut lauréat
+du prix Turing en 1983, rien que ça.&lt;/p>
+&lt;p>A l&amp;rsquo;instar du système UNIX qui permit la ramification actuelle que l&amp;rsquo;on connait
+avec GNU/Linux, MacOS/iOS et BSD, ce petit langage fut l&amp;rsquo;élan nécessaire pour
+l&amp;rsquo;apparition des générations suivantes des langages, tels que le PHP, Java, C++
+et C#, principaux standards de l&amp;rsquo;industrie d&amp;rsquo;hier et d&amp;rsquo;aujourd&amp;rsquo;hui. Une telle
+prouesse avec peu de moyens, puisqu&amp;rsquo;à l&amp;rsquo;époque, la mémoire vive était de l&amp;rsquo;ordre
+d&amp;rsquo;une &lt;a href="https://www.thoughtco.com/history-of-computer-memory-1992372" target="_blank" rel="noopener">centaine d&amp;rsquo;octets&lt;/a>, les architectures matérielles se faisaient une
+guerre acharnée (oui, Intel x86 n&amp;rsquo;était pas la référence) et l&amp;rsquo;Internet
+n&amp;rsquo;existait pas.&lt;/p>
+&lt;p>&lt;strong>Mais alors, pourquoi (ré)apprendre le langage C en 2020 ?&lt;/strong>&lt;/p>
+&lt;p>Dans son livre, Zed A. Shaw apporte de premiers éléments de réflexion dont je me
+permets la traduction suivante :&lt;/p>
+&lt;blockquote>
+&lt;p>Aujourd&amp;rsquo;hui, bien trop de programmeurs assument simplement que tout ce qu&amp;rsquo;ils
+écrivent fonctionne, mais qu&amp;rsquo;un jour tout échouera de façon catastrophique.
+C&amp;rsquo;est particulièrement vrai si vous êtes le genre de personne ayant appris la
+plupart des langages modernes qui résolvent beaucoup de problèmes à votre place.&lt;/p>
+&lt;p>Les manquements aux règles de sécurité moderne du langage C vous impose une
+plus grande vigilance et d&amp;rsquo;être plus conscient de ce qui se passe. Si vous
+parvenez à écrire du code C solide et sécurisé, vous pourrez en écrire dans
+n&amp;rsquo;importe quel autre langage.&lt;/p>
+&lt;p>Apprendre le C vous donne un accès direct à une montagne de code &lt;em>legacy&lt;/em> et
+vous enseignera la syntaxe de base d&amp;rsquo;un grand nombre de langages. Une fois que
+vous apprenez le C, vous pourrez facilement apprendre C++, Java, Objective-C,
+Javascript et davantages encore.&lt;/p>
+&lt;p>C est réellement un langage élégant de bien des façons. Sa syntaxe est
+incroyablement concise pour la puissance qu&amp;rsquo;il offre. C&amp;rsquo;est pour cette raison
+que de nombreux autres langages le lui ont emprunté depuis plus de 45 ans.&lt;/p>
+&lt;p>C vous apporte aussi énormement avec peu de moyens technologiques. Lorsque vous
+achevez votre apprentissage du C, vous aurez une opinion plus fine de quelque
+chose qui est tout aussi élégant et déplaisant à la fois. Le langage C est vieux,
+de la même façon qu&amp;rsquo;un beau monument, il vous semblera fantastique à une
+distance de 20 pieds, mais si vous vous en approchez, vous vous apercevrez
+qu&amp;rsquo;il est recouvert de fissures et de défauts.&lt;/p>&lt;/blockquote>
+&lt;p>Si l&amp;rsquo;on s&amp;rsquo;attarde sur la popularité des langages dans le monde du logiciel libre,
+on constate que le langage C arrive en 11&lt;sup>ème&lt;/sup> position
+d&amp;rsquo;après l&amp;rsquo;&lt;a href="https://insights.stackoverflow.com/survey/2019#technology-_-programming-scripting-and-markup-languages" target="_blank" rel="noopener">enquête annuelle&lt;/a> de StackOverflow et en 9&lt;sup>ème&lt;/sup>
+position dans le rapport de l&amp;rsquo;&lt;a href="https://octoverse.github.com/#top-languages" target="_blank" rel="noopener">Octoverse&lt;/a> Github.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2019-12-15-octoverse-programming-langages.png" alt="Octoverse - Top Languages in 2019">&lt;/p>
+&lt;p>Et oui. Rien de plus sexy que le JavaScript ou le Python de nos jours ! Mais pour
+toutes les raisons de design ou de sécurité citées plus haut, la présence du
+langage C dans les plus populaires des langages en 2019 révèle une certaine
+réalité de terrain.&lt;/p>
+&lt;hr>
+&lt;p>Ce n&amp;rsquo;est pas anodin cependant que je me penche à nouveau sur le langage C. Mon
+intérêt pour le projet libre PostgreSQL me fait me questionner sur l&amp;rsquo;usage des
+langages de bas niveau pour les logiciels d&amp;rsquo;envergure. Pour de nombreux
+contributeurs, rien de plus fiable et de plus robuste qu&amp;rsquo;un projet qui repose sur
+des bases connues et reconnues par l&amp;rsquo;Institut national américain de normalisation
+(ANSI) depuis trois décennies.&lt;/p>
+&lt;p>Le C est absolument partout. Les systèmes d&amp;rsquo;exploitation, les sytèmes embarqués,
+les systèmes de bases de données. Mon dernier exemple en date remonte à ce matin,
+lorsque David Steele a &lt;a href="https://twitter.com/pgBackRest/status/1205632408592297990" target="_blank" rel="noopener">annoncé&lt;/a> sur Twitter que le projet &lt;em>pgBackRest&lt;/em> venait
+de migrer intégralement en C pur, après des mois de &lt;a href="https://github.com/pgbackrest/pgbackrest/commit/f0ef73db7009cd6e08740d270a6ee7565efc9f8c" target="_blank" rel="noopener">réécriture&lt;/a>.&lt;/p>
+&lt;p>Je n&amp;rsquo;ai pas de recul ni d&amp;rsquo;expérience pour avancer que la portabilité, la performance
+et la longévité impressionnante font de ce langage un choix opportun pour le logiciel,
+qu&amp;rsquo;il soit libre ou non.&lt;/p>
+&lt;p>Je ne sais pas, peut-être une intuition.&lt;/p></description></item><item><title>Reprenons sérieusement</title><link>https://fljd.in/2019/06/12/reprenons-serieusement/</link><pubDate>Wed, 12 Jun 2019 10:30:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/12/reprenons-serieusement/</guid><description>&lt;p>La série d&amp;rsquo;articles que je souhaite publier dans les mois et années à venir
 s&amp;rsquo;intègre dans un engagement personnel envers un domaine qui accapare mes journées
-de professionnel.&lt;/p></description></item></channel></rss>
+de professionnel.&lt;/p>
+&lt;p>J&amp;rsquo;ai pour projet d&amp;rsquo;apporter ma contribution dans le paysage open-source francophone
+en partageant du contenu sur des sujets qui me passionnent, à savoir le web
+(infrastructure, tendances, solutions spécialisées), les bases de données
+(postgresql, expériences personnelles) et diverses réflexions sur nos usages
+modernes de l&amp;rsquo;outil informatique (suprématie de GAFAM, souveraineté des données
+personnelles, IoT).&lt;/p>
+&lt;p>À l&amp;rsquo;heure de la rédaction de ce premier article, nous sommes en 2019, et je
+traverse ma troisième décennie avec une angoisse grandissante. Les crises politique,
+économique et écologique ont frappé aux portes du monde entier, et bien que l&amp;rsquo;on
+en parle depuis ma naissance, je ne m&amp;rsquo;y interesse que depuis l&amp;rsquo;année dernière.
+Entre de nombreux podcasts hétérogènes (&lt;a href="https://www.thinkerview.com" target="_blank" rel="noopener">Thinkerview&lt;/a>,
+&lt;a href="https://www.cafe-craft.fr" target="_blank" rel="noopener">Café Craft&lt;/a>, &lt;a href="https://www.moodstep.com" target="_blank" rel="noopener">Moodstep&lt;/a>,
+&lt;a href="https://www.lescarences.fr" target="_blank" rel="noopener">Les Carencés&lt;/a>, &lt;a href="https://www.mediapart.fr" target="_blank" rel="noopener">Mediapart&lt;/a>),
+je me suis projeté dans un avenir proche où nous serions tout·es contraints de
+modifier nos habitudes de consommation pour garantir un monde viable aux prochaines
+générations.&lt;/p>
+&lt;p>Ce défi est immense. Autant pour moi que pour toi, lecteur.&lt;/p>
+&lt;hr>
+&lt;p>Pour ma part, plusieurs changements ont eu lieu depuis l&amp;rsquo;année écoulée. Et à
+chaque nouveau palier se découvrent de nouveaux challenges et de nouvelles
+évidences. Manger bio et local, déconsommer, réduire l&amp;rsquo;usage des emballages
+plastique, pratiquer le yoga et la course à pied.&lt;/p>
+&lt;p>Mon quotidien professionnel n&amp;rsquo;a pas été épargné avec un pont dans ma carrière
+entre les technologies Oracle Database et le produit communautaire PostgreSQL,
+dans une juste continuité de l&amp;rsquo;usage d&amp;rsquo;un outil, au service du plus grand nombre.&lt;/p>
+&lt;p>C&amp;rsquo;est en découvrant sur Twitter &lt;a href="https://lecourrierduhacker.com" target="_blank" rel="noopener">le courrier du hacker&lt;/a>,
+une initiative de &lt;a href="https://carlchenet.com" target="_blank" rel="noopener">Carl Chenet&lt;/a>, que m&amp;rsquo;est venue l&amp;rsquo;idée
+d&amp;rsquo;amorcer un blog plus sérieux que ceux déjà éparpillés dans mon existence. Le
+partage d&amp;rsquo;expériences et le plaisir de lire des nouvelles optimistes prennent
+alors tout leur sens dans une compilation d&amp;rsquo;articles hebdomadaire, que je vous
+invite chaudement à rejoindre pour découvrir une actualité fraîche et très souvent
+enrichissante !&lt;/p>
+&lt;hr>
+&lt;p>Si vous souhaitez en savoir plus sur mon profil, je vous invite à consulter la
+page &lt;a href="https://fljd.in/a-propos/">À Propos&lt;/a> de ce site.&lt;/p></description></item></channel></rss>

@@ -7,4 +7,155 @@ n&amp;rsquo;était pas bien vu d&amp;rsquo;installer des dépendances systèmes 
 ou Perl. Nous apprenions donc à écrire des scripts portables et universels, compatibles partout
 où nous déposions nos valises.&lt;/p>
 &lt;p>Me suis-je enfermé dans un dogme conservateur, en m&amp;rsquo;interdisant &lt;em>de facto&lt;/em> à me tourner vers des
-shells modernes et bien plus aisés à appréhender ?&lt;/p></description></item></channel></rss>
+shells modernes et bien plus aisés à appréhender ?&lt;/p>
+&lt;hr>
+&lt;h2 id="beurk-le-bash">Beurk, le Bash&lt;/h2>
+&lt;p>Ne faisons pas de détour, le Bash c&amp;rsquo;est moche. Puissant, pratique, universel, mais moche.&lt;/p>
+&lt;p>Vous pourriez penser que c&amp;rsquo;est un avis parfaitement subjectif, et qu&amp;rsquo;il ne faut pas juger un livre
+à sa couverture&amp;hellip; mais avouez-le, une partie de vous pense sensiblement la même chose que moi.
+Combien d&amp;rsquo;heures ai-je pu perdre durant ma courbe d&amp;rsquo;apprentissage du langage, à cause d&amp;rsquo;un grand
+nombre de subtilités et de pièges de syntaxes ?&lt;/p>
+&lt;p>Entre les assignations sans espace autour du signe &lt;code>=&lt;/code>, les accolades &lt;code>{}&lt;/code> pour les variables
+contenant un signe &lt;code>_&lt;/code>, les backticks &lt;code>` `&lt;/code> pour les commandes subshells, ou encore les doubles
+crochets &lt;code>[[ ... ]]&lt;/code> pour les comparaisons non-POSIX, il y a de quoi s&amp;rsquo;arracher les cheveux.&lt;/p>
+&lt;p>Certain·e·s y verront une forme d&amp;rsquo;esthétisme ou de tradition d&amp;rsquo;une culture informatique, mais
+personnellement je trouve que c&amp;rsquo;est un langage qui vieillit mal, très mal. Vous ne vous offusqueriez
+pas non plus si je devais vous témoigner mon désamour le Perl, n&amp;rsquo;est-ce pas ?&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une comparaison de deux variables&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[[&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$a&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$b&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">]]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une addition et une affectation&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">z&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="k">$((&lt;/span> &lt;span class="nv">$x&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nv">$y&lt;/span> &lt;span class="k">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une boucle for&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> i in &lt;span class="k">$(&lt;/span>seq &lt;span class="m">1&lt;/span> 10&lt;span class="k">)&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">do&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">echo&lt;/span> &lt;span class="nv">$i&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># un switch case&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">case&lt;/span> &lt;span class="nv">$1&lt;/span> in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;un&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;deux&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> *&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;autre&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">esac&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une chaîne en minuscule&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">a&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nv">a&lt;/span>&lt;span class="p">,,&lt;/span>&lt;span class="si">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une gestion des erreurs de commandes chaînées&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">some_command &lt;span class="p">|&lt;/span> another_command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="o">[[&lt;/span> &lt;span class="si">${&lt;/span>&lt;span class="nv">PIPESTATUS&lt;/span>&lt;span class="p">[0]&lt;/span>&lt;span class="si">}&lt;/span> -ne &lt;span class="m">0&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="si">${&lt;/span>&lt;span class="nv">PIPESTATUS&lt;/span>&lt;span class="p">[1]&lt;/span>&lt;span class="si">}&lt;/span> -ne &lt;span class="m">0&lt;/span> &lt;span class="o">]]&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">then&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;Une des commandes a échoué&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">fi&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le &lt;a href="https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29" target="_blank" rel="noopener">Bash&lt;/a> est apparu l&amp;rsquo;année de ma naissance, en 1989. Il a été conçu en opposition au &lt;a href="https://en.wikipedia.org/wiki/Bourne_shell" target="_blank" rel="noopener">Bourne Shell&lt;/a>
+(&lt;code>sh&lt;/code>) pour apporter des fonctionnalités de programmation plus avancées. Il est devenu le shell par
+défaut de la plupart des distributions Linux, et est devenu un standard pour tous les scripts à travers
+le monde entier.&lt;/p>
+&lt;p>Fort de ses années de succès, et de son emprise sur le monde Unix, le Bash s&amp;rsquo;impose parfois comme la première
+porte vers la programmation pour des administrateurices système ou les étudiant·e·s en informatique. Et il
+faut accepter que la qualité de ses premiers scripts n&amp;rsquo;est pas toujours au rendez-vous. Souvenez-vous des
+longues heures passées sur StackOverflow à trouver la syntaxe la plus lisible ou la plus efficace, car les
+réponses se révélaient aussi variées que touffues !&lt;/p>
+&lt;p>Et c&amp;rsquo;est l&amp;rsquo;un des plus gros problèmes que je trouve au Bash : ce langage de programmation est exigeant,
+excentrique, voire &lt;a href="https://fr.wikipedia.org/wiki/Idiosyncrasie" target="_blank" rel="noopener">idiosyncratique&lt;/a>, et qui ne pardonne pas les erreurs. Un des &lt;a href="https://dev.to/taikedz/your-bash-scripts-are-rubbish-use-another-language-5dh7" target="_blank" rel="noopener">paradoxes&lt;/a> que j&amp;rsquo;associe
+au Bash est qu&amp;rsquo;il peut ne pas être considéré comme un véritable langage de programmation, réduisant ainsi
+la volonté et l&amp;rsquo;effort de l&amp;rsquo;apprendre en profondeur par une large communauté de professionnel·le·s.&lt;/p>
+&lt;p>&lt;a href="https://dev.to/taikedz/your-bash-scripts-are-rubbish-use-another-language-5dh7" target="_blank" rel="noopener">Et si vos scripts Bash sont nuls, utilisez un autre langage.&lt;/a>&lt;/p>
+&lt;hr>
+&lt;h2 id="lami-fish-friendly-interactive-shell">L&amp;rsquo;ami Fish, Friendly Interactive Shell&lt;/h2>
+&lt;p>Je suis tombé sur &lt;a href="https://fishshell.com/" target="_blank" rel="noopener">Fish&lt;/a> par hasard, alors que je questionnais mon usage quotidien sur &lt;a href="https://fr.wikipedia.org/wiki/Z_Shell" target="_blank" rel="noopener">ZSH&lt;/a>. Sur
+mon poste personnel, j&amp;rsquo;ai étendu mon expérience passée sur le Bash avec une configuration ZSH enrichie de
+&lt;a href="https://ohmyz.sh/" target="_blank" rel="noopener">Oh My Zsh&lt;/a>. C&amp;rsquo;était un peu le jour et la nuit dans l&amp;rsquo;interaction avec mes terminaux : la navigation,
+les suggestions, les thèmes, les plugins, tout est plus fluide et plus agréable. Sa compatibilité avec
+Bash m&amp;rsquo;avait alors évité de tout réapprendre.&lt;/p>
+&lt;p>Fish répond au besoin de modernité et de simplicité que je cherche sans vraiment le savoir. Contrairement
+à ZSH, un grand nombre de fonctionnalités sont disponibles sans aucune configuration préalable ou plugin
+à activer.&lt;/p>
+&lt;p>&lt;strong>Assistance à la commande&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Recopie la commande incomplète et en erreur sans besoin de naviguer dans l&amp;rsquo;historique&lt;/li>
+&lt;li>Accès à l&amp;rsquo;historique partiel avec les touches directionnelles dès la première frappe au clavier&lt;/li>
+&lt;li>Proposition de chemins avec la complétion de la touche Tab, suivie des touches directionnelles&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-20-14-fish-01.png" alt="">&lt;/p>
+&lt;p>&lt;strong>Auto-suggestions des chemins et des options d&amp;rsquo;une grande majorité des outils&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Mémoire des précédents répertoires parcourus&lt;/li>
+&lt;li>Support très complet des commandes Git, notamment le &lt;code>git rebase -i&lt;/code> ❤️&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-20-14-fish-02.png" alt="">&lt;/p>
+&lt;p>&lt;strong>Coloration plus poussée des commandes&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>une couleur différente par mot selon la syntaxe employée (variables, chemin, options)&lt;/li>
+&lt;li>un rouge prononcé pour les commandes inconnues&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="un-langage-qui-vous-veut-du-bien">Un langage qui vous veut du bien&lt;/h2>
+&lt;p>Pour revenir au sujet principal de cet article, Fish révolutionne notre rapport avec la rédaction
+de scripts. Fini les pièges et la syntaxe qui nous ont tenu en otage durant des années. Les choses
+deviennent bien plus simples et lisibles.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une comparaison de deux variables
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">test&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$a&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$b&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une addition et une affectation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">set&lt;/span> &lt;span class="nv">z&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nb">math&lt;/span> &lt;span class="nv">$x&lt;/span> + &lt;span class="nv">$y&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une boucle for
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">for&lt;/span> &lt;span class="nv">i&lt;/span> &lt;span class="k">in&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nf">seq&lt;/span> &lt;span class="m">1&lt;/span> &lt;span class="m">10&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">echo&lt;/span> &lt;span class="nv">$i&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># un switch case
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">case&lt;/span> &lt;span class="nv">$argv&lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="m">1&lt;/span>&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;un&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">2&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;deux&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> *&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;autre&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une chaîne en minuscule
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">set&lt;/span> &lt;span class="nv">a&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nb">string &lt;/span>lower &lt;span class="nv">$a&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une gestion des erreurs de commandes chaînées
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="nf">some_command&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="nf">another_command&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="nb">contains &lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="nv">$pipestatus&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;Une des commandes a échoué&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;investissement initial pour perdre ses habitudes acquises avec Bash est modéré, notamment
+le &lt;a href="https://fishshell.com/docs/current/language.html#variables-export" target="_blank" rel="noopener">remplacement&lt;/a> de &lt;code>export&lt;/code> ou de l&amp;rsquo;assignation &lt;code>=&lt;/code> par la méthode &lt;code>set -x&lt;/code> ou &lt;code>set -u&lt;/code>
+respectivement. Mais l&amp;rsquo;enrichissement du langage par quelques nouveaux mots-clés permet
+d&amp;rsquo;alléger le script avec des syntaxes claires et lisibles (&lt;code>contains&lt;/code>, &lt;code>math&lt;/code> ou &lt;code>string&lt;/code>
+présents dans l&amp;rsquo;exemple ci-dessus).&lt;/p>
+&lt;p>L&amp;rsquo;ajout de plugins communautaire n&amp;rsquo;est pas en reste, si comme moi, vous en consommiez avec
+Oh-My-ZSH. L&amp;rsquo;outil &lt;a href="https://github.com/jorgebucaran/fisher" target="_blank" rel="noopener">Fisher&lt;/a> s&amp;rsquo;installe dans votre &lt;code>~/.config/fish&lt;/code> et donne accès à un
+gestionnaire complet et sobre. Pour ma part, j&amp;rsquo;ai pu rapidement combler mon besoin de charger
+les variables d&amp;rsquo;environnement fournies par l&amp;rsquo;agent SSH (&lt;code>ssh-agent&lt;/code>) lors du démarrage de ma
+session.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> fisher install danhper/fish-ssh-agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">fisher install version 4.4.5
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Fetching https://api.github.com/repos/danhper/fish-ssh-agent/tarball/HEAD
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Installing danhper/fish-ssh-agent
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/functions/__ssh_agent_is_started.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/functions/__ssh_agent_start.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/conf.d/fish-ssh-agent.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Updated 1 plugin/s
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pas de mystère, ni d&amp;rsquo;arcanes magiques, votre environnement est enrichi de nouvelles fonctions
+et de scripts de démarrage, développés en Fish.&lt;/p>
+&lt;hr>
+&lt;h2 id="osons-la-modernité">Osons la modernité&lt;/h2>
+&lt;p>La documentation du projet est très bien fournie. En plus de la page &lt;a href="https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29" target="_blank" rel="noopener">Tutorial&lt;/a>, vous trouverez
+une page dédiée aux &lt;a href="https://fishshell.com/docs/current/fish_for_bash_users.html" target="_blank" rel="noopener">utilisateurs de Bash&lt;/a> pour vous aider à réussir votre transition. Pour ma
+part, j&amp;rsquo;y retrouve des syntaxes bien plus proches du Python, et c&amp;rsquo;est un vrai plaisir.&lt;/p>
+&lt;p>Le projet est vivant, avec un rythme de versions régulier. Je me suis surpris moi-même à ne pas en
+avoir entendu parler par d&amp;rsquo;autres collègues ou auprès des auteurices de blogs que je suis. Au cours des
+dernières années, la communauté francophone a essaimé quelques bons articles qui complètent le
+mien.&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://lkdjiin.github.io/blog/2016/12/13/changer-de-shell-de-bash-a-fish/" target="_blank" rel="noopener">Changer de shell, de Bash à Fish&lt;/a> (2016)&lt;/li>
+&lt;li>&lt;a href="https://ubunlog.com/fr/ligne-de-commande-fish-smart/" target="_blank" rel="noopener">Fish, une ligne de commande intelligente et simple d&amp;rsquo;utilisation&lt;/a> (2017)&lt;/li>
+&lt;li>&lt;a href="https://toptips.fr/comment-passer-de-bash-a-fish-shell-sous-linux/" target="_blank" rel="noopener">Comment passer de Bash à Fish Shell sous Linux&lt;/a> (2021)&lt;/li>
+&lt;li>&lt;a href="https://blog.otso.fr/2024-01-17-passer-zsh-fish-shell" target="_blank" rel="noopener">Migration de shell de zsh à fish&lt;/a> (2024)&lt;/li>
+&lt;/ul>
+&lt;p>Ces temps-ci, je fais évoluer mon expérience d&amp;rsquo;utilisateur de Linux avec une transition vers Wayland
+et SwayWM (j&amp;rsquo;y reviendrais dans un autre article). Je ne le cache pas, la tentation de remplacer mes
+scripts Bash qui gèrent mes thèmes ou les composants &lt;em>swaybar&lt;/em>, est forte, très forte.&lt;/p>
+&lt;p>De quoi occuper mes prochaines longues soirées d&amp;rsquo;hiver.&lt;/p></description></item></channel></rss>

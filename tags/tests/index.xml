@@ -6,7 +6,157 @@ logiciel dans la bonne direction.&lt;/p>
 &lt;p>Dans cet article, je souhaite explorer le système de tests tel qu&amp;rsquo;il est (et
 a été) implémenté dans PostgreSQL et comment le réemployer dans la rédaction d&amp;rsquo;une
 extension communautaire. Si vous ne connaissiez pas l&amp;rsquo;outil &lt;code>pg_regress&lt;/code>, il
-n&amp;rsquo;aura plus de secret pour vous !&lt;/p></description></item><item><title>Écrire ses tests unitaires en SQL</title><link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link><pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid><description>&lt;p>Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
+n&amp;rsquo;aura plus de secret pour vous !&lt;/p>
+&lt;hr>
+&lt;h2 id="aux-origines-des-tests-de-régression">Aux origines des tests de régression&lt;/h2>
+&lt;p>Avant même l&amp;rsquo;émergence du plus avancé des systèmes de bases de données open-source
+du monde que l&amp;rsquo;on connait, le projet Berkeley &lt;a href="https://dsf.berkeley.edu/postgres-v4r2/" target="_blank" rel="noopener">POSTGRES&lt;/a> disposait déjà d&amp;rsquo;un
+répertoire &lt;code>src/regress/regress&lt;/code> dans sa dernière version connue. Celui-ci fut
+définitivement adopté sous la forme de &lt;code>src/test/regress&lt;/code> lors de la reprise du
+projet Postgre95 par les &lt;a href="https://www.postgresql.org/docs/14/history.html" target="_blank" rel="noopener">deux étudiants&lt;/a> Andrew Yu et Jolly Chen.&lt;/p>
+&lt;p>Ce n&amp;rsquo;est pas anodin, car ce répertoire existe encore dans les versions modernes
+et porte toujours les mêmes responsabilités, à savoir : s&amp;rsquo;assurer que les
+fonctionnalités de PostgreSQL ne présentent aucune régression à chaque patch ou
+nouvelle version majeure. Ce système de test est relativement simple à
+appréhender et très répandu dans le milieu du développement des logiciels libres.&lt;/p>
+&lt;p>Il repose sur les fichiers de tests au format SQL et des fichiers de sorties au
+format OUT. L&amp;rsquo;astuce consiste à exécuter le code SQL sur une instance en cours
+d&amp;rsquo;exécution et de capter la sortie standard dans un fichier de résultat. Pour
+chaque test (&lt;code>sql&lt;/code>), le fichier de résultat (&lt;code>result&lt;/code>) est ensuite comparé au
+résultat attendu du test (&lt;code>expected&lt;/code>) à l&amp;rsquo;aide de la méthode &lt;code>diff&lt;/code>.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2022-04-21-regress-path.png" alt="Fonctionnement du système de tests">&lt;/p>
+&lt;p>Ce traitement est réalisé depuis la version 7.1 par l&amp;rsquo;utilitaire &lt;code>pg_regress.sh&lt;/code>.
+À l&amp;rsquo;origine, ce dernier était un &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/test/regress/pg_regress.sh;h=323035f0947d44b8102af1afd0d453846cd1073d;hb=6f64c2e54a0b14154a335249f4dca91a39c61c50" target="_blank" rel="noopener">simple script shell&lt;/a> responsable de monter
+une instance PostgreSQL temporaire au besoin, de rapprocher les fichiers SQL de
+leurs résultats OUT et de fournir un résumé des tests. Le script fut intégralement
+&lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=a38c85bd5d928115fdd22c9e28e0a7eeebc9878e" target="_blank" rel="noopener">remplacé&lt;/a> par son équivalent &lt;code>pg_regress&lt;/code> réécrit en C à la sortie de la
+version 8.2, pour faciliter notamment :&lt;/p>
+&lt;ul>
+&lt;li>La validation des tests sur un environnement Windows sans émulateur de shell
+tel que &lt;code>mingw&lt;/code>&lt;/li>
+&lt;li>La mise à disposition d&amp;rsquo;un outil prêt à l&amp;rsquo;emploi avec l&amp;rsquo;installation de PostgreSQL,
+sans les dépendances systèmes requises par l&amp;rsquo;ancien script&lt;/li>
+&lt;li>L&amp;rsquo;implémentation de nouvelles améliorations comme l&amp;rsquo;exécution concurrente des
+tests ou un résultat plus conviviale&lt;/li>
+&lt;/ul>
+&lt;p>Lors d&amp;rsquo;une compilation des binaires d&amp;rsquo;une version quelconque de PostgreSQL, il
+est possible de valider tout ou partie des fonctionnalités à l&amp;rsquo;aide de la commande
+&lt;code>make check&lt;/code> ou &lt;code>make installcheck&lt;/code>. La première des deux commandes créée une
+instance temporaire alors que la seconde va exécuter les tests sur une instance
+en cours d&amp;rsquo;exécution.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">make check
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;tmp_install/var/lib/pgsql-14.2/bin:src/test/regress:&lt;/span>&lt;span class="nv">$PATH&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="nv">LD_LIBRARY_PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;tmp_install/var/lib/pgsql-14.2/lib:&lt;/span>&lt;span class="nv">$LD_LIBRARY_PATH&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>../../../src/test/regress/pg_regress &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --temp-instance&lt;span class="o">=&lt;/span>./tmp_check &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --inputdir&lt;span class="o">=&lt;/span>. --bindir&lt;span class="o">=&lt;/span> --dlpath&lt;span class="o">=&lt;/span>. &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --max-concurrent-tests&lt;span class="o">=&lt;/span>&lt;span class="m">20&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --make-testtablespace-dir &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> --schedule&lt;span class="o">=&lt;/span>./parallel_schedule
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">============== removing existing temp instance ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== creating temporary instance ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== initializing database system ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== starting postmaster ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">running on port 58082 with PID 24013
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== creating database &amp;#34;regression&amp;#34; ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE DATABASE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ALTER DATABASE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== running regression test queries ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test tablespace ... ok 165 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">parallel group (20 tests):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boolean ... ok 47 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> char ... ok 40 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> name ... ok 41 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> varchar ... ok 38 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> text ... ok 34 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> int2 ... ok 24 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> int4 ... ok 23 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> int8 ... ok 55 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> oid ... ok 43 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> float4 ... ok 60 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">parallel group (2 tests):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> event_trigger ... ok 59 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> oidjoins ... ok 119 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test fast_default ... ok 71 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test stats ... ok 620 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== shutting down postmaster ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== removing temporary instance ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">=======================
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> All 210 tests passed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">=======================
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="tester-son-extension-avec-pgxs">Tester son extension avec PGXS&lt;/h2>
+&lt;p>En plusieurs années, l&amp;rsquo;outil &lt;code>pg_regress&lt;/code> s&amp;rsquo;est étendu aux fonctionnalités annexes
+du projet PostgreSQL, comme les langages embarqués (&lt;code>plpgsql&lt;/code>, &lt;code>plperl&lt;/code>, etc.) ou
+les contributions communautaires.&lt;/p>
+&lt;p>Le système &lt;a href="https://www.postgresql.org/docs/14/extend-pgxs.html" target="_blank" rel="noopener">PGXS&lt;/a> propose aux membres de la communauté d&amp;rsquo;enrichir leurs
+&lt;code>Makefile&lt;/code> avec des règles de compilation, d&amp;rsquo;installation et de validation par
+&lt;code>pg_regress&lt;/code>. Dans un projet, il est ainsi recommandé d&amp;rsquo;inclure les directives
+du PGXS pour bénéficier de la règle &lt;code>installcheck&lt;/code> responsable des tests.&lt;/p>
+&lt;p>Prenons l&amp;rsquo;exemple de la contribution &lt;code>pgstattuple&lt;/code> avec la définition de son
+&lt;a href="https://github.com/postgres/postgres/blob/REL_14_2/contrib/pgstattuple/Makefile" target="_blank" rel="noopener">Makefile&lt;/a>. Ce dernier contient les quelques variables nécessaires pour la
+compilation et l&amp;rsquo;installation, puis inclut les règles &lt;code>pgxs.mk&lt;/code> si le système
+est utilisé.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># contrib/pgstattuple/Makefile&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">REGRESS&lt;/span> &lt;span class="o">=&lt;/span> pgstattuple
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ifdef USE_PGXS
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">PG_CONFIG&lt;/span> &lt;span class="o">=&lt;/span> pg_config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PGXS :&lt;span class="o">=&lt;/span> &lt;span class="k">$(&lt;/span>shell &lt;span class="k">$(&lt;/span>PG_CONFIG&lt;span class="k">)&lt;/span> --pgxs&lt;span class="k">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">include &lt;span class="k">$(&lt;/span>PGXS&lt;span class="k">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">else&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">subdir&lt;/span> &lt;span class="o">=&lt;/span> contrib/pgstattuple
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">top_builddir&lt;/span> &lt;span class="o">=&lt;/span> ../..
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">include &lt;span class="k">$(&lt;/span>top_builddir&lt;span class="k">)&lt;/span>/src/Makefile.global
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">include &lt;span class="k">$(&lt;/span>top_srcdir&lt;span class="k">)&lt;/span>/contrib/contrib-global.mk
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">endif
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Avec cette configuration par défaut, l&amp;rsquo;outil &lt;code>pg_regress&lt;/code> part à la recherche des
+fichiers &lt;code>sql/&lt;/code> dans le répertoire courant, et les exécute sur l&amp;rsquo;instance pour
+ensuite comparer ses résultats avec les fichiers &lt;code>expected/&lt;/code>. Le contenu du
+fichier &lt;code>expected/pgstattuple.out&lt;/code> peut être consulté directement dans le &lt;a href="https://github.com/postgres/postgres/blob/REL_14_2/contrib/pgstattuple/expected/pgstattuple.out" target="_blank" rel="noopener">code
+source&lt;/a> de PostgreSQL.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">pgstattuple
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── expected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── pgstattuple.out
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── results
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── pgstattuple.out
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── pgstattuple.sql
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Lançons les tests de l&amp;rsquo;extension avec le système PGXS :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">cd&lt;/span> contrib/pgstattuple
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">make &lt;span class="nv">USE_PGXS&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">1&lt;/span> install installcheck
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">./lib/pgxs/src/makefiles/../../src/test/regress/pg_regress \
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --inputdir=./ --bindir=&amp;#39;./bin&amp;#39; \
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --dbname=contrib_regression pgstattuple
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(using postmaster on Unix socket, default port)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== dropping database &amp;#34;contrib_regression&amp;#34; ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">DROP DATABASE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== creating database &amp;#34;contrib_regression&amp;#34; ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE DATABASE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ALTER DATABASE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">============== running regression test queries ==============
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test pgstattuple ... ok 167 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">=====================
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> All 1 tests passed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">=====================
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="pensez-y-">Pensez-y !&lt;/h2>
+&lt;p>Vous souhaitez développer votre propre extension pour révolutionner PostgreSQL ?
+Pensez à écrire vos tests avec le &lt;em>framework&lt;/em> PGXS ! La &lt;a href="https://www.postgresql.org/docs/14/regress-run.html" target="_blank" rel="noopener">documentation&lt;/a> est
+très fournie à ce sujet pour prendre en main les variables d&amp;rsquo;environnement. De
+plus, depuis la version PostgreSQL 9.4, il est possible de bénéficier de standard
+TAP pour &lt;a href="https://www.2ndquadrant.com/en/blog/using-postgresql-tap-framework-extensions/" target="_blank" rel="noopener">rédiger vos tests&lt;/a>.&lt;/p>
+&lt;p>Les extensions sont nombreuses et ce n&amp;rsquo;est jamais une mauvaise idée de s&amp;rsquo;inspirer
+des contributions maintenues dans le projet PostgreSQL. Je recommande également
+la &lt;a href="http://big-elephants.com/2015-10/writing-postgres-extensions-part-i/" target="_blank" rel="noopener">série d&amp;rsquo;articles&lt;/a> rédigée par Manuel Kniep pour comprendre le processus
+complet de l&amp;rsquo;écriture d&amp;rsquo;une extension ou la &lt;a href="https://l_avrot.gitlab.io/slides/postgres-waffles.html" target="_blank" rel="noopener">conférence&lt;/a> de Lætitia Avrot
+sur l&amp;rsquo;extension &lt;a href="https://gitlab.com/l_avrot/pgwaffles" target="_blank" rel="noopener">pgwaffles&lt;/a> créée à l&amp;rsquo;occasion du FOSDEM 2021.&lt;/p></description></item><item><title>Écrire ses tests unitaires en SQL</title><link>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</link><pubDate>Thu, 14 May 2020 17:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/</guid><description>&lt;p>Je ne suis qu&amp;rsquo;un piètre développeur et je n&amp;rsquo;écris pas de tests unitaires. En
 réalité, ce n&amp;rsquo;est ni ma spécialité ni mon cœur de métier. Et pourtant, ma
 curiosité m&amp;rsquo;a mené à découvrir bien tardivement la mouvance &lt;a href="https://fr.wikipedia.org/wiki/Test_driven_development" target="_blank" rel="noopener">TDD&lt;/a> dans la
 conception logicielle et la rigueur d&amp;rsquo;écrire chaque test avant l&amp;rsquo;implémentation
@@ -14,9 +164,540 @@ d&amp;rsquo;une fonctionnalité.&lt;/p>
 &lt;p>Ce fut par hasard et avec grand étonnement, que je suis tombé sur l&amp;rsquo;extension
 &lt;a href="https://pgtap.org/" target="_blank" rel="noopener">pgTAP&lt;/a> il y a plusieurs mois, et l&amp;rsquo;idée de la mettre en application sur une
 instance PostgreSQL me hantait. Je vous propose dans cet article d&amp;rsquo;aborder ce
-&lt;em>framework&lt;/em> de tests avec un cas d&amp;rsquo;usage amusant.&lt;/p></description></item><item><title>Jette ton instance à la poubelle</title><link>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</link><pubDate>Thu, 20 Jun 2019 13:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</guid><description>&lt;p>À des fins de qualité ou de formation, il est très souvent nécessaire d&amp;rsquo;avoir
+&lt;em>framework&lt;/em> de tests avec un cas d&amp;rsquo;usage amusant.&lt;/p>
+&lt;hr>
+&lt;div class="message">Dans le cadre de ma rapide démonstration, j&amp;rsquo;utilise un conteneur docker dont le
+Dockerfile provient des &lt;a href="https://github.com/dalibo/docker-pgtap/blob/master/Dockerfile" target="_blank" rel="noopener">travaux&lt;/a>
+de Damien Clochard.&lt;/div>
+&lt;h2 id="appliquons-une-démarche-de-développement-par-les-tests">Appliquons une démarche de développement par les tests&lt;/h2>
+&lt;p>En France, le mois de mai dispose du plus grand nombre de jours fériés, fait
+qu&amp;rsquo;apprécient grandement les salariés. Comment détermine-t-on en avance la liste
+des jours fériés d&amp;rsquo;une année ? Le jour courant est-il ou non férié ? Pourrait-on
+appliquer une contrainte de colonne pour qu&amp;rsquo;aucune date fériée ne soit insérée
+dans une table en base de données ?&lt;/p>
+&lt;p>Ces questions peuvent être celles qui émergent de la tête d&amp;rsquo;un développeur ou
+d&amp;rsquo;un membre de son équipe, et sont ainsi les premières étapes de la conception
+logicielle avec la rédaction de ces dernières sous la forme de tests unitaires.
+Le principe ultime à respecter dans un développement orienté tests (&lt;em>TDD&lt;/em>) repose
+sur les quelques règles suivantes :&lt;/p>
+&lt;ul>
+&lt;li>Écrire un test qui échoue&lt;/li>
+&lt;li>Écrire l&amp;rsquo;implémentation minimale et s&amp;rsquo;assurer que le test réussisse&lt;/li>
+&lt;li>&lt;a href="https://fr.wikipedia.org/wiki/R%C3%A9usinage_de_code" target="_blank" rel="noopener">Réusiner&lt;/a> l&amp;rsquo;ensemble du code (… oui, c&amp;rsquo;est la traduction du terme &lt;em>refactorer&lt;/em>)&lt;/li>
+&lt;/ul>
+&lt;p>Fort de vouloir respecter cette boucle vertueuse, je rédige dans un fichier
+&lt;code>test.sql&lt;/code> mon premier test unitaire. Il s&amp;rsquo;agit là d&amp;rsquo;utiliser la méthode
+&lt;code>has_function()&lt;/code> fournie par pgTAP pour m&amp;rsquo;assurer qu&amp;rsquo;une fonction est présente
+dans la base de données.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- Nous démarrons une transaction pour l&amp;#39;annuler en fin de test
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">plan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- premier tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">has_function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;is_public_holiday&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;date&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Function is_public_holiday(date) should exist&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- On affiche la synthèse de l&amp;#39;exécution des tests et on annule la transaction
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">finish&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">ROLLBACK&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>À travers mon conteneur, je lance la commande &lt;code>pg_prove&lt;/code> nécessaire pour
+l&amp;rsquo;extension et l&amp;rsquo;exécution des tests renseignés dans le fichier &lt;code>test.sql&lt;/code>. Je
+constate bel et bien un test en erreur : la fonction &lt;code>is_public_holiday&lt;/code> n&amp;rsquo;existe
+pas encore dans mon cycle de développement.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo pg_prove -U postgres test.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. 1/1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Failed test 1: &amp;#34;Function is_public_holiday(date) should exist&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Looks like you failed 1 test of 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. Failed 1/1 subtests
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Test Summary Report
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql (Wstat: 0 Tests: 1 Failed: 1)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Failed test: 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Files=1, Tests=1, 1 wallclock secs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ( 0.04 usr 0.01 sys + 0.04 cusr 0.01 csys = 0.10 CPU)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Result: FAIL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Je m&amp;rsquo;attèle donc à la rédaction de ma fonction, que j&amp;rsquo;ajoute dans un nouveau
+fichier &lt;code>is_public_holiday.sql&lt;/code>. La méthode TDD implique qu&amp;rsquo;un effort minimal
+soit fourni pour passer le test.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REPLACE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">boolean&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">plpgsql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE FUNCTION
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo pg_prove -U postgres test.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All tests successful.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Files=1, Tests=1, 0 wallclock secs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ( 0.02 usr 0.01 sys + 0.05 cusr 0.01 csys = 0.09 CPU)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Result: PASS
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="sommes-nous-un-jour-férié">Sommes-nous un jour férié ?&lt;/h2>
+&lt;p>Bien.&lt;/p>
+&lt;p>Pour dépasser le syndrôme de la page blanche, pourquoi ne pas tenter de s&amp;rsquo;assurer
+que notre fonction retourne parfaitement la valeur &lt;code>true&lt;/code> ou &lt;code>false&lt;/code> selon le jour
+qu&amp;rsquo;on lui passerait en paramètre ? Écrivons un test pour la date du
+1&lt;sup>er&lt;/sup> mai 2020 et un autre pour celle du 12 mai 2020.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- [...]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;2020-05-01&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-05-01 is a public holiday&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;2020-05-12&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-05-12 is not a public holiday&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">--- [...]
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Lançons à présent les tests.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo pg_prove -U postgres test.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. 1/3
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Failed test 2: &amp;#34;2020-05-01 is a public holiday&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># have: false
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># want: true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Looks like you failed 1 test of 3
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. Failed 1/3 subtests
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Test Summary Report
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql (Wstat: 0 Tests: 3 Failed: 1)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Failed test: 2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Files=1, Tests=3, 1 wallclock secs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ( 0.02 usr 0.02 sys + 0.05 cusr 0.01 csys = 0.10 CPU)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Result: FAIL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;un de nos tests est donc en erreur, il faut apporter une évolution à notre
+fonction principale pour tâcher d&amp;rsquo;y remédier. Je suis partisan du moindre effort,
+une comparaison du mois et du jour de notre date suffira. Je me permets donc le
+luxe d&amp;rsquo;un &lt;code>IF&lt;/code> au sein du code.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>C&amp;rsquo;est simple, efficace… et subjectivement très mauvais. Le résultat escompté est
+atteint avec 100% des tests réussis. Mais je commence à entrevoir des problèmes
+de maintenance de code. Poussons les tests plus loin.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE FUNCTION
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo pg_prove -U postgres test.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All tests successful.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Files=1, Tests=3, 0 wallclock secs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ( 0.03 usr 0.00 sys + 0.04 cusr 0.02 csys = 0.09 CPU)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Result: PASS
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="un-peu-de-réusinage-parbleu">Un peu de réusinage, parbleu !&lt;/h2>
+&lt;p>Non content d&amp;rsquo;avoir trouvé une solution fiable pour les jours fériés fixes, je
+poursuis avec un nouveau test pour le 1&lt;sup>er&lt;/sup> janvier.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;2020-01-01&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-01-01 is a public holiday&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et j&amp;rsquo;ajoute au code de ma fonction &lt;code>is_public_holiday&lt;/code>, une nouvelle condition
+&lt;code>IF&lt;/code>. Je me retrouve avec cette immondice, qui me rappelle certaines règles
+logiques issues de (trop) longues procédures stockées PL/SQL, que j&amp;rsquo;eus croisées
+dans une précédente vie.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Mes tests passent correctement mais il est aproprié de s&amp;rsquo;arrêter sur l&amp;rsquo;un des
+principes du développement TDD : le &lt;em>refactoring&lt;/em>, ou l&amp;rsquo;art de simplifier le
+code pour le rendre plus lisible et maintenable. L&amp;rsquo;idée est donc de proposer une
+réécriture de notre fonction &lt;code>is_public_holiday&lt;/code> sans altérer l&amp;rsquo;état des tests.
+C&amp;rsquo;est parti !&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- Type month_day
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">DROP&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TYPE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXISTS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">month_day&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TYPE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">month_day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- Function is_public_holiday(date)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REPLACE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">boolean&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">plpgsql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">month_day&lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">];&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ANY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Dans cette version améliorée, je prends la décision de créer le type &lt;code>month_day&lt;/code>
+qui représente le couple mois/jour afin de réaliser des comparaisons ensemblistes
+avec le mot clé &lt;code>ANY&lt;/code> fourni par le standard SQL. La variable &lt;code>holidays&lt;/code> devient
+alors mon tableau de références contenant les jours fériés fixes de l&amp;rsquo;année.&lt;/p>
+&lt;p>Mes tests restent inchangés pour les dates de 1&lt;sup>er&lt;/sup> janvier
+et du 1&lt;sup>er&lt;/sup> mai.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">DROP TYPE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE TYPE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE FUNCTION
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo pg_prove -U postgres test.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All tests successful.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Files=1, Tests=4, 1 wallclock secs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ( 0.05 usr 0.00 sys + 0.06 cusr 0.01 csys = 0.12 CPU)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Result: PASS
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour m&amp;rsquo;assurer que tous les jours fériés fixes restants dans une année soient bien
+testés, je peux proposer un nouveau test qui les englobe. Par exemple, pour l&amp;rsquo;année
+2020 :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;%s is as public holiday&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">unnest&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-05-08&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-07-14&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-08-15&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-11-01&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-11-11&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-12-25&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">--, &amp;#39;2020-12-26&amp;#39; -- si vous vivez en Alsace-Moselle
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Sans trop de difficulté, et parce que nous avions réalisé avec succès la phase de
+réusinage du code, je peux ajouter l&amp;rsquo;implémentation des nouveaux jours fériés
+dans ma fonction et passer les tests avec succès.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">month_day&lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">14&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">15&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">25&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">--, (12,26) -- si vous vivez en Alsace-Moselle
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">];&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ANY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="les-jours-incroyables-de-la-mort-du-christ">Les jours incroyables de la mort du Christ&lt;/h2>
+&lt;p>Si vous avez bien suivi, il ne manque plus que l&amp;rsquo;implémentation des fameux jours
+du &lt;a href="https://fr.wikipedia.org/wiki/Lundi_de_P%C3%A2ques" target="_blank" rel="noopener">lundi de Pâques&lt;/a>, du &lt;a href="https://fr.wikipedia.org/wiki/Ascension_%28f%C3%AAte%29" target="_blank" rel="noopener">jeudi de l&amp;rsquo;Ascension&lt;/a> et du &lt;a href="https://fr.wikipedia.org/wiki/Pentec%C3%B4te" target="_blank" rel="noopener">lundi de Pentecôte&lt;/a>,
+voire du &lt;a href="https://fr.wikipedia.org/wiki/Vendredi_saint" target="_blank" rel="noopener">Vendredi Saint&lt;/a> pour mes lecteurs assidus du Grand Est. Ces jours
+religieux ont la grande particularité d&amp;rsquo;être différents chaque année mais
+relativisons rapidement, les trois derniers dépendent de la date du lundi de
+Pâques. Rédigeons dès à présent les tests avant d&amp;rsquo;attaquer la partie épineuse de
+mon aventure.&lt;/p>
+&lt;p>Pour la rédaction de ces tests, je souhaiterais m&amp;rsquo;assurer qu&amp;rsquo;une série de lundis
+de Pâques piochés au cours du dernier siècle soient bien identifiés comme des
+jours fériés par ma fonction.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;%s is an easter monday&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">unnest&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1931-04-06&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1945-04-02&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1968-04-15&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1989-03-27&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2000-04-24&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-04-13&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Je ne vous le cache pas, j&amp;rsquo;ai découvert le calcul du jour de Pâques il y a
+plusieurs années, alors même que je devais écrire une fonction en PL/pgSQL selon
+la &lt;a href="https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques_selon_la_m%C3%A9thode_de_Gauss" target="_blank" rel="noopener">méthode de Gauss&lt;/a> pour un système de planification embarqué dans une base
+PostgreSQL. Avec cet article, c&amp;rsquo;est l&amp;rsquo;occasion de la dépoussiérer et lui donner
+l&amp;rsquo;occasion d&amp;rsquo;être mise en lumière. J&amp;rsquo;ajoute à mon code initial, la définition de
+cette nouvelle fonction qui prendra une année en paramètre, requise pour
+déterminer « le &lt;a href="https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques" target="_blank" rel="noopener">dimanche&lt;/a> qui suit la première pleine lune du printemps ».&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REPLACE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">easter_date&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">plpgsql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">g&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">19&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">13&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">25&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">19&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="k">g&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">15&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">30&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">28&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">28&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">29&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">21&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">g&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">l&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">j&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">l&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">40&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">44&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">l&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">28&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">31&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;%s-%s-%s&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Il s&amp;rsquo;agit à présent d&amp;rsquo;intégrer ce calcul dans notre fonction &lt;code>is_public_holiday&lt;/code>
+et satisfaire la comparaison avec nos dates de tests. Nous souhaitons connaître
+la date du lundi de Pâques, et non celle du dimanche fournie par l&amp;rsquo;algorithme
+précédent.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">easter&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">easter_date&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">month_day&lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">14&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">15&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">25&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">];&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">easter&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">easter&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IF&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ANY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Encore une fois, j&amp;rsquo;implémente cette nouvelle règle de comparaison avec le minimum
+d&amp;rsquo;efforts et un bloc &lt;code>IF&lt;/code> comme la fois passée. Les tests se réalisent sans accroc
+pour la sélection préalable des lundis de Pâques.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">DROP TYPE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE TYPE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE FUNCTION
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CREATE FUNCTION
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># docker exec -it pgdemo pg_prove -U postgres test.sql&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All tests successful.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Files&lt;/span>&lt;span class="o">=&lt;/span>1, &lt;span class="nv">Tests&lt;/span>&lt;span class="o">=&lt;/span>16, &lt;span class="m">0&lt;/span> wallclock secs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">(&lt;/span> 0.04 usr 0.01 sys + 0.05 cusr 0.00 &lt;span class="nv">csys&lt;/span> &lt;span class="o">=&lt;/span> 0.10 CPU&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Result: PASS
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;p>Je poursuis les étapes itératives de développement, à savoir : écrire un test en
+erreur, écrire l&amp;rsquo;implémentation, simplifier le code. J&amp;rsquo;en viens à écrire une
+séries de tests pour les dates de l&amp;rsquo;Ascension et de la Pentecôte.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;%s is as ascension day&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">unnest&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1921-05-05&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1940-05-02&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1960-05-26&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1998-05-21&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2011-06-02&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-05-21&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">true&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;%s is pentecost&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">unnest&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1910-05-16&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1928-05-28&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1955-05-30&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1984-06-11&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2003-06-09&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-06-01&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Plutôt que d&amp;rsquo;employer une succession de &lt;code>IF&lt;/code> pour valider ces nouvelles règles,
+je réécris la fonction &lt;code>is_public_holiday&lt;/code> pour enrichir mon tableau de références
+&lt;code>holidays&lt;/code> avec trois nouvelles dates, déterminées à partir du jour de Pâques.
+L&amp;rsquo;astuce consiste à ajouter &lt;code>+1&lt;/code> pour obtenir le lundi de Pâques, &lt;code>+39&lt;/code> pour le
+jeudi de l&amp;rsquo;Ascension et &lt;code>+50&lt;/code> pour le lundi de la Pentecôte. &lt;em>(Pour les régions
+exotiques, le Vendredi Saint aura lieu 2 jours avant Pâques.)&lt;/em>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">year&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">month_day&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">easter&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">easter_date&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">month_day&lt;/span>&lt;span class="p">[]&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">14&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">15&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">11&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">25&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">];&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">month&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">easter&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;month&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">extract&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">day&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">from&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">easter&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;day&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">unnest&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">39&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">50&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">i&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">LOOP&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">array_append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">LOOP&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ANY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">holidays&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et cette fois-ci, nous sommes assurés par nos tests que l&amp;rsquo;ensemble des jours
+fériés seront correctement identifiés par la fonction.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ docker exec -it pgdemo pg_prove -U postgres test.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test.sql .. ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All tests successful.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Files=1, Tests=28, 0 wallclock secs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ( 0.04 usr 0.00 sys + 0.04 cusr 0.02 csys = 0.10 CPU)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Result: PASS
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="la-contrainte-dintégrité-pour-les-jours-fériés">La contrainte d&amp;rsquo;intégrité pour les jours fériés&lt;/h2>
+&lt;p>Pour en finir avec une dernière réflexion, le &lt;em>framework&lt;/em> pgTAP peut également
+être employé pour réaliser des tests de non régression au niveau du modèle de
+données. C&amp;rsquo;est même sa fonction première avec une série de méthodes permettant
+de questionner le catalogue système de la base.&lt;/p>
+&lt;p>Voyons quelques unes d&amp;rsquo;entre-elles avec les exemples suivants.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- Contrôler la présence et bonne définition d&amp;#39;un type
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">has_type&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;month_day&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">col_type_is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;month_day&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;month&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;integer&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">col_type_is&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;month_day&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;day&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;integer&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- Contrôler qu&amp;#39;une contrainte est bien définie sur une table
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">task&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">varchar&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">planned&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">check&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">not&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">is_public_holiday&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">planned&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">col_has_check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;t&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;planned&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- Contrôler qu&amp;#39;une erreur d&amp;#39;intégrité est bien levée
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">throws_ok&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="k">insert&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">into&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">values&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;travailler&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;2020-05-21&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="mi">23514&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c1">-- code d&amp;#39;erreur check_violation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;p>Le &lt;em>framework&lt;/em> existe depuis 2008 et continue son bonhomme de chemin auprès de
+la communauté. Ce n&amp;rsquo;est clairement pas un outil pour un environnement de production,
+mais peut s&amp;rsquo;avérer un bel atout pour les chaînes de développement continu afin
+de s&amp;rsquo;assurer que les migrations applicatives n&amp;rsquo;oublient pas un objet ou une
+relation dans son livrable, ou pire, n&amp;rsquo;en suppriment pas par erreur.&lt;/p>
+&lt;div class="message">J&amp;rsquo;espère que l&amp;rsquo;exemple léger sélectionné par mes soins vous aura plu, et vous
+aura permis de découvrir comme moi un &lt;em>framework&lt;/em> de tests orienté SQL. Si vous
+souhaitez parcourir les fichiers de ma démonstration, ils sont en accès libre sur
+&lt;a href="https://gist.github.com/fljdin/4e4e5257667b3dca7278b05a31751fc3" target="_blank" rel="noopener">gist.github.com/fljdin&lt;/a>.&lt;/div></description></item><item><title>Jette ton instance à la poubelle</title><link>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</link><pubDate>Thu, 20 Jun 2019 13:00:00 +0100</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2019/06/20/jette-ton-instance-a-la-poubelle/</guid><description>&lt;p>À des fins de qualité ou de formation, il est très souvent nécessaire d&amp;rsquo;avoir
 une instance PostgreSQL d&amp;rsquo;une version particulière sur un environnement non
 critique, que l&amp;rsquo;on peut malmener à souhait et à l&amp;rsquo;infini. La communauté Debian
 propose l&amp;rsquo;outil &lt;code>pg_virtualenv&lt;/code> (&lt;a href="https://manpages.debian.org/testing/postgresql-common/pg_virtualenv.1.en.html" target="_blank" rel="noopener">manpage&lt;/a>) pour démarrer
 une instance jettable, tout à fait compatible avec des tests de régression ou
-l&amp;rsquo;exécution de scripts lors d&amp;rsquo;une démonstration.&lt;/p></description></item></channel></rss>
+l&amp;rsquo;exécution de scripts lors d&amp;rsquo;une démonstration.&lt;/p>
+&lt;p>Le package &lt;code>postgresql-common&lt;/code> est une des dépendances du package postgresql toutes
+versions confondues. Par exemple, sur un Ubuntu 16.04 pour la version 11, on peut
+lister les packages qui seront installés en plus de notre instance :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ sudo apt-cache depends postgresql-11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Depends: postgresql-client-11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> postgresql-client-11:i386
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Depends: postgresql-common
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Depends: ssl-cert
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ce package met donc à disposition une série de scripts – dont le préfixe est
+&lt;code>pg_&lt;/code> – qui s&amp;rsquo;appuie sur la détection automatique des binaires de la version la
+plus récente installée, en parcourant le répertoire &lt;code>/usr/lib/postgresql&lt;/code>. On
+retrouve ainsi les script Perl de gestion de clusters propres aux installations
+sous Debian/Ubuntu : &lt;code>pg_lscluster&lt;/code>, &lt;code>pg_upgradecluster&lt;/code> ou &lt;code>pg_ctlcluster&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ sudo dpkg-query -L postgresql-common
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_virtualenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_upgradecluster
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_renamecluster
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_lsclusters
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_dropcluster
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_ctlcluster
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_createcluster
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_conftool
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/bin/pg_config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">package diverts others to: /usr/bin/pg_config.libpq-dev
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le script &lt;code>pg_virtualenv&lt;/code> est la seule exception dans cette série. Il est écrit
+en bash et s&amp;rsquo;appuie sur la commande &lt;code>mktemp&lt;/code> (&lt;a href="https://manpages.debian.org/testing/coreutils/mktemp.1.en.html" target="_blank" rel="noopener">manpage&lt;/a>) pour isoler l&amp;rsquo;utilisateur afin
+qu&amp;rsquo;il n&amp;rsquo;interfère avec aucune instance présente sur le serveur. Pour cela, l&amp;rsquo;outil
+surchage plusieurs variables d&amp;rsquo;environnement (&lt;code>PG_CLUSTER_CONF_ROOT&lt;/code>, &lt;code>PGSYSCONFDIR&lt;/code>,
+&lt;code>LOGDIR&lt;/code>, &lt;code>PWFILE&lt;/code>, &lt;code>PGUSER&lt;/code>, &lt;code>PGPASSWORD&lt;/code>) avant d&amp;rsquo;initialiser une nouvelle
+instance via le script &lt;code>pg_createcluster&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ bash -x /usr/bin/pg_virtualenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">++ mktemp -d -t pg_virtualenv.XXXXXX
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ WORKDIR=/tmp/pg_virtualenv.XjpJku
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ PG_CLUSTER_CONF_ROOT=/tmp/pg_virtualenv.XjpJku/postgresql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ PGUSER=fjardin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ PGSYSCONFDIR=/tmp/pg_virtualenv.XjpJku/postgresql-common
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ mkdir /tmp/pg_virtualenv.XjpJku/postgresql-common /tmp/pg_virtualenv.XjpJku/log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ PWFILE=/tmp/pg_virtualenv.XjpJku/postgresql-common/pwfile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ LOGDIR=/tmp/pg_virtualenv.XjpJku/log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">++ pwgen 20 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ PGPASSWORD=giul8aih3ieviFeef1sh
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ echo giul8aih3ieviFeef1sh
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">+ pg_createcluster -d /tmp/pg_virtualenv.XjpJku/data/11/regress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> -l /tmp/pg_virtualenv.XjpJku/log/postgresql-11-regress.log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --pgoption fsync=off --start 11 regress --
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --username=fjardin --pwfile=/tmp/pg_virtualenv.XjpJku/postgresql-common/pfile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --nosync
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Creating new PostgreSQL cluster 11/regress ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/lib/postgresql/11/bin/initdb --data-checksums --encoding=UTF8
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --username=postgres --pwfile=/var/lib/postgresql/.pwfile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> -D /tmp/pg_virtualenv.XjpJku/data/11/regress --auth-local peer --auth-host md5
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --username=fjardin --pwfile=/tmp/pg_virtualenv.XjpJku/postgresql-common/pwfile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> --nosync
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The files belonging to this database system will be owned by user &amp;#34;fjardin&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This user must also own the server process.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The database cluster will be initialized with locale &amp;#34;en_US.UTF-8&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The default text search configuration will be set to &amp;#34;english&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Data page checksums are enabled.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">fixing permissions on existing directory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> /tmp/pg_virtualenv.XjpJku/data/11/regress ... ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">creating subdirectories ... ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">selecting default max_connections ... 100
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">selecting default shared_buffers ... 128MB
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">selecting dynamic shared memory implementation ... posix
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">creating configuration files ... ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">running bootstrap script ... ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">performing post-bootstrap initialization ... ok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Sync to disk skipped.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The data directory might become corrupt if the operating system crashes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Success. You can now start the database server using:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pg_ctlcluster 11 regress start
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Ver Cluster Port Status Owner Data directory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">11 regress 5432 online fjardin /tmp/pg_virtualenv.PEkXHz/data/11/regress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Log file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/tmp/pg_virtualenv.PEkXHz/log/postgresql-11-regress.log
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et voilà ! Tous les éléments suffisants à l&amp;rsquo;administration de ce cluster temporaire
+&lt;code>regress&lt;/code> se situent soit dans les variables d&amp;rsquo;environnement, soit dans le fichier
+&lt;code>pg_service.conf&lt;/code> de l&amp;rsquo;espace temporaire. Les bases sont donc disponibles par
+l&amp;rsquo;utilisateur courant jusqu&amp;rsquo;à ce que ce dernier quitte l&amp;rsquo;environnement d&amp;rsquo;exécution
+par la commande &lt;code>exit&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ env | grep PG
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PGPORT=5432
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PGUSER=fjardin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PGPASSWORD=oChuaWa8cho6uK5Goono
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PGDATABASE=postgres
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PGHOST=localhost
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PGSYSCONFDIR=/tmp/pg_virtualenv.PEkXHz/postgresql-common
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PG_CLUSTER_CONF_ROOT=/tmp/pg_virtualenv.PEkXHz/postgresql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PG_CONFIG=/usr/lib/postgresql/11/bin/pg_config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ cat $PGSYSCONFDIR/pg_service.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">[11]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">host=localhost
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">port=5432
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dbname=postgres
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">user=fjardin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">password=oChuaWa8cho6uK5Goono
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ exit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Dropping cluster 11/regress ...
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>N&amp;rsquo;étant pas (encore) un féru de développement et du &lt;a href="https://fr.wikipedia.org/wiki/Test_driven_development" target="_blank" rel="noopener">TDD&lt;/a> pour employer l&amp;rsquo;outil
+dans des tests de régressions, j&amp;rsquo;utilise la commande sur un poste Debian/Ubuntu
+ou sur Windows WSL de la même famille pour disposer d&amp;rsquo;une instance prête en
+quelques secondes. Pour obtenir un tel résultat, il suffit d&amp;rsquo;ajouter le bon
+&lt;em>repository&lt;/em> officiel et de lancer l&amp;rsquo;installation dans cet ordre.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">sudo apt-get install -y postgresql-common
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo mkdir /etc/postgresql-common/createcluster.d
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">echo&lt;/span> &lt;span class="nv">create_main_cluster&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">false&lt;/span> &lt;span class="p">|&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> sudo tee /etc/postgresql-common/createcluster.d/ignore_create_cluster.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-get install -y postgresql-10 postgresql-11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo systemctl disable postgresql.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>De cette façon, nous disposons rapidement des packages à jour pour les versions
+10 et 11 sur notre distribution. Les possibilités sont donc nombreuses, comme
+illustrer ses propos lors de présentations ou de formations devant un public,
+valider le contenu d&amp;rsquo;un script SQL livré par son client sur une version spécifique
+ou simplement découvrir les nouvelles fonctionnalités d&amp;rsquo;une version majeure
+fraîchement compilée ou disponible sur le &lt;em>repository&lt;/em> !&lt;/p></description></item></channel></rss>

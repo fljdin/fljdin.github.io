@@ -7,7 +7,426 @@ interpreters.&lt;/p>
 of those kinds of scripts. Some of them have the particularity of offering input
 parameters, processed by SQL*Plus with the very comfortable mechanism named
 variable substitution. In this article, I share some tips to convert them to an
-equivalent syntax that PostgreSQL&amp;rsquo;s psql tool can parse and manage.&lt;/p></description></item><item><title>An assistant to copy data from a remote server</title><link>https://fljd.in/en/2024/05/28/an-assistant-to-copy-data-from-a-remote-server/</link><pubDate>Tue, 28 May 2024 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/05/28/an-assistant-to-copy-data-from-a-remote-server/</guid><description>&lt;p>During the last PGSession organized by Dalibo, I wrote and led a &lt;a href="https://dali.bo/wsfdw_html" target="_blank" rel="noopener">workshop&lt;/a>
+equivalent syntax that PostgreSQL&amp;rsquo;s psql tool can parse and manage.&lt;/p>
+&lt;hr>
+&lt;h2 id="substituting-a-variable">Substituting a variable&amp;hellip;&lt;/h2>
+&lt;p>As a starting point, let&amp;rsquo;s look at the syntax supported by Oracle&amp;rsquo;s tool with a
+progressive example. We stand in the shoes of a user who wants to get the result
+of sales from a dummy company, applying two filters based on a product
+identifier and two dates passed as parameters.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- sqlplus-report-01.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">CONNECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">user&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">password&lt;/span>&lt;span class="o">@&lt;/span>&lt;span class="k">database&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;1&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;2&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;3&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NVL&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">total_amount&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TO_DATE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;start_date&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;YYYY-MM-DD&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TO_DATE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;end_date&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;YYYY-MM-DD&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">QUIT&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> sqlplus -S /nolog @sqlplus-report-01.sql &lt;span class="m">20&lt;/span> 2024-11-01 2024-11-30
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">old 3: WHERE product_id = &amp;amp;product_id
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">new 3: WHERE product_id = 20
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">old 4: AND order_date BETWEEN TO_DATE(&amp;#39;&amp;amp;start_date&amp;#39;, &amp;#39;YYYY-MM-DD&amp;#39;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">new 4: AND order_date BETWEEN TO_DATE(&amp;#39;2024-11-01&amp;#39;, &amp;#39;YYYY-MM-DD&amp;#39;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">old 5: AND TO_DATE(&amp;#39;&amp;amp;end_date&amp;#39;, &amp;#39;YYYY-MM-DD&amp;#39;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">new 5: AND TO_DATE(&amp;#39;2024-11-30&amp;#39;, &amp;#39;YYYY-MM-DD&amp;#39;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="err">&lt;/span>&lt;span class="go">TOTAL_AMOUNT
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> 1378.98
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>As shown above, the substitution takes place in SQL*Plus as soon as the &lt;code>&amp;amp;&lt;/code>
+symbol is encountered, whether its content is surrounded by single quotes or
+not. At the beginning of the script, I applied a simple strategy by defining
+each variable with a meaningful name, to facilitate the readability and
+maintenance of the script. We don&amp;rsquo;t want to rely on variables named according to
+their position in the list of arguments.&lt;/p>
+&lt;hr>
+&lt;p>psql can provide a similar feature, but the syntax is slightly different. We
+have to &lt;a href="https://psql-tips.org/psql_tips_all.html#tip037" target="_blank" rel="noopener">assign&lt;/a> variables outside the script, using the &lt;code>-v&lt;/code> or &lt;code>--set&lt;/code>
+option. These variables will then be substituted in the script using the
+&lt;a href="https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-INTERPOLATION" target="_blank" rel="noopener">interpolation&lt;/a> system.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- psql-report-01.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">pset&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">footer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">off&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">COALESCE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">total_amount&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;start_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;end_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -f psql-report-01.sql &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">product_id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">20&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">start_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-01&amp;#39;&lt;/span> -v &lt;span class="nv">end_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-30&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> total_amount
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">--------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> 1378.98
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>From this point, we can see that the conversion is quite straightforward. The
+substitution syntax is similar with the &lt;code>:&lt;/code> character instead of &lt;code>&amp;amp;&lt;/code>. However,
+if the variable states as a literal string, we must use the &lt;code>:&lt;/code> character
+outside the quotes and not inside.&lt;/p>
+&lt;hr>
+&lt;h2 id="-in-an-anonymous-block">&amp;hellip; in an anonymous block&lt;/h2>
+&lt;p>Things get complicated when the script becomes more complex and requires us to
+manipulate our previous variables in an anonymous PL/SQL block. Let&amp;rsquo;s take our
+script back to enhance it with a personalized message if the requested product
+does not exist. A first read on the &lt;code>products&lt;/code> table should eventually raise the
+&lt;code>NO_DATA_FOUND&lt;/code> exception that we want to catch.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- sqlplus-report-02.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">CONNECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">user&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">password&lt;/span>&lt;span class="o">@&lt;/span>&lt;span class="k">database&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;1&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;2&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;3&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">serveroutput&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">feedback&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OFF&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">verify&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OFF&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="k">TYPE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">NUMBER&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TO_DATE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;start_date&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;YYYY-MM-DD&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TO_DATE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;end_date&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;YYYY-MM-DD&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NVL&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">DBMS_OUTPUT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">PUT_LINE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Total amount: &amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">EXCEPTION&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NO_DATA_FOUND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">DBMS_OUTPUT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">PUT_LINE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Product &amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39; does not exist&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">QUIT&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> sqlplus -S /nolog @sqlplus-report-02.sql &lt;span class="m">120&lt;/span> 2024-11-01 2024-11-30
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Product 120 does not exist
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;p>Unfortunately, our beloved psql command-line interface does not support the
+ubstitution of variables in an anonymous block and any attempt to do so will
+result in a syntax error.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- psql-report-02-wrong.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">DO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="k">TYPE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;start_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;end_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">STRICT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">COALESCE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">RAISE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NOTICE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Total amount: %&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">EXCEPTION&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">no_data_found&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">RAISE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NOTICE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Product % does not exist&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -f psql-report-02-wrong.sql &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">product_id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">120&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">start_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-01&amp;#39;&lt;/span> -v &lt;span class="nv">end_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-30&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">psql:psql-report-02-wrong.sql:25: ERROR: syntax error at or near &amp;#34;:&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">LINE 5: p_start date := :&amp;#39;start_date&amp;#39;::date;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> ^
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Do not panic! psql provides us with a way to achieve the same result, with a
+deeper rewrite of the script. We will use the &lt;code>\gset&lt;/code> meta-command to store the
+product state and then the &lt;code>\if&lt;/code> meta-command to perform the control.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- psql-report-02.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">pset&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">footer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">off&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXISTS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">unknown_product&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gset&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">unknown_product&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">echo&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Product&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;does not exist&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">quit&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">endif&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">COALESCE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">total_amount&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;start_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;end_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -f report.sql &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">product_id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">120&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">start_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-01&amp;#39;&lt;/span> -v &lt;span class="nv">end_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-30&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Product 120 does not exist
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="-at-any-costs">&amp;hellip; at any costs&lt;/h2>
+&lt;p>In the wild, it may happen that psql meta-commands are not enough to handle all
+the intricacies (and absurdities) that SQL*Plus-compatible scripts can present.
+Let&amp;rsquo;s move on with a more complex need we want to address.&lt;/p>
+&lt;p>Our user now wants to get a performance score for the sales period of his
+product, comparing it with the previous period. We would need a cursor here to
+reuse the same sales calculation query multiple times and a function to compute
+a score by handling the possible division by zero.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- sqlplus-report-03.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">CONNECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">user&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">password&lt;/span>&lt;span class="o">@&lt;/span>&lt;span class="k">database&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;1&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;2&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">DEF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;3&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">serveroutput&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">feedback&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OFF&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">verify&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OFF&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="k">TYPE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">NUMBER&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">NUMBER&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TO_DATE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;start_date&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;YYYY-MM-DD&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">TO_DATE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;&amp;amp;end_date&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;YYYY-MM-DD&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CURSOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">v_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">DATE&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IS&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">total_amount&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_end&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">score&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">NUMBER&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">NUMBER&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">NUMBER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IS&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_score&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">NUMBER&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ROUND&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">EXCEPTION&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ZERO_DIVIDE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FETCH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CLOSE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_prev_start&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_end&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FETCH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CLOSE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">DBMS_OUTPUT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">PUT_LINE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Total amount: &amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">DBMS_OUTPUT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">PUT_LINE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Performance score: &amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">score&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="p">));&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">EXCEPTION&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NO_DATA_FOUND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">DBMS_OUTPUT&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">PUT_LINE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Product &amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39; does not exist&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">QUIT&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> sqlplus -S /nolog @sqlplus-report-03.sql &lt;span class="m">20&lt;/span> 2024-11-01 2024-11-30
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Total amount: 1378.98
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Performance score: 162.99
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Of course, the example is deliberately simplistic and could be addressed by a
+&lt;a href="https://fljd.in/en/2024/12/17/window-functions-to-the-rescue/">window function&lt;/a>, but we will play the game of converting the script as
+close as possible to its original syntax. To do this, let&amp;rsquo;s identify the
+weaknesses of PL/pgSQL.&lt;/p>
+&lt;hr>
+&lt;p>&lt;strong>Temporary routines are not supported&lt;/strong>&lt;/p>
+&lt;p>PL/pgSQL language does not allow the declaration of stored functions or storeed
+procedures inside an anonymous block. The only alternative is to define it
+globally, so that it is known to the parser and executed correctly. In this
+present case, I do not want the function to persist after the call of my script.
+No problem, we can create a temporary function in the &lt;code>pg_temp&lt;/code> schema!&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- temp-function.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">DO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_temp&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">score&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">plpgsql&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">func$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ROUND&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">EXCEPTION&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">division_by_zero&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">func$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">RAISE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NOTICE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Score: %&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_temp&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">score&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">50&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">RAISE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NOTICE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Score: %&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_temp&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">score&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -f temp-function.sql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">psql:temp-function.sql:16: NOTICE: Score: 100.00
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">psql:temp-function.sql:16: NOTICE: Score: &amp;lt;NULL&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">DO
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>pg_temp.score(numeric, numeric)&lt;/code> function is now accessible within the
+block, and only for the duration of the session. Exception handling respects the
+expressed need. We just had to replace &lt;code>ZERO_DIVIDE&lt;/code> with &lt;code>division_by_zero&lt;/code> as
+describe in the &lt;a href="https://www.postgresql.org/docs/current/errcodes-appendix.html" target="_blank" rel="noopener">documentation&lt;/a>.&lt;/p>
+&lt;p>&lt;strong>SQL substitution is not supported&lt;/strong>&lt;/p>
+&lt;p>Our main issue strikes back: substitution does not occur when we are in a
+PL/pgSQL block. To work around this limitation, we will have to use the &lt;a href="https://www.postgresql.org/docs/current/runtime-config-custom.html" target="_blank" rel="noopener">custom
+session variables&lt;/a> made available for the PostgreSQL extension ecosystem.&lt;/p>
+&lt;p>Those variables can be manipulated as well in psql with the &lt;code>SET&lt;/code> keyword as in
+SQL or PL/pgSQL with the &lt;a href="https://pgpedia.info/c/current_setting.html" target="_blank" rel="noopener">&lt;code>current_setting&lt;/code>&lt;/a> and &lt;a href="https://pgpedia.info/s/set_config.html" target="_blank" rel="noopener">&lt;code>set_config&lt;/code>&lt;/a> functions.
+The only constraint is to define a prefix that does not conflict with that of
+other variables already declared in our instance.&lt;/p>
+&lt;p>It means that our parameters can be set as session variables in the very
+beginning of the script. As soon as we are in an anonymous block, we must then
+assign them back to regular variables as shown in the following code:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">my_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">current_setting&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my.product_id&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">current_setting&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my.start_date&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">current_setting&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my.end_date&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>Full conversion&lt;/strong>&lt;/p>
+&lt;p>A new version of the script, converted from PL/SQL to PL/pgSQL, can be obtained
+with all previous tricks put together:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- psql-report-03.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="k">set&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">QUIET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">on&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;start_date&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;end_date&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">my_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">current_setting&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my.product_id&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="k">TYPE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">current_setting&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my.start_date&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">current_setting&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;my.end_date&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">interval&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1 day&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">interval&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1 day&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">CURSOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">v_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_end&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IS&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">COALESCE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_end&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_temp&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">score&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">numeric&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">plpgsql&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">func$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ROUND&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">EXCEPTION&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">division_by_zero&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">func$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">STRICT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_start&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_end&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FETCH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CLOSE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_prev_start&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_end&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FETCH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CLOSE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">c_orders&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">RAISE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NOTICE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Total amount: %&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">RAISE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NOTICE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Performance score: %&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_temp&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">score&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p_sum&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">p_prev_sum&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">EXCEPTION&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">no_data_found&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">RAISE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">NOTICE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Product % does not exist&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">my_id&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -f psql-report-03.sql&lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">product_id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">20&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">start_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-01&amp;#39;&lt;/span> -v &lt;span class="nv">end_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-30&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">psql:psql-report-03.sql:55: NOTICE: Total amount: 1378.98
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">psql:psql-report-03.sql:55: NOTICE: Performance score: 162.99
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>This kind of rewriting becomes affordable when we know the right tricks, without
+losing sight of the initial goal. Of course, a one-to-one translation, by
+preserving the syntax and the original intent, could be more challenging than
+that blog post example.&lt;/p>
+&lt;p>I&amp;rsquo;m a bit skeptical about those who want to keep such development practices.
+They seem outdated to me. Isn&amp;rsquo;t migrating to PostgreSQL an opportunity to
+modernize our codebase or to question our relationship with technology? In our
+example, as I previously mentioned, it is possible to get the same result in a
+single SQL, combining meta-commands, variables substitution, common-table
+expressions, and a the &lt;code>LAG&lt;/code> window function.&lt;/p>
+&lt;p>In that way, we throw away the PL/pgSQL block and its limitations.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- psql-report-04.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">pset&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">footer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">off&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXISTS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">products&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">unknown_product&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gset&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="k">if&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">unknown_product&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">echo&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Product&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;does not exist&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">quit&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">endif&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;end_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;start_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">days&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gset&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;start_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">days&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prev_start&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gset&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">periods&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">days&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1 day&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">interval&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">generate_series&lt;/span>&lt;span class="p">(:&lt;/span>&lt;span class="s1">&amp;#39;prev_start&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="s1">&amp;#39;start_date&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">date&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">days&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1 day&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">interval&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">d&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">amounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">COALESCE&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">total_amount&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">LAG&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">amount&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">OVER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">ORDER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prev_total_amount&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">periods&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">order_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BETWEEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">end_date&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">product_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">GROUP&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">start_date&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">total_amount&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">ROUND&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="n">total_amount&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prev_total_amount&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">prev_total_amount&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">performance_score&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">amounts&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">prev_total_amount&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -f psql-report-04.sql&lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">product_id&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">20&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span>&lt;span class="gp">$&lt;/span> -v &lt;span class="nv">start_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-01&amp;#39;&lt;/span> -v &lt;span class="nv">end_date&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;2024-11-30&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> total_amount | performance_score
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">--------------+-------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> 1378.98 | 162.99
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="message">You can find all the scripts of this article, as well as the DDL commands to
+the data model, at this &lt;a href="https://gist.github.com/fljdin/45d9ece1c9aba054c85cfbede09c95fd" target="_blank" rel="noopener">address&lt;/a>.&lt;/div></description></item><item><title>An assistant to copy data from a remote server</title><link>https://fljd.in/en/2024/05/28/an-assistant-to-copy-data-from-a-remote-server/</link><pubDate>Tue, 28 May 2024 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/05/28/an-assistant-to-copy-data-from-a-remote-server/</guid><description>&lt;p>During the last PGSession organized by Dalibo, I wrote and led a &lt;a href="https://dali.bo/wsfdw_html" target="_blank" rel="noopener">workshop&lt;/a>
 (french) on the migration to PostgreSQL using Foreign Data Wrappers, or FDW.
 This was an opportunity to present to the general public the &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">&lt;code>db_migrator&lt;/code>&lt;/a>
 extension for which I wrote an &lt;a href="https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/">article&lt;/a> on this blog.&lt;/p>
@@ -17,7 +436,288 @@ low-level function to distribute the transfer table by table over several
 processes, many situations will require writing a large number of SQL queries to
 get out of trouble. Over the following months, I worked on the design of an
 &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> written in PL/pgSQL whose purpose is to simplify the generation
-of these queries.&lt;/p></description></item><item><title>Transfer modes in a migration</title><link>https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/</link><pubDate>Sat, 11 Nov 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/</guid><description>&lt;p>In computer science, a migration project involves changing one or more technical
+of these queries.&lt;/p>
+&lt;hr>
+&lt;h2 id="data-transfer-without-an-assistant">Data transfer without an assistant&lt;/h2>
+&lt;p>There is no magic in the operation of copying data through a Foreign Data
+Wrapper. Everything boils down to a series of &lt;code>INSERT&lt;/code> queries that must be
+executed in a predefined order. Let&amp;rsquo;s take the 16 tables of the well-known
+&amp;ldquo;Sakila&amp;rdquo; data model (available at this &lt;a href="https://github.com/ivanceras/sakila/raw/master/mysql-sakila-db" target="_blank" rel="noopener">address&lt;/a>) to illustrate the need for
+generating transfer queries.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-05-28-sakila-erp.jpg" alt="ERD Base Sakila">&lt;/p>
+&lt;p>For the purpose of this article, I have a PostgreSQL database with the two
+following schemas that I will use in my demonstrations:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>mysql&lt;/code>: the source schema containing the definition of the external tables
+via the &lt;code>mysql_fdw&lt;/code> extension;&lt;/li>
+&lt;li>&lt;code>public&lt;/code>: the target schema where the data will be copied.&lt;/li>
+&lt;/ul>
+&lt;p>Each external table is subject to a quick study to obtain the correct column
+type match, and their definition is kept in an SQL file for the project teams.
+For example, the &lt;code>rental&lt;/code> foreign tables is defined as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOREIGN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">rental&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">rental_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">rental_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">without&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">zone&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">inventory_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">customer_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">smallint&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">return_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">without&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">zone&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">staff_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">smallint&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">last_update&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">without&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">zone&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">SERVER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">sakila_mysql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">OPTIONS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">dbname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;sakila&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">table_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;rental&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>When creating the &lt;code>public.rental&lt;/code> table that will host the data, it is
+opportune to decide whether we want to set up partitioning, something that
+&lt;code>db_migrator&lt;/code> is able to identify and set up. For the example, I take back the
+strict structure using the &lt;code>CREATE TABLE LIKE&lt;/code> syntax to create all my target
+tables.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">LIKE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">LIKE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Even before setting up an &lt;code>INSERT&lt;/code> query generator, it is easy to see the look
+of these queries. Each line of the external table will be read through a global
+&lt;code>SELECT&lt;/code>, then inserted into the target table. The migration script contains 16
+instructions, one for each table.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- insert.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">store&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">store&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>To benefit from several processes, I appreciate the &lt;code>xargs&lt;/code> tool which allows
+distributing each line of the &lt;code>insert.sql&lt;/code> file on a new &lt;code>psql&lt;/code> session. This
+technique was presented in the February workshop, especially to parallelize the
+construction of indexes and primary keys, defined in an SQL file.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> xargs -P &lt;span class="m">4&lt;/span> -a insert.sql -d &lt;span class="s1">&amp;#39;\n&amp;#39;&lt;/span> -I % sh -c &lt;span class="s1">&amp;#39;psql -c &amp;#34;%&amp;#34;&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INSERT 0 16
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INSERT 0 603
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">...
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INSERT 0 16044
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This method is not perfect, it lacks verbosity, the SQL queries are static.
+Anyway, let&amp;rsquo;s see the next part to discover what my assistant can bring.&lt;/p>
+&lt;hr>
+&lt;h2 id="demonstration-of-the-assistant">Demonstration of the assistant&lt;/h2>
+&lt;p>Unlike my other PL/pgSQL projects, this &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> is not an extension and
+must be installed as a simple script. Once downloaded, it is sufficient to
+invoke it on the database of your choice with the following command:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -d sakila -f fdw-assistant.sql
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The default schema is named &lt;code>assistant&lt;/code> and contains a &lt;strong>configuration&lt;/strong> table
+simply called &lt;code>config&lt;/code>. For each table to be migrated, one must insert a single
+line that will serve as the starting point for generating data migration
+queries. In the current version, we find the following parameters:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>source&lt;/code>: the external table containing the data to be copied;&lt;/li>
+&lt;li>&lt;code>target&lt;/code>: the target table where the data will be copied;&lt;/li>
+&lt;li>&lt;code>pkey&lt;/code>: the primary key column of the target table;&lt;/li>
+&lt;li>&lt;code>priority&lt;/code>: the lowest values define the tables to be processed first;&lt;/li>
+&lt;li>&lt;code>parts&lt;/code>: the number of processes to launch for copying the data;&lt;/li>
+&lt;li>&lt;code>trunc&lt;/code>: an option to empty the target table before copying the data;&lt;/li>
+&lt;li>&lt;code>condition&lt;/code>: a &lt;code>WHERE&lt;/code> clause to filter the data to be copied;&lt;/li>
+&lt;li>&lt;code>batchsize&lt;/code>: the number of rows to copy before performing an intermediate
+&lt;code>COMMIT&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>To initialize this table in the first instance, it is necessary to know at least
+the primary key columns of each remote table. By reporting the information from
+the relational diagram of the Sakila database, we can fill the &lt;code>config&lt;/code> table as
+follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">source&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pkey&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mysql.actor&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.actor&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;actor_id&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mysql.address&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.address&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;address_id&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mysql.store&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.store&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;store_id&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>For each transfer, we indicate the source and target table, as well as the
+primary key column. The latter is required to sort the rows, split the transfer
+into several batches, and restart the transfer in case of interruption.&lt;/p>
+&lt;p>With this configuration, we can move on to the &lt;strong>planning&lt;/strong> step. The &lt;code>stage&lt;/code>
+and &lt;code>job&lt;/code> tables are fed with new elements that will be used to drive and track
+the different transfers to be done.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">plan&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> target | invocation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------------+--------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customer | CALL assistant.copy(1);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> address | CALL assistant.copy(2);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(16 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A view named &lt;code>report&lt;/code> allows you to follow the progress of the different steps
+by joining the &lt;code>stage&lt;/code> and &lt;code>job&lt;/code> tables. It provides very useful elements to
+monitor the progress and throughput of the transfers.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">state&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">rows&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">report&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> target | state | rows
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------------+---------+------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rental | pending | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actor | pending | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(16 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Rows returned by the &lt;code>plan()&lt;/code> command can then be &lt;strong>invoked&lt;/strong> one after the
+other with the &lt;code>\gexec&lt;/code> meta-command of &lt;code>psql&lt;/code>, or by using the file technique
+and distributing the queries with &lt;code>xargs&lt;/code>.&lt;/p>
+&lt;p>Calling the &lt;code>copy()&lt;/code> method is responsible for building the &lt;code>INSERT&lt;/code> statement
+for copying data from a remote table to a local table. For example, for the
+&lt;code>customer&lt;/code> table, the result of the call will be as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">NOTICE: Executing: TRUNCATE public.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: SELECT count(customer_id) FROM mysql.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE customer_id &amp;gt; 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: INSERT INTO public.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SELECT customer_id, store_id, first_name, last_name, email,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> address_id, active, create_date, last_update
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE customer_id &amp;gt; 0 ORDER BY customer_id
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>At the end of the transfer, the &lt;code>report&lt;/code> view provides a summary of the operation.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">report&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.customer&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]-------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">stage_id | 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">target | public.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">job_start | 2024-05-28 10:19:18.334917
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">state | completed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rows | 599
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">total | 599
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">elapsed | 00:00:00.081273
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rate | 7370.22
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">progress | 1.00
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">eti | 00:00:00
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">eta | 2024-05-28 10:19:18.334917
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="distribution-over-several-processes">Distribution over several processes&lt;/h2>
+&lt;p>As the assistant was designed, I felt the need to enrich the underlying queries
+to respond to other recurring use cases in the data migration domain. Among
+these, we find the ability to distribute the rows of the same table over several
+sessions, each with a &lt;code>WHERE&lt;/code> clause based on the result of the Euclidean
+division (&lt;em>modulo&lt;/em>) of the primary key.&lt;/p>
+&lt;p>To activate this feature, simply fill in the &lt;code>parts&lt;/code> parameter in the &lt;code>config&lt;/code>
+table. For example, for the &lt;code>film&lt;/code> table, we can define:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">parts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.film&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This configuration takes effect during the next planning. The call to the
+&lt;code>plan()&lt;/code> method then inserts four lines into the &lt;code>job&lt;/code> table for the &lt;code>film&lt;/code>
+table, each attached to a value between 0 and 3. The &lt;code>condition&lt;/code> column is then
+enriched for the rows of the &lt;code>task&lt;/code> table in view of the next step.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">invocation&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">plan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;{public.film}&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> invocation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(17);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(18);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(19);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(20);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(4 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">job_id&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">job&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">state&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">part&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">condition&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">job&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">task&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">job_id&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> job_id | target | state | part | condition
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------+--------+---------+------+-----------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 17 | film | pending | 0 | film_id % 4 = 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 18 | film | pending | 1 | film_id % 4 = 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 19 | film | pending | 2 | film_id % 4 = 2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 20 | film | pending | 3 | film_id % 4 = 3
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>When calling the &lt;code>copy()&lt;/code> method, the assistant builds the &lt;code>INSERT&lt;/code> queries
+based on the conditions previously defined. For example, for the first part of
+the &lt;code>film&lt;/code> table, the trace indicates the &lt;code>INSERT&lt;/code> queries that were generated.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">17&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">NOTICE: Executing: TRUNCATE public.film
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: SELECT count(film_id) FROM mysql.film
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE film_id &amp;gt; 0 AND film_id % 4 = 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: INSERT INTO public.film
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SELECT film_id, title, description, release_year,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> language_id, original_language_id, rental_duration,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rental_rate, length, replacement_cost, rating,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> special_features, last_update
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.film WHERE film_id &amp;gt; 0 AND film_id % 4 = 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ORDER BY film_id
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>TRUNCATE&lt;/code> operation only occurs for the session whose value of &lt;code>part&lt;/code> is
+equal to 0. In the nominal case, this session is launched before all the others
+to respect the expected behavior in the configuration with the &lt;code>trunc&lt;/code> column
+(&lt;code>true&lt;/code> by default).&lt;/p>
+&lt;p>The obvious interest of this method is to obtain the best insertion rate for a
+given table, relying on the extraction power of the remote server and the
+writing capacity of the local server. The rate can be consulted with the
+&lt;code>report&lt;/code> view, especially to compare two loads for the same table, like the
+example of the &lt;code>film&lt;/code> table. The &lt;code>rate&lt;/code> column is expressed in number of rows
+per second.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">state&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">rate&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">report&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.film&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> stage_id | target | state | rate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">----------+-------------+-----------+----------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1 | public.film | completed | 19162.59
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2 | public.film | completed | 51389.37
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="restart-after-interruption">Restart after interruption&lt;/h2>
+&lt;p>The ability to restart a copy in batch mode in case of interruption is one of
+the reasons why the primary key must be filled in the configuration. The
+assistant relies on the last extracted primary key value (using a &lt;code>RETURNING&lt;/code>
+clause) to know the next restart point. In designing this feature, I had to
+arbitrate the limitations imposed by this mechanism.&lt;/p>
+&lt;ul>
+&lt;li>Composite primary keys are not allowed, as the &lt;code>RETURNING&lt;/code> clause can only
+return a single value;&lt;/li>
+&lt;li>Tables with composite primary keys cannot benefit from batch processing, and
+therefore cannot be restarted after interruption;&lt;/li>
+&lt;li>Data is systematically sorted during extraction, even if batch processing is
+not enabled;&lt;/li>
+&lt;li>The primary key column must be of numeric type.&lt;/li>
+&lt;/ul>
+&lt;p>The activation of a batch processing consists of updating the &lt;code>batchsize&lt;/code> column
+of the configuration table. Let&amp;rsquo;s take the example of the &lt;code>rental&lt;/code> table:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">batchsize&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.rental&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">invocation&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">plan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;{public.rental}&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> invocation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(21);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(1 row)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The data transfer from the &lt;code>rental&lt;/code> table is then divided into batches of 1000
+rows. It is of course possible to combine this technique with parallelization,
+the &lt;code>WHERE&lt;/code> clause will do most of the work of repartition to prevent the same
+line from being exported twice.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">21&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">TRUNCATE public.rental
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">SELECT count(rental_id) FROM mysql.rental WHERE rental_id &amp;gt; 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 0 ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 16005 ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 16049 ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>As soon as a query no longer returns any rows, the assistant considers that the
+transfer is complete. The &lt;code>job&lt;/code> table is updated at each iteration to follow the
+last value of the primary key sequence.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lastseq&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">job&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.rental&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> target | lastseq
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------------+---------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public.rental | 16049
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>In case of interruption, it is possible to restart the transfer by calling the
+&lt;code>copy()&lt;/code> method with the same task identifier. The assistant takes care of
+resuming the transfer from the last known primary key value.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">21&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">NOTICE: Executing: SELECT count(rental_id) FROM mysql.rental
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE rental_id &amp;gt; 16049
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 16049
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>The design of such a tool was a small personal challenge in line with my
+&lt;a href="https://fljd-in.translate.goog/2021/12/06/migrer-vers-postgresql/?_x_tr_sl=en&amp;amp;_x_tr_tl=fr&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">research&lt;/a> on migration to PostgreSQL with the exclusive help of Foreign Data
+Wrappers. My main source of inspiration remains the &lt;a href="https://github.com/fljdin/dispatch" target="_blank" rel="noopener">Ora2Pg&lt;/a> project, one of
+the most advanced open-source tools to date in the field of migration.&lt;/p>
+&lt;p>I am aware of the technical limitations of this assistant, and the tinkering
+that remains to be done to make life easier for a consultant like me. In another
+article, I would like to present another tool called &lt;a href="https://github.com/fljdin/dispatch" target="_blank" rel="noopener">dispatch&lt;/a> that I have
+been maintaining for some time and with which I answer questions about
+orchestration and traceability of migration steps.&lt;/p>
+&lt;p>By taking a step back, the basic concepts are there, any other tool in other
+languages could perfectly emerge and enrich the open-source ecosystem in the
+quest for migration to PostgreSQL.&lt;/p></description></item><item><title>Transfer modes in a migration</title><link>https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/</link><pubDate>Sat, 11 Nov 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2023/11/11/transfer-modes-in-a-migration/</guid><description>&lt;p>In computer science, a migration project involves changing one or more technical
 components without impacting any application behaviors. In the realm of
 databases (and the profession I practice), it will involve choosing a new system
 (such as PostgreSQL) to replace another (such as Oracle or Microsoft SQL
@@ -25,4 +725,164 @@ Server).&lt;/p>
 &lt;p>In a &lt;a href="https://fljd.in/2021/12/06/migrer-vers-postgresql/">previous article&lt;/a> (French), I described exhaustive steps to perform a
 complete migration using Foreign Data Wrappers technology. However, the critical
 data transfer step described there does not suit all situations. Let&amp;rsquo;s explore
-together the alternatives that cover a large portion of the needs.&lt;/p></description></item></channel></rss>
+together the alternatives that cover a large portion of the needs.&lt;/p>
+&lt;div class="message">The illustrations in this article depict a simple migration project scenario
+where data is transferred from one system to another between two data centers
+(&lt;em>dc1&lt;/em> to &lt;em>dc2&lt;/em>). In a situation where the data does not leave the hosting
+infrastructure, it is a straightforward transfer between two separate servers.&lt;/div>
+&lt;hr>
+&lt;h2 id="transfer-without-a-network">Transfer without a network&lt;/h2>
+&lt;p>&lt;img src="https://fljd.in/img/en/2023-10-networkless-transfer.png" alt="Indirect transfer between two systems">&lt;/p>
+&lt;p>Several reasons can justify that the two servers are not in direct connection
+with each other. This includes the prohibition of opening access to the source
+instance from the internet or the complexity of configuring a secure link (VPN)
+between the two infrastructures.&lt;/p>
+&lt;p>In such a scenario, it becomes necessary to dump the data outside the database
+while ensuring the consistency of the data. A physical backup of the database or
+an export in SQL format are reliable means to consolidate a complete archive of
+the database.&lt;/p>
+&lt;p>The transfer step is carried out according to the imagination of the teams. The
+simplest method is to transfer to an SFTP repository provided by the second data
+center or any other protocol that checks the integrity of the archive once
+transferred. The most unlikely method I have observed was the physical movement
+of a copy of the archive by a specialized courier company, by car, scooter, or
+plane depending on the distance to cover.&lt;/p>
+&lt;p>Once the archive is received by the teams and deemed intact, it may be necessary
+to import the data into a buffer database, provided that the file format (SQL or
+proprietary) is not yet compatible with PostgreSQL. From this precise moment, it
+is then possible to import the data into the target database respecting the
+order of object creations and data insertion.&lt;/p>
+&lt;p>&lt;strong>Operation Summary&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Very high&lt;/strong> downtime (from several hours to several days);&lt;/li>
+&lt;li>Implementation complexity is &lt;strong>low&lt;/strong> with the right tools;&lt;/li>
+&lt;li>Risk of data consistency issues is &lt;strong>very low&lt;/strong> if integrity checks are
+performed at each step.&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="transfer-with-intermediary">Transfer with intermediary&lt;/h2>
+&lt;p>&lt;img src="https://fljd.in/img/en/2023-10-intermediary-transfer.png" alt="Indirect transfer with an ETL">&lt;/p>
+&lt;p>When the systems are hosted in the same location, setting up routing rules
+allows for easier connection between the two servers. Among the migration tools,
+we find the family of ETL (Extract Transform Load) tools that act as
+intermediaries between the two databases.&lt;/p>
+&lt;p>These tools provide a large number of connection drivers as well as data
+transformation methods to orchestrate migration without the need to export any
+table to a flat file. The bulk of the work is done in memory and with the help
+of multiple processors to speed up transfer operations.&lt;/p>
+&lt;p>Although specialized for migrations to PostgreSQL, I classify the open-source
+tool &lt;a href="ora2pg.darold.net/">Ora2Pg&lt;/a> in the category of ETL. It precisely meets the previous
+definition by opening multiple connections to the source instance to read tables
+in batches of 10,000 rows (using the &lt;code>DATA_LIMIT&lt;/code> directive) and opening other
+connections to the target instance to insert them with &lt;code>COPY&lt;/code> instructions,
+thanks to the &lt;a href="https://metacpan.org/pod/DBD::Pg#pg_putcopydata" target="_blank" rel="noopener">&lt;code>pg_putcopydata&lt;/code>&lt;/a> method of the &lt;code>DBD::Pg&lt;/code> driver.&lt;/p>
+&lt;p>&lt;strong>Operation Summary&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>High&lt;/strong> downtime (several hours);&lt;/li>
+&lt;li>&lt;strong>Low&lt;/strong> implementation complexity with the right tools;&lt;/li>
+&lt;li>&lt;strong>Very low&lt;/strong> risk to data consistency.&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="direct-transfer">Direct transfer&lt;/h2>
+&lt;p>&lt;img src="https://fljd.in/img/en/2023-10-direct-transfer.png" alt="Direct transfer">&lt;/p>
+&lt;p>This mode should feel familiar if you are a regular reader (subscribe!) because
+direct transfer between a third-party system and PostgreSQL relies on the
+technology of Foreign Data Wrappers.&lt;/p>
+&lt;p>This solution opens a direct channel between the PostgreSQL instance and the
+remote instance through external tables. Thus, it becomes possible to query the
+data with SQL, provided that a wrapper has been developed to communicate with
+the correct driver.&lt;/p>
+&lt;p>The extraction, transfer, and insertion operations are performed in the same
+transaction: it&amp;rsquo;s a simple &lt;code>INSERT INTO SELECT&lt;/code> query. This method is
+&lt;a href="https://www.migops.com/blog/ora2pg-now-supports-oracle_fdw-to-increase-the-data-migration-speed/" target="_blank" rel="noopener">faster&lt;/a> than the previous mode since it eliminates a resource-intensive
+intermediary (ETL).&lt;/p>
+&lt;p>Although appealing, copying through a wrapper can be particularly slow for large
+data (such as Oracle&amp;rsquo;s BLOBs) because they have a different structure. It is
+then necessary to mix solutions: one with a direct transfer for tables without
+large data and the other with an ETL to optimize the volume of rows and the
+amount of memory to allocate.&lt;/p>
+&lt;p>&lt;strong>Operation Summary&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Downtime&lt;/strong>: &lt;strong>High&lt;/strong> (from several minutes to several hours);&lt;/li>
+&lt;li>&lt;strong>Implementation Complexity&lt;/strong>: &lt;strong>Low&lt;/strong> to &lt;strong>High&lt;/strong> for large data;&lt;/li>
+&lt;li>&lt;strong>Risk to Data Consistency&lt;/strong>: &lt;strong>Very Low&lt;/strong>.&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="partial-catch-up-transfer">Partial catch-up transfer&lt;/h2>
+&lt;p>&lt;img src="https://fljd.in/img/en/2023-10-dead-transfer.png" alt="Partial catch-up transfer">&lt;/p>
+&lt;p>For very large volumes where service interruption must be kept to a minimum, the
+solutions mentioned above can be very limiting. Exporting/importing the entire
+dataset is a lengthy and unavoidable step.&lt;/p>
+&lt;p>What I refer to as the &amp;ldquo;partial catch-up transfer&amp;rdquo; involves identifying the
+largest tables with mostly dead rows. It requires assurance that no &lt;code>UPDATE&lt;/code> or
+&lt;code>DELETE&lt;/code> modifications occur from the development team and that the table has a
+primary key where new values during an insertion are always greater than the
+previous.&lt;/p>
+&lt;p>Thus, an initial copy of the data can be performed live, without service
+interruption, where only the dead rows will be moved to the new system.
+Depending on the proportion of the complete volume, this step can save dozens of
+hours in the final operation. In addition to the transfer operations, it is
+necessary to maintain a register of primary key values that separates dead data
+from live (or upcoming) data. For each table, this value will be a kind of
+checkpoint for the catch-up phase.&lt;/p>
+&lt;p>During the crucial switch step, all live tables will be entirely copied, and the
+rows from dead tables whose key is greater than the memorized value will be
+selected and then inserted into their respective table. A preliminary study must
+determine whether indexes deserve to be created during the first or second
+transfer step, depending on the effective time they save or consume throughout
+the entire operation.&lt;/p>
+&lt;p>&lt;strong>Operation Summary&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Low&lt;/strong> downtime (several tens of minutes);&lt;/li>
+&lt;li>&lt;strong>High&lt;/strong> implementation complexity;&lt;/li>
+&lt;li>&lt;strong>High&lt;/strong> risk of data consistency issues if the development team does not
+provide sufficient guarantees in choosing dead tables.&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="transfer-with-transaction-replay">Transfer with transaction replay&lt;/h2>
+&lt;p>&lt;img src="https://fljd.in/img/en/2023-10-replay-transfer.png" alt="Transfer with transaction replay">&lt;/p>
+&lt;p>Speaking of &amp;ldquo;transaction replay&amp;rdquo; is essentially referring to physical
+replication or logical replication. Each system has its own mechanisms, and the
+tools to implement them can vary. I recommend looking into excellent projects
+like &lt;a href="https://github.com/cybertec-postgresql/ora_migrator#replication" target="_blank" rel="noopener">ora_migrator&lt;/a>, which implements replication using triggers with Oracle,
+and &lt;a href="https://pgchameleon.org/" target="_blank" rel="noopener">pg_chameleon&lt;/a>, which decodes transaction logs from MySQL.&lt;/p>
+&lt;p>The main advantage of this transfer mode lies in the system&amp;rsquo;s ability to log all
+modifications requested and record them in a sequence of transactions. Thus,
+between time &lt;em>T0&lt;/em> and time &lt;em>T1&lt;/em>, it becomes possible to reproduce all changes to
+achieve a consistent and faithful state.&lt;/p>
+&lt;p>In this scenario, the operation requires a full and coherent data load into the
+target database. This initialization phase occurs without service interruption
+but requires particular care in monitoring disks or system source alerts because
+capturing data maintains a snapshot that can become costly if the transfer takes
+too long.&lt;/p>
+&lt;p>At the end of initialization, the replay can start without penalizing the
+production source database&amp;rsquo;s activity. The tool consumes each event in the order
+of arrival to transform it into an insert (&lt;code>INSERT&lt;/code>), update (&lt;code>UPDATE&lt;/code>), or
+delete (&lt;code>DELETE&lt;/code>) in the PostgreSQL database. The cutover operation then
+consists of prohibiting any new modification to the source system, waiting for
+the end of replay, and changing the connection strings so that applications
+connect to the new PostgreSQL database.&lt;/p>
+&lt;p>&lt;strong>Operation Summary&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Very low&lt;/strong> downtime (a few seconds);&lt;/li>
+&lt;li>Implementation complexity is &lt;strong>high&lt;/strong>, even &lt;strong>very high&lt;/strong> depending on the
+chosen solutions;&lt;/li>
+&lt;li>Risk of data consistency issues is &lt;strong>very high&lt;/strong> if the tool fails for a
+transaction it cannot decode during the replay step.&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="freedom-of-choice">Freedom of Choice&lt;/h2>
+&lt;p>This comprehensive review had been on my mind for some time, and it seemed
+necessary to shed light on the various constraints posed by a migration project.
+In the sphere of consultants I interact with and the open-source projects I
+actively monitor, I try to convince myself that there could be a universal
+solution capable of addressing every need and situation outlined in this
+article.&lt;/p>
+&lt;p>I deliberately avoided discussing the &lt;a href="https://debezium.io/" target="_blank" rel="noopener">Debezium&lt;/a> project because it relies on
+many technical components like Kafka, Java, and a myriad of connectors. Although
+a &lt;a href="https://youtu.be/IOJLFWXj4pA?si=FiQ7c2veWrNI2Yno" target="_blank" rel="noopener">conference&lt;/a> (French) on this topic kept me engaged last June, I haven&amp;rsquo;t
+yet had the opportunity to lead a large-scale project that justified such a
+significant human investment in its implementation.&lt;/p>
+&lt;p>There are numerous free or paid tools, each with its own purpose and philosophy.
+Choosing one over another depends on the migration teams and their technical
+maturity, but ultimately, the choice is free!&lt;/p></description></item></channel></rss>

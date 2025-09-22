@@ -12,4 +12,137 @@ PostgreSQL Internals&amp;rdquo;, which is intended to share Simkovics&amp;rsquo;
 simplified way to reach a larger audience.&lt;/p>
 &lt;p>With this article, I&amp;rsquo;m thrilled to share recent thoughts about a subelement of
 these internals, the parser. It relies on a similar approach to compiling by
-using an advanced development pattern called &lt;a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree" target="_blank" rel="noopener">AST&lt;/a> (abstract syntax tree).&lt;/p></description></item></channel></rss>
+using an advanced development pattern called &lt;a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree" target="_blank" rel="noopener">AST&lt;/a> (abstract syntax tree).&lt;/p>
+&lt;hr>
+&lt;h2 id="from-code-to-machine">From code to machine&lt;/h2>
+&lt;p>Writing a statement as a bunch of words, as we do with SQL, involves a need of
+understanding this specific statement by the execution engine. A simple comparison
+is common language, when grammar rules enforce the order of adjectives, nouns, and
+pronouns so that two interlocutors can understand each other.&lt;/p>
+&lt;p>In computing, this process is called &lt;a href="https://en.wikipedia.org/wiki/Compiler" target="_blank" rel="noopener">compilation&lt;/a> and transforms code
+instructions to their equivalent binary operations submitted to the machine.
+Since the dawn of computer sciences, a few software programs have been responsible
+for analyzing instructions, divided into several families:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://en.wikipedia.org/wiki/Lexical_analysis" target="_blank" rel="noopener">Lexical analysis&lt;/a> reads a sequence of keywords or &lt;em>lexemes&lt;/em> to match with
+internal tokens, detects spacing or comments. The most famous scanners are
+&lt;a href="https://en.wikipedia.org/wiki/Lex_%28software%29" target="_blank" rel="noopener">Lex&lt;/a> and &lt;a href="https://en.wikipedia.org/wiki/Flex_%28lexical_analyser_generator%29" target="_blank" rel="noopener">Flex&lt;/a> (a open-source alternative to Lex);&lt;/li>
+&lt;li>&lt;a href="https://en.wikipedia.org/wiki/Parsing" target="_blank" rel="noopener">Parsing&lt;/a> refers to the formal analysis of previous lexemes into its
+constituents, resulting in a parse tree showing their syntactic relations to
+each other. The main parsers are &lt;a href="https://en.wikipedia.org/wiki/Yacc" target="_blank" rel="noopener">Yacc&lt;/a> and &lt;a href="https://en.wikipedia.org/wiki/GNU_Bison" target="_blank" rel="noopener">Bison&lt;/a> (a forward-compatible
+Yacc replacement);&lt;/li>
+&lt;li>&lt;a href="https://en.wikipedia.org/wiki/Semantic_analysis_%28compilers%29" target="_blank" rel="noopener">Semantic analysis&lt;/a> gathers necessary semantic information from previous
+steps, including variable declaration or type checking.&lt;/li>
+&lt;/ul>
+&lt;p>Compiling steps are scrupulously implemented in PostgreSQL when a SQL sentence
+sent by a user needs to be interpreted. The Simkovics&amp;rsquo; thesis tales a journey into
+query parsing:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">sname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">se&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">pno&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">supplier&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">sells&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">se&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">sno&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">sno&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">se&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">sno&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Scanning step finds out every instructions words and categorizes them into lexemes
+(reserved keywords, identifiers, operators, literals). If any syntax misleading
+is encoutered, like a coma before &lt;code>FROM&lt;/code> keyword, query parsing is halt and an
+explicit error message is thrown back to user:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">ERROR: syntax error at or near &amp;#34;FROM&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LINE 2: FROM supplier s, sells se
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>At the end, if parsed query is syntactically correct, a parse tree is built in
+memory to link lexemes according to the grammar rules of the language. Thus, the
+main node &lt;code>SelectStmt&lt;/code> is composed by different branches, like queried tables
+under their &lt;code>RangeVar&lt;/code> node stored as an array into &lt;code>fromClause&lt;/code> attribute. The
+same goes for the representation of columns and conditions through the &lt;code>targetList&lt;/code>
+and &lt;code>whereClause&lt;/code> nodes respectively.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/en/2022-06-29-parse-tree-representation.png" alt="Parse tree representation">&lt;/p>
+&lt;p>Our parse tree is passed to an upper step, called rewriting, responsible for
+performing some optimizations and transformations to nodes and removing useless
+leaves. Then two others mechanisms take place, namely &lt;strong>planner&lt;/strong> and &lt;strong>executor&lt;/strong>.
+Our final parse tree will be use to build data result requested by user, but I
+will not discuss here.&lt;/p>
+&lt;hr>
+&lt;h2 id="rebuilding-an-abstract-tree">Rebuilding an abstract tree&lt;/h2>
+&lt;p>Recently, I wrote some dynamic SQL queries as part of a PL/pgSQL side-project.
+This feature is quite common, it involves putting several pieces of expressions
+together to write a SQL query whose parts (columns, tables, conditions) may vary.
+Here is former prototype of the code:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">DO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">prototype$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">r&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">record&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_columns&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_tabname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_values&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;test&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">value&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_tabname&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;table_name&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">string_agg&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">value&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;,&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_columns&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;column_name&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">EXECUTE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;INSERT INTO %s (%s) VALUES (%s);&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_tabname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_columns&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_values&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">prototype$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Content of the &lt;code>config&lt;/code> table is under the logic and could be critical when
+constructing a syntactically correct &lt;code>INSERT&lt;/code> statement. In addition, in the more
+than likely event that my needs are getting finer, this procedural code will
+getting more complex and finally may encounter troubles in maintenance and
+scalability.&lt;/p>
+&lt;p>Talking to one of my &lt;a href="https://github.com/dlax" target="_blank" rel="noopener">colleagues&lt;/a> about the obvious complications that were
+growing in my prototype, he advised me to turn to a more advanced concept and make
+my code more modular using a new abstraction level, aforementioned &lt;strong>AST&lt;/strong> pattern.
+This method is entirely based on a tree representation of a complex object that we
+can manipulate and design easily.&lt;/p>
+&lt;p>In my case, it was about:&lt;/p>
+&lt;ul>
+&lt;li>Building a SQL statement as a parse tree;&lt;/li>
+&lt;li>Deparsing back without lexical or syntactic error when needed.&lt;/li>
+&lt;/ul>
+&lt;p>In few weeks after, a out-of-nowhere &lt;a href="https://twitter.com/fljdin/status/1538972129156337666" target="_blank" rel="noopener">solution&lt;/a> flashed in my Twitter timeline,
+a pure PL/pgSQL extension called &lt;a href="https://github.com/pyramation/postgres-ast-deparser" target="_blank" rel="noopener">postgres-ast-deparser&lt;/a>. Its main goals are
+building abstract trees and deparsing back into SQL statements! After a few
+discussions with its author Dan Lynch, I used a series of AST functions to
+improve my procedural code.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">DO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">prototype$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DECLARE&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_relation&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">jsonb&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_columns&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">jsonb&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_values&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">jsonb&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">to_jsonb&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">ARRAY&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nb">ARRAY&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">ast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">a_const&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">v_val&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">ast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">a_const&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">v_val&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">string&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;test&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">]]);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">BEGIN&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ast_helpers&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">range_var&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_schemaname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_relname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">value&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_relation&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;table_name&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">jsonb_agg&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">res_target&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">value&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_columns&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;column_name&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">EXECUTE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">deparser&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">expression&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">insert_stmt&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_relation&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_relation&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_cols&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_columns&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_selectStmt&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ast&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">select_stmt&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_valuesLists&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">v_values&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">v_op&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;SETOP_NONE&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;table_name&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$&lt;/span>&lt;span class="n">prototype$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The extension offers a bunch of methods in the &lt;code>ast&lt;/code> and &lt;code>ast_helpers&lt;/code> schemas
+to create tree nodes as JSONB structures. Nesting several calls let us have a
+entire tree with the upper node &lt;code>InsertStmt&lt;/code>, as defined by PostgreSQL
+parser itself!&lt;/p>
+&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>By manipulating trees with JSONB, I realized how powerful projects like
+&lt;code>postgres-ast-deparser&lt;/code> are. This extension relies on a other work called
+&lt;a href="https://github.com/pganalyze/libpg_query" target="_blank" rel="noopener">libpg_query&lt;/a>, provided by &lt;a href="https://pganalyze.com/" target="_blank" rel="noopener">pganalyze&lt;/a> engineers,
+which use the internal parser outside of PostgreSQL!&lt;/p>
+&lt;p>Use cases may be numerous, like syntax highlighting or validation, prettying
+query newlines or serializing a statement to easily drop or modify internal
+nodes, etc. Another parsing project wrote in Python, called &lt;code>pglast&lt;/code>, suggests
+you in its &lt;a href="https://pglast.readthedocs.io/en/v3/usage.html" target="_blank" rel="noopener">documentation&lt;/a> more examples, if by chance, this article has
+aroused your curiosity.&lt;/p></description></item></channel></rss>

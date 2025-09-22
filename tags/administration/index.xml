@@ -7,7 +7,158 @@ n&amp;rsquo;était pas bien vu d&amp;rsquo;installer des dépendances systèmes 
 ou Perl. Nous apprenions donc à écrire des scripts portables et universels, compatibles partout
 où nous déposions nos valises.&lt;/p>
 &lt;p>Me suis-je enfermé dans un dogme conservateur, en m&amp;rsquo;interdisant &lt;em>de facto&lt;/em> à me tourner vers des
-shells modernes et bien plus aisés à appréhender ?&lt;/p></description></item><item><title>Les corruptions silencieuses</title><link>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</link><pubDate>Tue, 28 Sep 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</guid><description>&lt;p>Parmi les drames universellement reconnus, les corruptions de données sont des
+shells modernes et bien plus aisés à appréhender ?&lt;/p>
+&lt;hr>
+&lt;h2 id="beurk-le-bash">Beurk, le Bash&lt;/h2>
+&lt;p>Ne faisons pas de détour, le Bash c&amp;rsquo;est moche. Puissant, pratique, universel, mais moche.&lt;/p>
+&lt;p>Vous pourriez penser que c&amp;rsquo;est un avis parfaitement subjectif, et qu&amp;rsquo;il ne faut pas juger un livre
+à sa couverture&amp;hellip; mais avouez-le, une partie de vous pense sensiblement la même chose que moi.
+Combien d&amp;rsquo;heures ai-je pu perdre durant ma courbe d&amp;rsquo;apprentissage du langage, à cause d&amp;rsquo;un grand
+nombre de subtilités et de pièges de syntaxes ?&lt;/p>
+&lt;p>Entre les assignations sans espace autour du signe &lt;code>=&lt;/code>, les accolades &lt;code>{}&lt;/code> pour les variables
+contenant un signe &lt;code>_&lt;/code>, les backticks &lt;code>` `&lt;/code> pour les commandes subshells, ou encore les doubles
+crochets &lt;code>[[ ... ]]&lt;/code> pour les comparaisons non-POSIX, il y a de quoi s&amp;rsquo;arracher les cheveux.&lt;/p>
+&lt;p>Certain·e·s y verront une forme d&amp;rsquo;esthétisme ou de tradition d&amp;rsquo;une culture informatique, mais
+personnellement je trouve que c&amp;rsquo;est un langage qui vieillit mal, très mal. Vous ne vous offusqueriez
+pas non plus si je devais vous témoigner mon désamour le Perl, n&amp;rsquo;est-ce pas ?&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une comparaison de deux variables&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[[&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$a&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$b&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">]]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une addition et une affectation&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">z&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="k">$((&lt;/span> &lt;span class="nv">$x&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nv">$y&lt;/span> &lt;span class="k">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une boucle for&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> i in &lt;span class="k">$(&lt;/span>seq &lt;span class="m">1&lt;/span> 10&lt;span class="k">)&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">do&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">echo&lt;/span> &lt;span class="nv">$i&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># un switch case&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">case&lt;/span> &lt;span class="nv">$1&lt;/span> in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;un&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;deux&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> *&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;autre&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">esac&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une chaîne en minuscule&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">a&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nv">a&lt;/span>&lt;span class="p">,,&lt;/span>&lt;span class="si">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une gestion des erreurs de commandes chaînées&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">some_command &lt;span class="p">|&lt;/span> another_command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="o">[[&lt;/span> &lt;span class="si">${&lt;/span>&lt;span class="nv">PIPESTATUS&lt;/span>&lt;span class="p">[0]&lt;/span>&lt;span class="si">}&lt;/span> -ne &lt;span class="m">0&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="si">${&lt;/span>&lt;span class="nv">PIPESTATUS&lt;/span>&lt;span class="p">[1]&lt;/span>&lt;span class="si">}&lt;/span> -ne &lt;span class="m">0&lt;/span> &lt;span class="o">]]&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">then&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;Une des commandes a échoué&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">fi&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le &lt;a href="https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29" target="_blank" rel="noopener">Bash&lt;/a> est apparu l&amp;rsquo;année de ma naissance, en 1989. Il a été conçu en opposition au &lt;a href="https://en.wikipedia.org/wiki/Bourne_shell" target="_blank" rel="noopener">Bourne Shell&lt;/a>
+(&lt;code>sh&lt;/code>) pour apporter des fonctionnalités de programmation plus avancées. Il est devenu le shell par
+défaut de la plupart des distributions Linux, et est devenu un standard pour tous les scripts à travers
+le monde entier.&lt;/p>
+&lt;p>Fort de ses années de succès, et de son emprise sur le monde Unix, le Bash s&amp;rsquo;impose parfois comme la première
+porte vers la programmation pour des administrateurices système ou les étudiant·e·s en informatique. Et il
+faut accepter que la qualité de ses premiers scripts n&amp;rsquo;est pas toujours au rendez-vous. Souvenez-vous des
+longues heures passées sur StackOverflow à trouver la syntaxe la plus lisible ou la plus efficace, car les
+réponses se révélaient aussi variées que touffues !&lt;/p>
+&lt;p>Et c&amp;rsquo;est l&amp;rsquo;un des plus gros problèmes que je trouve au Bash : ce langage de programmation est exigeant,
+excentrique, voire &lt;a href="https://fr.wikipedia.org/wiki/Idiosyncrasie" target="_blank" rel="noopener">idiosyncratique&lt;/a>, et qui ne pardonne pas les erreurs. Un des &lt;a href="https://dev.to/taikedz/your-bash-scripts-are-rubbish-use-another-language-5dh7" target="_blank" rel="noopener">paradoxes&lt;/a> que j&amp;rsquo;associe
+au Bash est qu&amp;rsquo;il peut ne pas être considéré comme un véritable langage de programmation, réduisant ainsi
+la volonté et l&amp;rsquo;effort de l&amp;rsquo;apprendre en profondeur par une large communauté de professionnel·le·s.&lt;/p>
+&lt;p>&lt;a href="https://dev.to/taikedz/your-bash-scripts-are-rubbish-use-another-language-5dh7" target="_blank" rel="noopener">Et si vos scripts Bash sont nuls, utilisez un autre langage.&lt;/a>&lt;/p>
+&lt;hr>
+&lt;h2 id="lami-fish-friendly-interactive-shell">L&amp;rsquo;ami Fish, Friendly Interactive Shell&lt;/h2>
+&lt;p>Je suis tombé sur &lt;a href="https://fishshell.com/" target="_blank" rel="noopener">Fish&lt;/a> par hasard, alors que je questionnais mon usage quotidien sur &lt;a href="https://fr.wikipedia.org/wiki/Z_Shell" target="_blank" rel="noopener">ZSH&lt;/a>. Sur
+mon poste personnel, j&amp;rsquo;ai étendu mon expérience passée sur le Bash avec une configuration ZSH enrichie de
+&lt;a href="https://ohmyz.sh/" target="_blank" rel="noopener">Oh My Zsh&lt;/a>. C&amp;rsquo;était un peu le jour et la nuit dans l&amp;rsquo;interaction avec mes terminaux : la navigation,
+les suggestions, les thèmes, les plugins, tout est plus fluide et plus agréable. Sa compatibilité avec
+Bash m&amp;rsquo;avait alors évité de tout réapprendre.&lt;/p>
+&lt;p>Fish répond au besoin de modernité et de simplicité que je cherche sans vraiment le savoir. Contrairement
+à ZSH, un grand nombre de fonctionnalités sont disponibles sans aucune configuration préalable ou plugin
+à activer.&lt;/p>
+&lt;p>&lt;strong>Assistance à la commande&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Recopie la commande incomplète et en erreur sans besoin de naviguer dans l&amp;rsquo;historique&lt;/li>
+&lt;li>Accès à l&amp;rsquo;historique partiel avec les touches directionnelles dès la première frappe au clavier&lt;/li>
+&lt;li>Proposition de chemins avec la complétion de la touche Tab, suivie des touches directionnelles&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-20-14-fish-01.png" alt="">&lt;/p>
+&lt;p>&lt;strong>Auto-suggestions des chemins et des options d&amp;rsquo;une grande majorité des outils&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Mémoire des précédents répertoires parcourus&lt;/li>
+&lt;li>Support très complet des commandes Git, notamment le &lt;code>git rebase -i&lt;/code> ❤️&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-20-14-fish-02.png" alt="">&lt;/p>
+&lt;p>&lt;strong>Coloration plus poussée des commandes&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>une couleur différente par mot selon la syntaxe employée (variables, chemin, options)&lt;/li>
+&lt;li>un rouge prononcé pour les commandes inconnues&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="un-langage-qui-vous-veut-du-bien">Un langage qui vous veut du bien&lt;/h2>
+&lt;p>Pour revenir au sujet principal de cet article, Fish révolutionne notre rapport avec la rédaction
+de scripts. Fini les pièges et la syntaxe qui nous ont tenu en otage durant des années. Les choses
+deviennent bien plus simples et lisibles.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une comparaison de deux variables
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">test&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$a&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$b&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une addition et une affectation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">set&lt;/span> &lt;span class="nv">z&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nb">math&lt;/span> &lt;span class="nv">$x&lt;/span> + &lt;span class="nv">$y&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une boucle for
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">for&lt;/span> &lt;span class="nv">i&lt;/span> &lt;span class="k">in&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nf">seq&lt;/span> &lt;span class="m">1&lt;/span> &lt;span class="m">10&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">echo&lt;/span> &lt;span class="nv">$i&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># un switch case
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">case&lt;/span> &lt;span class="nv">$argv&lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="m">1&lt;/span>&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;un&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">2&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;deux&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> *&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;autre&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une chaîne en minuscule
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">set&lt;/span> &lt;span class="nv">a&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nb">string &lt;/span>lower &lt;span class="nv">$a&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une gestion des erreurs de commandes chaînées
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="nf">some_command&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="nf">another_command&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="nb">contains &lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="nv">$pipestatus&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;Une des commandes a échoué&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;investissement initial pour perdre ses habitudes acquises avec Bash est modéré, notamment
+le &lt;a href="https://fishshell.com/docs/current/language.html#variables-export" target="_blank" rel="noopener">remplacement&lt;/a> de &lt;code>export&lt;/code> ou de l&amp;rsquo;assignation &lt;code>=&lt;/code> par la méthode &lt;code>set -x&lt;/code> ou &lt;code>set -u&lt;/code>
+respectivement. Mais l&amp;rsquo;enrichissement du langage par quelques nouveaux mots-clés permet
+d&amp;rsquo;alléger le script avec des syntaxes claires et lisibles (&lt;code>contains&lt;/code>, &lt;code>math&lt;/code> ou &lt;code>string&lt;/code>
+présents dans l&amp;rsquo;exemple ci-dessus).&lt;/p>
+&lt;p>L&amp;rsquo;ajout de plugins communautaire n&amp;rsquo;est pas en reste, si comme moi, vous en consommiez avec
+Oh-My-ZSH. L&amp;rsquo;outil &lt;a href="https://github.com/jorgebucaran/fisher" target="_blank" rel="noopener">Fisher&lt;/a> s&amp;rsquo;installe dans votre &lt;code>~/.config/fish&lt;/code> et donne accès à un
+gestionnaire complet et sobre. Pour ma part, j&amp;rsquo;ai pu rapidement combler mon besoin de charger
+les variables d&amp;rsquo;environnement fournies par l&amp;rsquo;agent SSH (&lt;code>ssh-agent&lt;/code>) lors du démarrage de ma
+session.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> fisher install danhper/fish-ssh-agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">fisher install version 4.4.5
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Fetching https://api.github.com/repos/danhper/fish-ssh-agent/tarball/HEAD
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Installing danhper/fish-ssh-agent
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/functions/__ssh_agent_is_started.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/functions/__ssh_agent_start.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/conf.d/fish-ssh-agent.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Updated 1 plugin/s
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pas de mystère, ni d&amp;rsquo;arcanes magiques, votre environnement est enrichi de nouvelles fonctions
+et de scripts de démarrage, développés en Fish.&lt;/p>
+&lt;hr>
+&lt;h2 id="osons-la-modernité">Osons la modernité&lt;/h2>
+&lt;p>La documentation du projet est très bien fournie. En plus de la page &lt;a href="https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29" target="_blank" rel="noopener">Tutorial&lt;/a>, vous trouverez
+une page dédiée aux &lt;a href="https://fishshell.com/docs/current/fish_for_bash_users.html" target="_blank" rel="noopener">utilisateurs de Bash&lt;/a> pour vous aider à réussir votre transition. Pour ma
+part, j&amp;rsquo;y retrouve des syntaxes bien plus proches du Python, et c&amp;rsquo;est un vrai plaisir.&lt;/p>
+&lt;p>Le projet est vivant, avec un rythme de versions régulier. Je me suis surpris moi-même à ne pas en
+avoir entendu parler par d&amp;rsquo;autres collègues ou auprès des auteurices de blogs que je suis. Au cours des
+dernières années, la communauté francophone a essaimé quelques bons articles qui complètent le
+mien.&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://lkdjiin.github.io/blog/2016/12/13/changer-de-shell-de-bash-a-fish/" target="_blank" rel="noopener">Changer de shell, de Bash à Fish&lt;/a> (2016)&lt;/li>
+&lt;li>&lt;a href="https://ubunlog.com/fr/ligne-de-commande-fish-smart/" target="_blank" rel="noopener">Fish, une ligne de commande intelligente et simple d&amp;rsquo;utilisation&lt;/a> (2017)&lt;/li>
+&lt;li>&lt;a href="https://toptips.fr/comment-passer-de-bash-a-fish-shell-sous-linux/" target="_blank" rel="noopener">Comment passer de Bash à Fish Shell sous Linux&lt;/a> (2021)&lt;/li>
+&lt;li>&lt;a href="https://blog.otso.fr/2024-01-17-passer-zsh-fish-shell" target="_blank" rel="noopener">Migration de shell de zsh à fish&lt;/a> (2024)&lt;/li>
+&lt;/ul>
+&lt;p>Ces temps-ci, je fais évoluer mon expérience d&amp;rsquo;utilisateur de Linux avec une transition vers Wayland
+et SwayWM (j&amp;rsquo;y reviendrais dans un autre article). Je ne le cache pas, la tentation de remplacer mes
+scripts Bash qui gèrent mes thèmes ou les composants &lt;em>swaybar&lt;/em>, est forte, très forte.&lt;/p>
+&lt;p>De quoi occuper mes prochaines longues soirées d&amp;rsquo;hiver.&lt;/p></description></item><item><title>Les corruptions silencieuses</title><link>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</link><pubDate>Tue, 28 Sep 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/09/28/les-corruptions-silencieuses/</guid><description>&lt;p>Parmi les drames universellement reconnus, les corruptions de données sont des
 événements mécaniques ou logiques qui surviennent à des moments imprévisibles.
 Tantôt il s&amp;rsquo;agira de l&amp;rsquo;âge avancé des secteurs disques, tantôt il s&amp;rsquo;agira d&amp;rsquo;une
 extinction inopinée d&amp;rsquo;un composant électrique ou d&amp;rsquo;une perte de paquet dans les
@@ -17,20 +168,844 @@ carrière, les corruptions sont particulièrement dévastatrices lorsqu&amp;rsqu
 sont propagées sur les supports de sauvegardes et détectées bien des jours, voire
 des semaines après l&amp;rsquo;incident. Les moteurs de bases de données sont très résilients
 face à ces destructions de données, en proposant des mécanismes de journalisation
-adaptés. Malgré cela, des précautions sont de mises.&lt;/p></description></item><item><title>Compiler et patcher avec pgenv</title><link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link><pubDate>Mon, 21 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</guid><description>&lt;p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
+adaptés. Malgré cela, des précautions sont de mises.&lt;/p>
+&lt;hr>
+&lt;h2 id="la-surcorruption">La surcorruption&lt;/h2>
+&lt;p>La détection d&amp;rsquo;une corruption n&amp;rsquo;est jamais très claire, ni très précise. Dans
+la majorité des situations, il s&amp;rsquo;agit d&amp;rsquo;un utilisateur qui reporte une erreur
+lors de la lecture d&amp;rsquo;une ligne dans la base de données et ne parvient pas à
+finaliser son traitement. Avec PostgreSQL, la première source exploitable reste
+le journal de l&amp;rsquo;instance, dans lequel l&amp;rsquo;anomalie sera flagrante avec des
+messages d&amp;rsquo;erreur de type &lt;code>could not read block xxx in file&lt;/code> ou &lt;code>invalid page (header) in block xxx of relation&lt;/code>.&lt;/p>
+&lt;p>Les corruptions peuvent aussi bien &lt;a href="https://www.enterprisedb.com/blog/how-to-fix-postgresql-index-corruption-deal-repair-rebuild" target="_blank" rel="noopener">toucher les index&lt;/a> que les tables. Les
+premières peuvent provoquer des ralentissements pour certaines requêtes, voire
+remonter des données erronées, alors que les secondes sont bien plus
+problématiques avec la destruction simple d&amp;rsquo;une partie des données utilisateurs.&lt;/p>
+&lt;p>Après un constat désarmant de corruption, la sueur perle probablement sur le
+front des équipes techniques, si tant est que l&amp;rsquo;information leur ait été remontée
+dans un court laps de temps. La corruption est-elle réversible avec une copie
+quelconque de la table dans une instance secondaire, ou dans une sauvegarde ?
+La corruption est-elle présente depuis longtemps ? Le système présente-t-il des
+messages alarmants sur l&amp;rsquo;état des écritures sur le volume ?&lt;/p>
+&lt;p>Le meilleur des conseils que trop peu se permettent, serait de se prévenir d&amp;rsquo;une
+surcorruption en &lt;u>arrêtant les écritures le plus tôt possible&lt;/u>.
+Le temps d&amp;rsquo;identifier l&amp;rsquo;origine de la corruption, en mobilisant plusieurs équipes
+pour éplucher les logs des hyperviseurs, des baies de stockages ou du fournisseur
+Cloud, il se peut (statistiquement) qu&amp;rsquo;une autre corruption porte atteinte à la
+vie des données saines du système.&lt;/p>
+&lt;p>Il est aussi &lt;a href="https://wiki.postgresql.org/wiki/Corruption" target="_blank" rel="noopener">indispensable&lt;/a> de procéder à une copie bas niveau du répertoire
+de données de l&amp;rsquo;instance et de travailler exclusivement sur un exemplaire de ladite
+copie, &lt;em>a minima&lt;/em> sur des disques différents, au mieux, sur un serveur secondaire.&lt;/p>
+&lt;hr>
+&lt;h2 id="récupérer-ce-qui-peut-lêtre">Récupérer ce qui peut l&amp;rsquo;être&lt;/h2>
+&lt;p>Pour illustrer la complexité que peut devenir la récupération de données saines
+sur une base corrompue, j&amp;rsquo;ai malmené une instance jetable en version 13 dont
+les données de la table &lt;code>pgbench_accounts&lt;/code> ont été partiellement détruites avec
+l&amp;rsquo;outil &lt;code>fallocate&lt;/code>.&lt;/p>
+&lt;p>Élargir la recherche des corruptions est possible en forçant la lecture intégrale
+des données contenues dans les tables. Avec PostgreSQL, le plus simple consiste
+à exporter les bases avec &lt;code>pg_dump&lt;/code>, de surveiller la sortie d&amp;rsquo;erreurs… et
+d&amp;rsquo;espérer qu&amp;rsquo;aucune donnée ne soit perdue.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pg_dump demo 1&amp;gt; /dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Dumping the contents of table &amp;#34;pgbench_accounts&amp;#34; failed: PQgetResult() failed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Error message from server:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ERROR: invalid page in block 20 of relation base/16997/17010
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The command was:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> COPY public.pgbench_accounts (aid, bid, abalance, filler) TO stdout;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;incertitude s&amp;rsquo;installe à l&amp;rsquo;issue de la commande. L&amp;rsquo;une des pages de la table
+&lt;code>pgbench_accounts&lt;/code> présente une malformation, rendant impossible la lecture de
+8 ko de données. La récupération des données encore exploitable peut être possible,
+notamment à travers l&amp;rsquo;index de clé primaire et une recherche par dichotomie sur
+les valeurs disponibles dans le fichier corrompu.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">enable_seqscan&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">off&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">COPY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">abalance&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">filler&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1221&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">TO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">stdout&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">COPY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">abalance&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">filler&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1281&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">TO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">stdout&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Si tant est que cette table soit concernée par une contrainte de clé étrangère,
+l&amp;rsquo;ensemble du modèle devient alors partiellement incohérent et les données
+orphelines sont destinées à être détruites explicitement pour valider la
+contrainte.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_history&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">ADD&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOREIGN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">KEY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REFERENCES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- ERROR: insert or update on table &amp;#34;pgbench_history&amp;#34; violates
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- foreign key constraint &amp;#34;pgbench_history_aid_fkey&amp;#34;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- DETAIL: Key (aid)=(1276) is not present in table &amp;#34;pgbench_accounts&amp;#34;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DELETE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_history&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXISTS&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">h&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_history&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">ADD&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOREIGN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">KEY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REFERENCES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- ALTER TABLE
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="se-protéger-des-corruptions">Se protéger des corruptions&lt;/h2>
+&lt;p>Comme précisé en introduction, la plupart des moteurs de bases de données sont
+&lt;a href="https://www.postgresql.org/docs/current/wal-reliability.html" target="_blank" rel="noopener">résilients&lt;/a> et articulent leurs écritures autours de la journalisation.
+Chaque modification est assurée d&amp;rsquo;être écrite sur un stockage non volatile à la
+réception du &lt;code>COMMIT&lt;/code> de la transaction. Cela implique une synchronisation des
+blocs en mémoire vers le stockage du système comme je l&amp;rsquo;avais illustré dans un
+&lt;a href="https://fljd.in/2021/01/19/la-breve-histoire-du-fichier-backup_label/#il-%c3%a9tait-une-fois-la-journalisation">précédent article&lt;/a>.&lt;/p>
+&lt;p>Des précautions sont bien sûr nécessaires, et Craig Ringer avait compilé dans
+un &lt;a href="http://blog.ringerc.id.au/2012/10/avoiding-postgresql-database-corruption.html" target="_blank" rel="noopener">article&lt;/a> en 2012, des recommandations toujours pertinentes pour réduire
+le risque de corruptions.&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Mettre à jour&lt;/strong> votre instance à la dernière version mineure disponible ;&lt;/li>
+&lt;li>&lt;strong>Ne pas désactiver&lt;/strong> &lt;code>fsync&lt;/code> et privilégier les paramètres &lt;code>synchronous_commit&lt;/code>
+et &lt;code>commit_delay&lt;/code> ;&lt;/li>
+&lt;li>&lt;strong>Ne pas tuer&lt;/strong> les processus PostgreSQL et utiliser les fonctions système
+&lt;code>pg_cancel_backend&lt;/code> et &lt;code>pg_terminate_backend&lt;/code> pour arrêter une requête longue ;&lt;/li>
+&lt;li>&lt;strong>Ne pas supprimer&lt;/strong> le contenu du répertoire de données, à l&amp;rsquo;exception des
+traces d&amp;rsquo;activité au format texte ;&lt;/li>
+&lt;li>&lt;strong>Ne pas modifier&lt;/strong> le catalogue système (&lt;code>pg_catalog.*&lt;/code>) ;&lt;/li>
+&lt;li>&lt;strong>Conserver les sauvegardes sur de longues périodes&lt;/strong> à raison d&amp;rsquo;une par semaine,
+une par mois, voire une par année pour reconstruire les données corrompues
+(avec un peu de chance tout de même) ;&lt;/li>
+&lt;li>Mettre en place de la réplication et des sauvegardes physiques, avec un politique
+de rétention des journaux de transactions sur de longues périodes ;&lt;/li>
+&lt;li>&lt;strong>Éviter les disques en RAID5&lt;/strong> et privilégier le RAID10 pour les disques mécaniques ;&lt;/li>
+&lt;li>&lt;strong>Ne pas utiliser&lt;/strong> les systèmes de fichiers exotiques comme (ZFS), BTRFS ou FAT32 ;&lt;/li>
+&lt;li>&lt;strong>Ne pas stocker les fichiers&lt;/strong> de l&amp;rsquo;instance sur une clé USB ou un montage
+réseau.&lt;/li>
+&lt;/ul>
+&lt;div class="message">Depuis quelques années, le projet ZFS s&amp;rsquo;est ouvert à la communauté avec OpenZFS
+en 2013. En plus des fonctionnalités de &lt;em>Copy on Write&lt;/em>, de &lt;em>Snapshot&lt;/em> ou de
+&lt;em>Mirroring&lt;/em>, ce système de fichiers couvre également l&amp;rsquo;aspect des sommes de
+contrôle, le rendant bien plus résilient qu&amp;rsquo;à l&amp;rsquo;époque où Craig Ringer écrivait
+ses recommandations.&lt;/div>
+&lt;p>Malgré toutes ces protections, une autre forme de corruption peut encore survenir.
+Une donnée erronée peut être retournée au client sans message d&amp;rsquo;erreur. On parle
+alors de &lt;a href="https://wiki.postgresql.org/wiki/Corruption_Detection_and_Containment" target="_blank" rel="noopener">corruption silencieuse&lt;/a>.&lt;/p>
+&lt;p>Prenons l&amp;rsquo;exemple d&amp;rsquo;une donnée dans la table &lt;code>pgbench_branches&lt;/code> :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_branches&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">filler&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;florent&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_relation_filepath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;pgbench_branches&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_relation_filepath
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ----------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- base/17100/17179
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>À l&amp;rsquo;aide d&amp;rsquo;un éditeur hexadécimal, je suis libre d&amp;rsquo;émuler une corruption
+silencieuse en ciblant précisément une donnée de type &lt;code>text&lt;/code>. Ici, je remplace
+quelques octets pour transformer &lt;code>florent&lt;/code> en &lt;code>fl4r%nt&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">hexedit base/17100/17179
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">00001F64 00 00 00 00 00 00 00 00 00 00 00 00 ............
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">00001F70 02 00 03 80 02 29 18 00 01 00 00 00 .....)......
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">00001F7C 00 00 00 00 B3 66 6C 34 72 25 6E 74 .....fl4r%nt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">00001F88 20 20 20 20 20 20 20 20 20 20 20 20
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">00001F94 20 20 20 20 20 20 20 20 20 20 20 20
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">00001FA0 20 20 20 20 20 20 20 20 20 20 20 20
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">00001FAC 20 20 20 20 20 20 20 20 20 20 20 20
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour cette démonstration, ce changement a été fait à froid, c&amp;rsquo;est-à-dire instance
+arrêtée et fichiers fermés. Une copie du bloc pouvant encore être dans le cache
+mémoire de PostgreSQL, le prochain &lt;code>CHECKPOINT&lt;/code> ou synchronisation préventive
+aurait réécrit le bloc sain à l&amp;rsquo;intérieur du fichier.&lt;/p>
+&lt;p>Au redémarrage de l&amp;rsquo;instance, le contenu de la table est erroné, mais PostgreSQL
+n&amp;rsquo;aura détecté aucune anomalie de corruption dans le bloc de fichier.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_branches&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- -[ RECORD 1 ]---------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- bid | 1
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- bbalance | 0
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- filler | fl4r%nt
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Depuis la version 9.3 de PostgreSQL, publiée en septembre 2013, il est possible
+d&amp;rsquo;activer les &lt;a href="https://paquier.xyz/postgresql-2/postgres-9-3-feature-highlight-data-checksums/" target="_blank" rel="noopener">sommes de contrôles&lt;/a> pour les données d&amp;rsquo;une instance afin de
+contrôler l&amp;rsquo;état d&amp;rsquo;un bloc entre son écriture et ses futures lectures, évitant
+alors tout risque de corruption silencieuse.&lt;/p>
+&lt;p>Cette opération nécessite pour les versions 11 et inférieures, que l&amp;rsquo;instance
+soit créée avec ce mode particulier. Depuis la &lt;a href="https://pgpedia.info/d/data-page-checksums.html" target="_blank" rel="noopener">version 12&lt;/a>, l&amp;rsquo;utilitaire
+&lt;code>pg_checksums&lt;/code> permet d&amp;rsquo;activer et de désactiver le mécanisme de sommes de
+contrôle sur le répertoire de données d&amp;rsquo;une instance arrêtée, sans besoin de
+migrer vers une nouvelle instance comme il était nécessaire dans les versions
+précédentes.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">$ pg_checksums --pgdata&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>/pgsql/data --enable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Checksum operation completed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Files scanned: &lt;span class="m">3097&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Blocks scanned: &lt;span class="m">109156&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_checksums: syncing data directory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pg_checksums: updating control file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Checksums enabled in cluster
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Dans ce nouveau contexte, je réalise à une nouvelle fois un &lt;code>UPDATE&lt;/code> sur la table…&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_branches&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">filler&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;florent&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CHECKPOINT&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>… et je corromps la donnée de la table &lt;code>pgbench_branches&lt;/code>. Au redémarrage,
+PostgreSQL remonte correctement une anomalie de sommes de contrôle sur le bloc
+qui contient la donnée corrompue :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_branches&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- WARNING: page verification failed, calculated checksum 35393 but expected 2501
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ERROR: invalid page in block 0 of relation base/17100/17179
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Les corruptions sont des événements rarissimes et imprévisibles. Il est
+communément admis que les dégâts sont irréversibles dans un grand nombre de
+situations, en l&amp;rsquo;absence de contre-mesures suffisantes.&lt;/p>
+&lt;p>À moins d&amp;rsquo;avoir une confiance aveugle dans l&amp;rsquo;infrastructure matérielle qui
+héberge vos instances, l&amp;rsquo;activation des sommes de contrôle représente à ce jour
+le mécanisme le plus complet pour identifier rapidement toutes les formes de
+corruptions sur les données de vos bases.&lt;/p>
+&lt;p>&lt;strong>Mauvaise nouvelle : ce mécanisme n&amp;rsquo;est pas actif par défaut.&lt;/strong>&lt;/p>
+&lt;p>À vous d&amp;rsquo;intégrer l&amp;rsquo;option &lt;code>--data-checksums&lt;/code> de l&amp;rsquo;utilitaire &lt;code>initdb&lt;/code> lors du
+provisionnement de toutes vos nouvelles instances. Enfin, privilégiez une
+version 12 ou supérieure, car vous ne regretterez pas le gain de temps que
+vous apportera &lt;code>pg_checksums&lt;/code> !&lt;/p></description></item><item><title>Compiler et patcher avec pgenv</title><link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link><pubDate>Mon, 21 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</guid><description>&lt;p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
 efficace répondant au nom de &lt;a href="https://github.com/theory/pgenv" target="_blank" rel="noopener">pgenv&lt;/a>, un gestionnaire des versions PostgreSQL.
 Ce projet est publié sous licence MIT par David E. Wheeler, auteur de l&amp;rsquo;extension
 pgTAP dont j&amp;rsquo;avais déjà vanté les mérites dans un &lt;a href="https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql">autre article&lt;/a>.&lt;/p>
 &lt;p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
 quelques DBA féru⋅es d&amp;rsquo;expérimentations, car &lt;code>pgenv&lt;/code> permet de compiler et
 d&amp;rsquo;exécuter toutes les versions majeures et mineures du système de base de données
-open-source le plus avancé du monde.&lt;/p></description></item><item><title>De Jekyll à Hugo</title><link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link><pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid><description>&lt;p>Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
+open-source le plus avancé du monde.&lt;/p>
+&lt;hr>
+&lt;h2 id="à-lépreuve-de-la-compilation">À l&amp;rsquo;épreuve de la compilation&lt;/h2>
+&lt;p>PostgreSQL est particulièrement simple à compiler. Avec un poste de travail
+sous Unix, GNU/Linux ou BSD et quelques dépendances, à savoir &lt;code>gcc&lt;/code>, &lt;code>make&lt;/code>,
+&lt;code>patch&lt;/code> et &lt;code>git&lt;/code>, il est facile d&amp;rsquo;exécuter une instance dans la version cible de son
+choix.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ git clone git://git.postgresql.org/git/postgresql.git
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">cd&lt;/span> postgresql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ git checkout REL_13_1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PREFIX&lt;/span>&lt;span class="o">=&lt;/span>/tmp/postgres/devel
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ ./configure --prefix&lt;span class="o">=&lt;/span>&lt;span class="nv">$PREFIX&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ make &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> make install
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">cd&lt;/span> contrib
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ make &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> make install
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Dès lors que les librairies et les binaires sont disponibles, il est très aisé
+de contruire sa première instance et de s&amp;rsquo;y connecter !&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PREFIX&lt;/span>/bin:&lt;span class="nv">$PATH&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">LD_LIBRARY_PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PREFIX&lt;/span>/lib:&lt;span class="nv">$LD_LIBRARY_PATH&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PGDATA&lt;/span>&lt;span class="o">=&lt;/span>/tmp/postgres/data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ initdb --username &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span> --auth&lt;span class="o">=&lt;/span>peer --data-checksums
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pg_ctl start --log&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGDATA&lt;/span>/server.log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ createdb &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ psql -tc &lt;span class="s2">&amp;#34;select version()&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 13.1 on x86_64-pc-linux-gnu, compiled by gcc &lt;span class="o">(&lt;/span>GCC&lt;span class="o">)&lt;/span> 10.2.0, 64-bit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pg_ctl stop
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le faire à la main m&amp;rsquo;a amusé quelques minutes et écrire un script pour automatiser
+le déploiement des versions mineures à la demande m&amp;rsquo;a vite traversé l&amp;rsquo;esprit.
+Ne réinventons pas la roue et voyons ce que propose &lt;code>pgenv&lt;/code> !&lt;/p>
+&lt;hr>
+&lt;h2 id="un-script-pour-les-compiler-tous">Un script pour les compiler tous&lt;/h2>
+&lt;p>La &lt;a href="https://github.com/theory/pgenv" target="_blank" rel="noopener">page d&amp;rsquo;accueil&lt;/a> du projet reprend l&amp;rsquo;installation rapide du script dans votre
+sous-répertoire &lt;code>~/.pgenv&lt;/code>. Téléchargeons et compilons la version qui nous interesse.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pgenv available
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Available PostgreSQL Versions
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">================================================
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 10
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 10.0 10.1 10.2 10.3 10.4 10.5
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 10.6 10.7 10.8 10.9 10.10 10.11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 10.12 10.13 10.14 10.15
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 11.0 11.1 11.2 11.3 11.4 11.5
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 11.6 11.7 11.8 11.9 11.10
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 12
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 12.0 12.1 12.2 12.3 12.4 12.5
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 13
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 13beta1 13beta2 13beta3 13rc1 13.0 13.1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Comme pour mon précédent exemple, je réinstalle une version 13.1 avec &lt;code>pgenv&lt;/code>
+à l&amp;rsquo;aide de l&amp;rsquo;option &lt;code>build&lt;/code>. Le script déploie également les librairies de &lt;em>contrib&lt;/em>
+et la documentation.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PGENV_ROOT&lt;/span>&lt;span class="o">=&lt;/span>/var/lib/pgenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>/pgsql/bin:&lt;span class="nv">$PATH&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">LD_LIBRARY_PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>/pgsql/lib:&lt;span class="nv">$LD_LIBRARY_PATH&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv build 13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL, contrib, and documentation installation complete.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pgenv configuration written to file /var/lib/pgenv/.pgenv.13.1.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 built
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>On retrouve dans l&amp;rsquo;arborescence &lt;code>$PGENV_ROOT&lt;/code>, la présence de l&amp;rsquo;archive &lt;code>.tar.bz2&lt;/code>
+du projet, requise pour l&amp;rsquo;étape de compilation. Le &lt;code>$PREFIX&lt;/code> quant à lui, est
+automatiquement positionné sur le répertoire &lt;code>$PGENV_ROOT/pgsql-13.1&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">/var/lib/pgenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── .pgenv.13.1.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql-13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── bin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── include
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── lib
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── share
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── src
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ├── postgresql-13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── postgresql-13.1.tar.bz2
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour être fidèle à ma première partie, je vais configurer correctement les
+paramètres de la commande &lt;code>initdb&lt;/code> dans le fichier de configuration dédié à la
+version 13.1.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ pgenv config edit 13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Path to the cluster log file (mandatory)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">PGENV_LOG&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>&lt;span class="s2">/pgsql/data/server.log&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Initdb flags&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">PGENV_INITDB_OPTS&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;--username &lt;/span>&lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>&lt;span class="s2"> --auth=peer --data-checksums&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ainsi, lors de la première utilisation de cette version 13.1, &lt;code>pgenv&lt;/code> va lancer
+la commande &lt;code>initdb&lt;/code> pour alimenter le répertoire de données avec mon compte
+comme propriétaire et démarrer le processus &lt;code>postgres&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ pgenv use 13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using PGENV_ROOT /var/lib/pgenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Data page checksums are enabled.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Success. You can now start the database server using:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> /var/lib/pgenv/pgsql/bin/pg_ctl -D /var/lib/pgenv/pgsql/data -l logfile start
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 started
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Logging to /var/lib/pgenv/pgsql/data/server.log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ createdb &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ psql -tc &lt;span class="s2">&amp;#34;select version()&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 13.1 on x86_64-pc-linux-gnu, compiled by gcc &lt;span class="o">(&lt;/span>GCC&lt;span class="o">)&lt;/span> 10.2.0, 64-bit
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="et-avec-ceci">Et avec ceci ?&lt;/h2>
+&lt;p>Comme indiqué en introduction, l&amp;rsquo;intérêt d&amp;rsquo;un tel gestionnaire réside dans sa
+capacité d&amp;rsquo;installer plusieurs versions différentes dans la même arborescence
+et de basculer de l&amp;rsquo;une à l&amp;rsquo;autre.&lt;/p>
+&lt;p>Imaginons que nous souhaitons disposer d&amp;rsquo;une version 10 de PostgreSQL avec le
+même genre de configuration que la version 13 précédente. &lt;code>pgenv&lt;/code> supporte un
+fichier d&amp;rsquo;environnement global, nommé &lt;code>.pgenv.conf&lt;/code>, que je reconstruis à
+partir de mon précédent fichier d&amp;rsquo;instance 13.1.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ cp &lt;span class="nv">$PGENV_ROOT&lt;/span>/.pgenv.13.1.conf &lt;span class="nv">$PGENV_ROOT&lt;/span>/.pgenv.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv build 10.15
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv use latest &lt;span class="m">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ createdb &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ psql -c &lt;span class="s2">&amp;#34;show data_checksums&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data_checksums
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ----------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">(&lt;/span>&lt;span class="m">1&lt;/span> row&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Nous nous retrouvons bien avec un instance dont les sommes de contrôle ont été
+activées, grâce à l&amp;rsquo;option &lt;code>PGENV_INITDB_OPTS&lt;/code> citée plus haut.&lt;/p>
+&lt;p>Je m&amp;rsquo;étais questionné sur la capacité de &lt;code>pgenv&lt;/code> de lancer simultanément deux
+environnements pour mettre en place de la réplication logique, par exemple.
+Conclusion, il s&amp;rsquo;agit d&amp;rsquo;une des limites de l&amp;rsquo;outil, puisque ce n&amp;rsquo;est pas
+son but premier. Et pour cause, à chaque fois que l&amp;rsquo;on appelle la commande
+&lt;code>pgenv use&lt;/code>, le script arrête l&amp;rsquo;instance courante avant de basculer sur la
+deuxième.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ pgenv use latest &lt;span class="m">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using PGENV_ROOT /var/lib/pgenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 stopped
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 10.15 started
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Logging to /var/lib/pgenv/pgsql/data/server.log
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>En complément, &lt;code>pgenv&lt;/code> met en place un lien symbolique dans la racine &lt;code>$PGENV_ROOT&lt;/code>
+à chaque changement de version courante. Ce lien a été ajouté au préalable
+dans la variable &lt;code>$PATH&lt;/code> pour garantir la bonne compatibilité des binaires avec
+les données.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">/var/lib/pgenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── .pgenv.13.1.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── .pgenv.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql -&amp;gt; pgsql-10.15
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql-10.15
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql-13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── src
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ce lien symbolique nous oblige à manipuler toutes les autres instances avec des
+chemins absolus, une surcharge de leurs paramètres &lt;code>port&lt;/code> ou &lt;code>listen_addresses&lt;/code>
+et de faire appel à la bonne version de la commande &lt;code>pg_ctl&lt;/code>. Il est donc possible
+de faire de la réplication, mais oubliez &lt;code>pgenv&lt;/code> pour la gestion des processus
+d&amp;rsquo;instances.&lt;/p>
+&lt;hr>
+&lt;h2 id="dans-la-cour-des-grands">Dans la cour des grands&lt;/h2>
+&lt;p>Nous sommes en décembre 2020 à l&amp;rsquo;heure de la rédaction de cet article, et la
+communauté PostgreSQL travaille activement sur le développement de la prochaine
+version 14 du logiciel. Chaque année, les contributeur⋅rices du monde entier
+se retrouvent en ligne autour du &lt;em>&lt;a href="https://commitfest.postgresql.org/" target="_blank" rel="noopener">Commitfest&lt;/a>&lt;/em> pour étudier les nouvelles
+propositions de fonctionnalités ou de correction de bogues.&lt;/p>
+&lt;p>En août dernier, Tatsuro Yamada proposait d&amp;rsquo;&lt;a href="https://www.postgresql.org/message-id/flat/c027a541-5856-75a5-0868-341301e1624b@nttcom.co.jp_1" target="_blank" rel="noopener">enrichir&lt;/a> les méta-commandes de
+l&amp;rsquo;invite &lt;code>psql&lt;/code> afin de lister les &lt;a href="https://www.postgresql.org/docs/12/planner-stats.html#PLANNER-STATS-EXTENDED" target="_blank" rel="noopener">statistiques étendues&lt;/a> rattachées aux
+tables de la base courante. Cette fonctionnalité est donc étudiée à travers les
+échanges électroniques et suivie sur &lt;a href="https://commitfest.postgresql.org/31/2801/" target="_blank" rel="noopener">une page dédiée&lt;/a> du &lt;em>Commitfest&lt;/em>.&lt;/p>
+&lt;p>Le contributeur produit alors un fichier &lt;code>.patch&lt;/code> qu&amp;rsquo;il obtient avec la commande
+&lt;code>git diff&lt;/code> et dont le résultat est compatible avec la commande &lt;a href="https://www.man7.org/linux/man-pages/man1/patch.1.html" target="_blank" rel="noopener">patch&lt;/a>. Ainsi,
+n&amp;rsquo;importe quel relecteur peut l&amp;rsquo;intégrer dans son projet et dérouler ses tests sur
+la nouvelle instance compilée.&lt;/p>
+&lt;p>C&amp;rsquo;est là qu&amp;rsquo;intervient une chouette fonctionnalité de l&amp;rsquo;outil &lt;code>pgenv&lt;/code>. Ce dernier
+propose d&amp;rsquo;appliquer une série de patchs dans une phase préliminaire dès lors qu&amp;rsquo;on
+lui présente un fichier d&amp;rsquo;index pour la version associée, qui contiendra le chemin
+absolu des fichiers à parcourir.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">/var/lib/pgenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── patch
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    ├── 13
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> │   └── 0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    └── index
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── patch.13
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Comme on le voit dans mon arborescence, j&amp;rsquo;ai téléchargé la dernière version
+communiquée par le développeur et je l&amp;rsquo;ai déclarée dans le fichier &lt;code>index.13&lt;/code>.
+Lors de la recompilation de la version concernée, on constate que le patch
+est bien pris en compte.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PGENV_DEBUG&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv clear
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv rebuild 13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using PGENV_ROOT /var/lib/pgenv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>DEBUG&lt;span class="o">]&lt;/span> Patch index file &lt;span class="o">[&lt;/span>/var/lib/pgenv/patch/index/patch.13&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>DEBUG&lt;span class="o">]&lt;/span> Applying patch &lt;span class="o">[&lt;/span>0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> into &lt;span class="nb">source&lt;/span> tree /var/lib/pgenv/src/postgresql-13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Applied patch 0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 built
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et la fonctionnalité devient disponible sur l&amp;rsquo;instance !&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">florent=# \dX
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> List of extended statistics
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Schema | Name | Definition | Ndistinct | Dependencies | MCV
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------+-------+--------------+-----------+--------------+---------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts1 | a, b FROM t1 | | defined |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts2 | a, b FROM t1 | defined | defined |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts3 | a, b FROM t1 | defined | defined | defined
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts4 | b, c FROM t2 | defined | defined | defined
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(4 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le retrait des patchs n&amp;rsquo;est pas supporté par &lt;code>pgenv&lt;/code> mais l&amp;rsquo;opération reste
+triviale avec la commande &lt;code>patch&lt;/code> et son option &lt;code>--reverse&lt;/code>. Cela nous permet
+de conserver les sources sans devoir les télécharger à nouveau !&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">cd&lt;/span> &lt;span class="nv">$PGENV_ROOT&lt;/span>/src/postgresql-13.1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nv">index&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>/patch/index/patch.13
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="k">for&lt;/span> f in &lt;span class="k">$(&lt;/span>cat &lt;span class="nv">$index&lt;/span>&lt;span class="k">)&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">do&lt;/span> patch --reverse -p1 &amp;lt; &lt;span class="nv">$f&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file doc/src/sgml/ref/psql-ref.sgml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 1903 (offset -15 lines).&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/command.c
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 929 (offset 1 line).&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/describe.c
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 4377 (offset -24 lines).&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/describe.h
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/help.c
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/tab-complete.c
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 1479 (offset -21 lines).&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#2 succeeded at 3771 (offset -127 lines).&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Pour tout vous dire, je ne sais plus me séparer de &lt;code>pgenv&lt;/code> sauf en de rares
+exceptions où mes tests nécessitent une distribution GNU/Linux spécifique, comme
+CentOS ou Debian. Une machine virtuelle fournie par &lt;a href="https://www.vagrantup.com/docs/boxes" target="_blank" rel="noopener">Vagrant&lt;/a> est tout aussi
+fiable, notamment lorsqu&amp;rsquo;il s&amp;rsquo;agit de déboguer un paquet d&amp;rsquo;installation ou
+une dépendance particulière.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ sudo vagrant box list
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">centos/7 (libvirt, 2004.01)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">debian/buster64 (libvirt, 10.4.0)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">debian/stretch64 (libvirt, 9.12.0)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>De Jekyll à Hugo</title><link>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</link><pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/09/de-jekyll-a-hugo/</guid><description>&lt;p>Dans l&amp;rsquo;univers des générateurs de sites statiques, la bataille fait rage entre
 plusieurs &lt;em>frameworks&lt;/em> depuis quelques années. Vous avez peut-être entendu parler
 de &lt;a href="https://github.com/jekyll/jekyll" target="_blank" rel="noopener">Jekyll&lt;/a>, &lt;a href="https://github.com/vercel/next.js" target="_blank" rel="noopener">Next.js&lt;/a>, &lt;a href="https://github.com/gatsbyjs/gatsby" target="_blank" rel="noopener">Gastby&lt;/a> ou &lt;a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo&lt;/a> ? Je ne cite que les plus
 sollicités par la communauté sur GitHub, mais il en existe des centaines.&lt;/p>
-&lt;p>Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p></description></item><item><title>Quelques outils méconnus</title><link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link><pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/11/18/quelques-outils-meconnus/</guid><description>&lt;p>Cette semaine, passait sur &lt;a href="https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments" target="_blank" rel="noopener">mon fil d&amp;rsquo;actualité Twitter&lt;/a> une simple URL
+&lt;p>Pourquoi cet engouement ? Cet article n&amp;rsquo;en parlera pas.&lt;/p>
+&lt;hr>
+&lt;p>Pour de louables raisons, je m&amp;rsquo;étais engagé &lt;a href="https://fljd.in/2019/06/12/reprenons-serieusement">l&amp;rsquo;année dernière&lt;/a> à auto-héberger
+mon nouvel espace d&amp;rsquo;expression personnel. J&amp;rsquo;y ai découvert avec intérêt et amusement
+de nombreuses technologies que j&amp;rsquo;ai pliées, réinstallées, transformées pour les
+adapter à mon besoin. Sans trop rentrer dans les détails, j&amp;rsquo;ai fini par avoir :&lt;/p>
+&lt;ul>
+&lt;li>un serveur VPS chez OVH pour un coût de 3,99€ par mois&lt;/li>
+&lt;li>une routine mensuelle de renouvellement de certificat avec &lt;a href="https://pypi.org/project/certbot/" target="_blank" rel="noopener">certbot&lt;/a>&lt;/li>
+&lt;li>une instance &lt;a href="https://github.com/eclipse-theia/theia" target="_blank" rel="noopener">Theia&lt;/a> dans un conteneur Docker&lt;/li>
+&lt;li>une image Jekyll 4.1.0 que j&amp;rsquo;invoquais dans Docker&lt;/li>
+&lt;li>deux dépôts GitHub privés pour les articles (&lt;em>posts&lt;/em>) et les brouillons (&lt;em>drafts&lt;/em>)&lt;/li>
+&lt;li>le thème &lt;a href="https://github.com/poole/poole" target="_blank" rel="noopener">Poole&lt;/a>, léger et modulable… que j&amp;rsquo;ai modulé&lt;/li>
+&lt;/ul>
+&lt;p>Alors que la question de conserver ou non le serveur VPS se pose pour la nouvelle
+année qui démarre bientôt (il devient agé, limité, pour ne pas dire sénil), j&amp;rsquo;ai
+remis récemment en cause mon attachement pour le &lt;em>framework&lt;/em> &lt;strong>Jekyll&lt;/strong>, si élégant
+à l&amp;rsquo;époque.&lt;/p>
+&lt;p>Le machin repose sur des dépendances Ruby. Aussi nombreuses (ou presque) qu&amp;rsquo;un
+nouveau projet en Node.js. J&amp;rsquo;ai mangé du &lt;code>Gemfile&lt;/code> par le passé, aussi je n&amp;rsquo;ai eu
+aucune réelle difficulté à installer les quelques modules nécessaires à la
+concrétisation de mon projet. En voici le contenu :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ruby" data-lang="ruby">&lt;span class="line">&lt;span class="cl">&lt;span class="n">source&lt;/span> &lt;span class="s2">&amp;#34;https://rubygems.org&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">gem&lt;/span> &lt;span class="s2">&amp;#34;jekyll&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;~&amp;gt; 4.1.0&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">gem&lt;/span> &lt;span class="s2">&amp;#34;classifier-reborn&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># If you have any plugins, put them here!&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">group&lt;/span> &lt;span class="ss">:jekyll_plugins&lt;/span> &lt;span class="k">do&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">gem&lt;/span> &lt;span class="s2">&amp;#34;jekyll-paginate-v2&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">gem&lt;/span> &lt;span class="s1">&amp;#39;jekyll-target-blank&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;~&amp;gt; 2.0&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">gem&lt;/span> &lt;span class="s1">&amp;#39;jekyll-time-to-read&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et c&amp;rsquo;est tout.&lt;/p>
+&lt;p>Je n&amp;rsquo;avais besoin que de la pagination et de l&amp;rsquo;estimation du temps de lecture par
+article. Mine de rien, ça me semblait un peu grossier d&amp;rsquo;exiger que ces simples
+modules ne soient pas intégrés nativement. J&amp;rsquo;ai donc engagé mes recherches et le
+portage du présent site sur l&amp;rsquo;une des autres solutions, à savoir &lt;strong>Hugo&lt;/strong>.&lt;/p>
+&lt;hr>
+&lt;h2 id="migre-moi-ça-pti-con">Migre moi ça, p&amp;rsquo;ti con&lt;/h2>
+&lt;p>Et les développeurs de Hugo n&amp;rsquo;y sont pas allé de main morte pour asseoir leur
+logiciel dans ce paysage turbulent : ils intègrent un assistant de migration
+spécialement pour un projet Jekyll en récupérant ses fichiers &lt;code>.md&lt;/code> et ses
+ressources statiques. En soit, la chose n&amp;rsquo;est pas complexe et le résultat est
+au rendez-vous. Mais…&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ hugo import jekyll blog blog_hugo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Importing...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Congratulations! 128 post(s) imported!
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Now, start Hugo by yourself:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ cd blog_hugo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ git clone https://github.com/spf13/herring-cove.git themes/herring-cove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ hugo server --theme=herring-cove
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Bien sûr, l&amp;rsquo;assistant propose un thème pour embellir le projet en lieu et place
+d&amp;rsquo;une transposition du language &lt;a href="https://jekyllrb.com/docs/liquid/" target="_blank" rel="noopener">Liquid&lt;/a> sur lequel repose les fichiers
+modèles de Jekyll. C&amp;rsquo;est plus simple mais… ce n&amp;rsquo;est pas réellement ce que je
+souhaitais.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-12-09-hugo-import-from-jekyll.png" alt="Un thème par défaut pas sans défaut">&lt;/p>
+&lt;p>Autant le rendu des articles est impeccable avec ce thème, autant la navigation
+est assez pauvre à mon goût. Bien évidemment, c&amp;rsquo;est bien suffisant pour n&amp;rsquo;importe
+qui. Mais voilà. Mon thème principal me manquait et malheureusement pour moi,
+il n&amp;rsquo;existait pas pour Hugo.&lt;/p>
+&lt;hr>
+&lt;h2 id="de-longues-soirées-dhiver">De longues soirées d&amp;rsquo;hiver&lt;/h2>
+&lt;p>J&amp;rsquo;aime les choses simples. Et j&amp;rsquo;aime encore plus les comprendre en profondeur.
+C&amp;rsquo;est pour cette raison que je me suis lancé plusieurs heures dans la lecture
+assidue de la documentation très riche sur &lt;a href="https://gohugo.io/documentation/" target="_blank" rel="noopener">gohugo.io&lt;/a>. Les concepts sont
+assez différents et le passage n&amp;rsquo;a pas été si évident que cela. Je vous propose
+un florilège des astuces qu&amp;rsquo;il m&amp;rsquo;a fallu découvrir pour proposer le portage
+intégral de mon site.&lt;/p>
+&lt;h3 id="les-permaliens">Les permaliens&lt;/h3>
+&lt;p>Jekyll et Hugo proposent une gestion fine des URL à l&amp;rsquo;aide du paramètre
+&lt;code>permalinks&lt;/code> pour reconstruire l&amp;rsquo;adresse d&amp;rsquo;une page ou d&amp;rsquo;un article et favoriser
+son référencement. Cependant, leur paramètrage par défaut diffère et il est
+nécessaire de retrouver le comportement de &lt;a href="https://jekyllrb.com/docs/permalinks/" target="_blank" rel="noopener">l&amp;rsquo;un&lt;/a> avec &lt;a href="https://gohugo.io/content-management/urls/#permalinks" target="_blank" rel="noopener">l&amp;rsquo;autre&lt;/a>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">permalinks&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">posts&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">/:year/:month/:day/:slug&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour ma part, j&amp;rsquo;ai privilégié le dérivé &lt;code>:slug&lt;/code> pour être en mesure de surcharger
+la dernière portion de l&amp;rsquo;URL dans les rares cas où le titre était malformé entre
+Jekyll et Hugo. Par exemple pour mon article « &lt;a href="https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/">Tour d&amp;rsquo;horizon de PgBouncer&lt;/a> »
+où l&amp;rsquo;apostrophe n&amp;rsquo;était pas remplacée par le tiret et où je ne voulais pas
+perdre le référencement, j&amp;rsquo;ai pu contourner le problème avec l&amp;rsquo;ajout d&amp;rsquo;une simple
+ligne en en-tête du fichier Markdown.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nn">---&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;Tour d&amp;#39;horizon de PgBouncer&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">slug&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">tour-d-horizon-de-pgbouncer&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nn">---&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Il m&amp;rsquo;a également fallu découvrir un paramètre particulier pour ne pas prendre en
+compte les accents présents dans les titres lors de la génération du &lt;em>slug&lt;/em>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">removePathAccents&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="syndication-automatique-du-contenu">Syndication automatique du contenu&lt;/h3>
+&lt;p>Pour le coup, j&amp;rsquo;ai bénéficié d&amp;rsquo;une simplification dans mon projet grâce au support
+natif et avancé des flux RSS. Alors qu&amp;rsquo;avec Jekyll, je devais maintenir mes
+fichiers &lt;code>feed.xml&lt;/code> et &lt;code>atom.xml&lt;/code> à la racine du projet, j&amp;rsquo;ai découvert avec Hugo
+la notion de &lt;em>&lt;a href="https://gohugo.io/content-management/taxonomies/" target="_blank" rel="noopener">taxonomie&lt;/a>&lt;/em> qui permet la classification des articles. La
+taxonomie regroupe autant les sections, les catégories et les &lt;em>tags&lt;/em>, et je trouve
+ça astucieux.&lt;/p>
+&lt;p>Imaginons une arborescence très simple avec une page et un article :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">content/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pages
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── a-propos.md
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── posts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── 2020-11-18-quelques-outils-meconnus.md
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Sans configuration supplémentaire, Hugo générera le contenu statique pour chacun
+des éléments du projet, en consultant notamment les en-têtes pour extraire les
+informations &lt;code>categories&lt;/code> et &lt;code>tags&lt;/code> des articles.&lt;/p>
+&lt;p>La magie opère avec un ensemble de fichiers &lt;code>index.xml&lt;/code> regroupant les éléments
+d&amp;rsquo;une même taxonomie.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">public/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── 2020
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── 11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── 18
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── quelques-outils-meconnus
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── categories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── postgresql
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pages
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── a-propos
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   │   └── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── index.xml
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── tags
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── administration
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    ├── index.html
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    └── index.xml
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="la-colorisation-syntaxique">La colorisation syntaxique&lt;/h3>
+&lt;p>À ce sujet, j&amp;rsquo;ai eu une petite surprise avec les balises HTML jusqu&amp;rsquo;à ce que je
+me penche sur la &lt;a href="https://gohugo.io/content-management/syntax-highlighting/#generate-syntax-highlighter-css" target="_blank" rel="noopener">documentation&lt;/a>. En effet, par défaut, Hugo transforme un
+bloc de code Markdown en série de balises stylisées.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;highlight&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pre&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#f8f8f2;background-color:#272822;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> -moz-tab-size:4;-o-tab-size:4;tab-size:4&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">code&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;language-sql&amp;#34;&lt;/span> &lt;span class="na">data-lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;sql&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>CREATE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>TABLE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> people (
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> id BIGINT
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>GENERATED&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ALWAYS &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>AS&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>IDENTITY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> details jsonb,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>PRIMARY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">style&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;color:#66d9ef&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>KEY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (id)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> );
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">code&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">pre&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Puisque mon thème original proposait une feuille de style au format &lt;a href="https://sass-lang.com/" target="_blank" rel="noopener">SASS&lt;/a>
+spécfiquement pour la colorisation syntaxique, j&amp;rsquo;ai tenté d&amp;rsquo;activer l&amp;rsquo;un des
+paramètres de Hugo pour utiliser les classes de style plutôt que le comportement
+ci-dessus.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">pygmentsUseClasses&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le résultat était inespéré avec les classes reconnus par mes règles CSS.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;highlight&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pre&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;chroma&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">code&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;language-sql&amp;#34;&lt;/span> &lt;span class="na">data-lang&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;sql&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>CREATE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>TABLE&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>people&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>(&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>id&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;nb&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>BIGINT&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>GENERATED&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>ALWAYS&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>AS&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>IDENTITY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>,&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>details&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>jsonb&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>,&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>PRIMARY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;k&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>KEY&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>(&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;n&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>id&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">span&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;p&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>);&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">span&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">code&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">pre&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="les-balises-html-dans-le-markdown">Les balises HTML dans le Markdown&lt;/h3>
+&lt;p>Mes fichiers Markdown contenaient des balises HTML pour quelques effets visuels,
+à savoir des encarts d&amp;rsquo;avertissement &lt;code>&amp;lt;div&amp;gt;&lt;/code>, du surlignage &lt;code>&amp;lt;u&amp;gt;&lt;/code> et de très
+(trop) nombreux exposants &lt;code>&amp;lt;sup&amp;gt;&lt;/code> pour mes sources d&amp;rsquo;articles. Pour cet aspect,
+Hugo est plus restrictif que Jekyll et ignore tout bonnement les balises dans le
+rendu de ses pages.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!-- raw HTML omitted --&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour le coup, je n&amp;rsquo;ai pas cherché s&amp;rsquo;il existait un paramètre de configuration
+qui me permettrait de lever la restriction. Ma solution de contournement fut
+d&amp;rsquo;utiliser les composants &lt;em>shortcodes&lt;/em> pour mes quelques exceptions et la
+&lt;a href="https://gohugo.io/templates/shortcode-templates/" target="_blank" rel="noopener">documentation&lt;/a> était bien suffisante pour y parvenir sereinement.&lt;/p>
+&lt;p>Par exemple pour mes encarts, j&amp;rsquo;ai gagné en facilité de rédaction avec la méthode
+&lt;code>markdownify&lt;/code> fourni par le système de rendu, et je n&amp;rsquo;écris plus que du Markdown
+dans mes fichiers !&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-html" data-lang="html">&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!-- layout/shortcodes/message.html --&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">div&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;message&amp;#34;&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>{{ .Inner | markdownify }}&lt;span class="p">&amp;lt;/&lt;/span>&lt;span class="nt">div&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&amp;lt;!-- content/posts/exemple.md --&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{\{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">message&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}\}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Exemple de rendu avec un lien de [documentation][17].
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{\{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="p">/&lt;/span>&lt;span class="nt">message&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}\}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;em>Ne pas s&amp;rsquo;attarder sur les &lt;code>\&lt;/code> qui ne servent qu&amp;rsquo;à échapper les accolades.&lt;/em>&lt;/p>
+&lt;hr>
+&lt;h2 id="en-bref">En bref&lt;/h2>
+&lt;p>Au-delà des quelques paramètrages ou réécriture Markdown qui m&amp;rsquo;ont fait perdre
+du temps, Hugo présente bien plus de fonctionnalités natives que ne le fait
+Jekyll. Je dresse une liste non exhausitive des apports qui m&amp;rsquo;ont convaincu à
+passer le cap.&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://gohugo.io/templates/pagination/" target="_blank" rel="noopener">Pagination&lt;/a> simple et intégrée&lt;/li>
+&lt;li>&lt;a href="https://gohugo.io/variables/page/#page-variables" target="_blank" rel="noopener">Temps estimé de lecture&lt;/a> avec la variable &lt;code>.ReadingTime&lt;/code>&lt;/li>
+&lt;li>Génération des pages &lt;a href="https://forestry.io/blog/hugo-vs-jekyll-benchmark/" target="_blank" rel="noopener">nettement plus rapide&lt;/a>&lt;/li>
+&lt;li>Portabilité du logiciel avec &lt;strong>zéro&lt;/strong> dépendance système&lt;/li>
+&lt;/ul>
+&lt;p>Pour conclure, je me suis résolu à héberger le projet et le rendu des pages sur
+GitHub, en suivant les &lt;a href="https://gohugo.io/hosting-and-deployment/hosting-on-github/" target="_blank" rel="noopener">instructions&lt;/a> détaillées. La &lt;a href="https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site" target="_blank" rel="noopener">bascule&lt;/a> du nom de
+domaine a ainsi été opérée ce midi et je n&amp;rsquo;ai plus à me préoccuper de mon ancienne
+instance VPS ni du certificat à renouveller auprès de Let&amp;rsquo;s Encrypt.&lt;/p></description></item><item><title>Quelques outils méconnus</title><link>https://fljd.in/2020/11/18/quelques-outils-meconnus/</link><pubDate>Wed, 18 Nov 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/11/18/quelques-outils-meconnus/</guid><description>&lt;p>Cette semaine, passait sur &lt;a href="https://twitter.com/CookSoft_TR/status/1328293682731245568/retweets/with_comments" target="_blank" rel="noopener">mon fil d&amp;rsquo;actualité Twitter&lt;/a> une simple URL
 pointant sur le site &lt;a href="https://pgpedia.info" target="_blank" rel="noopener">https://pgpedia.info&lt;/a>. Non loin d&amp;rsquo;être le seul à l&amp;rsquo;avoir
 remarqué, nous en parlions entre collègues pour constater avec surprise que nous
 ne connaissions pas cette mine d&amp;rsquo;or d&amp;rsquo;informations sur PostgreSQL. Après y avoir
 perdu plusieurs heures, je me suis dit qu&amp;rsquo;un article sur les quelques utilitaires
-que j&amp;rsquo;estime méconnus, pourrait être une bonne conclusion de la semaine.&lt;/p></description></item></channel></rss>
+que j&amp;rsquo;estime méconnus, pourrait être une bonne conclusion de la semaine.&lt;/p>
+&lt;hr>
+&lt;h2 id="pg_controldata">pg_controldata&lt;/h2>
+&lt;p>&lt;em>Source : &lt;a href="https://pgpedia.info/p/pg_controldata.html" target="_blank" rel="noopener">https://pgpedia.info/p/pg_controldata.html&lt;/a>&lt;/em>&lt;/p>
+&lt;p>Ce premier outil est un &lt;em>must-have&lt;/em> pour tous les administrateurs de base de
+données. Il permet de dresser les principales informations de l&amp;rsquo;instance, qu&amp;rsquo;elle
+soit en cours d&amp;rsquo;exécution ou arrêtée. Ces dernières sont en partie extraites du
+fichier &lt;a href="https://pgpedia.info/p/pg_control.html" target="_blank" rel="noopener">pg_control&lt;/a> contenu dans le répertoire &lt;code>PGDATA/global&lt;/code>, dont
+notamment, les informations sur les toutes dernières actions du processus
+&lt;code>checkpointer&lt;/code>. On y retrouve aussi quelques configurations fixes et variables
+de l&amp;rsquo;instance.&lt;/p>
+&lt;p>Lorsque j&amp;rsquo;interviens durant un audit, plusieurs lignes m&amp;rsquo;interessent pour orienter
+mes analyses. En voici quelques exemples :&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>Database cluster state&lt;/code> : pour déterminer l&amp;rsquo;état de l&amp;rsquo;instance et savoir si
+j&amp;rsquo;interviens sur une instance principale ou secondaire. La liste des états est
+précisée dans le fichier &lt;code>src/include/catalog/pg_control.h&lt;/code> (&lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/include/catalog/pg_control.h" target="_blank" rel="noopener">source&lt;/a>).&lt;/li>
+&lt;/ul>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl"> &lt;span class="k">typedef&lt;/span> &lt;span class="k">enum&lt;/span> &lt;span class="n">DBState&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DB_STARTUP&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DB_SHUTDOWNED&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DB_SHUTDOWNED_IN_RECOVERY&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DB_SHUTDOWNING&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DB_IN_CRASH_RECOVERY&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DB_IN_ARCHIVE_RECOVERY&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DB_IN_PRODUCTION&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span> &lt;span class="n">DBState&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>
+&lt;p>&lt;code>REDO WAL file&lt;/code> et &lt;code>REDO location&lt;/code> : pour connaître le fichier WAL le plus
+proche du dernier &lt;em>checkpoint&lt;/em> requis pour la récupération des transactions suite
+à un &lt;em>crash&lt;/em>, dans des situations extrêmes où l&amp;rsquo;archivage n&amp;rsquo;est pas en place.
+Dans le cas d&amp;rsquo;une restauration, ces éléments peuvent me permettre d&amp;rsquo;identifier
+le bon fichier &lt;code>backup_label&lt;/code> à positionner dans le &lt;code>PGDATA&lt;/code>.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>Data page checksum version&lt;/code> : parfaitement incontournable, cette valeur
+m&amp;rsquo;indique si les &lt;a href="https://pgpedia.info/d/data-page-checksums.html" target="_blank" rel="noopener">sommes de contrôle&lt;/a> sont actives pour l&amp;rsquo;instance. Ce
+mécanisme va permettre de suivre l&amp;rsquo;évolution des données d&amp;rsquo;une page en calculant
+une somme de contrôle (&lt;em>checksum&lt;/em>) afin de régulièrement s&amp;rsquo;assurer qu&amp;rsquo;aucune
+corruption matérielle n&amp;rsquo;ait provoqué un changement de cette page. Par défaut,
+l&amp;rsquo;outil &lt;code>initdb&lt;/code> ne l&amp;rsquo;active pas et c&amp;rsquo;est bien dommage !&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="pg_waldump">pg_waldump&lt;/h2>
+&lt;p>&lt;em>Source : &lt;a href="https://pgpedia.info/p/pg_waldump.html" target="_blank" rel="noopener">https://pgpedia.info/p/pg_waldump.html&lt;/a>&lt;/em>&lt;/p>
+&lt;p>Anciennement connu sous le nom de &lt;code>pg_xlogdump&lt;/code>, avant que n&amp;rsquo;ait eu lieu la
+campagne de renommage de &lt;code>xlog&lt;/code> en &lt;code>wal&lt;/code> initiée avec PostgreSQL 10, cet utilitaire
+permet de parcourir le contenu des journaux de transactions. Jusqu&amp;rsquo;à présent, je
+ne m&amp;rsquo;en sers qu&amp;rsquo;à des fins pédagogiques, bien qu&amp;rsquo;il puisse s&amp;rsquo;avérer redoutable
+dans un cas de débogage de haute voltige.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">BEGIN&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">txid_current&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- txid_current
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- --------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 1315
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">test&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">test&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">COMMIT&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Cette simple transaction provoque plusieurs transformations dans les pages de
+l&amp;rsquo;instance, notamment dans le catalogue de la base qui reçoit les instructions
+SQL, que je cache volontairement dans l&amp;rsquo;exemple suivant :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pg_waldump -p data/pg_wal --start=0/52CA530 --xid=1315
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rmgr: Storage desc: CREATE base/16384/24399
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rmgr: Standby desc: LOCK xid 1315 db 16384 rel 24399
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rmgr: Heap desc: INSERT+INIT off 1 flags 0x00
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blkref #0: rel 1663/16384/24399 blk 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rmgr: Transaction desc: COMMIT 2020-11-18 11:48:23.229489 CET
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;outil fourni également un vue synthétique avec l&amp;rsquo;option &lt;code>--stats&lt;/code> si l&amp;rsquo;on
+souhaite connaître la quantité d&amp;rsquo;opérations (en nombre et taille en octets) à
+rejouer lors d&amp;rsquo;une restauration ou d&amp;rsquo;une initialisation des données dans le
+cadre d&amp;rsquo;une réplication logique.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pg_waldump -p data/pg_wal --start=0/52CA530 --end=0/52F8EE8 --stats
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Type N Combined size
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---- - -------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Total 243 189643
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="pg_test_fsync">pg_test_fsync&lt;/h2>
+&lt;p>&lt;em>Source : &lt;a href="https://pgpedia.info/p/pg_test_fsync.html" target="_blank" rel="noopener">https://pgpedia.info/p/pg_test_fsync.html&lt;/a>&lt;/em>&lt;/p>
+&lt;p>Alors, celui-là, je ne le connaissais pas avant hier ! Il s&amp;rsquo;avère être un
+compagnon appréciable lorsqu&amp;rsquo;on déploit une instance de production sur un système
+dont on a peu ou pas connaissance des performances d&amp;rsquo;écriture. Bien qu&amp;rsquo;à l&amp;rsquo;origine,
+cet outil ait été conçu pour comparer les différentes méthodes de synchronisation
+sur disques et de correctement positionner le paramètre &lt;code>wal_sync_method&lt;/code> pour
+l&amp;rsquo;instance, il permet de connaître très facilement le débit du disque qui
+contiendra les journaux de transactions.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pg_test_fsync --filename=data/pg_wal/testfile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">5 seconds per test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">O_DIRECT supported on this platform for open_datasync and open_sync.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Compare file sync methods using one 8kB write:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> open_datasync 1705,357 ops/sec 586 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fdatasync 1624,232 ops/sec 616 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fsync 1155,152 ops/sec 866 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fsync_writethrough n/a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> open_sync 1177,778 ops/sec 849 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Compare file sync methods using two 8kB writes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> open_datasync 830,826 ops/sec 1204 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fdatasync 1631,562 ops/sec 613 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fsync 367,584 ops/sec 2720 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fsync_writethrough n/a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> open_sync 115,385 ops/sec 8667 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Compare open_sync with different write sizes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1 * 16kB open_sync write 47,843 ops/sec 20902 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2 * 8kB open_sync writes 20,899 ops/sec 47850 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 4 * 4kB open_sync writes 126,572 ops/sec 7901 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 8 * 2kB open_sync writes 180,532 ops/sec 5539 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 16 * 1kB open_sync writes 96,373 ops/sec 10376 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Test if fsync on non-write file descriptor is honored:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> write, fsync, close 1395,592 ops/sec 717 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> write, close, fsync 1432,511 ops/sec 698 usecs/op
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Non-sync&amp;#39;ed 8kB writes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> write 257485,249 ops/sec 4 usecs/op
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>J&amp;rsquo;ai ainsi appris que les méthodes variaient, selon les &lt;a href="https://www.postgresql.org/docs/13/wal-reliability.html" target="_blank" rel="noopener">implémentations&lt;/a> de chaque
+système. Sous Linux, nous aurons par défault la méthode &lt;code>fdatasync&lt;/code> alors
+qu&amp;rsquo;elle sera &lt;code>open_datasync&lt;/code> sous Windows.&lt;/p>
+&lt;p>Dans la même veine, il existe un autre outil de &lt;em>benchmark&lt;/em> nommé
+&lt;a href="https://www.postgresql.org/docs/13/pgtesttiming.html" target="_blank" rel="noopener">pg_test_timing&lt;/a>, mais cette fois-ci, pour contrôler que l&amp;rsquo;horloge du système
+ne dérive pas lors d&amp;rsquo;une instruction chronométrée telle que la commande &lt;code>EXPLAIN ANALYZE&lt;/code>.&lt;/p>
+&lt;h2 id="pg_verifybackup">pg_verifybackup&lt;/h2>
+&lt;p>&lt;em>Source : &lt;a href="https://pgpedia.info/p/pg_verifybackup.html" target="_blank" rel="noopener">https://pgpedia.info/p/pg_verifybackup.html&lt;/a>&lt;/em>&lt;/p>
+&lt;p>Ce petit dernier est arrivé en octobre de cette année avec la sortie de PostgreSQL
+13. La communauté a mis à disposition un nouveau fichier appelé « manifeste de
+sauvegarde » (&lt;em>backup manifest&lt;/em>) qui a pour rôle de lister l&amp;rsquo;ensemble des fichiers
+contenu dans une sauvegarde physique, ainsi que leur signature par sommes de contrôle.&lt;/p>
+&lt;p>À présent, l&amp;rsquo;outil &lt;code>pg_basebackup&lt;/code> créé le fichier &lt;code>backup_manifest&lt;/code> au sein de
+son archive, dont la représentation est au format JSON.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;PostgreSQL-Backup-Manifest-Version&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Files&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Path&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;backup_label&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Size&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">224&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Last-Modified&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;2020-11-18 15:25:39 GMT&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Checksum-Algorithm&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;CRC32C&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Checksum&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;fc2f12b1&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Path&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;postgresql.conf&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Size&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">27981&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Last-Modified&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;2020-10-12 10:28:25 GMT&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Checksum-Algorithm&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;CRC32C&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Checksum&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;d8ad53d1&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Path&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;global/pg_control&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Size&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">8192&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Last-Modified&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;2020-11-18 15:25:39 GMT&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Checksum-Algorithm&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;CRC32C&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Checksum&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;43872087&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;WAL-Ranges&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Timeline&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Start-LSN&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;0/5400028&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;End-LSN&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;0/5400100&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;Manifest-Checksum&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;f5cf47bdfbfc0641c...5317932c41&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Alors que l&amp;rsquo;outil tier &lt;a href="https://pgbackrest.org/" target="_blank" rel="noopener">pgbackrest&lt;/a> proposait son propre système de contrôle,
+ce nouveau fichier manifeste pourrait permettre à d&amp;rsquo;autres solutions de sauvegardes
+comme &lt;a href="https://github.com/dalibo/pitrery/issues/125" target="_blank" rel="noopener">pitrery&lt;/a> de bénéficier d&amp;rsquo;une vérification à moindre coût.&lt;/p>
+&lt;p>En effet, à l&amp;rsquo;aide de l&amp;rsquo;outil &lt;code>pg_verifybackup&lt;/code>, il est possible de s&amp;rsquo;assurer
+qu&amp;rsquo;une sauvegarde physique n&amp;rsquo;a pas subi de corruption ou de transformation avant
+de la restaurer.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pg_verifybackup basebackup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">error: &amp;#34;global/pg_control.moved&amp;#34; is present on disk but not in the manifest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">error: &amp;#34;global/pg_control&amp;#34; is present in the manifest but not on disk
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ mv basebackup/global/pg_control.moved basebackup/global/pg_control
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pg_verifybackup basebackup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">backup successfully verified
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>La page de &lt;a href="https://www.postgresql.org/docs/13/reference-server.html" target="_blank" rel="noopener">documentation&lt;/a> « &lt;em>PostgreSQL Server Applications&lt;/em> » recense les
+utilitaires maintenus par la communauté. L&amp;rsquo;histoire du projet a montré que nombre
+d&amp;rsquo;entre eux étaient issus d&amp;rsquo;une contribution avant d&amp;rsquo;y être intégrés et démocratisés.&lt;/p>
+&lt;p>Le site &lt;a href="https://pgpedia.info" target="_blank" rel="noopener">https://pgpedia.info&lt;/a> est un excellent complément à la documentation car
+il retrace avec fidélité les changements survenus pour chaque aspect, méthode,
+outil présent dans le projet PostgreSQL. Ajoutez-le à vos favoris !&lt;/p></description></item></channel></rss>

@@ -6,14 +6,532 @@ maintenance.&lt;/p>
 émerveillement devant la magie du partitionnement par hachage, &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=1aba8e651ac3e37e1d2d875842de1e0ed22a651e" target="_blank" rel="noopener">apparu&lt;/a> en
 version 11. Comment le déployer et que permet-il ? J&amp;rsquo;ai voulu m&amp;rsquo;en rendre compte
 dans une rapide démonstration sur le type &lt;a href="https://fr.wikipedia.org/wiki/Universally_unique_identifier" target="_blank" rel="noopener">UUID&lt;/a> en étudiant les fonctions
-d&amp;rsquo;appui qui se cachent derrière le hachage des valeurs.&lt;/p></description></item><item><title>Les statistiques au service du plan d'exécution</title><link>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</link><pubDate>Wed, 01 Jul 2020 20:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid><description>&lt;p>La lecture d&amp;rsquo;un plan d&amp;rsquo;exécution fait partie des meilleures armes du développeur
+d&amp;rsquo;appui qui se cachent derrière le hachage des valeurs.&lt;/p>
+&lt;hr>
+&lt;h2 id="un-très-bon-choix-de-repli">Un très bon choix de repli&lt;/h2>
+&lt;p>Dès lors qu&amp;rsquo;une ou plusieurs tables dépasse le milliard de lignes, il y a fort
+à parier que les problèmes de performance ou de maintenance soient au rendez-vous :
+index volumineux, fragmentation importante, gel de l&amp;rsquo;activité pour cause de
+&lt;a href="https://blog.crunchydata.com/blog/managing-transaction-id-wraparound-in-postgresql" target="_blank" rel="noopener">rebouclage des identifiants de transactions&lt;/a>, difficultés à purger les données.
+L&amp;rsquo;apparition du partitionnement déclaratif dans PostgreSQL a permis d&amp;rsquo;y adresser
+des solutions avec un minimum de complexité.&lt;/p>
+&lt;p>La clé de partitionnement peut être définie par trois méthodes (&lt;em>range&lt;/em>, &lt;em>list&lt;/em>,
+&lt;em>hash&lt;/em>) qui présentent chacunes des réponses appropriées aux besoins d&amp;rsquo;une table
+ou d&amp;rsquo;une fonctionnalité. Nous privilégierons une clé répartie sur un intervalle
+de temps pour l&amp;rsquo;archivage de données sur une date, ou bien une clé dont les valeurs
+sont régulées dans une liste lorsque l&amp;rsquo;on souhaite maîtriser la répartition et
+pouvoir la faire évoluer simplement.&lt;/p>
+&lt;p>La dernière méthode &lt;em>hash&lt;/em> est intéressante à plusieurs égards par la confusion
+de la clé primaire avec la clé de partionnement et par une répartition équilibrée
+des données sur l&amp;rsquo;ensemble des sous-tables définies à l&amp;rsquo;avance. De manière générale,
+si vous n&amp;rsquo;avez pas idée de votre clé de partitionnement et que vous lisez
+principalement vos données sur leur clé primaire, la méthode par hachage peut être
+un très bon choix de repli.&lt;/p>
+&lt;p>Prenons une table très simple que nous découpons en cinq partitions à partir des
+valeurs de la clé primaire dont le type est &lt;code>uuid&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">PRIMARY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">KEY&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tchar&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tdate&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">without&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">zone&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">HASH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_0_5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_1_5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_2_5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_3_5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_4_5&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Avec cette configuration, l&amp;rsquo;identifiant de chaque ligne sera haché et réduit
+par l&amp;rsquo;opérateur modulo pour obtenir une valeur entière comprise entre &lt;code>0&lt;/code> et &lt;code>4&lt;/code>.
+Insérons un petit million de lignes et observons leur répartition.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">gen_random_uuid&lt;/span>&lt;span class="p">(),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">md5&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">g&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="nb">varchar&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">current_timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">g&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">interval&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1 hour&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">generate_series&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="n">e6&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">g&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- INSERT 0 1000000
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="message">À partir de la version 13 de PostgreSQL, la fonction &lt;code>gen_random_uuid()&lt;/code> est
+intégrée dans le catalogue et il n&amp;rsquo;est plus nécessaire de passer par des
+extensions comme &lt;code>pgcrypto&lt;/code> ou &lt;code>uuid-ossp&lt;/code> pour générer un &lt;code>uuid&lt;/code> aléatoire.&lt;/div>
+&lt;p>La vue &lt;code>pg_stat_user_tables&lt;/code> nous indique bien un nombre de tuples équitablement
+insérés dans les partitions.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">n_live_tup&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_live_tup&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stat_user_tables&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">GROUP&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">cube&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ORDER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> relname | n_live_tup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------+------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> t1_0_5 | 200148
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> t1_1_5 | 200123
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> t1_2_5 | 199964
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> t1_3_5 | 200184
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> t1_4_5 | 199581
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> | 1000000
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;p>Le nombre de partitions est un choix crucial lors de l&amp;rsquo;initialisation de
+la table, ou lors de sa transformation en table partitionnée, car l&amp;rsquo;ajout de
+nouvelles partitions nécessite de remplacer une des sous-tables existantes par
+un nouvel ensemble de partitions dont le diviseur doit être un multiple du
+précédent.&lt;/p>
+&lt;p>Voyons comment scinder l&amp;rsquo;une des partitions en deux.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">BEGIN&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">DETACH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_0_5&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_0_10&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_5_10&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_0_5&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- INSERT 0 200148
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DROP&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t1_0_5&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">COMMIT&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le contenu de l&amp;rsquo;ancienne partition &lt;code>t1_0_5&lt;/code> est déversé dans la table partitionnée
+et l&amp;rsquo;opérateur modulus &lt;code>10&lt;/code> permet la redistribution des lignes dans les deux
+nouvelles partitions, respectivement celles dont les restes de la division sont &lt;code>0&lt;/code>
+et &lt;code>5&lt;/code>. On garantit ainsi que les autres partitions ne deviennent pas leur nouvelle
+destination.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SUM&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">n_live_tup&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_live_tup&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stat_user_tables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">like&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;t1%10&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">GROUP&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">cube&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ORDER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> relname | n_live_tup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------+------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> t1_0_10 | 99960
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> t1_5_10 | 100188
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> | 200148
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Cette opération est lourde sur des données vivantes, avec des verrous de type
+&lt;code>Access Exclusive&lt;/code> qui interdisent toutes consultations ou modifications de la
+table partitionnée. Les sous-tables non impliquées dans la transformation restent
+accessibles en lecture, pour peu qu&amp;rsquo;on puisse réaliser les &lt;code>SELECT&lt;/code> sur leur
+nom exact de partition.&lt;/p>
+&lt;hr>
+&lt;h2 id="les-fonctions-dappui">Les fonctions d&amp;rsquo;appui&lt;/h2>
+&lt;p>La plupart des types de données sont supportés par la méthode &lt;code>hash&lt;/code> à l&amp;rsquo;aide
+notamment des classes d&amp;rsquo;opérateur et des fonctions d&amp;rsquo;appui fournies par PostgreSQL.
+Par exemple, pour connaître la liste de types compatibles avec le partitionnement
+par hachage, il suffit de consulter le catalogue.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">demo=# \dAc hash
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> List of operator classes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> AM | Input type | Storage type | Operator class | Default?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------+-----------------------+--------------+---------------------+----------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | aclitem | | aclitem_ops | yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | anyarray | | array_ops | yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | anyenum | | enum_ops | yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | anyrange | | range_ops | yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | uuid | | uuid_ops | yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | xid | | xid_ops | yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | xid8 | | xid8_ops | yes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(46 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Lors de l&amp;rsquo;élaboration du partitionnement par hachage, la communauté a étendu les
+fonctions d&amp;rsquo;appui en &lt;a href="https://www.postgresql.org/message-id/CA%2BTgmoZSTkD8ZazeXefmHFMKNG8U8sap-DbKkwVM%2BBw223mkVQ%40mail.gmail.com" target="_blank" rel="noopener">proposant&lt;/a> que la valeur hachée soit encodée sur 64 bits
+(&lt;code>bigint&lt;/code>) et mélangée par &lt;a href="https://fr.wikipedia.org/wiki/Salage_%28cryptographie%29" target="_blank" rel="noopener">salage&lt;/a>. Dans le cas du type &lt;code>uuid&lt;/code>, la fonction
+d&amp;rsquo;appui est &lt;code>uuid_hash_extended&lt;/code> pour laquelle le deuxième argument vaut
+&lt;code>HASH_PARTITION_SEED&lt;/code> en dur &lt;a href="https://github.com/postgres/postgres/blob/REL_13_2/src/backend/partitioning/partbounds.c#L4560" target="_blank" rel="noopener">dans le code&lt;/a> de PostgreSQL.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">demo=# \dAp hash uuid*
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> List of support functions of operator families
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> AM | Operator family | Left type | Right type | Number | Function
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------+-----------------+-----------+------------+--------+--------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | uuid_ops | uuid | uuid | 1 | uuid_hash
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash | uuid_ops | uuid | uuid | 2 | uuid_hash_extended
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">demo=# \df uuid_hash*
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> List of functions
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Schema | Name | Result data type | Argument data types | Type
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------+--------------------+------------------+---------------------+------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pg_catalog | uuid_hash | integer | uuid | func
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pg_catalog | uuid_hash_extended | bigint | uuid, bigint | func
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour bien me rendre compte de la bonne utilisation d&amp;rsquo;une fonction d&amp;rsquo;appui pour
+le hachage d&amp;rsquo;une colonne particulière, j&amp;rsquo;ajoute à mon catalogue une nouvelle
+fonction &lt;code>uuid_hash_noseed&lt;/code> qui repose sur la méthode classique &lt;code>uuid_hash&lt;/code> sans
+salage.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REPLACE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid_hash_noseed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">value&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">seed&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">bigint&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">bigint&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">abs&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uuid_hash&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">value&lt;/span>&lt;span class="p">));&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">sql&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IMMUTABLE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OPERATOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">CLASS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid_noseed_ops&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TYPE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">USING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">hash&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPERATOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid_hash_noseed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uuid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">bigint&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le nouvel opérateur &lt;code>uuid_noseed_ops&lt;/code> est défini pour utiliser la fonction créée
+précédemment en spécifiant le numéro d&amp;rsquo;appui &lt;code>2&lt;/code>, correspondant à la génération
+d&amp;rsquo;un &lt;em>hash&lt;/em> encodé sur 64 bits (&lt;a href="https://www.postgresql.org/docs/current/xindex.html#XINDEX-HASH-SUPPORT-TABLE" target="_blank" rel="noopener">doc&lt;/a>) requis pour le partitionnement. Pour
+valider mes hypothèses sur la distribution des lignes en fonction de leur reste
+de division, je crée une table &lt;code>t2&lt;/code> avec une clé primaire au format &lt;code>uuid&lt;/code> dans
+laquelle je sépare les valeurs de &lt;em>hash&lt;/em> paires et impaires.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">PRIMARY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">KEY&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">HASH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">uuid_noseed_ops&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2_0_2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2_1_2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">PARTITION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OF&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WITH&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">modulus&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">gen_random_uuid&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">generate_series&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="n">e6&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">g&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- INSERT 0 1000000
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La suite de mon expérience m&amp;rsquo;a mené un peu plus loin que ce que j&amp;rsquo;imaginais à
+l&amp;rsquo;origine. Même en l&amp;rsquo;absence d&amp;rsquo;un salage avec la constante &lt;code>HASH_PARTITION_SEED&lt;/code>,
+une &lt;a href="https://github.com/postgres/postgres/blob/REL_13_2/src/include/common/hashfn.h#L80" target="_blank" rel="noopener">autre opération&lt;/a> au cœur de la méthode de hachage survient :
+&lt;code>hash_combine64()&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="cm">/*
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Combine two 64-bit hash values, resulting in another hash value, using the
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * same kind of technique as hash_combine(). Testing shows that this also
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * produces good bit mixing.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">static&lt;/span> &lt;span class="kr">inline&lt;/span> &lt;span class="n">uint64&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">hash_combine64&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uint64&lt;/span> &lt;span class="n">a&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">uint64&lt;/span> &lt;span class="n">b&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/* 0x49a0f4dd15e5a8e3 is 64bit random data */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">a&lt;/span> &lt;span class="o">^=&lt;/span> &lt;span class="n">b&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nf">UINT64CONST&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mh">0x49a0f4dd15e5a8e3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">a&lt;/span> &lt;span class="o">&amp;lt;&amp;lt;&lt;/span> &lt;span class="mi">54&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">a&lt;/span> &lt;span class="o">&amp;gt;&amp;gt;&lt;/span> &lt;span class="mi">7&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">a&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ce salage supplémentaire est fiable pour le sous-partitionnement, où l&amp;rsquo;on souhaite
+obtenir un hachage de plusieurs colonnes pour établir la distribution des lignes
+dans les partitions. Dans mon cas de test, puisque ma clé de partitionnement est
+seule, l&amp;rsquo;opération ne fait que commuter les bits du résultat. Ce constat avait été
+partagé entre &lt;a href="https://www.postgresql.org/message-id/CAMG7%3DyUde-E%2B4Fd0w%3DVU7VsgiL0yqpVB6uCi5drs5KLDyOCzFQ%40mail.gmail.com" target="_blank" rel="noopener">deux développeurs&lt;/a>, ce qui m&amp;rsquo;a donné la requête finale
+ci-dessous afin de retrouver le reste de division et de le comparer avec les noms
+de partitions de ma table &lt;code>t2&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tableoid&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">partname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uuid_hash_noseed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">bit&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">64&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">#&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="s1">&amp;#39;49a0f4dd15e5a8e3&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">bigint&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">%&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">remainder&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t2&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ORDER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LIMIT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">10&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> tid | partname | remainder
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------------------+----------+-----------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 000012e3-bf3e-4895-8dc4-adf25649680a | t2_0_2 | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 00003fd4-b941-4c49-afcb-6449f2ddd169 | t2_1_2 | 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 000068b2-ce2d-4e13-9586-1ad986d31737 | t2_0_2 | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 00006999-696e-4c15-ac94-d1de23b89c73 | t2_1_2 | 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 000085cb-e666-4ecb-a886-09ae86fc7d55 | t2_1_2 | 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 00008675-2291-4c49-afd1-4b55ccbd50c1 | t2_0_2 | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 0000c8a1-a0fb-4e53-882d-ed9c11aba44c | t2_1_2 | 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 0000d1fd-759a-47c5-8e87-284455b36478 | t2_0_2 | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 0000d3af-64da-427c-815d-b7d32f62d7a6 | t2_1_2 | 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 0000f608-f4a2-43dd-8483-94bb317e0c95 | t2_0_2 | 0
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Avec l&amp;rsquo;apparition du partitionnement par hachage, PostgreSQL s&amp;rsquo;est doté d&amp;rsquo;une
+nouvelle méthode permettant de bénéficier de tous les avantages du partitionnement
+déclaratif sans se soucier de la distribution logique des valeurs de la clé de
+partitionnement.&lt;/p>
+&lt;p>Bien que l&amp;rsquo;élagage de partition lors de la planification ne soit pas l&amp;rsquo;objectif
+de la manœuvre puisque la clé de partitionnement est par nature indexée, il
+devient très intéressant de bénéficier notamment d&amp;rsquo;une maintenance par &lt;code>VACUUM&lt;/code>
+accélérée en subdivisant les données et les index sur le disque. La distribution
+des opérations de lecture et d&amp;rsquo;écriture sur plusieurs disques à l&amp;rsquo;aide des
+tablespaces est également possible &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=ca4103025dfe26eaaf6a500dec9170fbb176eebc" target="_blank" rel="noopener">depuis la version 12&lt;/a> et apporte son lot
+de solutions pour les tables très volumineuses.&lt;/p></description></item><item><title>Les statistiques au service du plan d'exécution</title><link>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</link><pubDate>Wed, 01 Jul 2020 20:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/</guid><description>&lt;p>La lecture d&amp;rsquo;un plan d&amp;rsquo;exécution fait partie des meilleures armes du développeur
 et de l&amp;rsquo;administrateur de bases de données pour identifier les problèmes de
 performances. Dans &lt;a href="https://fljd.in/2019/09/27/index-decomplexe">un précédent article&lt;/a>, je
 présentais l&amp;rsquo;intérêt de positionner un index sur les colonnes d&amp;rsquo;une table pour
 faciliter les recherches, notamment avec l&amp;rsquo;aide de la commande &lt;code>EXPLAIN&lt;/code>.&lt;/p>
 &lt;p>À cette époque, je ne m&amp;rsquo;étais pas attardé sur la notion des statistiques de
 données, que l&amp;rsquo;on retrouve dans la plupart des moteurs du marché. Voyons de plus
-près ce que propose PostgreSQL pour garantir les performances de vos requêtes.&lt;/p></description></item><item><title>Les liens physiques avec pg_upgrade</title><link>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</link><pubDate>Thu, 23 Apr 2020 15:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</guid><description>&lt;p>La création d&amp;rsquo;un lien sous Unix se réalise avec les commandes &lt;a href="https://www.gnu.org/software/coreutils/ln" target="_blank" rel="noopener">ln&lt;/a> ou
+près ce que propose PostgreSQL pour garantir les performances de vos requêtes.&lt;/p>
+&lt;hr>
+&lt;h2 id="estimer-ou-ne-pas-estimer">Estimer ou ne pas estimer&lt;/h2>
+&lt;p>Une statistique de données résulte d&amp;rsquo;un calcul en arrière plan sur tout ou partie
+des données d&amp;rsquo;une table. Il peut s&amp;rsquo;agir de la quantité de lignes, du nombre
+distinct de valeurs dans une colonne, ou bien encore de la &lt;strong>distribution&lt;/strong> des
+valeurs sous forme d&amp;rsquo;histogramme. Ainsi, pour chaque table et chaque colonne, il
+existe des données supplémentaires qui permettent au moteur d&amp;rsquo;avoir une juste
+&lt;strong>estimation&lt;/strong> des données qu&amp;rsquo;il s&amp;rsquo;apprête à manipuler.&lt;/p>
+&lt;p>Prenons la table &lt;code>pgbench_history&lt;/code> sur laquelle j&amp;rsquo;ai ajouté un index pour la
+colonne &lt;code>aid&lt;/code>. Quel plan nous propose le moteur pour récupérer toutes les lignes
+dont la valeur &lt;code>aid&lt;/code> est inférieure à 1 000 ?&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">EXPLAIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_history&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> QUERY PLAN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Bitmap Heap Scan on pgbench_history
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=4.34..11.79 rows=9 width=116)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Recheck Cond: (aid &amp;lt; 1000)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> -&amp;gt; Bitmap Index Scan on pgbench_history_aid_idx
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=0.00..4.34 rows=9 width=0)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Index Cond: (aid &amp;lt; 1000)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le résultat qui s&amp;rsquo;affiche correspond au meilleur plan connu et repose sur un
+système de coût d&amp;rsquo;accès aux lignes. Le plan présentant le coût le plus faible
+est considéré comme le &lt;em>meilleur&lt;/em> plan ; l&amp;rsquo;ensemble des nœuds le composant sera
+donc respecté pour récupérer le résultat final. Dans le cas de notre requête, le
+moteur estime que les opérations &lt;code>Bitmap Index&lt;/code> et &lt;code>Bitmap Heap&lt;/code> sont les moins
+coûteuses en performance.&lt;/p>
+&lt;p>Comment le moteur peut-il être certain que ce plan est le moins coûteux ?
+Comparons son coût d&amp;rsquo;accès total (ici &lt;code>11.79&lt;/code>) avec un autre plan pour lequel
+nous interdisons l&amp;rsquo;usage de l&amp;rsquo;index.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">enable_bitmapscan&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">off&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">EXPLAIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_history&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> QUERY PLAN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Seq Scan on pgbench_history (cost=0.00..19.50 rows=9 width=116)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Filter: (aid &amp;lt; 1000)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le coût de lecture complète de la table (nœud &lt;code>Seq Scan&lt;/code>) vaut &lt;code>19.50&lt;/code>, ce qui
+est supérieur au plan précédent. Lorsque l&amp;rsquo;on exécute un requête SQL, une partie
+du moteur, appelé le planificateur consolide en arrière plan une petite quantité
+de plans avant de ne retourner que le meilleur. Plusieurs &lt;a href="https://www.postgresql.org/docs/12/runtime-config-query.html" target="_blank" rel="noopener">paramètres&lt;/a> comme
+&lt;code>enable_bitmapscan&lt;/code>, peuvent changer complètement le comportement du planificateur
+en réduisant le nombre de choix possibles dans l&amp;rsquo;élaboration de ses plans.&lt;/p>
+&lt;p>En complément du coût, la commande &lt;code>EXPLAIN&lt;/code> indique également l&amp;rsquo;estimation du
+nombre de lignes que retourneront les nœuds. Dans le cas des deux plans, le
+planificateur &lt;em>estime&lt;/em> qu&amp;rsquo;il existe 9 lignes répondant au critère de recherche.
+Cette &lt;em>statistique&lt;/em> peut être déduite des vues système &lt;code>pg_class&lt;/code> et &lt;code>pg_stats&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">relpages&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">reltuples&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stats&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_class&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ON&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">tablename&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">tablename&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;pgbench_history&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">attname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;aid&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gx&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]----------+------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">schemaname | public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">tablename | pgbench_history
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">attname | aid
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">inherited | f
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">null_frac | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">avg_width | 4
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_distinct | -0.997
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">most_common_vals | {66403,80979,82766}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">most_common_freqs | {0.002,0.002,0.002}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">histogram_bounds | {75,973,1755,… ,98037,98999,99991}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">correlation | 0.047431067
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">most_common_elems |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">most_common_elem_freqs |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">elem_count_histogram |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">relpages | 7
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">reltuples | 1000
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Sans même consulter le contenu de la table &lt;code>pgbench_history&lt;/code>, nous sommes en
+possession d&amp;rsquo;informations intéressantes. Nous apprenons que la table contient
+exactement 1 000 lignes (&lt;em>reltuples&lt;/em>) et que la colonne &lt;code>aid&lt;/code> présente un nombre
+de valeurs distinctes (&lt;em>n_distinct&lt;/em>) qui tend vers &lt;code>-1&lt;/code>, c&amp;rsquo;est-à-dire autant de
+valeurs uniques que de lignes dans la table.&lt;/p>
+&lt;p>La distribution des valeurs de la colonne &lt;code>aid&lt;/code> est représentée par le tableau
+&lt;code>histogram_bounds&lt;/code> de &lt;a href="https://postgresqlco.nf/en/doc/param/default_statistics_target/" target="_blank" rel="noopener">100 éléments&lt;/a>. Ces bornes divisent approximativement les
+valeurs dans des groupes de même taille ; comprendre que 1 % des lignes ont une
+valeur de colonne &lt;code>aid&lt;/code> comprise entre 75 et 972, 1 % des lignes, entre 973 et
+1 754, etc. On peut dès lors supposer que les valeurs possibles de la colonne
+&lt;code>aid&lt;/code> s&amp;rsquo;étendent de 75 à 99 991.&lt;/p>
+&lt;p>Si l&amp;rsquo;on revient à notre critère de recherche, les lignes dont la valeur &lt;code>aid&lt;/code>
+est inférieure à 1 000 représenteraient un peu plus de 1 % des 1000 lignes de la
+table, soit environ 10 lignes si toutes les valeurs étaient distinctes.
+L&amp;rsquo;estimation de 9 lignes proposée par la commande &lt;code>EXPLAIN&lt;/code> serait donc juste.&lt;/p>
+&lt;div class="message">La documentation du projet détaille en profondeur le calcul de ces estimations
+avec de nombreux exemples :
+&lt;em>&lt;a href="https://www.postgresql.org/docs/12/row-estimation-examples.html" target="_blank" rel="noopener">How the Planner Uses Statistics: Row Estimation Examples&lt;/a>&lt;/em>.&lt;/div>
+&lt;hr>
+&lt;p>Tout l&amp;rsquo;intérêt des statistiques est donc d&amp;rsquo;apporter suffisamment d&amp;rsquo;éléments
+précalculés et économes en espace disque pour que le planificateur puisse faire
+des estimations les plus justes possibles. Dès lors qu&amp;rsquo;une estimation est calculée,
+le choix du plan d&amp;rsquo;exécution le moins coûteux devient évident. Retenons que le
+meilleur plan &lt;strong>doit être&lt;/strong> le moins coûteux en ressources et donc, le plus
+optimisé pour la requête SQL.&lt;/p>
+&lt;p>Qu&amp;rsquo;advient-il de notre plan si, par erreur ou hasard, les statistiques étaient
+erronées ou venaient à disparaître pour la colonne &lt;code>aid&lt;/code> ?&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">DELETE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_statistic&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">starelid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;pgbench_history&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">staattnum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">attnum&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_attribute&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">attrelid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">starelid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">attname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;aid&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">RESET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">enable_bitmapscan&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">EXPLAIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_history&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> QUERY PLAN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Seq Scan on pgbench_history (cost=0.00..19.50 rows=333 width=116)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Filter: (aid &amp;lt; 1000)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>On constate qu&amp;rsquo;en l&amp;rsquo;absence de statistiques sur le critère de sélection, le plan
+&lt;code>Bitmap&lt;/code> n&amp;rsquo;est plus le moins coûteux et n&amp;rsquo;est donc plus proposé par le
+planificateur. Le moteur privilégera la lecture complète de la table (&lt;code>Seq Scan&lt;/code>)
+dont le coût est invariant.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">enable_seqscan&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">off&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">EXPLAIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_history&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> QUERY PLAN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Bitmap Heap Scan on pgbench_history
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=10.86..22.02 rows=333 width=116)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Recheck Cond: (aid &amp;lt; 1000)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> -&amp;gt; Bitmap Index Scan on pgbench_history_aid_idx
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=0.00..10.77 rows=333 width=0)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Index Cond: (aid &amp;lt; 1000)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;estimation de lignes retournées peut paraître surprenante ! Il s&amp;rsquo;agit d&amp;rsquo;un
+calcul arbitraire défini dans la classe &lt;code>selfuncs.h&lt;/code> (&lt;a href="https://doxygen.postgresql.org/selfuncs_8h.html#define-members" target="_blank" rel="noopener">source&lt;/a>) avec notamment un
+facteur de sélectivité qui s&amp;rsquo;applique sur le nombre total de lignes présentes dans
+la table. Ainsi, pour un critère d&amp;rsquo;égalité, ce facteur vaudra 0.5 %
+(&lt;code>DEFAULT_EQ_SEL=0.005&lt;/code>) alors qu&amp;rsquo;une comparaison de non-égalité comme celle
+de notre exemple, vaudra 33.33 % (&lt;code>DEFAULT_INEQ_SEL=0.3333333333333333&lt;/code>).&lt;/p>
+&lt;p>Puisque le planificateur estime devoir parcourir 333 entrées dans l&amp;rsquo;index à défaut
+de meilleure estimation, le coût total de ce plan est surévalué à &lt;code>22.02&lt;/code>, au
+lieu de &lt;code>11.79&lt;/code> auparavant.&lt;/p>
+&lt;hr>
+&lt;h2 id="collecte-automatique-des-statistiques">Collecte automatique des statistiques&lt;/h2>
+&lt;p>Bien entendu, supprimer des statistiques n&amp;rsquo;est pas une bonne pratique et ne devrait
+pas être envisagé pour « changer le comportement » du planificateur. Depuis la
+version 8.3 de PostgreSQL, il n&amp;rsquo;y a même plus trop de raison de s&amp;rsquo;inquiéter de
+l&amp;rsquo;absence ou de la fraîcheur des statistiques associées à chaque colonne de vos
+tables : le processus &lt;a href="https://www.postgresql.org/docs/8.3/runtime-config-autovacuum.html" target="_blank" rel="noopener">autovacuum&lt;/a> (désactivé en 8.1 et 8.2) se charge, entre
+autres fonctions, de parcourir régulièrement les tables de vos bases pour collecter
+et consolider la table &lt;code>pg_statistic&lt;/code>. Il se porte ainsi garant de la pertinence
+des plans d&amp;rsquo;exécution.&lt;/p>
+&lt;p>En réalité, ce processus &lt;em>observe&lt;/em> les variations de volumétrie des tables avant
+de déclencher l&amp;rsquo;opération &lt;code>ANALYZE&lt;/code> par un processus de maintenance pour cette
+table. Ce mécanisme est bien plus pertinent et optimisé qu&amp;rsquo;une exécution à
+intervale régulier pour calculer arbitrairement les statistiques de la base.&lt;/p>
+&lt;p>Le &lt;a href="https://www.postgresql.org/docs/12/routine-vacuuming.html#AUTOVACUUM" target="_blank" rel="noopener">seuil de déclenchement&lt;/a> de l&amp;rsquo;&lt;em>autoanalyze&lt;/em> est obtenu à l&amp;rsquo;aide d&amp;rsquo;un calcul
+trivial impliquant deux paramètres globaux que l&amp;rsquo;on peut surcharger,
+&lt;code>autovacuum_analyze_threshold = 50&lt;/code> et &lt;code>autovacuum_analyze_scale_factor = 0.1&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">analyze threshold = analyze base threshold +
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> analyze scale factor * number of tuples
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Prenons l&amp;rsquo;exemple de la table &lt;code>pgbench_accounts&lt;/code> qui contient un million de lignes
+avec une contrainte de clé primaire sur la colonne &lt;code>aid&lt;/code>. La vue système
+&lt;code>pg_stat_user_tables&lt;/code> dispose d&amp;rsquo;informations complémentaires à celles des
+statistiques, notamment la colonne &lt;code>n_mod_since_analyze&lt;/code> qui indique la quantité
+de tuples ayant été modifiés depuis la dernière opération de collecte &lt;code>ANALYZE&lt;/code>.
+Voyons son contenu après la modification d&amp;rsquo;une portion de lignes.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">filler&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">10000&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- UPDATE 10000
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">last_autoanalyze&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_live_tup&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_mod_since_analyze&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stat_user_tables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;pgbench_accounts&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gx&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]-------+------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">relname | pgbench_accounts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">last_autoanalyze | 2020-06-18 15:12:55.224493+02
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_live_tup | 1000000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_mod_since_analyze | 10000
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ici, seul 1 % de la table a subi un changement et le mécanisme de collecte
+automatique des statistiques semble ne pas s&amp;rsquo;être déclenché. En effet, le seuil
+de déclenchement pour cette table serait plutôt de 100 050 lignes
+(&lt;code>50 + 0.1 * 1000000&lt;/code>). Recommençons avec un plus large échantillon et observons
+les traces d&amp;rsquo;activité du processus &lt;code>autovacuum&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SYSTEM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">log_min_messages&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">debug2&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SYSTEM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">log_autovacuum_min_duration&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_reload_conf&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">filler&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">90051&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- UPDATE 90051
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">last_autoanalyze&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_live_tup&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_mod_since_analyze&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stat_user_tables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;pgbench_accounts&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gx&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]-------+------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">relname | pgbench_accounts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">last_autoanalyze | 2020-06-30 17:44:22.424363+02
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_live_tup | 1000000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_mod_since_analyze | 0
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Comme attendu, un traitement &lt;code>ANALYZE&lt;/code> s&amp;rsquo;est exécuté et a mis à jour les données
+de la vue &lt;code>pg_stat_user_tables&lt;/code>, mettant à zéro la colonne &lt;code>n_mod_since_analyze&lt;/code>
+jusqu&amp;rsquo;au prochain déclenchement. Côté trace d&amp;rsquo;activité, le mode &lt;code>debug2&lt;/code> écrit
+une série d&amp;rsquo;événements tels que les seuils calculés de la table, le démarrage
+et la fin du traitement par le &lt;em>worker&lt;/em> dédié.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-r" data-lang="r">&lt;span class="line">&lt;span class="cl">&lt;span class="n">DEBUG&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">autovacuum&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">processing&lt;/span> &lt;span class="n">database&lt;/span> &lt;span class="s">&amp;#34;demo&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">DEBUG&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">vac&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">100051&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">threshold&lt;/span> &lt;span class="m">200050&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">anl&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">100051&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">threshold&lt;/span> &lt;span class="m">100050&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">DEBUG&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">analyzing&lt;/span> &lt;span class="s">&amp;#34;public.pgbench_accounts&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">LOG&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">automatic&lt;/span> &lt;span class="n">analyze&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">table&lt;/span> &lt;span class="s">&amp;#34;demo.public.pgbench_accounts&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">system&lt;/span> &lt;span class="n">usage&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">CPU&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">user&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">0.09&lt;/span> &lt;span class="n">s&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">system&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">0.00&lt;/span> &lt;span class="n">s&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">elapsed&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">0.25&lt;/span> &lt;span class="n">s&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="estimer-la-prochaine-heure-de-la-collecte">Estimer la prochaine heure de la collecte&lt;/h2>
+&lt;p>Dans la plupart des cas, les paramètres associés au mécanisme d&amp;rsquo;&lt;em>autovacuum&lt;/em> sont
+adaptés à la plupart des tables et assurent une fréquence correcte du calcul des
+statistiques. Cependant, au-delà d&amp;rsquo;une certaine volumétrie, une table peut
+présenter des incohérences entre son contenu et ses statistiques.&lt;/p>
+&lt;p>La modification de 10 % de la table &lt;code>pgbench_accounts&lt;/code> pourrait prendre des jours
+voire des semaines avant que ne survienne le traitement &lt;em>autoanalyze&lt;/em>. Il est
+donc de la responsabilité du développeur ou du DBA de surveiller l&amp;rsquo;accroissement
+de l&amp;rsquo;indicateur &lt;code>n_mod_since_analyze&lt;/code> pour éviter que les statistiques ne soient
+trop décorrélées du contenu.&lt;/p>
+&lt;p>Pour s&amp;rsquo;en assurer, je crée deux fonctions dans ma base pour récupérer respectivement
+les options de stockage d&amp;rsquo;une table (&lt;code>reloptions&lt;/code>) ou à défaut, les paramètres
+d&amp;rsquo;instance, ainsi que le calcul du seuil de déclenchement sur la base de la
+formule précédente. La seconde fonction s&amp;rsquo;assure notamment que le mécanisme de
+collecte automatique n&amp;rsquo;est pas désactivé (&lt;code>autovacuum_enabled = off&lt;/code>).&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REPLACE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">get_reloption&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">reloptions&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">[],&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">sql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">coalesce&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">min&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">option_value&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">current_setting&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_options_to_table&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">reloptions&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">option_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">OR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">REPLACE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FUNCTION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">get_anl_threshold&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">o&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">oid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">RETURNS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">float&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">LANGUAGE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">sql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">get_reloption&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">reloptions&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;autovacuum_analyze_threshold&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">int&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">get_reloption&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">reloptions&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;autovacuum_analyze_scale_factor&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">float&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">reltuples&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_class&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">oid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">o&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">EXISTS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_options_to_table&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">reloptions&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">option_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;autovacuum_enabled&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">option_value&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;off&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">$$&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Avec les résultats de ces fonctions, je peux construire une requête plus évoluée
+qui estime l&amp;rsquo;heure du prochain déclenchement en fonction de nombre de modification
+et de la dernière collecte.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_live_tup&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_mod_since_analyze&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">get_anl_threshold&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">relid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">threshold&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">last_autoanalyze&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">current_timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">CASE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_mod_since_analyze&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">null&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_mod_since_analyze&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">get_anl_threshold&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">relid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">THEN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">ELSE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">n_mod_since_analyze&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">get_anl_threshold&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">relid&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">END&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">current_timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">last_autoanalyze&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">next_autoanalyze&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_stat_user_tables&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">relname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;pgbench_accounts&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">gx&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]--------+------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">relname | pgbench_accounts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_live_tup | 1000000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_mod_since_analyze | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">threshold | 100050
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">last_autoanalyze | 2020-07-01 15:07:40.134444+02
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">next_autoanalyze |
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">filler&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">aid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">25000&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- UPDATE 25000
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]--------+------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">relname | pgbench_accounts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_live_tup | 1000000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_mod_since_analyze | 25000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">threshold | 100050
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">last_autoanalyze | 2020-07-01 15:07:40.134444+02
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">next_autoanalyze | 2020-07-01 18:16:43.734491+02
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La commande &lt;code>ALTER TABLE&lt;/code> suivante permet de modifier les options de stockage de
+la table, et d&amp;rsquo;ajuster le seuil du déclenchement automatique de la collecte. À
+vous de voir si l&amp;rsquo;activité sur votre table le justifie !&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">autovacuum_analyze_scale_factor&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="mi">01&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">autovacuum_analyze_threshold&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]--------+------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">relname | pgbench_accounts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_live_tup | 1000000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_mod_since_analyze | 25000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">threshold | 10000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">last_autoanalyze | 2020-07-01 15:07:40.134444+02
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">next_autoanalyze | 2020-07-01 17:04:34.038917+02
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]--------+------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">relname | pgbench_accounts
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_live_tup | 1000000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">n_mod_since_analyze | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">threshold | 10000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">last_autoanalyze | 2020-07-01 17:04:41.987032+02
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">next_autoanalyze |
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Les statistiques jouent un rôle essentiel dans les performances d&amp;rsquo;un moteur
+relationnel comme PostgreSQL. Réussir à les maintenir pertinentes est la clé dans
+la gestion au quotidien du système. Avec mon exposé, j&amp;rsquo;espère vous avoir démontré
+qu&amp;rsquo;il n&amp;rsquo;est pas nécessaire de rafraîchir toutes les statistiques, mais seulement
+celles dont le seuil n&amp;rsquo;est plus adapté.&lt;/p>
+&lt;p>Dans un genre similaire, un &lt;a href="https://www.depesz.com/2020/01/29/which-tables-should-be-auto-vacuumed-or-auto-analyzed/" target="_blank" rel="noopener">récent article&lt;/a> de Hubert « depesz » Lubaczewski
+présente une série de requêtes permettant d&amp;rsquo;identifier les tables nécessitant une
+action de maintenance (&lt;code>vacuum&lt;/code> ou &lt;code>analyze&lt;/code>) dans le cas où la routine automatique
+ne fait pas correctement son travail. Ce genre de petites astuces peuvent sauver
+des vies… (euh) des plans d&amp;rsquo;exécution !&lt;/p></description></item><item><title>Les liens physiques avec pg_upgrade</title><link>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</link><pubDate>Thu, 23 Apr 2020 15:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</guid><description>&lt;p>La création d&amp;rsquo;un lien sous Unix se réalise avec les commandes &lt;a href="https://www.gnu.org/software/coreutils/ln" target="_blank" rel="noopener">ln&lt;/a> ou
 &lt;a href="https://www.gnu.org/software/coreutils/cp" target="_blank" rel="noopener">cp&lt;/a>. Cette action permet de &lt;em>lier&lt;/em> deux fichiers vers la même donnée et
 de rendre disponible une ressource par l&amp;rsquo;intermédiaire de l&amp;rsquo;un ou de l&amp;rsquo;autre de
 ces fichiers.&lt;/p>
@@ -21,4 +539,215 @@ ces fichiers.&lt;/p>
 le &lt;em>symlink&lt;/em>, le lien symbolique. Mais qu&amp;rsquo;en est-il des autres ? Comment se
 caractérisent-ils et dans quels contextes ? En vrai, qu&amp;rsquo;est-ce qu&amp;rsquo;un &lt;em>inode&lt;/em> ?
 Et PostgreSQL dans tout ça ? Autant de petites questions de curiosité que
-j&amp;rsquo;aborde avec vous dans cet article !&lt;/p></description></item></channel></rss>
+j&amp;rsquo;aborde avec vous dans cet article !&lt;/p>
+&lt;hr>
+&lt;h2 id="parlons-dabord-du-lien-symbolique">Parlons d&amp;rsquo;abord du lien symbolique&lt;/h2>
+&lt;p>Pour faire simple, on peut comparer le lien symbolique à un raccourci Windows.
+Il s&amp;rsquo;agit d&amp;rsquo;un pointeur vers un fichier ou un répertoire qui permet toutes les
+opérations simples comme la lecture ou l&amp;rsquo;écriture.&lt;/p>
+&lt;p>Par exemple, pour une instance PostgreSQL, il est possible de déporter le
+répertoire des fichiers WAL sur un autre montage à l&amp;rsquo;aide d&amp;rsquo;un lien symbolique.
+Cette opération nécessite un arrêt du service et la copie des fichiers vers le
+nouveau montage, comme suit :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># à réaliser avec le compte root&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">systemctl stop postgresql-12.service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># créer le nouveau répertoire en préservant les permissions&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">install --owner&lt;span class="o">=&lt;/span>postgres --group&lt;span class="o">=&lt;/span>postgres --mode&lt;span class="o">=&lt;/span>&lt;span class="m">700&lt;/span> -d /u01/pg_wal/12
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mv /var/lib/pgsql/12/data/pg_wal/* /u01/pg_wal/12/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># créer le lien vers le nouveau répertoire&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rmdir /var/lib/pgsql/12/data/pg_wal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ln --symbolic /u01/pg_wal/12 /var/lib/pgsql/12/data/pg_wal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># et redémarrer l&amp;#39;instance&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">systemctl start postgresql-12.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le lien ainsi obtenu par la commande &lt;code>ln --symbolic&lt;/code> se présente comme une fausse
+copie du répertoire d&amp;rsquo;origine, permettant aux données d&amp;rsquo;être consultées à plusieurs
+endroits sans risque d&amp;rsquo;être dupliquées. La commande &lt;code>stat&lt;/code> nous donne de précieuses
+informations à son sujet :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># FORMAT=&amp;#34;File = %N\nType = %F\nOwner = %U:%G\nAccess = %A\nInode = %i\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /var/lib/pgsql/12/data/pg_wal&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/var/lib/pgsql/12/data/pg_wal’ -&amp;gt; ‘/u01/pg_wal/12’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">symbolic link&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">root:root&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">lrwxrwxrwx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">33725146&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Il apparait que son propriétaire est &lt;code>root&lt;/code>, que son accès est ouvert à tous, et
+que l&amp;rsquo;&lt;em>inode&lt;/em> qui lui est associé vaut &lt;code>33919915&lt;/code>. Qu&amp;rsquo;en est-il de répertoire
+contenant les journaux de transactions ?&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /u01/pg_wal/12&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/u01/pg_wal/12’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">directory&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">postgres:postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">drwx------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">33867963&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Les deux fichiers sont bien distincts et présentent des différences notables,
+comme les propriétaires et les droits d&amp;rsquo;accès. En réalité, Unix propose sept
+&lt;a href="https://en.wikipedia.org/wiki/Unix_file_types" target="_blank" rel="noopener">types de fichiers&lt;/a> et chacun présente des caractéristiques et comportements
+que lui sont propres. On retrouve ainsi les fichiers, répertoires, liens
+symboliques, mais aussi les &lt;em>named pipes&lt;/em>, les &lt;em>sockets&lt;/em>, les &lt;em>devices&lt;/em> ou les
+&lt;em>doors&lt;/em>.&lt;/p>
+&lt;p>Le dernier attribut que remonte ma commande &lt;code>stat&lt;/code> correspond au &lt;em>inumber&lt;/em> ou
+numéro &lt;em>inode&lt;/em>. Il s&amp;rsquo;agit d&amp;rsquo;un identifiant unique sur le système de fichiers
+permettant de retrouver toutes les métadonnées du fichier dans une table d&amp;rsquo;&lt;em>inodes&lt;/em>.
+Nous avions vu à l&amp;rsquo;instant les droits et le propriétaire, l&amp;rsquo;&lt;em>inode&lt;/em> permet
+également de stocker les horodatages de création ou de modification ainsi que
+l&amp;rsquo;adresse physique des données du fichier sur le disque.&lt;/p>
+&lt;p>Ainsi, pour chaque fichier sur notre système lui est associé un &lt;em>inode&lt;/em>. La
+représentation suivante permet donc de comprendre la relation entre un lien
+symbolique et un répertoire.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-04-23-symlink-directory.png" alt="Relation entre symlink et directory">&lt;/p>
+&lt;h2 id="le-mode---link-de-pg_upgrade">Le mode --link de &lt;code>pg_upgrade&lt;/code>&lt;/h2>
+&lt;p>Les choses sont devenues passionnantes lorsque j&amp;rsquo;ai découvert la notion de lien
+physique, ou &lt;em>hardlink&lt;/em>, qu&amp;rsquo;il était possible de créer entre deux fichiers. Ce
+n&amp;rsquo;est en rien une nouveauté, car inclu dans les systèmes Unix depuis longtemps
+mais ça m&amp;rsquo;a permis de comprendre davantage l&amp;rsquo;intérêt des fameux &lt;em>inodes&lt;/em>.&lt;/p>
+&lt;p>Puisqu&amp;rsquo;un exemple concret parle toujours de lui-même, je propose d&amp;rsquo;étudier la
+méthode de migration de données d&amp;rsquo;une version 9.6 vers une version 12 de
+PostgreSQL avec l&amp;rsquo;outil &lt;code>pg_upgrade&lt;/code>. Ce dernier propose l&amp;rsquo;option &lt;code>--link&lt;/code> pour
+réduire le temps de migration des données sans copier les fichiers d’une instance
+à l’autre. Bien sûr, ce n&amp;rsquo;est pas le comportement par défaut.&lt;/p>
+&lt;div class="message">La distribution CentOS 7 est utilisée pour la démonstration.&lt;br>
+Le paquet &lt;code>postgresql12-server&lt;/code> doit être installé au préalable.&lt;/div>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># la routine setup permet la création du fichier de service ainsi&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># que l&amp;#39;initilisation d&amp;#39;un répertoire de données minimaliste&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/pgsql-12/bin/postgresql-12-setup initdb postgresql-12
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># durant la migration, l&amp;#39;instance 9.6 doit être arrêtée&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">systemctl stop postgresql-9.6.service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGDATAOLD&lt;/span>&lt;span class="o">=&lt;/span>/var/lib/pgsql/9.6/data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGDATANEW&lt;/span>&lt;span class="o">=&lt;/span>/var/lib/pgsql/12/data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGBINOLD&lt;/span>&lt;span class="o">=&lt;/span>/usr/pgsql-9.6/bin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGBINNEW&lt;/span>&lt;span class="o">=&lt;/span>/usr/pgsql-12/bin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$PGBINNEW&lt;/span>/pg_upgrade --link --verbose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># extrait du déroulement&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mappings &lt;span class="k">for&lt;/span> database &lt;span class="s2">&amp;#34;prod&amp;#34;&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">public.pgbench_accounts: &lt;span class="m">16397&lt;/span> to &lt;span class="m">16391&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">linking &lt;span class="s2">&amp;#34;/var/lib/pgsql/9.6/data/base/16384/16397&amp;#34;&lt;/span> to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;/var/lib/pgsql/12/data/base/16402/16391&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">linking &lt;span class="s2">&amp;#34;/var/lib/pgsql/9.6/data/base/16384/16397_fsm&amp;#34;&lt;/span> to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;/var/lib/pgsql/12/data/base/16402/16391_fsm&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">linking &lt;span class="s2">&amp;#34;/var/lib/pgsql/9.6/data/base/16384/16397_vm&amp;#34;&lt;/span> to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;/var/lib/pgsql/12/data/base/16402/16391_vm&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;outil &lt;code>pg_upgrade&lt;/code> est composé d&amp;rsquo;une série d&amp;rsquo;opération de contrôle, de copies
+de fichiers, d&amp;rsquo;arrêt/démarrage des instances et d&amp;rsquo;une remise à zéro des journaux
+de transactions avec &lt;code>pg_resetwal&lt;/code>. Les lignes ci-dessus illustrent le mode
+&lt;code>--link&lt;/code> lors de notre migration, avec la création d&amp;rsquo;un lien entre les deux
+versions du fichier de la table &lt;code>pgbench_accounts&lt;/code>.&lt;/p>
+&lt;p>La méthode employée peut être consultée dans les sources de &lt;a href="https://doxygen.postgresql.org/file_8c.html#a177e42cfa16856fb3b24c12684da9db8" target="_blank" rel="noopener">pg_upgrade&lt;/a> et
+repose sur la méthode &lt;a href="https://www.gnu.org/software/coreutils/link" target="_blank" rel="noopener">link&lt;/a>. Regardons en détail les métadonnées des
+fichiers de données de la table &lt;code>pgbench_accounts&lt;/code> dans les deux répertoires.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># FORMAT=&amp;#34;${FORMAT}Links = %h\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /var/lib/pgsql/9.6/data/base/16384/16397&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/var/lib/pgsql/9.6/data/base/16384/16397’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">regular file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">postgres:postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">-rw-------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">101132106&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Links&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /var/lib/pgsql/12/data/base/16402/16391&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/var/lib/pgsql/12/data/base/16402/16391’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">regular file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">postgres:postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">-rw-------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">101132106&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Links&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">2&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Au niveau du système, les fichiers sont strictement similaires. Pour dire vrai,
+il s&amp;rsquo;agit des mêmes &lt;em>inodes&lt;/em>. Les métadonnées sont communes aux deux fichiers et
+les blocs de données de la table &lt;code>pgbench_accounts&lt;/code> résident à la même adresse
+physique.&lt;/p>
+&lt;p>À la différence du lien symbolique, ce type de lien rattache un fichier non pas
+à un autre fichier, mais au numéro d&amp;rsquo;&lt;em>inode&lt;/em> d&amp;rsquo;un autre fichier. L&amp;rsquo;attribut
+&lt;code>Links&lt;/code> de ma commande &lt;code>stat&lt;/code> correspond au nombre de liens sur l&amp;rsquo;&lt;em>inode&lt;/em> en
+question. Une représentation de cette relation pourait être la suivante :&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-04-23-hardlink-pgbench_accounts.png" alt="Relation hardlink entre deux fichiers">&lt;/p>
+&lt;p>Les avantages sont doubles dans le cas d&amp;rsquo;une migration majeure :&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Temps de copie des données quasi-nul&lt;/strong> : le modèle de données est importé dans
+la nouvelle instance et les fichiers de données sont liés à ceux de la version
+précédente ;&lt;/li>
+&lt;li>&lt;strong>Économie d&amp;rsquo;espace disque&lt;/strong> : la migration n&amp;rsquo;a pas besoin du double d&amp;rsquo;espace
+disque.&lt;/li>
+&lt;/ul>
+&lt;p>En contrepartie :&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Pas de retour arrière&lt;/strong> : chacune des deux instances disposent de fichiers
+internes comme les journaux de transactions ou le fichier de contrôle, rendant
+incompatibles les fichiers de données à l&amp;rsquo;une des deux instances dès lors que
+l&amp;rsquo;autre a démarré après la migration.&lt;/li>
+&lt;/ul>
+&lt;h2 id="fin-de-vie-dune-donnée-liée">Fin de vie d&amp;rsquo;une donnée liée&lt;/h2>
+&lt;p>L&amp;rsquo;une de mes questions à l&amp;rsquo;issue d&amp;rsquo;une migration par &lt;code>pg_upgrade&lt;/code> a été : « Mais
+que se passe-t-il si nous ne supprimons pas l&amp;rsquo;ancien répertoire de données ? ».
+Puisque la donnée est référencée par la nouvelle instance, toutes les nouveautés
+y seront stockées et il n&amp;rsquo;y a pas de risque pour l&amp;rsquo;espace disque. Vraiment ?&lt;/p>
+&lt;p>Comme nous le voyions précédemment, les données de la table &lt;code>pgbench_accounts&lt;/code>
+sont accessibles à travers le numéro d&amp;rsquo;&lt;em>inode&lt;/em> &lt;code>101132106&lt;/code>. Les deux liens
+pointent vers la même adresse physique et la même allocation d&amp;rsquo;espace disque,
+ici 13 Mo.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16391&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">13M 9.6/data/base/16384/16397
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">13M 12/data/base/16402/16391
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Il est possible au cours de la vie d&amp;rsquo;une table de voir son identifiant &lt;code>relfilenode&lt;/code>
+varier au moment de la réécriture du fichier sous un nom différent. Le cas se
+présente lorsque l&amp;rsquo;on souhaite déplacer la table dans un autre &lt;em>tablespace&lt;/em>,
+quand il faut la défragmenter avec &lt;code>VACUUM FULL&lt;/code>, ou lors de la restauration
+d&amp;rsquo;un &lt;em>dump&lt;/em>. Ces opérations réalisent toute une reconstruction de la table, avec
+le déplacement des lignes dans un nouveau fichier.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_relation_filepath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;pgbench_accounts&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_relation_filepath
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ----------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- base/16402/16391
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">VACUUM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FULL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CHECKPOINT&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_relation_filepath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;pgbench_accounts&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_relation_filepath
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ----------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- base/16402/16435
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ici, la défragmentation reconstruit la table dans un nouveau fichier &lt;code>16435&lt;/code>.
+L&amp;rsquo;instruction &lt;code>CHECKPOINT&lt;/code> permet d&amp;rsquo;écrire sur disque la totalité des nouveaux
+blocs et d&amp;rsquo;actualiser l&amp;rsquo;usage des fichiers, supprimant en principe les anciens
+fichiers de données.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16435&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">0 9.6/data/base/16384/16397
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">13M 12/data/base/16402/16435
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># FORMAT=&amp;#34;File = %n\nInode = %i\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; 9.6/data/base/16384/16397 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">File&lt;/span> &lt;span class="o">=&lt;/span> 9.6/data/base/16384/16397
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="m">101132106&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; 12/data/base/16402/16435&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">File&lt;/span> &lt;span class="o">=&lt;/span> 12/data/base/16402/16435
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="m">34082173&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le nouveau fichier de notre table pour l&amp;rsquo;instance 12 pèse toujours 13 Mo, le
+fichier maintenu par le lien physique de la version précédente a été vidé lors
+de l&amp;rsquo;opération &lt;code>VACUUM FULL&lt;/code> et pèse à présent zéro octet. Mais il n&amp;rsquo;a pas été
+supprimé ! Nous nous retrouvons avec un fichier et son &lt;em>inode&lt;/em> en trop sur le
+serveur.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-04-23-hardlink-after-vacuum-full.png" alt="Nouvel inode après un VACUUM FULL">&lt;/p>
+&lt;p>Sur un système de fichiers, le nombre maximal de fichiers que l&amp;rsquo;on peut créer est
+défini par la quantité d&amp;rsquo;&lt;em>inodes&lt;/em> disponibles, alors autant faire le ménage dès
+que possible pour ne pas atteindre cette limite. D&amp;rsquo;autant plus que la suppression
+du répertoire &lt;code>9.6/data&lt;/code> est proposée à la fin de la migration par l&amp;rsquo;outil
+&lt;code>pg_upgrade&lt;/code> et ne présente aucun risque !&lt;/p>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Apparu en version 9.0, l&amp;rsquo;outil &lt;code>pg_upgrade&lt;/code> est une petite usine qui simule un
+import/export des structures d&amp;rsquo;une instance complète, avec la capacité de copier
+ou lier les anciens fichiers, de façon bien plus rapide qu&amp;rsquo;une insertion massive
+avec l&amp;rsquo;instruction &lt;code>COPY&lt;/code> de &lt;code>pg_restore&lt;/code>. C&amp;rsquo;est une solution de choix lorsque
+l&amp;rsquo;on migre d&amp;rsquo;une version majeure à l&amp;rsquo;autre sur un même serveur, notamment pour
+le gain de temps non négligeable que propose l&amp;rsquo;option &lt;code>--link&lt;/code>.&lt;/p>
+&lt;p>Avec la version 12, l&amp;rsquo;outil propose une nouvelle option &lt;code>--clone&lt;/code> et s&amp;rsquo;appuie
+sur la notion de liens « par référence » (ou &lt;em>reflinks&lt;/em>), conçus initialement
+sur les systèmes de fichiers supportant la &lt;a href="https://fr.wikipedia.org/wiki/Copy-on-write" target="_blank" rel="noopener">copie sur écriture&lt;/a>. La
+documentation précise que la copie des fichiers est &lt;em>pratiquement instantanée&lt;/em> et
+n&amp;rsquo;affecte pas l&amp;rsquo;ancienne instance.&lt;/p>
+&lt;p>Peut-être l&amp;rsquo;occasion de creuser le sujet dans un prochain article ?&lt;/p></description></item></channel></rss>

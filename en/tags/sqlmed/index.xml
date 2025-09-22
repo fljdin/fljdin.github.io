@@ -8,11 +8,437 @@ low-level function to distribute the transfer table by table over several
 processes, many situations will require writing a large number of SQL queries to
 get out of trouble. Over the following months, I worked on the design of an
 &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> written in PL/pgSQL whose purpose is to simplify the generation
-of these queries.&lt;/p></description></item><item><title>On the road to freedom with db_migrator</title><link>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</guid><description>&lt;p>Over the past months, I have spent several weeks contributing to the
+of these queries.&lt;/p>
+&lt;hr>
+&lt;h2 id="data-transfer-without-an-assistant">Data transfer without an assistant&lt;/h2>
+&lt;p>There is no magic in the operation of copying data through a Foreign Data
+Wrapper. Everything boils down to a series of &lt;code>INSERT&lt;/code> queries that must be
+executed in a predefined order. Let&amp;rsquo;s take the 16 tables of the well-known
+&amp;ldquo;Sakila&amp;rdquo; data model (available at this &lt;a href="https://github.com/ivanceras/sakila/raw/master/mysql-sakila-db" target="_blank" rel="noopener">address&lt;/a>) to illustrate the need for
+generating transfer queries.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-05-28-sakila-erp.jpg" alt="ERD Base Sakila">&lt;/p>
+&lt;p>For the purpose of this article, I have a PostgreSQL database with the two
+following schemas that I will use in my demonstrations:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>mysql&lt;/code>: the source schema containing the definition of the external tables
+via the &lt;code>mysql_fdw&lt;/code> extension;&lt;/li>
+&lt;li>&lt;code>public&lt;/code>: the target schema where the data will be copied.&lt;/li>
+&lt;/ul>
+&lt;p>Each external table is subject to a quick study to obtain the correct column
+type match, and their definition is kept in an SQL file for the project teams.
+For example, the &lt;code>rental&lt;/code> foreign tables is defined as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOREIGN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">rental&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">rental_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">rental_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">without&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">zone&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">inventory_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">customer_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">smallint&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">return_date&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">without&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">zone&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">staff_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">smallint&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">last_update&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">timestamp&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">without&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">time&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">zone&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">SERVER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">sakila_mysql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">OPTIONS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">dbname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;sakila&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">table_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;rental&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>When creating the &lt;code>public.rental&lt;/code> table that will host the data, it is
+opportune to decide whether we want to set up partitioning, something that
+&lt;code>db_migrator&lt;/code> is able to identify and set up. For the example, I take back the
+strict structure using the &lt;code>CREATE TABLE LIKE&lt;/code> syntax to create all my target
+tables.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">LIKE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">TABLE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">LIKE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Even before setting up an &lt;code>INSERT&lt;/code> query generator, it is easy to see the look
+of these queries. Each line of the external table will be read through a global
+&lt;code>SELECT&lt;/code>, then inserted into the target table. The migration script contains 16
+instructions, one for each table.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- insert.sql
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">actor&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">address&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">public&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">store&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">store&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>To benefit from several processes, I appreciate the &lt;code>xargs&lt;/code> tool which allows
+distributing each line of the &lt;code>insert.sql&lt;/code> file on a new &lt;code>psql&lt;/code> session. This
+technique was presented in the February workshop, especially to parallelize the
+construction of indexes and primary keys, defined in an SQL file.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> xargs -P &lt;span class="m">4&lt;/span> -a insert.sql -d &lt;span class="s1">&amp;#39;\n&amp;#39;&lt;/span> -I % sh -c &lt;span class="s1">&amp;#39;psql -c &amp;#34;%&amp;#34;&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INSERT 0 16
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INSERT 0 603
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">...
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">INSERT 0 16044
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This method is not perfect, it lacks verbosity, the SQL queries are static.
+Anyway, let&amp;rsquo;s see the next part to discover what my assistant can bring.&lt;/p>
+&lt;hr>
+&lt;h2 id="demonstration-of-the-assistant">Demonstration of the assistant&lt;/h2>
+&lt;p>Unlike my other PL/pgSQL projects, this &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener">assistant&lt;/a> is not an extension and
+must be installed as a simple script. Once downloaded, it is sufficient to
+invoke it on the database of your choice with the following command:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> psql -d sakila -f fdw-assistant.sql
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The default schema is named &lt;code>assistant&lt;/code> and contains a &lt;strong>configuration&lt;/strong> table
+simply called &lt;code>config&lt;/code>. For each table to be migrated, one must insert a single
+line that will serve as the starting point for generating data migration
+queries. In the current version, we find the following parameters:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>source&lt;/code>: the external table containing the data to be copied;&lt;/li>
+&lt;li>&lt;code>target&lt;/code>: the target table where the data will be copied;&lt;/li>
+&lt;li>&lt;code>pkey&lt;/code>: the primary key column of the target table;&lt;/li>
+&lt;li>&lt;code>priority&lt;/code>: the lowest values define the tables to be processed first;&lt;/li>
+&lt;li>&lt;code>parts&lt;/code>: the number of processes to launch for copying the data;&lt;/li>
+&lt;li>&lt;code>trunc&lt;/code>: an option to empty the target table before copying the data;&lt;/li>
+&lt;li>&lt;code>condition&lt;/code>: a &lt;code>WHERE&lt;/code> clause to filter the data to be copied;&lt;/li>
+&lt;li>&lt;code>batchsize&lt;/code>: the number of rows to copy before performing an intermediate
+&lt;code>COMMIT&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>To initialize this table in the first instance, it is necessary to know at least
+the primary key columns of each remote table. By reporting the information from
+the relational diagram of the Sakila database, we can fill the &lt;code>config&lt;/code> table as
+follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">INSERT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">INTO&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">source&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pkey&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">VALUES&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mysql.actor&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.actor&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;actor_id&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mysql.address&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.address&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;address_id&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mysql.store&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.store&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;store_id&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>For each transfer, we indicate the source and target table, as well as the
+primary key column. The latter is required to sort the rows, split the transfer
+into several batches, and restart the transfer in case of interruption.&lt;/p>
+&lt;p>With this configuration, we can move on to the &lt;strong>planning&lt;/strong> step. The &lt;code>stage&lt;/code>
+and &lt;code>job&lt;/code> tables are fed with new elements that will be used to drive and track
+the different transfers to be done.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">plan&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> target | invocation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------------+--------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customer | CALL assistant.copy(1);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> address | CALL assistant.copy(2);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(16 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A view named &lt;code>report&lt;/code> allows you to follow the progress of the different steps
+by joining the &lt;code>stage&lt;/code> and &lt;code>job&lt;/code> tables. It provides very useful elements to
+monitor the progress and throughput of the transfers.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">state&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">rows&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">report&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> target | state | rows
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------------+---------+------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rental | pending | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actor | pending | 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(16 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Rows returned by the &lt;code>plan()&lt;/code> command can then be &lt;strong>invoked&lt;/strong> one after the
+other with the &lt;code>\gexec&lt;/code> meta-command of &lt;code>psql&lt;/code>, or by using the file technique
+and distributing the queries with &lt;code>xargs&lt;/code>.&lt;/p>
+&lt;p>Calling the &lt;code>copy()&lt;/code> method is responsible for building the &lt;code>INSERT&lt;/code> statement
+for copying data from a remote table to a local table. For example, for the
+&lt;code>customer&lt;/code> table, the result of the call will be as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">NOTICE: Executing: TRUNCATE public.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: SELECT count(customer_id) FROM mysql.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE customer_id &amp;gt; 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: INSERT INTO public.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SELECT customer_id, store_id, first_name, last_name, email,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> address_id, active, create_date, last_update
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE customer_id &amp;gt; 0 ORDER BY customer_id
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>At the end of the transfer, the &lt;code>report&lt;/code> view provides a summary of the operation.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">report&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.customer&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">-[ RECORD 1 ]-------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">stage_id | 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">target | public.customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">job_start | 2024-05-28 10:19:18.334917
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">state | completed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rows | 599
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">total | 599
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">elapsed | 00:00:00.081273
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rate | 7370.22
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">progress | 1.00
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">eti | 00:00:00
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">eta | 2024-05-28 10:19:18.334917
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="distribution-over-several-processes">Distribution over several processes&lt;/h2>
+&lt;p>As the assistant was designed, I felt the need to enrich the underlying queries
+to respond to other recurring use cases in the data migration domain. Among
+these, we find the ability to distribute the rows of the same table over several
+sessions, each with a &lt;code>WHERE&lt;/code> clause based on the result of the Euclidean
+division (&lt;em>modulo&lt;/em>) of the primary key.&lt;/p>
+&lt;p>To activate this feature, simply fill in the &lt;code>parts&lt;/code> parameter in the &lt;code>config&lt;/code>
+table. For example, for the &lt;code>film&lt;/code> table, we can define:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">parts&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.film&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This configuration takes effect during the next planning. The call to the
+&lt;code>plan()&lt;/code> method then inserts four lines into the &lt;code>job&lt;/code> table for the &lt;code>film&lt;/code>
+table, each attached to a value between 0 and 3. The &lt;code>condition&lt;/code> column is then
+enriched for the rows of the &lt;code>task&lt;/code> table in view of the next step.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">invocation&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">plan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;{public.film}&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> invocation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(17);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(18);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(19);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(20);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(4 rows)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">job_id&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">job&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">state&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">part&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">condition&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">job&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">JOIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">task&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">job_id&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> job_id | target | state | part | condition
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------+--------+---------+------+-----------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 17 | film | pending | 0 | film_id % 4 = 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 18 | film | pending | 1 | film_id % 4 = 1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 19 | film | pending | 2 | film_id % 4 = 2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 20 | film | pending | 3 | film_id % 4 = 3
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>When calling the &lt;code>copy()&lt;/code> method, the assistant builds the &lt;code>INSERT&lt;/code> queries
+based on the conditions previously defined. For example, for the first part of
+the &lt;code>film&lt;/code> table, the trace indicates the &lt;code>INSERT&lt;/code> queries that were generated.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">17&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">NOTICE: Executing: TRUNCATE public.film
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: SELECT count(film_id) FROM mysql.film
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE film_id &amp;gt; 0 AND film_id % 4 = 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: INSERT INTO public.film
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SELECT film_id, title, description, release_year,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> language_id, original_language_id, rental_duration,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rental_rate, length, replacement_cost, rating,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> special_features, last_update
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.film WHERE film_id &amp;gt; 0 AND film_id % 4 = 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ORDER BY film_id
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>TRUNCATE&lt;/code> operation only occurs for the session whose value of &lt;code>part&lt;/code> is
+equal to 0. In the nominal case, this session is launched before all the others
+to respect the expected behavior in the configuration with the &lt;code>trunc&lt;/code> column
+(&lt;code>true&lt;/code> by default).&lt;/p>
+&lt;p>The obvious interest of this method is to obtain the best insertion rate for a
+given table, relying on the extraction power of the remote server and the
+writing capacity of the local server. The rate can be consulted with the
+&lt;code>report&lt;/code> view, especially to compare two loads for the same table, like the
+example of the &lt;code>film&lt;/code> table. The &lt;code>rate&lt;/code> column is expressed in number of rows
+per second.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">state&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">rate&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">report&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.film&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> stage_id | target | state | rate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">----------+-------------+-----------+----------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1 | public.film | completed | 19162.59
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2 | public.film | completed | 51389.37
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="restart-after-interruption">Restart after interruption&lt;/h2>
+&lt;p>The ability to restart a copy in batch mode in case of interruption is one of
+the reasons why the primary key must be filled in the configuration. The
+assistant relies on the last extracted primary key value (using a &lt;code>RETURNING&lt;/code>
+clause) to know the next restart point. In designing this feature, I had to
+arbitrate the limitations imposed by this mechanism.&lt;/p>
+&lt;ul>
+&lt;li>Composite primary keys are not allowed, as the &lt;code>RETURNING&lt;/code> clause can only
+return a single value;&lt;/li>
+&lt;li>Tables with composite primary keys cannot benefit from batch processing, and
+therefore cannot be restarted after interruption;&lt;/li>
+&lt;li>Data is systematically sorted during extraction, even if batch processing is
+not enabled;&lt;/li>
+&lt;li>The primary key column must be of numeric type.&lt;/li>
+&lt;/ul>
+&lt;p>The activation of a batch processing consists of updating the &lt;code>batchsize&lt;/code> column
+of the configuration table. Let&amp;rsquo;s take the example of the &lt;code>rental&lt;/code> table:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">batchsize&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1000&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.rental&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">invocation&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">plan&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;{public.rental}&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> invocation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CALL assistant.copy(21);
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(1 row)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The data transfer from the &lt;code>rental&lt;/code> table is then divided into batches of 1000
+rows. It is of course possible to combine this technique with parallelization,
+the &lt;code>WHERE&lt;/code> clause will do most of the work of repartition to prevent the same
+line from being exported twice.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">21&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">TRUNCATE public.rental
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">SELECT count(rental_id) FROM mysql.rental WHERE rental_id &amp;gt; 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 0 ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 16005 ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 16049 ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>As soon as a query no longer returns any rows, the assistant considers that the
+transfer is complete. The &lt;code>job&lt;/code> table is updated at each iteration to follow the
+last value of the primary key sequence.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lastseq&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">job&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">stage_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;public.rental&amp;#39;&lt;/span>&lt;span class="p">::&lt;/span>&lt;span class="n">regclass&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> target | lastseq
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---------------+---------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public.rental | 16049
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>In case of interruption, it is possible to restart the transfer by calling the
+&lt;code>copy()&lt;/code> method with the same task identifier. The assistant takes care of
+resuming the transfer from the last known primary key value.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CALL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">assistant&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="k">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">21&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">NOTICE: Executing: SELECT count(rental_id) FROM mysql.rental
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WHERE rental_id &amp;gt; 16049
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">NOTICE: Executing: INSERT INTO public.rental SELECT rental_id, ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM mysql.rental WHERE rental_id &amp;gt; 16049
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ORDER BY rental_id LIMIT 1000
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">CALL
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>The design of such a tool was a small personal challenge in line with my
+&lt;a href="https://fljd-in.translate.goog/2021/12/06/migrer-vers-postgresql/?_x_tr_sl=en&amp;amp;_x_tr_tl=fr&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">research&lt;/a> on migration to PostgreSQL with the exclusive help of Foreign Data
+Wrappers. My main source of inspiration remains the &lt;a href="https://github.com/fljdin/dispatch" target="_blank" rel="noopener">Ora2Pg&lt;/a> project, one of
+the most advanced open-source tools to date in the field of migration.&lt;/p>
+&lt;p>I am aware of the technical limitations of this assistant, and the tinkering
+that remains to be done to make life easier for a consultant like me. In another
+article, I would like to present another tool called &lt;a href="https://github.com/fljdin/dispatch" target="_blank" rel="noopener">dispatch&lt;/a> that I have
+been maintaining for some time and with which I answer questions about
+orchestration and traceability of migration steps.&lt;/p>
+&lt;p>By taking a step back, the basic concepts are there, any other tool in other
+languages could perfectly emerge and enrich the open-source ecosystem in the
+quest for migration to PostgreSQL.&lt;/p></description></item><item><title>On the road to freedom with db_migrator</title><link>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</guid><description>&lt;p>Over the past months, I have spent several weeks contributing to the
 &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a> extension. Written solely in PL/pgSQL, it enables the migration of
 schemas and data from a database system to PostgreSQL using the external data I
 had presented &lt;a href="https://fljd-in.translate.goog/2021/07/16/parlons-un-peu-des-donnees-externes/?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">few years ago&lt;/a>.&lt;/p>
 &lt;p>In this post, I present the functionality of the tool, its philosophy, and
 the reason I found for its existence, even though it joins the ecosystem of
 well-established open-source projects in the migration landscape. How does it
-compare to &lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> or &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> in terms of value and capabilities?&lt;/p></description></item></channel></rss>
+compare to &lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> or &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> in terms of value and capabilities?&lt;/p>
+&lt;hr>
+&lt;h2 id="db_migrator-enters-the-arena">db_migrator enters the arena&lt;/h2>
+&lt;p>My interest in this project dates back to last December when a &lt;a href="https://blog-dalibo-com.translate.goog/2022/12/21/depart_philippe.html?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">colleague from
+Dalibo&lt;/a> left us a &lt;a href="https://github.com/dalibo/data2pg" target="_blank" rel="noopener">similar tool&lt;/a>, which allowed copying data from Oracle
+or Sybase instances using Foreign Data Wrappers (FDW) technology. Although this
+tool remained in alpha, many good ideas were experimented with internally.&lt;/p>
+&lt;p>The promise of FDWs lies in adhering to the SQL/MED standard, allowing a
+PostgreSQL instance to interface with another storage system and manipulate its
+data through external tables using simple SQL queries. Therefore, provided that
+a community has developed the wrapper, it becomes possible to query a remote
+catalog, replicate the structure of tables, their relationships, and
+constraints, and &lt;a href="https://fljd-in.translate.goog/2021/12/06/migrer-vers-postgresql/?_x_tr_sl=en&amp;amp;_x_tr_tl=fr&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">retrieve data&lt;/a> into PostgreSQL.&lt;/p>
+&lt;p>And &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a> enters the arena.&lt;/p>
+&lt;p>Made public in November 2019 by Laurenz Albe, well-known for his active
+contributions to PostgreSQL for decades and also for developing &lt;a href="https://github.com/laurenz/oracle_fdw" target="_blank" rel="noopener">oracle_fdw&lt;/a>,
+the extension presents itself as a generic tool where one must use &lt;em>plugins&lt;/em> for
+FDW support. It is easy to create new plugins, as I discovered with the
+&lt;a href="https://github.com/fljdin/mysql_migrator" target="_blank" rel="noopener">mysql_migrator&lt;/a> plugin, written in just a few days, thanks to the comprehensive
+documentation of the &lt;a href="https://github.com/cybertec-postgresql/db_migrator#plugin-api" target="_blank" rel="noopener">API for plugins&lt;/a>.&lt;/p>
+&lt;p>After installing the extensions with &lt;code>make install&lt;/code> and the appropriate FDW for
+the system, it is necessary to create the objects in the database that will hold
+the future schemas and their data.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">EXTENSION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql_fdw&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">EXTENSION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql_migrator&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">CASCADE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">SERVER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOREIGN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">DATA&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">WRAPPER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql_fdw&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPTIONS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">host&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_db&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">fetch_size&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1000&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">MAPPING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">PUBLIC&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">SERVER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPTIONS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">username&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;root&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">password&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;password&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The migration process can be performed in a single command for the simplest
+cases (no stored procedures or exotic column types) using the &lt;code>db_migrate()&lt;/code>
+method. Otherwise, for more complex scenarios requiring adjustments such as
+changing column types or removing a table in the target schema, the migration
+may involve multiple steps.&lt;/p>
+&lt;p>During the development of the &lt;code>mysql_migration&lt;/code> extension, I started with the
+sample database &lt;a href="https://dev.mysql.com/doc/sakila/en/" target="_blank" rel="noopener">Sakila&lt;/a> provided by MySQL to have comprehensive complexity.
+The first step involves creating two internal schemas, one with external tables
+provided by the plugin and the other with catalog tables that can be edited
+before the extension continues the migration.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_prepare&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">only_schemas&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;{sakila}&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This part can be relatively lengthy, as it involves retrieving the data model,
+which I refer to as the catalog, in the form of several tables that describe the
+structure of tables, column names, and associated constraints. The extension
+also imports the sources of all stored procedures, functions, and views but does
+not perform their conversion to PL/pgSQL (you cannot imagine the &lt;a href="https://blog-dalibo-com.translate.goog/2020/12/21/migration_oracle_vers_postgresql.html?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">amount of work
+involved&lt;/a>).&lt;/p>
+&lt;p>For the migration of the Sakila database, several modifications to the catalog
+are necessary. Like the rest of this extension, all the preparation is done in
+SQL, making it easy to automate with a single script serving as configuration.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="cm">/* exclude bytea columns from migration */&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DELETE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgsql_stage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">columns&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">type_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;bytea&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="cm">/* quote character expression */&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgsql_stage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">columns&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">quote_literal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">regexp_like&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;^\-?[0-9]+$&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;CURRENT_TIMESTAMP&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="cm">/* disable view migration */&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgsql_stage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">views&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">migrate&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Of course, we could go further, such as reinjecting the definition of rewritten
+views into the &lt;code>pgsql_stage.views&lt;/code> table or enabling the migration of procedures
+by changing the &lt;code>migrate&lt;/code> column of the &lt;code>pgsql_stage.functions&lt;/code> table. However,
+let&amp;rsquo;s proceed with the next step.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_mkforeign&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_tables&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The first method, &lt;code>db_migrate_mkforeign()&lt;/code>, is responsible for creating schemas
+and sequences, followed by foreign tables with columns based on the previous
+adjustments. Next comes the most crucial step, where we execute the function
+&lt;code>db_migrate_tables()&lt;/code>: blank tables are created with their partitions if
+necessary, and for each of them, the data copying begins using the &lt;code>INSERT INTO SELECT *&lt;/code> statement.&lt;/p>
+&lt;p>Other objects, such as indexes or constraints, have their own methods. It is
+necessary to create the functions before these objects if you encounter
+functional indexes or other similar cases.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_functions&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_triggers&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_views&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_indexes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_constraints&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="message">It is possible that this mechanism may change in the future, especially if I
+manage to realize this &lt;a href="https://github.com/cybertec-postgresql/db_migrator/issues/26" target="_blank" rel="noopener">issue&lt;/a>, which would allow breaking down the
+&lt;code>db_migrate_*()&lt;/code> methods into smaller steps.&lt;/div>
+&lt;p>The end of the migration process involves deleting the temporary schemas that
+contained the catalog tables.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_finish&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="one-more-migration-tool">One more migration tool&lt;/h2>
+&lt;p>As I mentioned in the introduction, it is quite surprising to see a new
+migration tool emerge in 2023 (the version 1.0.0 was &lt;a href="https://github.com/cybertec-postgresql/db_migrator/blob/master/CHANGELOG.md" target="_blank" rel="noopener">released in January&lt;/a>
+with my patch on partitioning). In the open-source landscape, we can mention
+&lt;strong>Ora2Pg&lt;/strong>, which released its &lt;a href="https://github.com/darold/ora2pg/releases/tag/v24.0" target="_blank" rel="noopener">version 24.0&lt;/a> in July with SQL Server
+support, and &lt;strong>pgloader&lt;/strong>, which has an excellent reputation.&lt;/p>
+&lt;p>A vast number of projects are listed on the &lt;a href="https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL" target="_blank" rel="noopener">community wiki&lt;/a>. Some are
+specialized for a single system, while others support migration for multiple
+systems. The majority of these projects are either proprietary or lack recent
+contributions. Many of them are black boxes, and their documentation may appear
+cryptic or almost non-existent.&lt;/p>
+&lt;p>The ecosystem is rich, and I do not claim to know all of its aspects, but I have
+had an intuition that I have been forming over the past few years. The global
+economy is in a state of turmoil. Some companies are doing well, while others
+are making budget cuts. The transition to a free and non-commercially licensed
+system like PostgreSQL remains relevant, perhaps even more urgent today compared
+to the past decade.&lt;/p>
+&lt;p>And yet, with my DBA perspective, I am not fully satisfied with the existing
+tools. I wish for a new alternative, something universal and accessible to
+everyone. If I turn to &lt;strong>db_migrator&lt;/strong> today, it would be for the following main
+advantages:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>A low-level implementation close to the instance: using PL/pgSQL as the
+exclusive language. This would not have been possible without the prolific
+development of &lt;a href="https://wiki.postgresql.org/wiki/Foreign_data_wrappers" target="_blank" rel="noopener">Foreign Data Wrappers&lt;/a> for a wide range of systems;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>A high level of configuration flexibility: adjustments are made with &lt;code>UPDATE&lt;/code>
+or &lt;code>DELETE&lt;/code> queries on the catalog. Once one is familiar with the model of the
+catalog, it becomes easy to change behavior without consulting technical
+documentation on the available options;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Freedom in orchestration: currently, executions are triggered sequentially for
+indexes and constraints, but the tool&amp;rsquo;s architecture could allow external
+tools to consume the extension&amp;rsquo;s results and trigger operations in parallel;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Plugins have the freedom to enrich migration: if an operation is not generic,
+it is entirely possible to provide an additional method through the plugin.
+For example, the incremental copy (and its &lt;a href="https://github.com/cybertec-postgresql/ora_migrator#replication-functions" target="_blank" rel="noopener">replication functions&lt;/a>) in the
+&lt;strong>ora_migrator&lt;/strong> plugin or the conversion of auto-increments to identity
+columns with the &lt;strong>mysql_migrator&lt;/strong> plugin.&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>The road to freedom still seems long to achieve half of what Ora2Pg already
+offers, especially when it comes to automatic conversion, which is not on the
+agenda at all. But with small, regular, and thoughtful advancements, who knows?&lt;/p></description></item></channel></rss>

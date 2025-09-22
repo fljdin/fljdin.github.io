@@ -1,4 +1,115 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Securite on Carnet de découvertes</title><link>https://fljd.in/tags/securite/</link><description>Recent content in Securite on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 20 Mar 2020 16:00:00 +0200</lastBuildDate><atom:link href="https://fljd.in/tags/securite/index.xml" rel="self" type="application/rss+xml"/><item><title>De la sécurité pour vos mots de passe</title><link>https://fljd.in/2020/03/20/de-la-securite-pour-vos-mots-de-passe/</link><pubDate>Fri, 20 Mar 2020 16:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/03/20/de-la-securite-pour-vos-mots-de-passe/</guid><description>&lt;p>La sécurité d&amp;rsquo;un système d&amp;rsquo;information prend une multitude de forme. Aussi,
 j&amp;rsquo;aimerai m&amp;rsquo;attarder sur une évolution apparue en version 10 de PostgreSQL,
 devenue depuis lors une bonne pratique, bien que très absente dans les
-déploiements des systèmes courants.&lt;/p></description></item></channel></rss>
+déploiements des systèmes courants.&lt;/p>
+&lt;p>Depuis la version 8.1 de PostgreSQL, les mots de passe de connexion sont hachés
+dans une table système nommée &lt;a href="https://www.postgresql.org/docs/current/catalog-pg-authid.html" target="_blank" rel="noopener">pg_authid&lt;/a> avec l&amp;rsquo;algorithme MD5. La chaîne
+encodée sur 32 caractères héxadécimaux est le résultat du hachage du mot de passe
+en clair avec le nom de l&amp;rsquo;utilisateur.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">md5&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;secret&amp;#39;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">||&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">hash&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">unnest&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">array&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;tom&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="s1">&amp;#39;jerry&amp;#39;&lt;/span>&lt;span class="p">])&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- u | hash
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- -------+----------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- tom | c85e6c670e521155c2823ddaa761c1be
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- jerry | df96e7fb3e9b25fda78387096d19aca6
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ainsi, pour tout utilisateur présent dans l&amp;rsquo;instance, il est possible d&amp;rsquo;obtenir
+le &lt;em>hash&lt;/em> avec la requête suivante :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">rolname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">rolpassword&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_authid&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">rolpassword&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- rolname | rolpassword
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ---------+-------------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- tom | md5c85e6c670e521155c2823ddaa761c1be
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- jerry | md5df96e7fb3e9b25fda78387096d19aca6
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>C&amp;rsquo;est là que le bât blesse. Depuis plus d&amp;rsquo;une décennie, nous savons que ce bel
+algorithme n&amp;rsquo;est &lt;a href="https://fr.wikipedia.org/wiki/MD5" target="_blank" rel="noopener">plus assez robuste&lt;/a> pour les machines de calcul modernes. Il
+devient possible de retrouver le mot de passe en clair avec des attaques par
+dictionnaire ou de force brute (&lt;em>brute-forcing&lt;/em>).&lt;/p>
+&lt;blockquote>
+&lt;p>The method md5 uses a custom less secure challenge-response mechanism. It
+prevents password sniffing and avoids storing passwords on the server in plain
+text but provides no protection if an attacker manages to steal the password
+hash from the server. Also, the MD5 hash algorithm is nowadays no longer
+considered secure against determined attacks.&lt;/p>
+&lt;p>&lt;em>Source : &lt;a href="https://www.postgresql.org/docs/10/auth-methods.html" target="_blank" rel="noopener">Authentication Methods&lt;/a>&lt;/em>&lt;/p>&lt;/blockquote>
+&lt;p>Je vois venir de loin les autres barrages à ce type d&amp;rsquo;attaque, comme la restriction
+des adresses et plages IP dans le fichier &lt;code>pg_hba.conf&lt;/code> ou la segmentation des
+réseaux qui mitigent parfaitement le scénario de connexion en provenance d&amp;rsquo;un tier
+non habilité. Mais comme pour toute faille de sécurité, il convient d&amp;rsquo;étudier
+les faiblesse d&amp;rsquo;un système pour ensuite décider de les corriger ou de les ignorer.&lt;/p>
+&lt;hr>
+&lt;p>La communauté a ainsi travaillé à la refonte de l&amp;rsquo;architecture de l&amp;rsquo;authentification
+dans le cœur de PostgreSQL pour supporter de nouvelles normes de sécurité avec
+l&amp;rsquo;implémentation de la couche &lt;a href="https://fr.wikipedia.org/wiki/Simple_Authentication_and_Security_Layer" target="_blank" rel="noopener">SASL&lt;/a> et a rendu possible l&amp;rsquo;ajout d&amp;rsquo;une nouvelle
+méthode de hachage : le SCRAM-SHA-256.&lt;/p>
+&lt;p>Le mot de passe de l&amp;rsquo;utilisateur sera toujours stocké dans la table &lt;code>pg_authid&lt;/code>
+mais sous un format plus robuste, rendant le risque de la captation de la chaîne
+bien moins élevé que précédemment. La transformation de cette chaîne nécessite
+de modifier le paramètre &lt;code>password_encryption&lt;/code> et de resaisir le mot de passe
+d&amp;rsquo;un utilisateur.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- Surchage de la méthode pour la session en cours
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">password_encryption&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;scram-sha-256&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- Surcharge de la méthode les prochaines connexions de l&amp;#39;utilisateur
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">jerry&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">password_encryption&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;scram-sha-256&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- Surcharge de la méthode pour toute l&amp;#39;instance après rechargement
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">ALTER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SYSTEM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">password_encryption&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;scram-sha-256&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_reload_conf&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Avec l&amp;rsquo;outil &lt;code>psql&lt;/code>, il est recommandé de saisir un mot de passe &lt;em>via&lt;/em> la commande
+&lt;code>\password&lt;/code> qui se chargera de hacher la saisie avec l&amp;rsquo;algorithme défini
+précédemment et ainsi limiter le transport du mot de passe en clair sur le réseau
+et dans les traces associées à l&amp;rsquo;activité de l&amp;rsquo;instance.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">log_min_duration_statement&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="err">\&lt;/span>&lt;span class="n">password&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">jerry&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- Enter new password: secret
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- Enter it again: secret
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-r" data-lang="r">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Extrain du journal postgresql.log&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="m">2020-03-20&lt;/span> &lt;span class="m">10&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="m">26&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="m">25.286&lt;/span> &lt;span class="n">CET&lt;/span> &lt;span class="n">[13500]&lt;/span> &lt;span class="n">LOG&lt;/span>&lt;span class="o">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">duration&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">0.187&lt;/span> &lt;span class="n">ms&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">statement&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">SET&lt;/span> &lt;span class="n">log_min_duration_statement&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="m">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="m">2020-03-20&lt;/span> &lt;span class="m">10&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="m">26&lt;/span>&lt;span class="o">:&lt;/span>&lt;span class="m">46.802&lt;/span> &lt;span class="n">CET&lt;/span> &lt;span class="n">[13500]&lt;/span> &lt;span class="n">LOG&lt;/span>&lt;span class="o">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">duration&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="m">58.877&lt;/span> &lt;span class="n">ms&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">statement&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">ALTER&lt;/span> &lt;span class="n">USER&lt;/span> &lt;span class="n">jerry&lt;/span> &lt;span class="n">PASSWORD&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s">&amp;#39;SCRAM-SHA-256$4096:PX5tZa/Z6JpAqz+BamwBsw==$F
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> wjepTBG4JK3WnW574IMvujq0FLzfm+yBdz6PORI5dY=:9
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> vx8y36/ervWsOqnYsaZQrm49tIy5b8IpgFu3RIyTyg=&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La génération du &lt;em>hash&lt;/em> repose sur le principe &lt;a href="https://fr.wikipedia.org/wiki/Keyed-hash_message_authentication_code" target="_blank" rel="noopener">HMAC&lt;/a> (norme RFC2104) avec une
+série d&amp;rsquo;itérations où le mot de passe est mélangé avec plusieurs chaînes (&lt;em>salt&lt;/em>)
+qui produit un résultat pseudo-aléatoire. L&amp;rsquo;implémentation avec PostgreSQL peut
+être consultée dans le fichier &lt;code>src/common/scram-common.c&lt;/code>.&lt;/p>
+&lt;p>Enfin, la requête suivante pourrait nous permettre de suivre la migration vers
+l&amp;rsquo;adoption de la nouvelle méthode pour l&amp;rsquo;ensemble des utilisateurs de l&amp;rsquo;instance :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">lower&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">regexp_replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">rolpassword&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;(md5|SCRAM-SHA-256)(.*)&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;\1&amp;#39;&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">method&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">count&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">oid&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">string_agg&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">rolname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;,&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">AS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">roles&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_authid&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">rolpassword&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NULL&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">GROUP&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">method&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ORDER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">method&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- method | count | roles
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ---------------+-------+-------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- md5 | 1 | tom
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- scram-sha-256 | 1 | jerry
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;p>SCRAM signifie &lt;em>Salted Challenge Response Authentication Mechanism&lt;/em>. Ce mécanisme
+de « &lt;a href="https://fr.wikipedia.org/wiki/Authentification_d%C3%A9fi-r%C3%A9ponse" target="_blank" rel="noopener">défi-réponse&lt;/a> » repose sur l&amp;rsquo;implémentation côté client &lt;u>et&lt;/u>
+côté serveur d&amp;rsquo;un des algorithmes afin qu&amp;rsquo;ils puissent se mettre d&amp;rsquo;accord sur la
+comparaison du &lt;em>hash&lt;/em> de mot de passe saisi par l&amp;rsquo;utilisateur à sa connexion
+avec celui stocké en base de données.&lt;/p>
+&lt;p>À l&amp;rsquo;heure de la rédaction de cette article, plus de deux années se sont écoulées
+depuis la sortie en octobre 2017 de la version 10 de PostgreSQL et la plupart des
+&lt;a href="https://wiki.postgresql.org/wiki/List_of_drivers" target="_blank" rel="noopener">pilotes de connexions&lt;/a> supportent parfaitement la méthode d&amp;rsquo;authentication
+SCRAM. L&amp;rsquo;adoption de cette bonne pratique ne sera globale que le jour où la
+communauté de développeurs l&amp;rsquo;activera par défaut avec le paramètre
+&lt;code>password_encryption&lt;/code> positionné à &lt;code>scram-sha-256&lt;/code> au lieu du &lt;code>md5&lt;/code> actuellement.&lt;/p>
+&lt;p>Si d&amp;rsquo;aventure l&amp;rsquo;une de vos applications ne serait pas encore compatible, il reste
+toujours la possibilité de surcharger le paramètrage de l&amp;rsquo;instance au niveau de
+la base ou au niveau de l&amp;rsquo;utilisateur et de conserver un &lt;em>hash&lt;/em> en MD5.&lt;/p>
+&lt;p>De plus, les règles d&amp;rsquo;authentication dans le fichier &lt;code>pg_hba.conf&lt;/code> peuvent vous
+aider à définir des exceptions pour les mauvais élèves.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># pg_hba.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># TYPE DATABASE USER ADDRESS METHOD&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># IPv4 local connections:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">host all tom 192.168.1.0/24 md5&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">host all all 192.168.1.0/24 scram-sha-256&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>

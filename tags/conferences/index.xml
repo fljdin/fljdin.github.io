@@ -6,4 +6,165 @@ de deux jours d&amp;rsquo;ateliers et de conférences.&lt;/p>
 &lt;p>Pour cette édition, j&amp;rsquo;ai eu le plaisir de prendre la parole et de faire un retour d&amp;rsquo;expérience
 sur l&amp;rsquo;animation du groupe Meetup local dont j&amp;rsquo;ai repris les rennes il y a maintenant quatre ans.
 Dans cet article, je souhaite retranscrire les principaux points abordés lors de cette présentation,
-en attendant que la vidéo de la conférence soit mise en ligne.&lt;/p></description></item></channel></rss>
+en attendant que la vidéo de la conférence soit mise en ligne.&lt;/p>
+&lt;div class="message">Le support de ma présentation est &lt;a href="https://fljd.in/documents/pgdayfr-faire-vivre-une-communaute.pdf">disponible à cette adresse&lt;/a>.&lt;/div>
+&lt;hr>
+&lt;h2 id="quest-ce-quun-pug-">Qu&amp;rsquo;est-ce qu&amp;rsquo;un PUG ?&lt;/h2>
+&lt;p>Un « PUG » est un groupe d&amp;rsquo;utilisateur·rices de PostgreSQL, ou « PostgreSQL User Group » en anglais.
+Réunis régulièrement pour échanger autour de PostgreSQL, les PUGs sont des lieux de rencontres
+et d&amp;rsquo;apprentissage pour les personnes intéressées par ce système de gestion de base de données. Ces
+communautés locales sont fréquentes, particulièrement pour les logiciels libres, et permettent de
+fédérer les utilisateurs et utilisatrices autour d&amp;rsquo;un même outil.&lt;/p>
+&lt;p>À Lille, nous avons la chance d&amp;rsquo;avoir un tissu économique très dynamique, avec de nombreuses communautés,
+telles que le &lt;a href="https://www.meetup.com/fr-FR/chtijug/" target="_blank" rel="noopener">Ch&amp;rsquo;ti JUG&lt;/a> (&lt;em>Java User Group&lt;/em>), le &lt;a href="https://www.meetup.com/GDG-Lille/" target="_blank" rel="noopener">GDG Lille&lt;/a> (&lt;em>Google Developer Group&lt;/em>), &lt;a href="https://www.meetup.com/fr-FR/nord-agile/" target="_blank" rel="noopener">Nord Agile&lt;/a>
+ou encore &lt;a href="https://www.meetup.com/Software-Craftsmanship-Lille/" target="_blank" rel="noopener">Software Craft Lille&lt;/a>. Quoi de plus naturel que de vouloir proposer à une poignée de
+ce public des rencontres autour de PostgreSQL ?&lt;/p>
+&lt;p>Une &lt;a href="https://www.postgresql.org/community/user-groups/" target="_blank" rel="noopener">page du projet&lt;/a> PostgreSQL recense les différents PUGs à travers le monde, et il est possible
+d&amp;rsquo;y trouver des groupes dans de nombreux pays, dont la France. À l&amp;rsquo;heure de la rédaction de ma conférence,
+je dénombrais 62 groupes mondiaux, dont 5 en France : Paris, Lyon, Nantes (non référencée), Toulouse et Lille.&lt;/p>
+&lt;p>La plateforme Meetup est souvent utilisée pour organiser les rencontres, et pour preuve, 46 PUGs y sont
+affiliés. Il s&amp;rsquo;agit d&amp;rsquo;une commodité depuis plus de 10 ans, et la plupart des groupes français y sont inscrits.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-07-30-carte-de-france-des-pugs.png" alt="Carte de France des PUGs">&lt;/p>
+&lt;p>La création d&amp;rsquo;un PUG reconnu par la communauté internationale est un processus simple, qui nécessite
+de constituer un groupe d&amp;rsquo;organisation et de postuler à l&amp;rsquo;adresse e-mail &lt;code>usergroups@postgresql.org&lt;/code>.
+Le groupe doit respecter un certain nombre de règles, prévues par la &lt;a href="https://www.postgresql.org/about/policies/user-groups/" target="_blank" rel="noopener">charte des PUGs&lt;/a>, et doit
+s&amp;rsquo;engager à respecter les valeurs de la communauté PostgreSQL. En substance, voici les points qu&amp;rsquo;il
+faut retenir :&lt;/p>
+&lt;ul>
+&lt;li>Le groupe doit être ouvert à tous et toutes, sans discrimination.&lt;/li>
+&lt;li>Les rencontres doivent être proposées &lt;em>a minima&lt;/em> une fois tous les deux ans.&lt;/li>
+&lt;li>Les rencontres ne doivent pas faire l&amp;rsquo;objet d&amp;rsquo;un accord de confidentialité (NDA).&lt;/li>
+&lt;li>Les rencontres sont rattachées à la zone géographique du groupe.&lt;/li>
+&lt;li>Une entreprise ne peut pas être représentée à 50% ou plus dans le comité d&amp;rsquo;organisation.&lt;/li>
+&lt;li>La sélection des conférences est à la discrétion du comité d&amp;rsquo;organisation.&lt;/li>
+&lt;li>Les entreprises peuvent promouvoir leurs produits et leurs services, si leurs activités facilitent
+l&amp;rsquo;adoption de PostgreSQL et si les contenus présentés sont de nature technique.&lt;/li>
+&lt;li>Le groupe doit divulguer le nom des sponsors, et peut les mentionner en introduction des rencontres.&lt;/li>
+&lt;li>Le PUG doit adopter un code de conduite et peut utiliser &lt;a href="https://www.postgresql.org/about/policies/coc/fr/" target="_blank" rel="noopener">celui de la communauté PostgreSQL&lt;/a>.&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="genèse-du-groupe">Genèse du groupe&lt;/h2>
+&lt;p>Le groupe Meetup PostgreSQL Lille a été fondé le 25 février 2016 sur la plateforme éponyme. À l&amp;rsquo;époque,
+l&amp;rsquo;idée de reproduire le format des Meetup à Paris était partagée entre Guillaume Lelarge et Pierre Hilbert,
+deux lillois qui se croisaient régulièrement aux événements. L&amp;rsquo;une des principales motivations était de
+participer à la promotion du logiciel libre avec un partage de retours d&amp;rsquo;expérience pour inspirer les autres
+acteurs locaux.&lt;/p>
+&lt;p>À cette période, je fréquentais moi-même les événements organisés par le groupe Meetup Oracle Paris et Province,
+et je suivais avec attention les conférences autour de PostgreSQL dans ma région. La première rencontre
+du groupe PG Lille a eu lieu le &lt;a href="https://www.meetup.com/meetup-postgresql-lille/events/231446425/" target="_blank" rel="noopener">24 juin 2016&lt;/a>, dans les locaux de Decathlon Campus (Villeneuve D&amp;rsquo;Ascq, 59).
+J&amp;rsquo;ai été séduit par le format et l&amp;rsquo;ambiance décontractée, et j&amp;rsquo;en ai gardé un excellent souvenir.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-07-30-premier-meetup-pg-lille.png" alt="Premier Meetup PG Lille">&lt;/p>
+&lt;p>Cependant, la régularité des rencontres n&amp;rsquo;a pas été au rendez-vous du projet. L&amp;rsquo;événement suivant fut planifié
+plus d&amp;rsquo;une année plus tard, le 17 octobre 2017 et ce fut le seul auquel je n&amp;rsquo;ai pas pu participer. Les impératifs
+professionnels de Guillaume et de Pierre ne leur ont pas permis de maintenir le rythme, et le groupe a été
+laissé en sommeil pendant plus de trois années.&lt;/p>
+&lt;p>C&amp;rsquo;est en 2019 que j&amp;rsquo;ai pris la décision de reprendre le flambeau, en proposant à Pierre de me transmettre
+les droits d&amp;rsquo;administration du groupe. Mon arrivée chez Dalibo en tant que consultant PostgreSQL m&amp;rsquo;a donné
+l&amp;rsquo;opportunité de faire la rencontre d&amp;rsquo;experts passionnés, notamment Guillaume Lelarge et Stefan Fercot,
+qui m&amp;rsquo;ont encouragé à reprendre le projet.&lt;/p>
+&lt;p>Fort d&amp;rsquo;un réseau professionnel de qualité sur Twitter à l&amp;rsquo;époque, j&amp;rsquo;ai pu rapidement mobiliser une équipe
+de bénévoles pour organiser le Meetup du &lt;a href="https://www.meetup.com/meetup-postgresql-lille/events/267319389/" target="_blank" rel="noopener">28 janvier 2020&lt;/a>. J&amp;rsquo;ai pu compter sur le soutien de Stefan Fercot
+(Dalibo), de Stéphane Definin (Think) et de Sébastien Freiss (SFEIR) pour faire de cette reprise un petit
+succès.&lt;/p>
+&lt;p>&amp;hellip; Malheureusement, en mars de cette même année, la pandémie de COVID-19 a contraint le groupe à suspendre
+ses projets et je n&amp;rsquo;ai pas eu le courage de proposer des contenus en ligne, au grand dam des membres du groupe.
+Pour l&amp;rsquo;anecdote, aucun autre groupe Meetup de France n&amp;rsquo;a été épargné par la crise sanitaire et les restrictions
+en vigueur.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-07-30-frise-chronologique.png" alt="Frise chronologiques des Meetup">&lt;/p>
+&lt;p>Une pause de deux années supplémentaires s&amp;rsquo;est imposée au groupe, avant que ne se stabilise la situation sanitaire.
+En 2022, j&amp;rsquo;ai ainsi contacté Lætitia Avrot, une membre très active de la communauté française, pour relancer les
+activités et retrouver une dynamique et un rythme pour ses membres. L&amp;rsquo;événement du &lt;a href="https://www.meetup.com/meetup-postgresql-lille/events/284819405/" target="_blank" rel="noopener">14 avril 2022&lt;/a> fut un
+soulagement pour moi, voyant que je pouvais toujours compter sur la participation de la communauté.&lt;/p>
+&lt;p>À partir de cet instant, aucune nouvelle ombre n&amp;rsquo;est venue assombrir le tableau, et le groupe a pu reprendre
+l&amp;rsquo;organisation régulière de rencontres, de deux à trois par ans. La communauté s&amp;rsquo;est élargie, et le comité
+d&amp;rsquo;organisation s&amp;rsquo;est renforcé avec l&amp;rsquo;arrivée de Yoann La Cancellera en 2023, qui a permis notamment de déposer
+une demande de reconnaissance au sein de la communauté internationale, le 24 février 2023.&lt;/p>
+&lt;hr>
+&lt;h2 id="how-to-meetup">How-to Meetup&lt;/h2>
+&lt;p>En guise de conclusion à ce retour d&amp;rsquo;expérience, j&amp;rsquo;ai voulu partager toutes les étapes nécessaires pour
+organiser un Meetup, en appuyant sur les points cruciaux de réussites et les pièges à éviter.&lt;/p>
+&lt;p>&lt;strong>Accueil&lt;/strong> : trouver le lieu d&amp;rsquo;accueil de pour l&amp;rsquo;événement&lt;/p>
+&lt;p>À l&amp;rsquo;image du PG Day France qui change de lieu chaque année, le groupe Meetup PG Lille a fait le
+choix de varier les lieux d&amp;rsquo;accueil à chaque rencontre. Cela permet de découvrir de nouveaux espaces
+et de stimuler la curiosité inter-communauté. Les entreprises locales sont souvent ravies de pouvoir
+accueillir des événements techniques, et cela permet de renforcer les liens entre les acteurs locaux.&lt;/p>
+&lt;p>La recherche d&amp;rsquo;un lieu est souvent la première étape de l&amp;rsquo;organisation d&amp;rsquo;un Meetup. Il est important
+de trouver un espace qui puisse accueillir entre dix et quarante personnes, avec un accès en transports
+en commun ou un parking à proximité. Pour cela, j&amp;rsquo;ai eu l&amp;rsquo;occasion d&amp;rsquo;user de plusieurs stratégies :&lt;/p>
+&lt;ul>
+&lt;li>Le bouche-à-oreille : demander à ses contacts professionnels s&amp;rsquo;ils connaissent des lieux d&amp;rsquo;accueil
+potentiels&lt;/li>
+&lt;li>Les réseaux sociaux : publier une annonce sur Twitter ou LinkedIn pour solliciter des propositions
+spontanées ou des pistes à étudier&lt;/li>
+&lt;li>La privatisation d&amp;rsquo;un espace : contacter les espaces de coworking ou les salles de réunion pour
+obtenir un devis de location&lt;/li>
+&lt;li>S&amp;rsquo;allier avec d&amp;rsquo;autres groupes : proposer un partenariat avec un autre groupe Meetup pour partager
+les frais de location ou pour bénéficier d&amp;rsquo;un lieu d&amp;rsquo;accueil déjà identifié&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Intervenant·es&lt;/strong> : trouver &lt;u>deux&lt;/u> présentations variées&lt;/p>
+&lt;p>Dès le premier Meetup, Pierre et Guillaume ont fait le choix de proposer deux présentations techniques
+pour varier les sujets et les formats. Cela permet de toucher un public plus large et de satisfaire
+les attentes des membres du groupe. Cette formule a été reprise pour les rencontres suivantes, et a
+été un succès à chaque fois.&lt;/p>
+&lt;p>La recherche d&amp;rsquo;intervenant·es est un travail qui demande du temps et de la patience. Souvent, une
+rencontre opportune ou une discussion informelle peut déboucher sur une proposition de présentation.
+Le mieux est de se constituer un vivier de personnes ressources, qui pourront être sollicitées en cas
+de besoin. Ce n&amp;rsquo;est pas toujours facile, c&amp;rsquo;est un travail de longue haleine, mais cela en vaut la peine.&lt;/p>
+&lt;p>Discutez autours de vous, demandez à vos collègues, à vos amis, à vos contacts professionnels s&amp;rsquo;ils
+ne sont pas intéressés pour partager leur expérience ou leur expertise, ou s&amp;rsquo;ils ne connaissent pas
+quelqu&amp;rsquo;un qui pourrait être intéressé.&lt;/p>
+&lt;p>&lt;strong>Apéro&lt;/strong> : prolonger la soirée avec un temps fort communautaire (&lt;em>networking&lt;/em>)&lt;/p>
+&lt;p>Selon moi, c&amp;rsquo;est l&amp;rsquo;étape &lt;strong>la plus importante&lt;/strong> de l&amp;rsquo;organisation d&amp;rsquo;un Meetup. (rires !)&lt;/p>
+&lt;p>C&amp;rsquo;est le moment où les membres du groupe peuvent échanger, discuter, partager, et se rencontrer. C&amp;rsquo;est
+un temps fort de la soirée qui me tient particulièrement à cœur, et qui est intimement lié à la réussite
+de l&amp;rsquo;événement. Le &lt;em>networking&lt;/em> est ce qui favorise le mieux la sérendipité, la rencontre fortuite, le
+partage d&amp;rsquo;expérience, et la création de liens durables. Je discute des prochains projets du groupe avec
+les membres et le comité d&amp;rsquo;organisation, et je prends des notes sur les attentes de chacun·es et j&amp;rsquo;écoute
+leurs suggestions.&lt;/p>
+&lt;p>Bien entendu, il est important de prévoir des boissons et des encas pour prolonger la soirée. Il faut
+prévoir un espace pour faciliter la circulation et la création naturelle de petits groupes de discussion.
+Le choix d&amp;rsquo;un sponsor est principalement motivé par la prise en charge de ces frais, avec une facture ou
+une note de frais à l&amp;rsquo;appui.&lt;/p>
+&lt;p>Jusqu&amp;rsquo;à présent, aucun incident n&amp;rsquo;est à déplorer, les participants et participantes respectent les quelques
+règles de sécurité et de conduite que l&amp;rsquo;on énonce en début de soirée.&lt;/p>
+&lt;p>&lt;strong>Communication&lt;/strong> : atteindre la jauge d&amp;rsquo;inscription&lt;/p>
+&lt;p>Cette étape est à prendre au sérieux un mois avant la tenue de l&amp;rsquo;événement. Il s&amp;rsquo;agit de maximiser la
+visibilité de l&amp;rsquo;événement pour atteindre la jauge maximale établie par le lieu qui accueille l&amp;rsquo;événement.
+Pour cela, j&amp;rsquo;ai eu l&amp;rsquo;occasion de me doter de plusieurs méthodes :&lt;/p>
+&lt;ul>
+&lt;li>Être le plus exhaustif possible dans la description de l&amp;rsquo;événement (date, lieu, horaires, programme,
+sponsors, visuels, etc.)&lt;/li>
+&lt;li>Créer du contenu régulier sur les réseaux sociaux pour rappeler la date de l&amp;rsquo;événement et les modalités
+d&amp;rsquo;inscription (LinkedIn majoritaire, Twitter par le passé)&lt;/li>
+&lt;li>Solliciter les participants de l&amp;rsquo;événement pour qu&amp;rsquo;ils partagent l&amp;rsquo;événement sur leurs réseaux sociaux ou
+leurs réseaux d&amp;rsquo;entreprise&lt;/li>
+&lt;li>Informer la communauté française avec la liste de diffusion &lt;code>pgsql-fr-generale&lt;/code> pour toucher un public plus
+large, voire donner envie à d&amp;rsquo;autres groupes de se lancer dans l&amp;rsquo;organisation de Meetup (qui sait ?)&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Identité visuelle&lt;/strong> (optionnelle)&lt;/p>
+&lt;p>Au cours des derniers mois, nous avons travaillé avec Yoann, la refonte de l&amp;rsquo;identité visuelle du groupe Meetup
+avec un nouveau logo et une nouvelle charte graphique. C&amp;rsquo;est cosmétique, mais cela permet de donner une image
+plus professionnelle et une identité forte au sein des communautés lilloises existantes. Nous espérons nous
+faire une petite place et une petite notoriété dans le paysage local.&lt;/p>
+&lt;p>Pour avoir délégué par deux fois la création de la vignette de l&amp;rsquo;événement, je recommande de travailler avec
+un graphiste ou un designer pour obtenir un résultat professionnel et soigné. En attendant qu&amp;rsquo;un des membres
+qui m&amp;rsquo;entoure soit suffisamment qualifié, on fait avec les moyens du bord.&lt;/p>
+&lt;p>Enfin, et c&amp;rsquo;était notre petite fierté de l&amp;rsquo;année, nous nous sommes dotées d&amp;rsquo;un logo Slonik, la mascotte de
+PostgreSQL. La démarche de création s&amp;rsquo;est appuyée énormément sur les nouveaux outils de génération par intelligences
+artificielles, et nous avons été bluffés par la qualité du résultat. Un grand merci à &lt;a href="https://www.instagram.com/_ekpyrosis/" target="_blank" rel="noopener">Isaac&lt;/a>
+pour son aide précieuse dans les retouches et les ajustements du logo.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-07-30-logo-meetup-pg-lille.png" alt="Logo du groupe Meetup PG Lille">&lt;/p>
+&lt;hr>
+&lt;h2 id="remerciements">Remerciements&lt;/h2>
+&lt;p>Au cours de cette conférence, j&amp;rsquo;ai eu l&amp;rsquo;occasion de remercier un tas de monde. En particulier, les membres de
+l&amp;rsquo;association PostgreSQL France, pour leur confiance qu&amp;rsquo;ils nous ont accordée, Matthieu Cornillon et moi-même,
+d&amp;rsquo;avoir accepté notre dossier de candidature pour le choix de la ville de Lille cette année 2024.&lt;/p>
+&lt;p>Un des slides de ma présentation était dédié à toutes les entreprises qui ont accueilli nos rencontres,
+et qui, sans le savoir, m&amp;rsquo;ont permis d&amp;rsquo;ajuster le format et le contenu de nos Meetups. Un grand merci à elles
+pour leur sympathie et leur accueil chaleureux. C&amp;rsquo;était également l&amp;rsquo;opportunité de mettre en avant les intervenants
+et les intervenantes qui ont accepté de partager leur expérience et leur expertise lors des Meetup PostgreSQL Lille.
+Un grand merci à elles et à eux d&amp;rsquo;avoir vécu l&amp;rsquo;aventure avec moi !&lt;/p>
+&lt;p>Enfin, j&amp;rsquo;ai été heureux que ce retour d&amp;rsquo;expérience puisse faire écho à quelques personnes dans la salle, qui
+m&amp;rsquo;ont félicité pour le travail accompli et m&amp;rsquo;ont informé de leur intention de se lancer dans l&amp;rsquo;organisation
+de Meetup dans leur propre ville. C&amp;rsquo;est une belle récompense pour moi, et cela me donne envie de poursuivre
+mon engagement et de donner l&amp;rsquo;exemple pour la promotion de PostgreSQL en France.&lt;/p></description></item></channel></rss>

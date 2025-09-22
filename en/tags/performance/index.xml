@@ -3,4 +3,220 @@
 events, and concepts selected by the indexer as being relevant and of interest
 to a possible reader of the book. (&lt;a href="https://en.wikipedia.org/wiki/Index_%28publishing%29" target="_blank" rel="noopener">Wikipedia&lt;/a>)&lt;/p>
 &lt;p>&lt;u>Database index&lt;/u>: data structure that improves the speed of
-data retrieval operations on a database table. (&lt;a href="https://en.wikipedia.org/wiki/Database_index" target="_blank" rel="noopener">Wikipedia&lt;/a>)&lt;/p>&lt;/blockquote></description></item></channel></rss>
+data retrieval operations on a database table. (&lt;a href="https://en.wikipedia.org/wiki/Database_index" target="_blank" rel="noopener">Wikipedia&lt;/a>)&lt;/p>&lt;/blockquote>
+&lt;p>Introducing a blog post with two definitions of the same word is not accidental.
+Each of these provide a quick way to find a word or a term (or more broadly, a
+piece of data) using an normalized address, such as a page number in a book or
+the location of underligned data on a harddisk. In a purely academic way, just
+let us take the simplest indexing mechanism: when browsing an index to find a
+concept within a book, all references are arranged in alphanumeric order from
+top to bottom, from the left page to the right one (in Western literature).&lt;/p>
+&lt;p>Thus, readers can start their search from the first letter of their word, compare
+it to the sorted terms, start over with the second one, etc. until they find the
+correct term or the nearest related word. The result is then followed by a list
+of page numbers, in wich the author of the book has self-referenced the key
+concepts needed by the index search.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/en/back-of-the-book-index.png" alt="A back-of-the-book index example">&lt;/p>
+&lt;hr>
+&lt;p>When talking about relational database system, entity (or object) related data
+are spread into columns owned by one or several tables. Looking at these data is
+similar to searching a word in a book: you need a search criteria (a surname, a
+date or even a join condition for example) and a access path (alphanumeric sort
+is the simplest one).&lt;/p>
+&lt;p>Reading a part of unindexed table content with SQL (like mentions in a book to a
+specific mathematician, for example) forces query executor to parse pages of the
+entire table (so called a &lt;em>full scan&lt;/em>) and filter out all unneeded rows. This
+search is as effective as flipping through a book before coming across the
+information.&lt;/p>
+&lt;p>&lt;code>EXPLAIN&lt;/code> statement can help us to determine which access method will be used by
+PostgreSQL to find mathematicians who belong to Gauss familly:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">EXPLAIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">ANALYZE&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">BUFFERS&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">firstname&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lastname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mathematicians&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">lastname&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Gauss&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The result corresponds to the execution plan, also known as the &lt;em>query plan&lt;/em>,
+built by a internal component, the &lt;em>planner&lt;/em>, using available statistics, such
+as the number of known rows in the table, the presence of indexes, or the
+distribution of data according to their values (also called histogram). During
+this initial step, the planner can establish several plans and then choose the
+one with the lowest execution cost to ensure the overall processing time is as
+fast as possible.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> QUERY PLAN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Seq Scan on mathematicians
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=0.00..14.33 rows=1 width=18)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (actual time=0.188..0.189 rows=0 loops=1)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Filter: ((lastname)::text = &amp;#39;Gauss&amp;#39;::text)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Rows Removed by Filter: 666
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Buffers: shared hit=6
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Planning Time: 0.229 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Execution Time: 0.219 ms
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>Seq Scan&lt;/code> node confirms that the table was read sequentially and entirely,
+despite applying a filter. The &lt;code>ANALYZE&lt;/code> option enriches the result at the cost
+of actually executing the query on the database relations (in this case, the
+&lt;code>mathematicians&lt;/code> table). As a result, real search time and the number of
+returned and ignored rows are included in the output. The &lt;code>BUFFERS&lt;/code> option
+indicates the number of blocks accessed, specifying whether they are read from
+shared memory (&lt;em>shared hit&lt;/em>) or from the disk (&lt;em>read&lt;/em>).&lt;/p>
+&lt;p>Let&amp;rsquo;s now observe the new execution plan when we add an index on the column
+&lt;code>lastname&lt;/code>:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> QUERY PLAN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Index Scan using mathematicians_lastname_idx on mathematicians
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=0.28..8.29 rows=1 width=18)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (actual time=0.043..0.046 rows=1 loops=1)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Index Cond: ((lastname)::text = &amp;#39;Gauss&amp;#39;::text)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Buffers: shared hit=3
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Planning Time: 0.176 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Execution Time: 0.081 ms
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This time, the planner estimates a cost of 8.29 instead of 14.33 using the index
+on the search condition. We observe a change in the node considered by the
+planner: an &lt;code>Index Scan&lt;/code> is now used to identify the unique entry for the value
+&amp;ldquo;Gauss&amp;rdquo; and retrieves the related information from the &lt;code>mathematicians&lt;/code> table.
+As a result, the number of accessed blocks is reduced to 3, compared to 6 in the
+example without an index. The gain in execution time is significant: the query
+took 81 µs instead of 219.&lt;/p>
+&lt;p>However, this situation is not immutable, and depending on the value of the
+search, the best execution plan can vary. Let&amp;rsquo;s take the example of
+mathematicians from the Cartan family.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl"> QUERY PLAN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Bitmap Heap Scan on mathematicians
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=4.29..8.85 rows=2 width=18)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (actual time=0.067..0.072 rows=2 loops=1)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Recheck Cond: ((lastname)::text = &amp;#39;Cartan&amp;#39;::text)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Heap Blocks: exact=2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Buffers: shared hit=4
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> -&amp;gt; Bitmap Index Scan on mathematicians_lastname_idx
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (cost=0.00..4.29 rows=2 width=0)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (actual time=0.051..0.051 rows=2 loops=1)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Index Cond: ((lastname)::text = &amp;#39;Cartan&amp;#39;::text)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Buffers: shared read=2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Planning Time: 0.173 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Execution Time: 0.119 ms
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>We encounter another node related to the usage of an index, the &lt;code>Bitmap Heap Scan&lt;/code>, and its &lt;code>Bitmap Index Scan&lt;/code>. During its index traversal, the planner
+found two rows (&lt;code>rows=2&lt;/code>) and stored their addresses in a memory array, also
+known as a &lt;em>bitmap&lt;/em>. The retrieval of these rows involves random access, which
+can become costly for the planner.&lt;/p>
+&lt;hr>
+&lt;p>For simple operations like equality, it is recommended to use a &lt;em>b-tree&lt;/em> index,
+which is the default for &lt;code>CREATE INDEX&lt;/code>. This index relies on an algorithm of
+the &lt;a href="https://www.csd.uoc.gr/~hy460/pdf/p650-lehman.pdf" target="_blank" rel="noopener">same name&lt;/a>, which ensures the storage of key/value pairs within a
+balanced tree structure. The goal is to minimize the depth of the tree to reduce
+read costs.&lt;/p>
+&lt;p>A &lt;em>b-tree&lt;/em> index is composed of:&lt;/p>
+&lt;ul>
+&lt;li>A meta block&lt;/li>
+&lt;li>Intermediate blocks, including the root block&lt;/li>
+&lt;li>Leaf blocks&lt;/li>
+&lt;/ul>
+&lt;p>You can inspect them using functions provided by the extensions &lt;a href="https://www.postgresql.org/docs/current/pgstattuple.html" target="_blank" rel="noopener">pgstattuple&lt;/a>
+and &lt;a href="https://www.postgresql.org/docs/current/pageinspect.html" target="_blank" rel="noopener">pageinspect&lt;/a>, which allow you to unravel the index traversal performed
+by the executor phase.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bt_page_stats&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">type&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">live_items&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">generate_series&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">pg_relpages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mathematicians_lastname_idx&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">LATERAL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bt_page_stats&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mathematicians_lastname_idx&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- blkno | type | live_items
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- -------+------+------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 1 | l | 317
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 2 | l | 319
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 3 | r | 3
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 4 | l | 32
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;em>The query is taken from french &amp;ldquo;PostgreSQL Architecture et notions avancées&amp;rdquo; by
+Guillaume Lelarge, &lt;a href="https://www.d-booker.fr/programmation-et-langage/511-architecture-et-notions-avancees-2ed.html" target="_blank" rel="noopener">edition D-BookeR&lt;/a>.&lt;/em>&lt;/p>
+&lt;p>The &lt;code>bt_page_stats&lt;/code> method, associated with the index name and the block number,
+can be combined with the &lt;code>generate_series&lt;/code> function to obtain one row per block
+belonging to the index, except for the meta block. We observe that block number
+3 is the root (&lt;code>type=r&lt;/code>) of our &lt;em>b-tree&lt;/em>, the block from which the executor can
+perform successive comparisons until reaching the values of its search.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ctid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">data&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">convert_from&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">substring&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">data&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39; 00&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;hex&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;utf8&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bt_page_items&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mathematicians_lastname_idx&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- ctid | data | text
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ---------+-------------------------------------------------+--------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- (1,0) | |
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- (2,38) | 0f 4b 6c 65 65 6e 65 00 | Kleene
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- (4,116) | 1b 5a 61 72 61 6e 6b 69 65 77 69 63 7a 00 00 00 | Zarankiewicz
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This root block lookup indicates that there are three branches (as indicated by
+the previous statistics with the value &lt;code>live_items&lt;/code> of block number 3)
+containing the physical addresses of each leaf, also known as &lt;code>ctid&lt;/code>. The &lt;code>data&lt;/code>
+field varies depending on the type of indexed data and whether it is an index
+block or a table block. In this example, the &lt;code>text&lt;/code> column indicates the lower
+bound (&lt;em>minus infinity&lt;/em>) of each block. It is possible to obtain the boundaries
+of each leaf block with the following query:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">min&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">max&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">convert_from&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">substring&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">data&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39; 00&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;hex&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;utf8&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bt_page_stats&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">generate_series&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">pg_relpages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mathematicians_lastname_idx&amp;#39;&lt;/span>&lt;span class="p">)::&lt;/span>&lt;span class="nb">integer&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">LATERAL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bt_page_stats&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mathematicians_lastname_idx&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">type&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;l&amp;#39;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">LATERAL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bt_page_items&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mathematicians_lastname_idx&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">length&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">data&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">GROUP&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">ORDER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">BY&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">blkno&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- blkno | min | max
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- -------+--------------+--------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 1 | Abbt | Kleene
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 2 | Kleene | Zarankiewicz
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- 4 | Zarankiewicz | Zygmund
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;p>Returning to our previous search examples, both names &amp;ldquo;Gauss&amp;rdquo; and &amp;ldquo;Cartan&amp;rdquo; are
+classified between the letters A and K, which means they are located in block
+number 1 of the &lt;code>mathematicians_lastname_idx&lt;/code> index. The traversal continues in
+this new leaf block, where the &lt;code>ctid&lt;/code> addresses now correspond to the physical
+blocks of the &lt;code>mathematicians&lt;/code> table.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ctid&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">data&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">convert_from&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">substring&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">data&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39; 00&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;hex&amp;#39;&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;utf8&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">as&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">bt_page_items&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;mathematicians_lastname_idx&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">t&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nb">text&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">IN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Gauss&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;Cartan&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- ctid | data | text
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ---------+-------------------------+--------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- (3,8) | 0f 43 61 72 74 61 6e 00 | Cartan
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- (4,8) | 0f 43 61 72 74 61 6e 00 | Cartan
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- (1,102) | 0d 47 61 75 73 73 00 00 | Gauss
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The results of the previous execution plans are now clear! As a reminder, we had
+an &lt;code>Index Scan&lt;/code> node for the &amp;ldquo;Gauss&amp;rdquo; search and two &lt;code>Bitmap Heap/Index Scan&lt;/code>
+nodes for the &amp;ldquo;Cartan&amp;rdquo; search.&lt;/p>
+&lt;p>The first search physically performs two reads in the index (blocks 3 and then 1)
+before reading the data block &lt;code>(1,102)&lt;/code>, making a total of three blocks,
+as mentionned by the execution plan (&lt;code>Buffers: shared hit=3&lt;/code>).&lt;/p>
+&lt;p>The second search also involves two reads in the index but retrieves two
+distinct rows from two different locations in the table (addresses &lt;code>(3,8)&lt;/code> and
+&lt;code>(4,8)&lt;/code>), resulting in a total of four blocks, which aligns with the plan as
+well (&lt;code>Buffers: shared hit=4&lt;/code>).&lt;/p>
+&lt;hr>
+&lt;p>Of course, examining the contents of indexes is not necessary for performance
+analysis. Indexes are continuously maintained and balanced with every data
+modification to keep the physical addresses up to date and ensure optimized
+access with the lowest possible depth of traversal.&lt;/p>
+&lt;p>Adding an index should not be an automatic reflex. It is essential to consider
+the cardinality of the data in a column, which refers to the small proportion of
+data returned by each filter. In the case of the &lt;code>mathematicians&lt;/code> table, a
+search based on &lt;code>LIKE&lt;/code> or &lt;code>&amp;gt;&lt;/code> conditions could easily scan all six blocks of the
+table (&lt;code>Seq Scan&lt;/code>) because it is less costly than traversing multiple additional
+index blocks.&lt;/p>
+&lt;p>This article focused on the operation of the most common index, the &lt;em>b-tree&lt;/em>.
+However, there are many other types of indexes that cater to various search and
+storage requirements!&lt;/p>
+&lt;div class="message">If anyone is interested in exploring the demonstration further, the dataset
+&lt;code>fr-mathematicians.sql&lt;/code> is available on
+&lt;a href="https://github.com/fljdin/database-samples/blob/master/fr-mathematians.sql" target="_blank" rel="noopener">Github&lt;/a>
+and is sourced from the french page &amp;ldquo;&lt;a href="https://fr.wikipedia.org/wiki/Projet:Math%C3%A9matiques/Liste_des_math%C3%A9maticiens" target="_blank" rel="noopener">Liste des
+mathématiciens&lt;/a>&amp;rdquo;
+on Wikipedia.&lt;/div></description></item></channel></rss>

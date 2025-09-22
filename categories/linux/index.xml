@@ -7,7 +7,158 @@ n&amp;rsquo;était pas bien vu d&amp;rsquo;installer des dépendances systèmes 
 ou Perl. Nous apprenions donc à écrire des scripts portables et universels, compatibles partout
 où nous déposions nos valises.&lt;/p>
 &lt;p>Me suis-je enfermé dans un dogme conservateur, en m&amp;rsquo;interdisant &lt;em>de facto&lt;/em> à me tourner vers des
-shells modernes et bien plus aisés à appréhender ?&lt;/p></description></item><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
+shells modernes et bien plus aisés à appréhender ?&lt;/p>
+&lt;hr>
+&lt;h2 id="beurk-le-bash">Beurk, le Bash&lt;/h2>
+&lt;p>Ne faisons pas de détour, le Bash c&amp;rsquo;est moche. Puissant, pratique, universel, mais moche.&lt;/p>
+&lt;p>Vous pourriez penser que c&amp;rsquo;est un avis parfaitement subjectif, et qu&amp;rsquo;il ne faut pas juger un livre
+à sa couverture&amp;hellip; mais avouez-le, une partie de vous pense sensiblement la même chose que moi.
+Combien d&amp;rsquo;heures ai-je pu perdre durant ma courbe d&amp;rsquo;apprentissage du langage, à cause d&amp;rsquo;un grand
+nombre de subtilités et de pièges de syntaxes ?&lt;/p>
+&lt;p>Entre les assignations sans espace autour du signe &lt;code>=&lt;/code>, les accolades &lt;code>{}&lt;/code> pour les variables
+contenant un signe &lt;code>_&lt;/code>, les backticks &lt;code>` `&lt;/code> pour les commandes subshells, ou encore les doubles
+crochets &lt;code>[[ ... ]]&lt;/code> pour les comparaisons non-POSIX, il y a de quoi s&amp;rsquo;arracher les cheveux.&lt;/p>
+&lt;p>Certain·e·s y verront une forme d&amp;rsquo;esthétisme ou de tradition d&amp;rsquo;une culture informatique, mais
+personnellement je trouve que c&amp;rsquo;est un langage qui vieillit mal, très mal. Vous ne vous offusqueriez
+pas non plus si je devais vous témoigner mon désamour le Perl, n&amp;rsquo;est-ce pas ?&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une comparaison de deux variables&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[[&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$a&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$b&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">]]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une addition et une affectation&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">z&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="k">$((&lt;/span> &lt;span class="nv">$x&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nv">$y&lt;/span> &lt;span class="k">))&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une boucle for&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> i in &lt;span class="k">$(&lt;/span>seq &lt;span class="m">1&lt;/span> 10&lt;span class="k">)&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">do&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">echo&lt;/span> &lt;span class="nv">$i&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">done&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># un switch case&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">case&lt;/span> &lt;span class="nv">$1&lt;/span> in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;un&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;deux&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> *&lt;span class="o">)&lt;/span> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;autre&amp;#34;&lt;/span>&lt;span class="p">;;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">esac&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une chaîne en minuscule&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">a&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nv">a&lt;/span>&lt;span class="p">,,&lt;/span>&lt;span class="si">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># une gestion des erreurs de commandes chaînées&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">some_command &lt;span class="p">|&lt;/span> another_command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="o">[[&lt;/span> &lt;span class="si">${&lt;/span>&lt;span class="nv">PIPESTATUS&lt;/span>&lt;span class="p">[0]&lt;/span>&lt;span class="si">}&lt;/span> -ne &lt;span class="m">0&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="si">${&lt;/span>&lt;span class="nv">PIPESTATUS&lt;/span>&lt;span class="p">[1]&lt;/span>&lt;span class="si">}&lt;/span> -ne &lt;span class="m">0&lt;/span> &lt;span class="o">]]&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">then&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">echo&lt;/span> &lt;span class="s2">&amp;#34;Une des commandes a échoué&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">fi&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le &lt;a href="https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29" target="_blank" rel="noopener">Bash&lt;/a> est apparu l&amp;rsquo;année de ma naissance, en 1989. Il a été conçu en opposition au &lt;a href="https://en.wikipedia.org/wiki/Bourne_shell" target="_blank" rel="noopener">Bourne Shell&lt;/a>
+(&lt;code>sh&lt;/code>) pour apporter des fonctionnalités de programmation plus avancées. Il est devenu le shell par
+défaut de la plupart des distributions Linux, et est devenu un standard pour tous les scripts à travers
+le monde entier.&lt;/p>
+&lt;p>Fort de ses années de succès, et de son emprise sur le monde Unix, le Bash s&amp;rsquo;impose parfois comme la première
+porte vers la programmation pour des administrateurices système ou les étudiant·e·s en informatique. Et il
+faut accepter que la qualité de ses premiers scripts n&amp;rsquo;est pas toujours au rendez-vous. Souvenez-vous des
+longues heures passées sur StackOverflow à trouver la syntaxe la plus lisible ou la plus efficace, car les
+réponses se révélaient aussi variées que touffues !&lt;/p>
+&lt;p>Et c&amp;rsquo;est l&amp;rsquo;un des plus gros problèmes que je trouve au Bash : ce langage de programmation est exigeant,
+excentrique, voire &lt;a href="https://fr.wikipedia.org/wiki/Idiosyncrasie" target="_blank" rel="noopener">idiosyncratique&lt;/a>, et qui ne pardonne pas les erreurs. Un des &lt;a href="https://dev.to/taikedz/your-bash-scripts-are-rubbish-use-another-language-5dh7" target="_blank" rel="noopener">paradoxes&lt;/a> que j&amp;rsquo;associe
+au Bash est qu&amp;rsquo;il peut ne pas être considéré comme un véritable langage de programmation, réduisant ainsi
+la volonté et l&amp;rsquo;effort de l&amp;rsquo;apprendre en profondeur par une large communauté de professionnel·le·s.&lt;/p>
+&lt;p>&lt;a href="https://dev.to/taikedz/your-bash-scripts-are-rubbish-use-another-language-5dh7" target="_blank" rel="noopener">Et si vos scripts Bash sont nuls, utilisez un autre langage.&lt;/a>&lt;/p>
+&lt;hr>
+&lt;h2 id="lami-fish-friendly-interactive-shell">L&amp;rsquo;ami Fish, Friendly Interactive Shell&lt;/h2>
+&lt;p>Je suis tombé sur &lt;a href="https://fishshell.com/" target="_blank" rel="noopener">Fish&lt;/a> par hasard, alors que je questionnais mon usage quotidien sur &lt;a href="https://fr.wikipedia.org/wiki/Z_Shell" target="_blank" rel="noopener">ZSH&lt;/a>. Sur
+mon poste personnel, j&amp;rsquo;ai étendu mon expérience passée sur le Bash avec une configuration ZSH enrichie de
+&lt;a href="https://ohmyz.sh/" target="_blank" rel="noopener">Oh My Zsh&lt;/a>. C&amp;rsquo;était un peu le jour et la nuit dans l&amp;rsquo;interaction avec mes terminaux : la navigation,
+les suggestions, les thèmes, les plugins, tout est plus fluide et plus agréable. Sa compatibilité avec
+Bash m&amp;rsquo;avait alors évité de tout réapprendre.&lt;/p>
+&lt;p>Fish répond au besoin de modernité et de simplicité que je cherche sans vraiment le savoir. Contrairement
+à ZSH, un grand nombre de fonctionnalités sont disponibles sans aucune configuration préalable ou plugin
+à activer.&lt;/p>
+&lt;p>&lt;strong>Assistance à la commande&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Recopie la commande incomplète et en erreur sans besoin de naviguer dans l&amp;rsquo;historique&lt;/li>
+&lt;li>Accès à l&amp;rsquo;historique partiel avec les touches directionnelles dès la première frappe au clavier&lt;/li>
+&lt;li>Proposition de chemins avec la complétion de la touche Tab, suivie des touches directionnelles&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-20-14-fish-01.png" alt="">&lt;/p>
+&lt;p>&lt;strong>Auto-suggestions des chemins et des options d&amp;rsquo;une grande majorité des outils&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Mémoire des précédents répertoires parcourus&lt;/li>
+&lt;li>Support très complet des commandes Git, notamment le &lt;code>git rebase -i&lt;/code> ❤️&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2024-20-14-fish-02.png" alt="">&lt;/p>
+&lt;p>&lt;strong>Coloration plus poussée des commandes&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>une couleur différente par mot selon la syntaxe employée (variables, chemin, options)&lt;/li>
+&lt;li>un rouge prononcé pour les commandes inconnues&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="un-langage-qui-vous-veut-du-bien">Un langage qui vous veut du bien&lt;/h2>
+&lt;p>Pour revenir au sujet principal de cet article, Fish révolutionne notre rapport avec la rédaction
+de scripts. Fini les pièges et la syntaxe qui nous ont tenu en otage durant des années. Les choses
+deviennent bien plus simples et lisibles.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une comparaison de deux variables
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">test&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$a&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$b&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une addition et une affectation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">set&lt;/span> &lt;span class="nv">z&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nb">math&lt;/span> &lt;span class="nv">$x&lt;/span> + &lt;span class="nv">$y&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une boucle for
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">for&lt;/span> &lt;span class="nv">i&lt;/span> &lt;span class="k">in&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nf">seq&lt;/span> &lt;span class="m">1&lt;/span> &lt;span class="m">10&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">echo&lt;/span> &lt;span class="nv">$i&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># un switch case
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">case&lt;/span> &lt;span class="nv">$argv&lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="m">1&lt;/span>&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;un&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">2&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;deux&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> *&lt;span class="p">;&lt;/span> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;autre&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une chaîne en minuscule
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="k">set&lt;/span> &lt;span class="nv">a&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="nb">string &lt;/span>lower &lt;span class="nv">$a&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c"># une gestion des erreurs de commandes chaînées
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="nf">some_command&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="nf">another_command&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="nb">contains &lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="nv">$pipestatus&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">echo&lt;/span> &lt;span class="s2">&amp;#34;Une des commandes a échoué&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;investissement initial pour perdre ses habitudes acquises avec Bash est modéré, notamment
+le &lt;a href="https://fishshell.com/docs/current/language.html#variables-export" target="_blank" rel="noopener">remplacement&lt;/a> de &lt;code>export&lt;/code> ou de l&amp;rsquo;assignation &lt;code>=&lt;/code> par la méthode &lt;code>set -x&lt;/code> ou &lt;code>set -u&lt;/code>
+respectivement. Mais l&amp;rsquo;enrichissement du langage par quelques nouveaux mots-clés permet
+d&amp;rsquo;alléger le script avec des syntaxes claires et lisibles (&lt;code>contains&lt;/code>, &lt;code>math&lt;/code> ou &lt;code>string&lt;/code>
+présents dans l&amp;rsquo;exemple ci-dessus).&lt;/p>
+&lt;p>L&amp;rsquo;ajout de plugins communautaire n&amp;rsquo;est pas en reste, si comme moi, vous en consommiez avec
+Oh-My-ZSH. L&amp;rsquo;outil &lt;a href="https://github.com/jorgebucaran/fisher" target="_blank" rel="noopener">Fisher&lt;/a> s&amp;rsquo;installe dans votre &lt;code>~/.config/fish&lt;/code> et donne accès à un
+gestionnaire complet et sobre. Pour ma part, j&amp;rsquo;ai pu rapidement combler mon besoin de charger
+les variables d&amp;rsquo;environnement fournies par l&amp;rsquo;agent SSH (&lt;code>ssh-agent&lt;/code>) lors du démarrage de ma
+session.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="gp">$&lt;/span> fisher install danhper/fish-ssh-agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">fisher install version 4.4.5
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Fetching https://api.github.com/repos/danhper/fish-ssh-agent/tarball/HEAD
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Installing danhper/fish-ssh-agent
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/functions/__ssh_agent_is_started.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/functions/__ssh_agent_start.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go"> /home/florent/.config/fish/conf.d/fish-ssh-agent.fish
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">Updated 1 plugin/s
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pas de mystère, ni d&amp;rsquo;arcanes magiques, votre environnement est enrichi de nouvelles fonctions
+et de scripts de démarrage, développés en Fish.&lt;/p>
+&lt;hr>
+&lt;h2 id="osons-la-modernité">Osons la modernité&lt;/h2>
+&lt;p>La documentation du projet est très bien fournie. En plus de la page &lt;a href="https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29" target="_blank" rel="noopener">Tutorial&lt;/a>, vous trouverez
+une page dédiée aux &lt;a href="https://fishshell.com/docs/current/fish_for_bash_users.html" target="_blank" rel="noopener">utilisateurs de Bash&lt;/a> pour vous aider à réussir votre transition. Pour ma
+part, j&amp;rsquo;y retrouve des syntaxes bien plus proches du Python, et c&amp;rsquo;est un vrai plaisir.&lt;/p>
+&lt;p>Le projet est vivant, avec un rythme de versions régulier. Je me suis surpris moi-même à ne pas en
+avoir entendu parler par d&amp;rsquo;autres collègues ou auprès des auteurices de blogs que je suis. Au cours des
+dernières années, la communauté francophone a essaimé quelques bons articles qui complètent le
+mien.&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://lkdjiin.github.io/blog/2016/12/13/changer-de-shell-de-bash-a-fish/" target="_blank" rel="noopener">Changer de shell, de Bash à Fish&lt;/a> (2016)&lt;/li>
+&lt;li>&lt;a href="https://ubunlog.com/fr/ligne-de-commande-fish-smart/" target="_blank" rel="noopener">Fish, une ligne de commande intelligente et simple d&amp;rsquo;utilisation&lt;/a> (2017)&lt;/li>
+&lt;li>&lt;a href="https://toptips.fr/comment-passer-de-bash-a-fish-shell-sous-linux/" target="_blank" rel="noopener">Comment passer de Bash à Fish Shell sous Linux&lt;/a> (2021)&lt;/li>
+&lt;li>&lt;a href="https://blog.otso.fr/2024-01-17-passer-zsh-fish-shell" target="_blank" rel="noopener">Migration de shell de zsh à fish&lt;/a> (2024)&lt;/li>
+&lt;/ul>
+&lt;p>Ces temps-ci, je fais évoluer mon expérience d&amp;rsquo;utilisateur de Linux avec une transition vers Wayland
+et SwayWM (j&amp;rsquo;y reviendrais dans un autre article). Je ne le cache pas, la tentation de remplacer mes
+scripts Bash qui gèrent mes thèmes ou les composants &lt;em>swaybar&lt;/em>, est forte, très forte.&lt;/p>
+&lt;p>De quoi occuper mes prochaines longues soirées d&amp;rsquo;hiver.&lt;/p></description></item><item><title>Construire PostgreSQL avec Meson</title><link>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</link><pubDate>Thu, 29 Sep 2022 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2022/09/29/construire-postgresql-avec-meson/</guid><description>&lt;p>Alors que la version 15 de PostgreSQL se prépare à sortir dans les &lt;a href="https://www.postgresql.org/about/news/postgresql-15-rc-1-released-2516/" target="_blank" rel="noopener">prochains
 jours&lt;/a>, le groupe de développement du projet communautaire ont intégré &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target="_blank" rel="noopener">leurs
 récents travaux&lt;/a> pour accélérer les tâches d&amp;rsquo;automatisation et de compilation
 à l&amp;rsquo;aide du système de construction &lt;a href="https://mesonbuild.com/" target="_blank" rel="noopener">Meson&lt;/a>.&lt;/p>
@@ -16,14 +167,282 @@ de bases de données open-source le plus avancé au monde. Depuis sa forme libre
 publiée en 1998, PostgreSQL repose sur des solutions robustes et éprouvées, mais
 de plus en plus complexes à maintenir pour les nouvelles générations de
 contributeur·rices. En proposant de se tourner vers un logiciel comme Meson, ces
-amoureux et amoureuses du libre se tournent résolument vers l&amp;rsquo;avenir.&lt;/p></description></item><item><title>BorgBackup ou la sauvegarde facile</title><link>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</link><pubDate>Tue, 24 Aug 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</guid><description>&lt;p>Jusqu&amp;rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
+amoureux et amoureuses du libre se tournent résolument vers l&amp;rsquo;avenir.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2022-09-29-andres-freund-e692323.png" alt="patch">&lt;/p>
+&lt;hr>
+&lt;h2 id="en-finir-avec-autoconf">En finir avec autoconf&lt;/h2>
+&lt;p>Un système de construction ou &lt;em>build system&lt;/em> (ne vous y trompez pas, j&amp;rsquo;ai une
+préférence pour la dénomination anglaise) est un ensemble d&amp;rsquo;instructions dans
+une syntaxe qui lui est propre, qui facilite la compilation d&amp;rsquo;un logiciel. Les
+ramifications d&amp;rsquo;un projet, les dépendances et les librairies ou tout simplement
+l&amp;rsquo;outillage interne, deviennent inexorablement la rançon d&amp;rsquo;une complexité après
+plusieurs décennies d&amp;rsquo;existence.&lt;/p>
+&lt;p>Le système le plus répandu est sans conteste &lt;a href="https://en.wikipedia.org/wiki/Make_%28software%29" target="_blank" rel="noopener">Make&lt;/a> et son fichier déclaratif
+&lt;em>Makefile&lt;/em> qui contiendra les instructions de compilation. Son principe absolu
+consiste à transformer un fichier source (le code) en un autre fichier cible (le
+binaire). Dans un projet minimaliste, le &lt;em>Makefile&lt;/em> suivant permet de générer le
+binaire &lt;code>foo&lt;/code> si le code source &lt;code>foo.c&lt;/code> ou son en-tête &lt;code>foo.h&lt;/code> contiennent des
+nouveautés.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-make" data-lang="make">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># ./Makefile
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">&lt;/span>&lt;span class="nv">CC&lt;/span>&lt;span class="o">=&lt;/span>gcc
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">CFLAGS&lt;/span>&lt;span class="o">=&lt;/span>-I.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">foo&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="n">foo&lt;/span>.&lt;span class="n">c&lt;/span> &lt;span class="n">foo&lt;/span>.&lt;span class="n">h&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">$(&lt;/span>CC&lt;span class="k">)&lt;/span> -o foo foo.c
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>À l&amp;rsquo;appel de la commande &lt;code>make&lt;/code> à la racine du projet, le fichier &lt;em>Makefile&lt;/em>
+sera parcouru pour détecter les cibles du projet et suivre les instructions
+selon les règles qui y sont renseignées pour construire les fichiers binaires.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2022-09-29-makefile-workflow.png" alt="Compilation par Makefile">&lt;/p>
+&lt;p>Une &lt;a href="https://en.wikipedia.org/wiki/List_of_build_automation_software#Build_script_generation" target="_blank" rel="noopener">pratique plus sophistiquée&lt;/a> propose de générer ces instructions dans un
+format compatible avec le système de construction, lorsque celles-ci sont
+nombreuses, évolutives voire dépendantes d&amp;rsquo;un contexte ou d&amp;rsquo;un environnement tel
+que le système d&amp;rsquo;exploitation ou l&amp;rsquo;utilisation d&amp;rsquo;une option spécifique.&lt;/p>
+&lt;p>Dans le cas du projet PostgreSQL, c&amp;rsquo;est la suite &lt;a href="https://en.wikipedia.org/wiki/GNU_Autotools" target="_blank" rel="noopener">GNU Autotools&lt;/a> qui a été
+partiellement retenue pour faciliter la création des binaires sur un ensemble de
+systèmes compatibles Unix. La génération repose sur les composants &lt;em>Autoconf&lt;/em>
+(fichier &lt;code>configure.ac&lt;/code>) et &lt;em>Automake&lt;/em> (fichier &lt;code>Makefile.am&lt;/code>) pour aboutir au
+même résultat que la commande &lt;code>make&lt;/code> de notre précédent exemple. Dans les faits,
+seul le premier composant est véritablement employé pour préparer le script
+&lt;code>configure&lt;/code> lors de la compilation de PostgreSQL.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2022-09-29-autotools-workflow.png" alt="Génération avec Autotools">&lt;/p>
+&lt;p>Comme le montre le diagramme ci-dessus, les étapes avant d&amp;rsquo;obtenir le fichier
+binaire sont un peu plus nombreuses, et dépendent d&amp;rsquo;un ensemble de fichiers
+d&amp;rsquo;instructions qui deviennent complexes à rédiger sans introduire d&amp;rsquo;incohérences
+ou de bogues.&lt;/p>
+&lt;p>C&amp;rsquo;est d&amp;rsquo;ailleurs l&amp;rsquo;un des constats de la communauté qui, depuis fin 2021, a
+questionné la possibilité de passer sur un autre système de construction.&lt;/p>
+&lt;blockquote>
+&lt;p>Autoconf is showing its age, fewer and fewer contributors know how to wrangle
+it. Recursive make has a lot of hard to resolve dependency issues and slow
+incremental rebuilds.&lt;/p>&lt;/blockquote>
+&lt;p>Le principal moteur de la réflexion, Andres Freund, annonçait dans un
+&lt;a href="https://www.postgresql.org/message-id/20211012083721.hvixq4pnh2pixr3j%40alap3.anarazel.de" target="_blank" rel="noopener">message&lt;/a> sur &lt;em>pgsql-hackers&lt;/em> qu&amp;rsquo;il observait de bien meilleures performances
+avec une alternative bien plus moderne. Il y énonçait par ailleurs ses arguments
+pour en finir avec &lt;em>Autoconf&lt;/em> :&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>« &lt;em>Autoconf&lt;/em> et &lt;em>make&lt;/em> ne sont plus activement maintenus. Notamment &lt;em>autoconf&lt;/em>
+qui reçoit à peine quelques correctifs mineurs. C&amp;rsquo;est également des
+technologies que peu de monde veut utiliser &amp;ndash; m4 d&amp;rsquo;autoconf est effrayant et
+effraie les personnes qui démarrent bien plus récemment que nous autres, les
+&lt;em>committers&lt;/em> » ;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>« &lt;em>make&lt;/em> en mode récursif comme nous l&amp;rsquo;utilisons n&amp;rsquo;est pas aussi bien employé
+que ce qu&amp;rsquo;il devrait être. L&amp;rsquo;une des raisons pour laquelle le nettoyage du
+&lt;em>build&lt;/em> est si lent est que nous devons retrouver les dépendances dans un
+paquet d&amp;rsquo;endroits. En malgré cela, il m&amp;rsquo;arrive régulièrement de voir des
+&lt;em>builds&lt;/em> incrémentaux échouer et nécessitant un nouveau &lt;em>rebuild&lt;/em> » ;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>« Et nous n&amp;rsquo;avons pas uniquement un système de &lt;em>build&lt;/em> basé sur &lt;em>autoconf&lt;/em> et
+&lt;em>make&lt;/em>, il y a surtout le projet de génération MSVC (&lt;em>Microsoft Visual C++&lt;/em>)
+&amp;ndash; ce machin que la plupart d&amp;rsquo;entre nous ne veut pas toucher. Je pense qu&amp;rsquo;en
+plus du fait qu&amp;rsquo;il n&amp;rsquo;y est pas facile de dérouler tous les tests, ce système
+est juste tout simplement différent de l&amp;rsquo;autre, ce qui ne favorise pas l&amp;rsquo;intérêt
+des développeurs sous Windows (et indirectement, la qualité de PostgreSQL sur
+Windows) » ;&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>« Le dernier gros problème que je vois avec la situation actuelle est qu&amp;rsquo;il
+n&amp;rsquo;y a aucun bon test d&amp;rsquo;intégration. Le résultat de &lt;code>make check-world&lt;/code> est très
+majoritairement illisible et impossible à analyser automatiquement. Ce qui
+impose à la &lt;em>&lt;a href="https://buildfarm.postgresql.org/cgi-bin/show_status.pl" target="_blank" rel="noopener">buildfarm&lt;/a>&lt;/em> de traiter les tests séparément afin que les
+erreurs puissent être repérées et tracées correctement. Cette approche n&amp;rsquo;est
+malheureusement pas adaptée aux processeurs multicœurs et ralentit considérablement
+l&amp;rsquo;ensemble des serveurs ».&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="meson-une-alternative-moderne">Meson, une alternative moderne&lt;/h2>
+&lt;p>À l&amp;rsquo;image des &lt;em>Autotools&lt;/em>, &lt;a href="https://mesonbuild.com/" target="_blank" rel="noopener">Meson&lt;/a> est un système qui génère les instructions
+de compilation. Ce fut le choix qu&amp;rsquo;a proposé Andres Freund à la communauté après
+l&amp;rsquo;avoir analysé aux côtés de &lt;a href="https://cmake.org/cmake/help/book/mastering-cmake/chapter/Why%20CMake.html#" target="_blank" rel="noopener">CMake&lt;/a> et &lt;a href="https://bazel.build/about/vision" target="_blank" rel="noopener">Bazel&lt;/a>, deux autres compétiteurs
+bien connus du monde libre. Meson est écrit en Python et son but premier est de
+réduire la part d&amp;rsquo;efforts des développeurs dans la rédaction d&amp;rsquo;instructions au
+profit d&amp;rsquo;une plus grande productivité sur le logiciel en tant que tel.&lt;/p>
+&lt;p>Le projet Meson s&amp;rsquo;appuie sur un système de construction bas niveau appelé
+&lt;a href="https://ninja-build.org/" target="_blank" rel="noopener">ninja&lt;/a> qui se veut, d&amp;rsquo;après son auteur &lt;a href="https://neugierig.org/software/chromium/notes/2011/02/ninja.html" target="_blank" rel="noopener">Evan Martin&lt;/a>, être minimaliste
+et bien plus performant que &lt;code>make&lt;/code>. Les instructions de compilation sont
+renseignées automatiquement par Meson dans le fichier &lt;code>build.ninja&lt;/code> qui sera
+ensuite parcouru par la commande &lt;code>ninja&lt;/code> pour compiler les sources en un fichier
+binaire.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2022-09-29-meson-workflow.png" alt="Génération avec Meson">&lt;/p>
+&lt;p>Pour reprendre mon projet minimaliste &lt;code>foo&lt;/code>, le fichier &lt;em>Makefile&lt;/em> est remplacé
+par le fichier &lt;code>meson.build&lt;/code>, en y renseignant les méta-données du projet, le
+point d&amp;rsquo;entrée du programme et le fichier binaire souhaité.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-rb" data-lang="rb">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ./meson.build&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">project&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;foo&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;c&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">executable&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;foo&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;foo.c&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Meson est un jeune projet, dont la première sortie date de 2013. Bien qu&amp;rsquo;il
+rougît de son âge face à CMake, il n&amp;rsquo;en reste pas moins un concurrent qui ne
+cesse de &lt;a href="https://gms.tf/the-rise-of-meson.html" target="_blank" rel="noopener">gagner du terrain&lt;/a> depuis la dernière décennie. Parmi les
+&lt;a href="https://mesonbuild.com/Users.html" target="_blank" rel="noopener">projets&lt;/a> qui s&amp;rsquo;appuient désormais sur Meson, je peux citer de très connus
+comme : &lt;code>systemd&lt;/code>, Gnome et GTK+, QEMU, Xorg et Wayland&amp;hellip; De quoi se parer
+d&amp;rsquo;une forte communauté d&amp;rsquo;utilisateurs dans les prochaines années !&lt;/p>
+&lt;p>Sur la page « &lt;a href="https://mesonbuild.com/Use-of-Python.html" target="_blank" rel="noopener">Use of Python&lt;/a> » du projet, les créateurs de Meson se
+défendent d&amp;rsquo;un reproche souvent adressé aux technologies modernes et affirment
+ne reposer que sur &lt;code>python3&lt;/code> tout en interdisant l&amp;rsquo;usage de modules externes,
+en gages de qualité et de compatibilité. Ainsi, le projet se veut accessible
+pour tous les systèmes d&amp;rsquo;exploitation, faisait un pied de nez au mastodonte
+&lt;em>Autotools&lt;/em> qui était très couplé au &lt;em>shell&lt;/em> Unix dans son implémentation.&lt;/p>
+&lt;p>La décision pour le projet PostgreSQL de progressivement glisser vers Meson est
+le fruit de plusieurs mois de réflexion, avec pour ambition notamment de se
+passer du système &lt;a href="https://github.com/postgres/postgres/tree/master/src/tools/msvc" target="_blank" rel="noopener">MSVC&lt;/a>, un ensemble de scripts Perl maison maintenus par
+une poignée de personnes pour compiler le logiciel sous Windows. En prime, les
+travaux d&amp;rsquo;Andres démontrent un gain significatif dans les temps de &lt;em>build&lt;/em>, ce
+qui ne paraît pas surprenant au regard du &lt;em>&lt;a href="https://mesonbuild.com/ARM-performance-test.html" target="_blank" rel="noopener">benchmark&lt;/a>&lt;/em> entre les deux
+systèmes sur une architecture ARM.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2022-09-29-meson-autotools-benchmark-conf.png" alt="Benchmark sur le temps de configuration">&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2022-09-29-meson-autotools-benchmark-build.png" alt="Benchmark sur le temps de configuration">&lt;/p>
+&lt;blockquote>
+&lt;p>In any case, using Autotools for a modern C/C++ project in 2021 is like using
+CVS for source code version control in 2021: there are better tools available
+and thus it isn&amp;rsquo;t very interesting to still consider the legacy solutions.&lt;/p>
+&lt;p>&lt;em>Citation de &lt;a href="https://gms.tf/the-rise-of-meson.html" target="_blank" rel="noopener">Georg Sauthoff, The Rise of Meson&lt;/a>.&lt;/em>&lt;/p>&lt;/blockquote>
+&lt;hr>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>La route empruntée semble la bonne, bien que le chemin soit encore long pour se
+débarrasser définitivement des résidus historiques d&amp;rsquo;&lt;em>Autoconf&lt;/em> dans le projet
+PostgreSQL. Lors de la dernière &lt;em>&lt;a href="https://wiki.postgresql.org/wiki/PgCon_2022_Developer_Unconference#Meson_new_build_system_proposal" target="_blank" rel="noopener">Developer Unconference&lt;/a>&lt;/em> qui s&amp;rsquo;est tenue
+en ligne le 25 mai 2022 lors de l&amp;rsquo;événement annuel du PgCon, les membres de la
+communauté ont statué sur les efforts à fournir pour porter ce chantier
+titanesque.&lt;/p>
+&lt;p>Avec ce récent &lt;a href="https://git.postgresql.org/gitweb/?p=postgresql.git;a=commit;h=e6927270cd18d535b77cbe79c55c6584351524be" target="_blank" rel="noopener">patch&lt;/a> rattaché à présent à la branche &lt;em>master&lt;/em>, la
+construction des binaires sur la plupart des systèmes d&amp;rsquo;exploitation est
+implémentée, avec notamment la compilation de PostgreSQL sur Windows à travers
+&lt;code>ninja&lt;/code>. C&amp;rsquo;est une première pierre qui est posée pour la prochaine version 16 en
+cours de développement et l&amp;rsquo;émergence d&amp;rsquo;une architecture qui grandira avec
+d&amp;rsquo;autres améliorations dans un avenir proche.&lt;/p></description></item><item><title>BorgBackup ou la sauvegarde facile</title><link>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</link><pubDate>Tue, 24 Aug 2021 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/</guid><description>&lt;p>Jusqu&amp;rsquo;à très récemment, je ne me préoccupais pas de la pertinence de mes
 sauvegardes de fichiers personnels réalisées naïvement avec un script &lt;code>rsync&lt;/code>.
 C&amp;rsquo;est honteux dans nos métiers, mais l&amp;rsquo;adage du cordonnier s&amp;rsquo;est vérifié avec
 moi lors de l&amp;rsquo;exécution d&amp;rsquo;un vulgaire &lt;code>find $NOVAR/ -delete&lt;/code> durant des tests.&lt;/p>
 &lt;p>Après cet épisode et l&amp;rsquo;amertume d&amp;rsquo;avoir perdu quelques travaux, ou la surprise
 de découvrir les ravages de leur disparition plusieurs semaines après ma fatale
 erreur, je me suis tourné vers l&amp;rsquo;outil incontournable dont tous mes collègues me
-parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p></description></item><item><title>Les liens physiques avec pg_upgrade</title><link>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</link><pubDate>Thu, 23 Apr 2020 15:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</guid><description>&lt;p>La création d&amp;rsquo;un lien sous Unix se réalise avec les commandes &lt;a href="https://www.gnu.org/software/coreutils/ln" target="_blank" rel="noopener">ln&lt;/a> ou
+parlaient : &lt;a href="https://borgbackup.readthedocs.io/en/stable/" target="_blank" rel="noopener">BorgBackup&lt;/a>&lt;/p>
+&lt;hr>
+&lt;h2 id="des-atouts-séduisants">Des atouts séduisants&lt;/h2>
+&lt;p>Cela fait à présent deux années que je travaille au quotidien sur Linux pour mon
+activité professionnelle. Étant responsable de mon matériel et des données que
+je manipule, il n&amp;rsquo;existe pas de politique particulière pour les sauvegardes
+régulières ni le stockage de celles-ci.&lt;/p>
+&lt;p>Mon précédent script était passablement trivial, à savoir :&lt;/p>
+&lt;ul>
+&lt;li>Sauvegarder une copie unique des documents courants ;&lt;/li>
+&lt;li>Sauvegarder une liste des fichiers de configuration, appelés &lt;em>dotfiles&lt;/em> ;&lt;/li>
+&lt;li>Exclure les projets contenant un répertoire &lt;code>.git&lt;/code> ;&lt;/li>
+&lt;li>Exclure les fichiers de plus de 200 Mo.&lt;/li>
+&lt;/ul>
+&lt;p>Le tout sur une clé USB de 8 Go, chiffrée avec le système &lt;a href="https://fr.wikipedia.org/wiki/LUKS" target="_blank" rel="noopener">LUKS&lt;/a> pour se
+prévenir de la perte ou du vol dans un espace public dudit support.&lt;/p>
+&lt;p>Borg (son petit nom), permet de répondre correctement à l&amp;rsquo;ensemble de ces
+points, et le fait à merveille. En bénéficiant de la déduplication et de la
+compression, j&amp;rsquo;ai pu conserver ma clé USB et m&amp;rsquo;engager dans la rédaction d&amp;rsquo;un
+&lt;a href="https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef" target="_blank" rel="noopener">nouveau script&lt;/a> plus complet.&lt;/p>
+&lt;p>&lt;strong>Exclusion de fichiers et de répertoires&lt;/strong>&lt;/p>
+&lt;p>Certains fichiers ou répertoires cachés vivent leur vie sur nos postes, et un
+fichier d&amp;rsquo;exclusion peut être transmis à Borg pour ne pas les inclure dans la
+routine de sauvegarde. Le mien est relativement léger pour le moment, et
+pourrait s&amp;rsquo;enrichir avec l&amp;rsquo;expérience.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/borg/exclude.list &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.git
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.vagrant
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.local
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.cache
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.mozilla
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.thunderbird
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.config/chromium
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.config/discord
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.npm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.cpan
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;strong>Déduplication et rétention d&amp;rsquo;une semaine&lt;/strong>&lt;/p>
+&lt;p>Le gain remarquable entre mon script et la nouvelle solution que m&amp;rsquo;offre Borg
+réside dans son algorithme de déduplication, où la version d&amp;rsquo;un fichier n&amp;rsquo;est
+stockée qu&amp;rsquo;une seule fois jusqu&amp;rsquo;à une éventuelle modification, permettant de ne
+conserver qu&amp;rsquo;une copie de mes documents sur une bien plus longue période avec
+un coût de stockage ridiculement faible.&lt;/p>
+&lt;p>À chaque exécution, je demande le rapport de sauvegarde avec l&amp;rsquo;option &lt;code>--stats&lt;/code>
+dont voici un exemplaire sur l&amp;rsquo;exécution de ce matin.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Archive name: florent-2021-08-24T08:42:05
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Archive fingerprint: be38707dd52f5a86f8e75fe3ad4997aae58b3016366a988b7cb37ce3b
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Time &lt;span class="o">(&lt;/span>start&lt;span class="o">)&lt;/span>: Tue, 2021-08-24 08:42:06
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Time &lt;span class="o">(&lt;/span>end&lt;span class="o">)&lt;/span>: Tue, 2021-08-24 08:42:06
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Duration: 0.96 seconds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Number of files: &lt;span class="m">3720&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Utilization of max. archive size: 0%
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Original size Compressed size Deduplicated size
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This archive: 2.11 GB 1.78 GB 480.51 kB
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All archives: 12.63 GB 10.67 GB 1.75 GB
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Unique chunks Total chunks
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Chunk index: &lt;span class="m">3974&lt;/span> &lt;span class="m">25888&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour une semaine de rétention, l&amp;rsquo;espace total consommé sur le montage USB
+n&amp;rsquo;excède pas (encore) les 1,75 Go alors que les images décompressées pèsent au
+total 12,63 Go que ne parvennait pas à stocker mon ancien script sur plusieurs
+jours.&lt;/p>
+&lt;p>Au passage, la durée d&amp;rsquo;exécution est significativement réduite chaque jour grâce
+à ce mécanisme, qui ne sélectionne que les nouveautés d&amp;rsquo;une exécution à l&amp;rsquo;autre.&lt;/p>
+&lt;p>&lt;strong>Un montage virtuel pour naviguer dans le temps&lt;/strong>&lt;/p>
+&lt;p>L&amp;rsquo;outil propose deux options pour la restauration :&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>extract&lt;/code> pour restaurer le contenu d&amp;rsquo;une archive dans le répertoire courant
+(&lt;a href="https://borgbackup.readthedocs.io/en/stable/usage/extract.html" target="_blank" rel="noopener">doc&lt;/a>) ;&lt;/li>
+&lt;li>&lt;code>mount&lt;/code> pour visualiser les fichiers ou dossiers à restaurer, voire les
+déplacer manuellement dans le répertoire cible avec un outil graphique
+(&lt;a href="https://borgbackup.readthedocs.io/en/stable/usage/mount.html" target="_blank" rel="noopener">doc&lt;/a>).&lt;/li>
+&lt;/ul>
+&lt;p>Cette seconde proposition est particulièrement utile pour naviguer d&amp;rsquo;une archive
+à une autre, à la recherche d&amp;rsquo;un fichier perdu dans le temps. Le montage
+s&amp;rsquo;effectue à l&amp;rsquo;aide du système de fichiers &lt;a href="https://www.kernel.org/doc/html/latest/filesystems/fuse.html" target="_blank" rel="noopener">FUSE&lt;/a> qui ne nécessite aucun
+droit administrateur.&lt;/p>
+&lt;p>Pour être utilisé à partir de Borg, le paquet &lt;code>python-llfuse&lt;/code> sera requis selon
+votre distribution.&lt;/p>
+&lt;h2 id="planification-avec-systemctl">Planification avec systemctl&lt;/h2>
+&lt;p>Ce fut une découverte lors de mes lectures émerveillées de la &lt;a href="https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef" target="_blank" rel="noopener">documentation&lt;/a>
+et des &lt;a href="https://wiki.archlinux.org/title/Borg_backup_%28Fran%C3%A7ais%29" target="_blank" rel="noopener">ressources&lt;/a> de la communauté française d&amp;rsquo;Archlinux. N&amp;rsquo;étant pas
+particulièrement fan de &lt;code>cron&lt;/code> pour un usage personnel, j&amp;rsquo;ai suivi à la lettre
+la configuration d&amp;rsquo;un service utilisateur et du &lt;em>timer&lt;/em> associé pour garantir le
+lancement de la sauvegarde chaque jour, 30 minutes après le démarrage de mon
+système.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># .config/systemd/user/borg.service&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Unit]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Description&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">Borg backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Service]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">oneshot&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">ExecStart&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">%h/.bin/borg-create.sh&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># .config/systemd/user/borg.timer&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Unit]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Description&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">Daily Borg backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Documentation&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">man:borg&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Timer]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">OnBootSec&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">30min&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">OnUnitActiveSec&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">1d&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">[Install]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">WantedBy&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">timers.target&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Une fois le service activé, je n&amp;rsquo;ai qu&amp;rsquo;à attendre chaque matin la notification
+de fin de sauvegarde pour consulter les rapports avec la commande &lt;code>journalctl&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">journalctl --user -xeu borg.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">août &lt;span class="m">24&lt;/span> 08:42:02 florent systemd&lt;span class="o">[&lt;/span>877&lt;span class="o">]&lt;/span>: Starting Borg backup...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">août &lt;span class="m">24&lt;/span> 08:42:27 florent systemd&lt;span class="o">[&lt;/span>877&lt;span class="o">]&lt;/span>: Finished Borg backup.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">août &lt;span class="m">24&lt;/span> 08:42:27 florent systemd&lt;span class="o">[&lt;/span>877&lt;span class="o">]&lt;/span>: borg.service: Consumed 1.535s CPU time.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>De trop nombreux utilisateurs (Windows notamment) comptent sur leur miraculeuse
+corbeille, jusqu&amp;rsquo;à ce qu&amp;rsquo;une véritable suppression ne survienne ou qu&amp;rsquo;un disque
+défaillant fasse des siennes. Pour s&amp;rsquo;assurer qu&amp;rsquo;une donnée ne disparaisse pas
+définitivement, la sauvegarde doit être correctement mise en place, idéalement
+sur plusieurs périodes et sur plusieurs supports.&lt;/p>
+&lt;p>Le conseil vaut aussi bien pour les bases de données que pour les fichiers
+personnels : une sauvegarde n&amp;rsquo;est fiable que si la restauration de son
+contenu est possible. Une corruption de l&amp;rsquo;archive, une erreur dans l&amp;rsquo;exécution
+du script ou une mise à jour majeure de l&amp;rsquo;outil de sauvegarde sont autant de
+situations qui peuvent rendre vos sauvegardes irrécupérables.&lt;/p>
+&lt;p>Prenez soin de vos sauvegardes.&lt;/p></description></item><item><title>Les liens physiques avec pg_upgrade</title><link>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</link><pubDate>Thu, 23 Apr 2020 15:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/04/23/les-liens-physiques-avec-pgupgrade/</guid><description>&lt;p>La création d&amp;rsquo;un lien sous Unix se réalise avec les commandes &lt;a href="https://www.gnu.org/software/coreutils/ln" target="_blank" rel="noopener">ln&lt;/a> ou
 &lt;a href="https://www.gnu.org/software/coreutils/cp" target="_blank" rel="noopener">cp&lt;/a>. Cette action permet de &lt;em>lier&lt;/em> deux fichiers vers la même donnée et
 de rendre disponible une ressource par l&amp;rsquo;intermédiaire de l&amp;rsquo;un ou de l&amp;rsquo;autre de
 ces fichiers.&lt;/p>
@@ -31,10 +450,393 @@ ces fichiers.&lt;/p>
 le &lt;em>symlink&lt;/em>, le lien symbolique. Mais qu&amp;rsquo;en est-il des autres ? Comment se
 caractérisent-ils et dans quels contextes ? En vrai, qu&amp;rsquo;est-ce qu&amp;rsquo;un &lt;em>inode&lt;/em> ?
 Et PostgreSQL dans tout ça ? Autant de petites questions de curiosité que
-j&amp;rsquo;aborde avec vous dans cet article !&lt;/p></description></item><item><title>Gestion des signaux internes</title><link>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</link><pubDate>Fri, 17 Jan 2020 20:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</guid><description>&lt;p>Je voulais m&amp;rsquo;attarder sur une notion que je n&amp;rsquo;avais pas exploré à l&amp;rsquo;époque où
+j&amp;rsquo;aborde avec vous dans cet article !&lt;/p>
+&lt;hr>
+&lt;h2 id="parlons-dabord-du-lien-symbolique">Parlons d&amp;rsquo;abord du lien symbolique&lt;/h2>
+&lt;p>Pour faire simple, on peut comparer le lien symbolique à un raccourci Windows.
+Il s&amp;rsquo;agit d&amp;rsquo;un pointeur vers un fichier ou un répertoire qui permet toutes les
+opérations simples comme la lecture ou l&amp;rsquo;écriture.&lt;/p>
+&lt;p>Par exemple, pour une instance PostgreSQL, il est possible de déporter le
+répertoire des fichiers WAL sur un autre montage à l&amp;rsquo;aide d&amp;rsquo;un lien symbolique.
+Cette opération nécessite un arrêt du service et la copie des fichiers vers le
+nouveau montage, comme suit :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># à réaliser avec le compte root&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">systemctl stop postgresql-12.service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># créer le nouveau répertoire en préservant les permissions&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">install --owner&lt;span class="o">=&lt;/span>postgres --group&lt;span class="o">=&lt;/span>postgres --mode&lt;span class="o">=&lt;/span>&lt;span class="m">700&lt;/span> -d /u01/pg_wal/12
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mv /var/lib/pgsql/12/data/pg_wal/* /u01/pg_wal/12/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># créer le lien vers le nouveau répertoire&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rmdir /var/lib/pgsql/12/data/pg_wal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ln --symbolic /u01/pg_wal/12 /var/lib/pgsql/12/data/pg_wal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># et redémarrer l&amp;#39;instance&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">systemctl start postgresql-12.service
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le lien ainsi obtenu par la commande &lt;code>ln --symbolic&lt;/code> se présente comme une fausse
+copie du répertoire d&amp;rsquo;origine, permettant aux données d&amp;rsquo;être consultées à plusieurs
+endroits sans risque d&amp;rsquo;être dupliquées. La commande &lt;code>stat&lt;/code> nous donne de précieuses
+informations à son sujet :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># FORMAT=&amp;#34;File = %N\nType = %F\nOwner = %U:%G\nAccess = %A\nInode = %i\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /var/lib/pgsql/12/data/pg_wal&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/var/lib/pgsql/12/data/pg_wal’ -&amp;gt; ‘/u01/pg_wal/12’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">symbolic link&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">root:root&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">lrwxrwxrwx&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">33725146&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Il apparait que son propriétaire est &lt;code>root&lt;/code>, que son accès est ouvert à tous, et
+que l&amp;rsquo;&lt;em>inode&lt;/em> qui lui est associé vaut &lt;code>33919915&lt;/code>. Qu&amp;rsquo;en est-il de répertoire
+contenant les journaux de transactions ?&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /u01/pg_wal/12&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/u01/pg_wal/12’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">directory&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">postgres:postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">drwx------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">33867963&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Les deux fichiers sont bien distincts et présentent des différences notables,
+comme les propriétaires et les droits d&amp;rsquo;accès. En réalité, Unix propose sept
+&lt;a href="https://en.wikipedia.org/wiki/Unix_file_types" target="_blank" rel="noopener">types de fichiers&lt;/a> et chacun présente des caractéristiques et comportements
+que lui sont propres. On retrouve ainsi les fichiers, répertoires, liens
+symboliques, mais aussi les &lt;em>named pipes&lt;/em>, les &lt;em>sockets&lt;/em>, les &lt;em>devices&lt;/em> ou les
+&lt;em>doors&lt;/em>.&lt;/p>
+&lt;p>Le dernier attribut que remonte ma commande &lt;code>stat&lt;/code> correspond au &lt;em>inumber&lt;/em> ou
+numéro &lt;em>inode&lt;/em>. Il s&amp;rsquo;agit d&amp;rsquo;un identifiant unique sur le système de fichiers
+permettant de retrouver toutes les métadonnées du fichier dans une table d&amp;rsquo;&lt;em>inodes&lt;/em>.
+Nous avions vu à l&amp;rsquo;instant les droits et le propriétaire, l&amp;rsquo;&lt;em>inode&lt;/em> permet
+également de stocker les horodatages de création ou de modification ainsi que
+l&amp;rsquo;adresse physique des données du fichier sur le disque.&lt;/p>
+&lt;p>Ainsi, pour chaque fichier sur notre système lui est associé un &lt;em>inode&lt;/em>. La
+représentation suivante permet donc de comprendre la relation entre un lien
+symbolique et un répertoire.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-04-23-symlink-directory.png" alt="Relation entre symlink et directory">&lt;/p>
+&lt;h2 id="le-mode---link-de-pg_upgrade">Le mode --link de &lt;code>pg_upgrade&lt;/code>&lt;/h2>
+&lt;p>Les choses sont devenues passionnantes lorsque j&amp;rsquo;ai découvert la notion de lien
+physique, ou &lt;em>hardlink&lt;/em>, qu&amp;rsquo;il était possible de créer entre deux fichiers. Ce
+n&amp;rsquo;est en rien une nouveauté, car inclu dans les systèmes Unix depuis longtemps
+mais ça m&amp;rsquo;a permis de comprendre davantage l&amp;rsquo;intérêt des fameux &lt;em>inodes&lt;/em>.&lt;/p>
+&lt;p>Puisqu&amp;rsquo;un exemple concret parle toujours de lui-même, je propose d&amp;rsquo;étudier la
+méthode de migration de données d&amp;rsquo;une version 9.6 vers une version 12 de
+PostgreSQL avec l&amp;rsquo;outil &lt;code>pg_upgrade&lt;/code>. Ce dernier propose l&amp;rsquo;option &lt;code>--link&lt;/code> pour
+réduire le temps de migration des données sans copier les fichiers d’une instance
+à l’autre. Bien sûr, ce n&amp;rsquo;est pas le comportement par défaut.&lt;/p>
+&lt;div class="message">La distribution CentOS 7 est utilisée pour la démonstration.&lt;br>
+Le paquet &lt;code>postgresql12-server&lt;/code> doit être installé au préalable.&lt;/div>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># la routine setup permet la création du fichier de service ainsi&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># que l&amp;#39;initilisation d&amp;#39;un répertoire de données minimaliste&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/usr/pgsql-12/bin/postgresql-12-setup initdb postgresql-12
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># durant la migration, l&amp;#39;instance 9.6 doit être arrêtée&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">systemctl stop postgresql-9.6.service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGDATAOLD&lt;/span>&lt;span class="o">=&lt;/span>/var/lib/pgsql/9.6/data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGDATANEW&lt;/span>&lt;span class="o">=&lt;/span>/var/lib/pgsql/12/data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGBINOLD&lt;/span>&lt;span class="o">=&lt;/span>/usr/pgsql-9.6/bin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">export&lt;/span> &lt;span class="nv">PGBINNEW&lt;/span>&lt;span class="o">=&lt;/span>/usr/pgsql-12/bin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$PGBINNEW&lt;/span>/pg_upgrade --link --verbose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># extrait du déroulement&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mappings &lt;span class="k">for&lt;/span> database &lt;span class="s2">&amp;#34;prod&amp;#34;&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">public.pgbench_accounts: &lt;span class="m">16397&lt;/span> to &lt;span class="m">16391&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">linking &lt;span class="s2">&amp;#34;/var/lib/pgsql/9.6/data/base/16384/16397&amp;#34;&lt;/span> to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;/var/lib/pgsql/12/data/base/16402/16391&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">linking &lt;span class="s2">&amp;#34;/var/lib/pgsql/9.6/data/base/16384/16397_fsm&amp;#34;&lt;/span> to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;/var/lib/pgsql/12/data/base/16402/16391_fsm&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">linking &lt;span class="s2">&amp;#34;/var/lib/pgsql/9.6/data/base/16384/16397_vm&amp;#34;&lt;/span> to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;/var/lib/pgsql/12/data/base/16402/16391_vm&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>L&amp;rsquo;outil &lt;code>pg_upgrade&lt;/code> est composé d&amp;rsquo;une série d&amp;rsquo;opération de contrôle, de copies
+de fichiers, d&amp;rsquo;arrêt/démarrage des instances et d&amp;rsquo;une remise à zéro des journaux
+de transactions avec &lt;code>pg_resetwal&lt;/code>. Les lignes ci-dessus illustrent le mode
+&lt;code>--link&lt;/code> lors de notre migration, avec la création d&amp;rsquo;un lien entre les deux
+versions du fichier de la table &lt;code>pgbench_accounts&lt;/code>.&lt;/p>
+&lt;p>La méthode employée peut être consultée dans les sources de &lt;a href="https://doxygen.postgresql.org/file_8c.html#a177e42cfa16856fb3b24c12684da9db8" target="_blank" rel="noopener">pg_upgrade&lt;/a> et
+repose sur la méthode &lt;a href="https://www.gnu.org/software/coreutils/link" target="_blank" rel="noopener">link&lt;/a>. Regardons en détail les métadonnées des
+fichiers de données de la table &lt;code>pgbench_accounts&lt;/code> dans les deux répertoires.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># FORMAT=&amp;#34;${FORMAT}Links = %h\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /var/lib/pgsql/9.6/data/base/16384/16397&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/var/lib/pgsql/9.6/data/base/16384/16397’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">regular file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">postgres:postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">-rw-------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">101132106&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Links&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; /var/lib/pgsql/12/data/base/16402/16391&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">File&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">‘/var/lib/pgsql/12/data/base/16402/16391’&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Type&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">regular file&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Owner&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">postgres:postgres&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Access&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">-rw-------&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">101132106&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">Links&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">2&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Au niveau du système, les fichiers sont strictement similaires. Pour dire vrai,
+il s&amp;rsquo;agit des mêmes &lt;em>inodes&lt;/em>. Les métadonnées sont communes aux deux fichiers et
+les blocs de données de la table &lt;code>pgbench_accounts&lt;/code> résident à la même adresse
+physique.&lt;/p>
+&lt;p>À la différence du lien symbolique, ce type de lien rattache un fichier non pas
+à un autre fichier, mais au numéro d&amp;rsquo;&lt;em>inode&lt;/em> d&amp;rsquo;un autre fichier. L&amp;rsquo;attribut
+&lt;code>Links&lt;/code> de ma commande &lt;code>stat&lt;/code> correspond au nombre de liens sur l&amp;rsquo;&lt;em>inode&lt;/em> en
+question. Une représentation de cette relation pourait être la suivante :&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-04-23-hardlink-pgbench_accounts.png" alt="Relation hardlink entre deux fichiers">&lt;/p>
+&lt;p>Les avantages sont doubles dans le cas d&amp;rsquo;une migration majeure :&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Temps de copie des données quasi-nul&lt;/strong> : le modèle de données est importé dans
+la nouvelle instance et les fichiers de données sont liés à ceux de la version
+précédente ;&lt;/li>
+&lt;li>&lt;strong>Économie d&amp;rsquo;espace disque&lt;/strong> : la migration n&amp;rsquo;a pas besoin du double d&amp;rsquo;espace
+disque.&lt;/li>
+&lt;/ul>
+&lt;p>En contrepartie :&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Pas de retour arrière&lt;/strong> : chacune des deux instances disposent de fichiers
+internes comme les journaux de transactions ou le fichier de contrôle, rendant
+incompatibles les fichiers de données à l&amp;rsquo;une des deux instances dès lors que
+l&amp;rsquo;autre a démarré après la migration.&lt;/li>
+&lt;/ul>
+&lt;h2 id="fin-de-vie-dune-donnée-liée">Fin de vie d&amp;rsquo;une donnée liée&lt;/h2>
+&lt;p>L&amp;rsquo;une de mes questions à l&amp;rsquo;issue d&amp;rsquo;une migration par &lt;code>pg_upgrade&lt;/code> a été : « Mais
+que se passe-t-il si nous ne supprimons pas l&amp;rsquo;ancien répertoire de données ? ».
+Puisque la donnée est référencée par la nouvelle instance, toutes les nouveautés
+y seront stockées et il n&amp;rsquo;y a pas de risque pour l&amp;rsquo;espace disque. Vraiment ?&lt;/p>
+&lt;p>Comme nous le voyions précédemment, les données de la table &lt;code>pgbench_accounts&lt;/code>
+sont accessibles à travers le numéro d&amp;rsquo;&lt;em>inode&lt;/em> &lt;code>101132106&lt;/code>. Les deux liens
+pointent vers la même adresse physique et la même allocation d&amp;rsquo;espace disque,
+ici 13 Mo.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16391&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">13M 9.6/data/base/16384/16397
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">13M 12/data/base/16402/16391
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Il est possible au cours de la vie d&amp;rsquo;une table de voir son identifiant &lt;code>relfilenode&lt;/code>
+varier au moment de la réécriture du fichier sous un nom différent. Le cas se
+présente lorsque l&amp;rsquo;on souhaite déplacer la table dans un autre &lt;em>tablespace&lt;/em>,
+quand il faut la défragmenter avec &lt;code>VACUUM FULL&lt;/code>, ou lors de la restauration
+d&amp;rsquo;un &lt;em>dump&lt;/em>. Ces opérations réalisent toute une reconstruction de la table, avec
+le déplacement des lignes dans un nouveau fichier.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_relation_filepath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;pgbench_accounts&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_relation_filepath
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ----------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- base/16402/16391
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">VACUUM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FULL&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgbench_accounts&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CHECKPOINT&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pg_relation_filepath&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;pgbench_accounts&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c1">-- pg_relation_filepath
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- ----------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">-- base/16402/16435
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ici, la défragmentation reconstruit la table dans un nouveau fichier &lt;code>16435&lt;/code>.
+L&amp;rsquo;instruction &lt;code>CHECKPOINT&lt;/code> permet d&amp;rsquo;écrire sur disque la totalité des nouveaux
+blocs et d&amp;rsquo;actualiser l&amp;rsquo;usage des fichiers, supprimant en principe les anciens
+fichiers de données.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># du -lh 9.6/data/base/16384/16397 12/data/base/16402/16435&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">0 9.6/data/base/16384/16397
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">13M 12/data/base/16402/16435
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># FORMAT=&amp;#34;File = %n\nInode = %i\n&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; 9.6/data/base/16384/16397 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">File&lt;/span> &lt;span class="o">=&lt;/span> 9.6/data/base/16384/16397
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="m">101132106&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># stat --printf=&amp;#34;$FORMAT&amp;#34; 12/data/base/16402/16435&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">File&lt;/span> &lt;span class="o">=&lt;/span> 12/data/base/16402/16435
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Inode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="m">34082173&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le nouveau fichier de notre table pour l&amp;rsquo;instance 12 pèse toujours 13 Mo, le
+fichier maintenu par le lien physique de la version précédente a été vidé lors
+de l&amp;rsquo;opération &lt;code>VACUUM FULL&lt;/code> et pèse à présent zéro octet. Mais il n&amp;rsquo;a pas été
+supprimé ! Nous nous retrouvons avec un fichier et son &lt;em>inode&lt;/em> en trop sur le
+serveur.&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-04-23-hardlink-after-vacuum-full.png" alt="Nouvel inode après un VACUUM FULL">&lt;/p>
+&lt;p>Sur un système de fichiers, le nombre maximal de fichiers que l&amp;rsquo;on peut créer est
+défini par la quantité d&amp;rsquo;&lt;em>inodes&lt;/em> disponibles, alors autant faire le ménage dès
+que possible pour ne pas atteindre cette limite. D&amp;rsquo;autant plus que la suppression
+du répertoire &lt;code>9.6/data&lt;/code> est proposée à la fin de la migration par l&amp;rsquo;outil
+&lt;code>pg_upgrade&lt;/code> et ne présente aucun risque !&lt;/p>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Apparu en version 9.0, l&amp;rsquo;outil &lt;code>pg_upgrade&lt;/code> est une petite usine qui simule un
+import/export des structures d&amp;rsquo;une instance complète, avec la capacité de copier
+ou lier les anciens fichiers, de façon bien plus rapide qu&amp;rsquo;une insertion massive
+avec l&amp;rsquo;instruction &lt;code>COPY&lt;/code> de &lt;code>pg_restore&lt;/code>. C&amp;rsquo;est une solution de choix lorsque
+l&amp;rsquo;on migre d&amp;rsquo;une version majeure à l&amp;rsquo;autre sur un même serveur, notamment pour
+le gain de temps non négligeable que propose l&amp;rsquo;option &lt;code>--link&lt;/code>.&lt;/p>
+&lt;p>Avec la version 12, l&amp;rsquo;outil propose une nouvelle option &lt;code>--clone&lt;/code> et s&amp;rsquo;appuie
+sur la notion de liens « par référence » (ou &lt;em>reflinks&lt;/em>), conçus initialement
+sur les systèmes de fichiers supportant la &lt;a href="https://fr.wikipedia.org/wiki/Copy-on-write" target="_blank" rel="noopener">copie sur écriture&lt;/a>. La
+documentation précise que la copie des fichiers est &lt;em>pratiquement instantanée&lt;/em> et
+n&amp;rsquo;affecte pas l&amp;rsquo;ancienne instance.&lt;/p>
+&lt;p>Peut-être l&amp;rsquo;occasion de creuser le sujet dans un prochain article ?&lt;/p></description></item><item><title>Gestion des signaux internes</title><link>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</link><pubDate>Fri, 17 Jan 2020 20:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</guid><description>&lt;p>Je voulais m&amp;rsquo;attarder sur une notion que je n&amp;rsquo;avais pas exploré à l&amp;rsquo;époque où
 j&amp;rsquo;apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l&amp;rsquo;école et
 où l&amp;rsquo;on usait de commandes apprises par cœur : les signaux !&lt;/p>
 &lt;p>Les signaux les plus connus et les plus utilisés sont les numéros 6 &lt;code>SIGABRT&lt;/code> et
 9 &lt;code>SIGKILL&lt;/code>, ça vous revient ? Pourquoi en existe-t-il autant, dans quels
 contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons
-le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !&lt;/p></description></item></channel></rss>
+le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !&lt;/p>
+&lt;hr>
+&lt;p>Commençons sobrement par une description issue de &lt;a href="https://fr.wikipedia.org/wiki/Signal_%28informatique%29" target="_blank" rel="noopener">Wikipédia&lt;/a> :&lt;/p>
+&lt;blockquote>
+&lt;p>Un signal est une forme limitée de communication entre processus utilisée par
+les systèmes de type Unix et ceux respectant les standards POSIX. Il s&amp;rsquo;agit
+d&amp;rsquo;une notification asynchrone envoyée à un processus pour lui signaler
+l&amp;rsquo;apparition d&amp;rsquo;un événement. Quand un signal est envoyé à un processus, le
+système d&amp;rsquo;exploitation interrompt l&amp;rsquo;exécution normale de celui-ci. Si le
+processus possède une routine de traitement pour le signal reçu, il lance son
+exécution. Dans le cas contraire, il exécute la routine de traitement des
+signaux par défaut.&lt;/p>&lt;/blockquote>
+&lt;p>En somme, les signaux sont de simples événements à destination d&amp;rsquo;un processus
+pour ordonner une action, comme l&amp;rsquo;éveil, l&amp;rsquo;arrêt, la lecture d&amp;rsquo;un fichier de
+configuration ou le repli sur un champ de bataille (non, pas ce signal-là).&lt;/p>
+&lt;p>&lt;img src="https://fljd.in/img/fr/2020-01-17-drapeaux-kaamelott.jpg" alt="Gestion des signaux en temps de guerre arthurienne">&lt;/p>
+&lt;p>Tout administrateur qui se respecte (ou non) connaît la commande &lt;code>kill&lt;/code> fournie
+par son système pour résoudre le problème épineux des programmes qui font n&amp;rsquo;importe
+quoi &amp;ndash; d&amp;rsquo;après leurs dires &amp;ndash; en leur envoyant un message d&amp;rsquo;arrêt. Ces messages
+sont nombreux et permettent différentes réactions en s&amp;rsquo;inspirant de cette fameuse
+norme POSIX.1-1990 dont je vous renvoie au tableau du &lt;a href="http://man7.org/linux/man-pages/man7/signal.7.html" target="_blank" rel="noopener">manuel&lt;/a> &lt;code>signal(7)&lt;/code> ou
+la commande &lt;code>kill -l&lt;/code> pour les lister.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">kill&lt;/span> -l
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 1) SIGHUP 2) SIGINT 3) SIGQUIT 4) SIGILL 5) SIGTRAP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 6) SIGABRT 7) SIGBUS 8) SIGFPE 9) SIGKILL 10) SIGUSR1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 11) SIGSEGV 12) SIGUSR2 13) SIGPIPE 14) SIGALRM 15) SIGTERM&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 16) SIGSTKFLT 17) SIGCHLD 18) SIGCONT 19) SIGSTOP 20) SIGTSTP&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 21) SIGTTIN 22) SIGTTOU 23) SIGURG 24) SIGXCPU 25) SIGXFSZ&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 26) SIGVTALRM 27) SIGPROF 28) SIGWINCH 29) SIGIO 30) SIGPWR&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 31) SIGSYS 34) SIGRTMIN 35) SIGRTMIN+1 36) SIGRTMIN+2 37) SIGRTMIN+3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 38) SIGRTMIN+4 39) SIGRTMIN+5 40) SIGRTMIN+6 41) SIGRTMIN+7 42) SIGRTMIN+8&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 43) SIGRTMIN+9 44) SIGRTMIN+10 45) SIGRTMIN+11 46) SIGRTMIN+12 47) SIGRTMIN+13&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 48) SIGRTMIN+14 49) SIGRTMIN+15 50) SIGRTMAX-14 51) SIGRTMAX-13 52) SIGRTMAX-12&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 53) SIGRTMAX-11 54) SIGRTMAX-10 55) SIGRTMAX-9 56) SIGRTMAX-8 57) SIGRTMAX-7&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 58) SIGRTMAX-6 59) SIGRTMAX-5 60) SIGRTMAX-4 61) SIGRTMAX-3 62) SIGRTMAX-2&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 63) SIGRTMAX-1 64) SIGRTMAX &lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>À l&amp;rsquo;aide de cette commande, il est possible d&amp;rsquo;interragir avec un processus actif
+dès lors que l&amp;rsquo;on a connaissance de son &lt;code>pid&lt;/code>, le &lt;em>process identifier&lt;/em>. La plupart
+du temps, nous ignorons tout bonnement l&amp;rsquo;état dans lequel il se trouve. Est-il
+en attente ? Fait-il un calcul important ?&lt;/p>
+&lt;p>Trop souvent, en l&amp;rsquo;absence de journaux d&amp;rsquo;activité ou de verbosité du processus,
+d&amp;rsquo;impatience ou d&amp;rsquo;urgence, on lui envoie un message d&amp;rsquo;auto-suicide &lt;code>kill -9 pid&lt;/code>.
+Et prends ça dans tes circuits logiques.&lt;/p>
+&lt;hr>
+&lt;p>À son démarrage, un programme met en place une série d&amp;rsquo;instructions à l&amp;rsquo;aide de
+méthodes comme &lt;code>trap&lt;/code> (&lt;a href="http://man7.org/linux/man-pages/man1/trap.1p.html" target="_blank" rel="noopener">documentation&lt;/a>) pour un script &lt;em>bash&lt;/em> ou de la librairie
+&lt;code>signal.h&lt;/code> pour un programme en C. Ces outils permettent de surcharger les
+comportements du programme à la réception d&amp;rsquo;un signal en leur associant une
+instruction ou une fonction plus complexe. Prenons l&amp;rsquo;exemple d&amp;rsquo;un bête terminal,
+qui en soit, est un programme en attente de saisie utilisateur, dispose d&amp;rsquo;un
+&lt;code>pid&lt;/code> et d&amp;rsquo;un interpréteur &lt;em>bash&lt;/em>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Obtenir le pid du terminal tty courant&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">echo&lt;/span> &lt;span class="nv">$$&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 5032&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Définir les comportements attendus&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">trap&lt;/span> &lt;span class="s1">&amp;#39;echo SIGUSR1 received&amp;#39;&lt;/span> &lt;span class="m">10&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">trap&lt;/span> &lt;span class="s1">&amp;#39;date&amp;#39;&lt;/span> &lt;span class="m">12&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">kill&lt;/span> -SIGUSR1 &lt;span class="m">5032&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># SIGUSR1 received&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">kill&lt;/span> -SIGUSR2 &lt;span class="m">5032&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ven. janv. 17 16:29:10 CET 2020&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Cela devient particulièrement intéressant dans un contexte de programme
+multi-processeurs, de pouvoir se reposer sur un système de signaux pour déclencher
+les événements entre un processus père et ses enfants, plutôt que de complexifier
+les échanges avec une &lt;em>queue&lt;/em> en mémoire ou sur fichier.&lt;/p>
+&lt;p>Si l&amp;rsquo;on prend l&amp;rsquo;exemple du processus &lt;code>archiver&lt;/code> de PostgreSQL, la définition des
+signaux est la première étape au moment de sa création par le processus &lt;code>postmaster&lt;/code>,
+juste avant l&amp;rsquo;entrée dans sa boucle principale.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// src/backend/postmaster/pgarch.c
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="cm">/*
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * PgArchiverMain
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> *
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * The argc/argv parameters are valid only in EXEC_BACKEND case. However,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * since we don&amp;#39;t use &amp;#39;em, it hardly matters...
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">NON_EXEC_STATIC&lt;/span> &lt;span class="kt">void&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">PgArchiverMain&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">argc&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">char&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">argv&lt;/span>&lt;span class="p">[])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/*
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Ignore all signals usually bound to some action in the postmaster,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * except for SIGHUP, SIGTERM, SIGUSR1, SIGUSR2, and SIGQUIT.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGHUP&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SignalHandlerForConfigReload&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGINT&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_IGN&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGTERM&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SignalHandlerForShutdownRequest&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGQUIT&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pgarch_exit&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGALRM&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_IGN&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGPIPE&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_IGN&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGUSR1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pgarch_waken&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGUSR2&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pgarch_waken_stop&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/* Reset some signals that are accepted by postmaster but not here */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGCHLD&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_DFL&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">PG_SETMASK&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">UnBlockSig&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/*
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Identify myself via ps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">init_ps_display&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;archiver&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pgarch_MainLoop&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">exit&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La méthode &lt;code>pqsignal&lt;/code> prend en paramètre la valeur &lt;code>enum&lt;/code> du signal ainsi qu&amp;rsquo;un
+pointeur de fonction selon l&amp;rsquo;événement que l&amp;rsquo;on veut provoquer. Dans PostgreSQL,
+certains paramètres d&amp;rsquo;instance sont dynamiques et doivent être réactualisés sans
+interrompre le processus, c&amp;rsquo;est notamment le cas pour le processus &lt;code>archiver&lt;/code>
+et son paramètre &lt;code>archive_command&lt;/code> qui définit la méthode d&amp;rsquo;archivage lorsqu&amp;rsquo;un
+journal de transaction doit être archivé.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// src/backend/postmaster/interrupt.c
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="cm">/*
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Simple signal handler for triggering a configuration reload.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> *
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Normally, this handler would be used for SIGHUP. The idea is that code
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * which uses it would arrange to check the ConfigReloadPending flag at
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * convenient places inside main loops, or else call HandleMainLoopInterrupts.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">SignalHandlerForConfigReload&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGNAL_ARGS&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">int&lt;/span> &lt;span class="n">save_errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">errno&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ConfigReloadPending&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">true&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">SetLatch&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">MyLatch&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">save_errno&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ainsi, lorsque le processus &lt;code>archiver&lt;/code> reçoit un signal &lt;code>SIGHUP&lt;/code>, il active le
+&lt;em>flag&lt;/em> &lt;code>ConfigReloadPending&lt;/code> qui sera traité au sein de la boucle principale
+&lt;code>pgarch_MainLoop()&lt;/code> et déclenchera la relecture du fichier de configuration avec
+la function &lt;code>ProcessConfigFile()&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// src/backend/postmaster/pgarch.c
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="cm">/*
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * pgarch_MainLoop
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> *
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Main loop for archiver
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">static&lt;/span> &lt;span class="kt">void&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">pgarch_MainLoop&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">do&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/* Check for config update */&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">ConfigReloadPending&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ConfigReloadPending&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">false&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">ProcessConfigFile&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">PGC_SIGHUP&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span> &lt;span class="k">while&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">time_to_stop&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;p>Les déclencheurs de signaux sont multiples et peuvent venir des propres enfants
+du &lt;code>postmater&lt;/code> pour annoncer un événement ou un changement d&amp;rsquo;état en usant
+principalement du signal &lt;code>SIGUSR1&lt;/code>. Ces événements internes sont nécessaires pour
+coordonner les processus comme par exemple, demander au &lt;code>walwriter&lt;/code> de changer
+de journal de transactions ou à l&amp;rsquo;&lt;code>autovacuum launcher&lt;/code> de créer un nouveau
+processus &lt;code>autovacuum worker&lt;/code>.
+Les différents événements sont référencés par l&amp;rsquo;énumération &lt;code>PMSignalReason&lt;/code>
+décrite dans le fichier &lt;code>src/include/storage/pmsignal.h&lt;/code>.&lt;/p>
+&lt;p>L&amp;rsquo;administrateur peut également provoquer ces signaux et ses effets mais inutile
+de préciser qu&amp;rsquo;il est formellement déconseillé de passer par la commande &lt;code>kill&lt;/code> !
+Préférez les outils &lt;code>systemctl&lt;/code> ou &lt;code>pg_ctl&lt;/code> pour recharger (&lt;code>reload&lt;/code>) la
+configuration ou les &lt;a href="https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL" target="_blank" rel="noopener">fonctions SQL&lt;/a> prévues pour envoyer des signaux internes.&lt;/p>
+&lt;div class="message">Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques
+toujours enrichissantes ! J&amp;rsquo;espère que cet article vous a plu et que vous avez
+pris plaisir comme moi à parcourir quelques fichiers du code source du projet
+libre PostgreSQL !&lt;/div></description></item></channel></rss>
