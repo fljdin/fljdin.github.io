@@ -1,12 +1,12 @@
 ---
 title: "BorgBackup ou la sauvegarde facile"
 slug: "borg-ou-la-sauvegarde-facile"
-categories: [linux,blog]
+categories: [linux]
 tags: [sauvegarde,opensource]
 date: 2021-08-24
 ---
 
-Jusqu'à très récemment, je ne me préoccupais pas de la pertinence de mes 
+Jusqu'à très récemment, je ne me préoccupais pas de la pertinence de mes
 sauvegardes de fichiers personnels réalisées naïvement avec un script `rsync`.
 C'est honteux dans nos métiers, mais l'adage du cordonnier s'est vérifié avec
 moi lors de l'exécution d'un vulgaire `find $NOVAR/ -delete` durant des tests.
@@ -56,7 +56,7 @@ routine de sauvegarde. Le mien est relativement léger pour le moment, et
 pourrait s'enrichir avec l'expérience.
 
 ```sh
-# ~/.config/borg/exclude.list 
+# ~/.config/borg/exclude.list
 /home/**/.git
 /home/**/.vagrant
 /home/*/.local
@@ -109,7 +109,7 @@ Au passage, la durée d'exécution est significativement réduite chaque jour gr
 
 L'outil propose deux options pour la restauration :
 
-* `extract` pour restaurer le contenu d'une archive dans le répertoire courant 
+* `extract` pour restaurer le contenu d'une archive dans le répertoire courant
 ([doc][5]) ;
 * `mount` pour visualiser les fichiers ou dossiers à restaurer, voire les
 déplacer manuellement dans le répertoire cible avec un outil graphique
