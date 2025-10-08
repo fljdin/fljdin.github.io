@@ -151,6 +151,12 @@ f7bb4fea  2025-09-16 11:50:18  florent-dalibo              /home/florent  4.309 
 
 ## Conclusion
 
+Restic est un bon outil. Tellement bon, que la communauté Gnome l’utilise à
+présent comme _backend_ pour l’interface Déjà Dup dans leur dernière version
+49.0 sortie le [mois dernier][10].
+
+[10]: https://discourse.gnome.org/t/deja-dup-49-0-released/31441
+
 Pour ma part, tout se déroule bien depuis presque un mois. Il ne manque plus
 qu’à sécuriser le serveur distant qui fait office de dépôt avec ses propres
 sauvegardes ! Pour ce faire, j’envisage de mettre en place Restic sur la plupart
