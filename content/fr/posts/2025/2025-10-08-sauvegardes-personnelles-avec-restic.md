@@ -78,7 +78,7 @@ sudo install -o $USER -g $USER -d /mnt/restic
 restic mount /mnt/restic
 ```
 
-## Planification avec systemctl
+## Planification avec systemd
 
 Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
 Debian. En lieu et place de `cron`, je planifie mes sauvegardes avec un _timer_

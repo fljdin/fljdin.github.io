@@ -128,7 +128,7 @@ droit administrateur.
 Pour être utilisé à partir de Borg, le paquet `python-llfuse` sera requis selon
 votre distribution.
 
-## Planification avec systemctl
+## Planification avec systemd
 
 Ce fut une découverte lors de mes lectures émerveillées de la [documentation][3]
 et des [ressources][4] de la communauté française d'Archlinux. N'étant pas
