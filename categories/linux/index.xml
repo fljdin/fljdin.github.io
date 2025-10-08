@@ -1,4 +1,98 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Linux on Carnet de découvertes</title><link>https://fljd.in/categories/linux/</link><description>Recent content in Linux on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Mon, 14 Oct 2024 10:30:00 +0200</lastBuildDate><atom:link href="https://fljd.in/categories/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>Poissons et coquillages</title><link>https://fljd.in/2024/10/14/poissons-et-coquillages/</link><pubDate>Mon, 14 Oct 2024 10:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/10/14/poissons-et-coquillages/</guid><description>&lt;p>En tant que pur produit académique des années 2010, mon langage de script de prédilection a
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Linux on Carnet de découvertes</title><link>https://fljd.in/categories/linux/</link><description>Recent content in Linux on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 08 Oct 2025 16:00:00 +0200</lastBuildDate><atom:link href="https://fljd.in/categories/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>Sauvegardes personnelles avec Restic</title><link>https://fljd.in/2025/10/08/sauvegardes-personnelles-avec-restic/</link><pubDate>Wed, 08 Oct 2025 16:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2025/10/08/sauvegardes-personnelles-avec-restic/</guid><description>&lt;p>Ces derniers temps, j’ai mis fin à une histoire d’amour avec Debian qui aura
+duré près de trois ans. Pas que je n’aime plus le système, oh non, je le préfère
+toujours à sa cousine Ubuntu. Mais voilà, j’ai un attachement particulier à
+Archlinux depuis, wouh, au moins les bancs de l’école d’ingénieur où nous
+l’installions sur des machines virtuelles et où nous nous adonnions à la
+pratique du &lt;a href="https://github.com/fosslife/awesome-ricing" target="_blank" rel="noopener">linux ricing&lt;/a> pour passer le temps.&lt;/p>
+&lt;p>Après une expérimentation de &lt;a href="https://manjaro.org/" target="_blank" rel="noopener">Manjaro i3&lt;/a> entre 2019 et 2022 sur mon poste
+professionnel, je me suis convaincu qu’il me fallait retourner à l’essentiel. Au
+début du mois de septembre, j’ai réussi le portage de ma &lt;a href="https://gitlab.com/fljdin/dotfiles/-/tree/main/sway" target="_blank" rel="noopener">config Sway&lt;/a> de
+Debian Trixie vers Archlinux. L’occasion parfaite pour requestionner mes
+pratiques en matière de sauvegarde de poste et de remplacer &lt;a href="https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/">BorgBackup&lt;/a> par
+Restic.&lt;/p>
+&lt;hr>
+&lt;h2 id="prise-en-main-éclair">Prise en main éclair&lt;/h2>
+&lt;p>J’ai lu plusieurs articles et avis au sujet de Restic. Je l’avais vite identifié
+comme un outil équivalent à BorgBackup, mais je ne m’étais pas pressé de le
+tester. Quelle erreur ! J’ai été déconcerté par la facilité d’utilisation, par
+son interface en ligne de commande claire et complète, et par sa
+&lt;a href="https://restic.readthedocs.io/en/stable/010_introduction.html" target="_blank" rel="noopener">documentation&lt;/a> de qualité.&lt;/p>
+&lt;p>Pour avoir régulièrement vécu des dégâts sur des clés de mauvaise qualité avec
+ma pratique exotique sur BorgBackup, je m’étais penché sur la possibilité de
+sauvegarder vers un dossier distant avec SSH. J’ai du insisté deux bonnes heures
+à l’époque sans parvenir à quoique ce soit avec Borg.&lt;/p>
+&lt;p>Avec Restic, ce n’est pas moins de 13 types différents de dépôts supportés, dont
+le &lt;a href="https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html#sftp" target="_blank" rel="noopener">SFTP&lt;/a>. Il ne m’en fallait pas plus pour tourner le dos à son homologue. La
+mise en place d’un dépôt est simplifiée à l’extrême :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="k">set&lt;/span> &lt;span class="na">-x&lt;/span> &lt;span class="nv">RESTIC_REPOSITORY&lt;/span> &lt;span class="s2">&amp;#34;sftp:&amp;lt;server&amp;gt;:&amp;lt;directory&amp;gt;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> init
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> backup ~ &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &lt;span class="na">--dry-run&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &lt;span class="na">--exclude-file&lt;/span> ~/.config/restic/excludes.txt
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Je ne suis pas en reste avec une gestion poussée des stratégies de rétention des
+instantanés. Pour l’exemple, je maintiens une sauvegarde par semaine, pendant
+trois mois.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> forget &lt;span class="na">--prune&lt;/span> &lt;span class="na">--keep-within-weekly&lt;/span> 3m
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La technique d’exploration d’un instantané est identique à Borg, avec un montage
+&lt;a href="https://www.kernel.org/doc/html/latest/filesystems/fuse.html" target="_blank" rel="noopener">FUSE&lt;/a> sous Linux. Une fois encore, la &lt;a href="https://restic.readthedocs.io/en/stable/050_restore.html#restore-using-mount" target="_blank" rel="noopener">documentation&lt;/a> est limpide à ce
+sujet.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">sudo&lt;/span> &lt;span class="nf">install&lt;/span> &lt;span class="na">-o&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-g&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-d&lt;/span> /mnt/restic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> mount /mnt/restic
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="planification-avec-systemctl">Planification avec systemctl&lt;/h2>
+&lt;p>Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
+Debian. En lieu et place de &lt;code>cron&lt;/code>, je planifie mes sauvegardes avec un &lt;em>timer&lt;/em>
+utilisateur pour déclencher une tâche deux fois par jour sur mes journées de
+travail.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># ~/.config/systemd/user/restic.timer&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Unit&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Description&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Daily&lt;/span> &lt;span class="nx">Restic&lt;/span> &lt;span class="nx">backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Documentation&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">man&lt;/span>&lt;span class="err">:&lt;/span>&lt;span class="nx">restic&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Timer&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">OnCalendar&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Mon&lt;/span>&lt;span class="p">..&lt;/span>&lt;span class="nx">Fri&lt;/span> &lt;span class="mi">09&lt;/span>&lt;span class="err">:&lt;/span>&lt;span class="mi">30&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">OnCalendar&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Mon&lt;/span>&lt;span class="p">..&lt;/span>&lt;span class="nx">Fri&lt;/span> &lt;span class="mi">16&lt;/span>&lt;span class="err">:&lt;/span>&lt;span class="mi">30&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Persistent&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Install&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">WantedBy&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">timers&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">target&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La tâche consiste à appeler &lt;code>restic&lt;/code> avec mon fichier d’exclusion, suivi d’une
+purge des vieux instantanés présents sur le dépôt.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># ~/.config/systemd/user/restic.service&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Unit&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Description&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Restic&lt;/span> &lt;span class="nx">backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Service&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Type&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">oneshot&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ExecStart&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">restic&lt;/span> &lt;span class="nx">backup&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="nx">h&lt;/span> &lt;span class="nx">--exclude-file&lt;/span> &lt;span class="err">$&lt;/span>&lt;span class="nx">RESTIC_EXCLUDE_FILE&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ExecStartPost&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">restic&lt;/span> &lt;span class="nx">forget&lt;/span> &lt;span class="nx">--prune&lt;/span> &lt;span class="nx">--keep-within-weekly&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="nx">m&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour la configuration, je déclare les variables dans un fichier d’environnement
+pour que &lt;code>restic&lt;/code> sache identifier et déchiffrer correctement les instantanés.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/environment.d/restic.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">RESTIC_REPOSITORY&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">sftp:&amp;lt;server&amp;gt;:&amp;lt;directory&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">RESTIC_PASSWORD_FILE&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">$HOME/.config/restic/pass&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">RESTIC_EXCLUDE_FILE&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">$HOME/.config/restic/excludes.txt&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour armer la planification, il suffit de recharger &lt;code>systemd&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">systemctl&lt;/span> &lt;span class="na">--user&lt;/span> daemon-reload
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>En exportant les bonnes variables dans votre shell, la consultation des
+instantanés se fait sobrement avec la commande suivante.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> snapshots
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="go">repository 3db74709 opened (version 2, compression level auto)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">ID Time Host Tags Paths Size
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">-----------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">f7bb4fea 2025-09-16 11:50:18 florent-dalibo /home/florent 4.309 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">5a4dbf59 2025-09-19 09:30:01 florent-dalibo /home/florent 5.639 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">1012f0ab 2025-09-27 19:28:38 florent-dalibo /home/florent 5.871 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">629c2687 2025-10-03 09:30:00 florent-dalibo /home/florent 6.006 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">98b32adb 2025-10-08 10:00:08 florent-dalibo /home/florent 4.677 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">-----------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">5 snapshots
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Pour ma part, tout se déroule bien depuis presque un mois. Il ne manque plus
+qu’à sécuriser le serveur distant qui fait office de dépôt avec ses propres
+sauvegardes ! Pour ce faire, j’envisage de mettre en place Restic sur la plupart
+des répertoires d’importances de mon serveur multimédia, en gardant bien en
+mémoire le principe 3-2-1 de la sauvegarde réussie.&lt;/p>
+&lt;p>Prenez soin de vos sauvegardes.&lt;/p></description></item><item><title>Poissons et coquillages</title><link>https://fljd.in/2024/10/14/poissons-et-coquillages/</link><pubDate>Mon, 14 Oct 2024 10:30:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/10/14/poissons-et-coquillages/</guid><description>&lt;p>En tant que pur produit académique des années 2010, mon langage de script de prédilection a
 toujours été le Bash (&lt;em>Bourne Again Shell&lt;/em>). Non sans ignorer qu&amp;rsquo;il ait pu en exister d&amp;rsquo;autres, je
 ne me suis jamais vraiment tourné vers d&amp;rsquo;autres shells pour automatiser les tâches du quotidien
 dans mon métier de DBA.&lt;/p>
@@ -345,7 +439,7 @@ compression, j&amp;rsquo;ai pu conserver ma clé USB et m&amp;rsquo;engager dans
 fichier d&amp;rsquo;exclusion peut être transmis à Borg pour ne pas les inclure dans la
 routine de sauvegarde. Le mien est relativement léger pour le moment, et
 pourrait s&amp;rsquo;enrichir avec l&amp;rsquo;expérience.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/borg/exclude.list &lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/borg/exclude.list&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.git
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.vagrant
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.local
@@ -661,182 +755,4 @@ sur la notion de liens « par référence » (ou &lt;em>reflinks&lt;/em>), con
 sur les systèmes de fichiers supportant la &lt;a href="https://fr.wikipedia.org/wiki/Copy-on-write" target="_blank" rel="noopener">copie sur écriture&lt;/a>. La
 documentation précise que la copie des fichiers est &lt;em>pratiquement instantanée&lt;/em> et
 n&amp;rsquo;affecte pas l&amp;rsquo;ancienne instance.&lt;/p>
-&lt;p>Peut-être l&amp;rsquo;occasion de creuser le sujet dans un prochain article ?&lt;/p></description></item><item><title>Gestion des signaux internes</title><link>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</link><pubDate>Fri, 17 Jan 2020 20:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/01/17/gestion-des-signaux-internes/</guid><description>&lt;p>Je voulais m&amp;rsquo;attarder sur une notion que je n&amp;rsquo;avais pas exploré à l&amp;rsquo;époque où
-j&amp;rsquo;apprenais à naviguer dans un terminal GNU/Linux sur les sièges de l&amp;rsquo;école et
-où l&amp;rsquo;on usait de commandes apprises par cœur : les signaux !&lt;/p>
-&lt;p>Les signaux les plus connus et les plus utilisés sont les numéros 6 &lt;code>SIGABRT&lt;/code> et
-9 &lt;code>SIGKILL&lt;/code>, ça vous revient ? Pourquoi en existe-t-il autant, dans quels
-contextes sont-ils nécessaires et de quelles façons les configure-t-on ? Prenons
-le temps de (re)découvrir les signaux UNIX et leurs utilisations dans PostgreSQL !&lt;/p>
-&lt;hr>
-&lt;p>Commençons sobrement par une description issue de &lt;a href="https://fr.wikipedia.org/wiki/Signal_%28informatique%29" target="_blank" rel="noopener">Wikipédia&lt;/a> :&lt;/p>
-&lt;blockquote>
-&lt;p>Un signal est une forme limitée de communication entre processus utilisée par
-les systèmes de type Unix et ceux respectant les standards POSIX. Il s&amp;rsquo;agit
-d&amp;rsquo;une notification asynchrone envoyée à un processus pour lui signaler
-l&amp;rsquo;apparition d&amp;rsquo;un événement. Quand un signal est envoyé à un processus, le
-système d&amp;rsquo;exploitation interrompt l&amp;rsquo;exécution normale de celui-ci. Si le
-processus possède une routine de traitement pour le signal reçu, il lance son
-exécution. Dans le cas contraire, il exécute la routine de traitement des
-signaux par défaut.&lt;/p>&lt;/blockquote>
-&lt;p>En somme, les signaux sont de simples événements à destination d&amp;rsquo;un processus
-pour ordonner une action, comme l&amp;rsquo;éveil, l&amp;rsquo;arrêt, la lecture d&amp;rsquo;un fichier de
-configuration ou le repli sur un champ de bataille (non, pas ce signal-là).&lt;/p>
-&lt;p>&lt;img src="https://fljd.in/img/fr/2020-01-17-drapeaux-kaamelott.jpg" alt="Gestion des signaux en temps de guerre arthurienne">&lt;/p>
-&lt;p>Tout administrateur qui se respecte (ou non) connaît la commande &lt;code>kill&lt;/code> fournie
-par son système pour résoudre le problème épineux des programmes qui font n&amp;rsquo;importe
-quoi &amp;ndash; d&amp;rsquo;après leurs dires &amp;ndash; en leur envoyant un message d&amp;rsquo;arrêt. Ces messages
-sont nombreux et permettent différentes réactions en s&amp;rsquo;inspirant de cette fameuse
-norme POSIX.1-1990 dont je vous renvoie au tableau du &lt;a href="http://man7.org/linux/man-pages/man7/signal.7.html" target="_blank" rel="noopener">manuel&lt;/a> &lt;code>signal(7)&lt;/code> ou
-la commande &lt;code>kill -l&lt;/code> pour les lister.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">kill&lt;/span> -l
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 1) SIGHUP 2) SIGINT 3) SIGQUIT 4) SIGILL 5) SIGTRAP&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 6) SIGABRT 7) SIGBUS 8) SIGFPE 9) SIGKILL 10) SIGUSR1&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 11) SIGSEGV 12) SIGUSR2 13) SIGPIPE 14) SIGALRM 15) SIGTERM&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 16) SIGSTKFLT 17) SIGCHLD 18) SIGCONT 19) SIGSTOP 20) SIGTSTP&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 21) SIGTTIN 22) SIGTTOU 23) SIGURG 24) SIGXCPU 25) SIGXFSZ&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 26) SIGVTALRM 27) SIGPROF 28) SIGWINCH 29) SIGIO 30) SIGPWR&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 31) SIGSYS 34) SIGRTMIN 35) SIGRTMIN+1 36) SIGRTMIN+2 37) SIGRTMIN+3&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 38) SIGRTMIN+4 39) SIGRTMIN+5 40) SIGRTMIN+6 41) SIGRTMIN+7 42) SIGRTMIN+8&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 43) SIGRTMIN+9 44) SIGRTMIN+10 45) SIGRTMIN+11 46) SIGRTMIN+12 47) SIGRTMIN+13&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 48) SIGRTMIN+14 49) SIGRTMIN+15 50) SIGRTMAX-14 51) SIGRTMAX-13 52) SIGRTMAX-12&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 53) SIGRTMAX-11 54) SIGRTMAX-10 55) SIGRTMAX-9 56) SIGRTMAX-8 57) SIGRTMAX-7&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 58) SIGRTMAX-6 59) SIGRTMAX-5 60) SIGRTMAX-4 61) SIGRTMAX-3 62) SIGRTMAX-2&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 63) SIGRTMAX-1 64) SIGRTMAX &lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>À l&amp;rsquo;aide de cette commande, il est possible d&amp;rsquo;interragir avec un processus actif
-dès lors que l&amp;rsquo;on a connaissance de son &lt;code>pid&lt;/code>, le &lt;em>process identifier&lt;/em>. La plupart
-du temps, nous ignorons tout bonnement l&amp;rsquo;état dans lequel il se trouve. Est-il
-en attente ? Fait-il un calcul important ?&lt;/p>
-&lt;p>Trop souvent, en l&amp;rsquo;absence de journaux d&amp;rsquo;activité ou de verbosité du processus,
-d&amp;rsquo;impatience ou d&amp;rsquo;urgence, on lui envoie un message d&amp;rsquo;auto-suicide &lt;code>kill -9 pid&lt;/code>.
-Et prends ça dans tes circuits logiques.&lt;/p>
-&lt;hr>
-&lt;p>À son démarrage, un programme met en place une série d&amp;rsquo;instructions à l&amp;rsquo;aide de
-méthodes comme &lt;code>trap&lt;/code> (&lt;a href="http://man7.org/linux/man-pages/man1/trap.1p.html" target="_blank" rel="noopener">documentation&lt;/a>) pour un script &lt;em>bash&lt;/em> ou de la librairie
-&lt;code>signal.h&lt;/code> pour un programme en C. Ces outils permettent de surcharger les
-comportements du programme à la réception d&amp;rsquo;un signal en leur associant une
-instruction ou une fonction plus complexe. Prenons l&amp;rsquo;exemple d&amp;rsquo;un bête terminal,
-qui en soit, est un programme en attente de saisie utilisateur, dispose d&amp;rsquo;un
-&lt;code>pid&lt;/code> et d&amp;rsquo;un interpréteur &lt;em>bash&lt;/em>.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Obtenir le pid du terminal tty courant&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">echo&lt;/span> &lt;span class="nv">$$&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 5032&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Définir les comportements attendus&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">trap&lt;/span> &lt;span class="s1">&amp;#39;echo SIGUSR1 received&amp;#39;&lt;/span> &lt;span class="m">10&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">trap&lt;/span> &lt;span class="s1">&amp;#39;date&amp;#39;&lt;/span> &lt;span class="m">12&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">kill&lt;/span> -SIGUSR1 &lt;span class="m">5032&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># SIGUSR1 received&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">kill&lt;/span> -SIGUSR2 &lt;span class="m">5032&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ven. janv. 17 16:29:10 CET 2020&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Cela devient particulièrement intéressant dans un contexte de programme
-multi-processeurs, de pouvoir se reposer sur un système de signaux pour déclencher
-les événements entre un processus père et ses enfants, plutôt que de complexifier
-les échanges avec une &lt;em>queue&lt;/em> en mémoire ou sur fichier.&lt;/p>
-&lt;p>Si l&amp;rsquo;on prend l&amp;rsquo;exemple du processus &lt;code>archiver&lt;/code> de PostgreSQL, la définition des
-signaux est la première étape au moment de sa création par le processus &lt;code>postmaster&lt;/code>,
-juste avant l&amp;rsquo;entrée dans sa boucle principale.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// src/backend/postmaster/pgarch.c
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="cm">/*
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * PgArchiverMain
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> *
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * The argc/argv parameters are valid only in EXEC_BACKEND case. However,
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * since we don&amp;#39;t use &amp;#39;em, it hardly matters...
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">NON_EXEC_STATIC&lt;/span> &lt;span class="kt">void&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">PgArchiverMain&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">argc&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">char&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">argv&lt;/span>&lt;span class="p">[])&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/*
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Ignore all signals usually bound to some action in the postmaster,
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * except for SIGHUP, SIGTERM, SIGUSR1, SIGUSR2, and SIGQUIT.
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGHUP&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SignalHandlerForConfigReload&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGINT&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_IGN&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGTERM&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SignalHandlerForShutdownRequest&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGQUIT&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pgarch_exit&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGALRM&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_IGN&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGPIPE&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_IGN&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGUSR1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pgarch_waken&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGUSR2&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pgarch_waken_stop&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/* Reset some signals that are accepted by postmaster but not here */&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pqsignal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGCHLD&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">SIG_DFL&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">PG_SETMASK&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">UnBlockSig&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/*
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Identify myself via ps
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">init_ps_display&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;archiver&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#34;&amp;#34;&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">pgarch_MainLoop&lt;/span>&lt;span class="p">();&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">exit&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La méthode &lt;code>pqsignal&lt;/code> prend en paramètre la valeur &lt;code>enum&lt;/code> du signal ainsi qu&amp;rsquo;un
-pointeur de fonction selon l&amp;rsquo;événement que l&amp;rsquo;on veut provoquer. Dans PostgreSQL,
-certains paramètres d&amp;rsquo;instance sont dynamiques et doivent être réactualisés sans
-interrompre le processus, c&amp;rsquo;est notamment le cas pour le processus &lt;code>archiver&lt;/code>
-et son paramètre &lt;code>archive_command&lt;/code> qui définit la méthode d&amp;rsquo;archivage lorsqu&amp;rsquo;un
-journal de transaction doit être archivé.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// src/backend/postmaster/interrupt.c
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="cm">/*
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Simple signal handler for triggering a configuration reload.
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> *
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Normally, this handler would be used for SIGHUP. The idea is that code
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * which uses it would arrange to check the ConfigReloadPending flag at
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * convenient places inside main loops, or else call HandleMainLoopInterrupts.
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">SignalHandlerForConfigReload&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">SIGNAL_ARGS&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kt">int&lt;/span> &lt;span class="n">save_errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">errno&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ConfigReloadPending&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">true&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">SetLatch&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">MyLatch&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">errno&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">save_errno&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ainsi, lorsque le processus &lt;code>archiver&lt;/code> reçoit un signal &lt;code>SIGHUP&lt;/code>, il active le
-&lt;em>flag&lt;/em> &lt;code>ConfigReloadPending&lt;/code> qui sera traité au sein de la boucle principale
-&lt;code>pgarch_MainLoop()&lt;/code> et déclenchera la relecture du fichier de configuration avec
-la function &lt;code>ProcessConfigFile()&lt;/code>.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// src/backend/postmaster/pgarch.c
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="cm">/*
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * pgarch_MainLoop
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> *
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> * Main loop for archiver
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cm"> */&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">static&lt;/span> &lt;span class="kt">void&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">pgarch_MainLoop&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">void&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">do&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="cm">/* Check for config update */&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">ConfigReloadPending&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ConfigReloadPending&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">false&lt;/span>&lt;span class="p">;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nf">ProcessConfigFile&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">PGC_SIGHUP&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">...&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span> &lt;span class="k">while&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="n">time_to_stop&lt;/span>&lt;span class="p">);&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
-&lt;p>Les déclencheurs de signaux sont multiples et peuvent venir des propres enfants
-du &lt;code>postmater&lt;/code> pour annoncer un événement ou un changement d&amp;rsquo;état en usant
-principalement du signal &lt;code>SIGUSR1&lt;/code>. Ces événements internes sont nécessaires pour
-coordonner les processus comme par exemple, demander au &lt;code>walwriter&lt;/code> de changer
-de journal de transactions ou à l&amp;rsquo;&lt;code>autovacuum launcher&lt;/code> de créer un nouveau
-processus &lt;code>autovacuum worker&lt;/code>.
-Les différents événements sont référencés par l&amp;rsquo;énumération &lt;code>PMSignalReason&lt;/code>
-décrite dans le fichier &lt;code>src/include/storage/pmsignal.h&lt;/code>.&lt;/p>
-&lt;p>L&amp;rsquo;administrateur peut également provoquer ces signaux et ses effets mais inutile
-de préciser qu&amp;rsquo;il est formellement déconseillé de passer par la commande &lt;code>kill&lt;/code> !
-Préférez les outils &lt;code>systemctl&lt;/code> ou &lt;code>pg_ctl&lt;/code> pour recharger (&lt;code>reload&lt;/code>) la
-configuration ou les &lt;a href="https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-SIGNAL" target="_blank" rel="noopener">fonctions SQL&lt;/a> prévues pour envoyer des signaux internes.&lt;/p>
-&lt;div class="message">Je remercie par avance tou·te·s les relecteur·rice·s qui me feront des remarques
-toujours enrichissantes ! J&amp;rsquo;espère que cet article vous a plu et que vous avez
-pris plaisir comme moi à parcourir quelques fichiers du code source du projet
-libre PostgreSQL !&lt;/div></description></item></channel></rss>
+&lt;p>Peut-être l&amp;rsquo;occasion de creuser le sujet dans un prochain article ?&lt;/p></description></item></channel></rss>

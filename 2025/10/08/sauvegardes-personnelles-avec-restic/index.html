@@ -1,0 +1,88 @@
+<!doctype html><html lang=fr><head><title>Sauvegardes personnelles avec Restic</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=fediverse:creator content="@fljdin@mastodon.tedomum.net"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://mastodon.tedomum.net/@fljdin rel=me><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>Sauvegardes personnelles avec Restic</a></h1><p class=post-date><time datetime=2025-10-08>8 oct 2025</time>
+- 4 minutes de lecture</p><p>Ces derniers temps, j’ai mis fin à une histoire d’amour avec Debian qui aura
+duré près de trois ans. Pas que je n’aime plus le système, oh non, je le préfère
+toujours à sa cousine Ubuntu. Mais voilà, j’ai un attachement particulier à
+Archlinux depuis, wouh, au moins les bancs de l’école d’ingénieur où nous
+l’installions sur des machines virtuelles et où nous nous adonnions à la
+pratique du <a href=https://github.com/fosslife/awesome-ricing target=_blank rel=noopener>linux ricing</a> pour passer le temps.</p><p>Après une expérimentation de <a href=https://manjaro.org/ target=_blank rel=noopener>Manjaro i3</a> entre 2019 et 2022 sur mon poste
+professionnel, je me suis convaincu qu’il me fallait retourner à l’essentiel. Au
+début du mois de septembre, j’ai réussi le portage de ma <a href=https://gitlab.com/fljdin/dotfiles/-/tree/main/sway target=_blank rel=noopener>config Sway</a> de
+Debian Trixie vers Archlinux. L’occasion parfaite pour requestionner mes
+pratiques en matière de sauvegarde de poste et de remplacer <a href=/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup</a> par
+Restic.</p><hr><h2 id=prise-en-main-éclair>Prise en main éclair</h2><p>J’ai lu plusieurs articles et avis au sujet de Restic. Je l’avais vite identifié
+comme un outil équivalent à BorgBackup, mais je ne m’étais pas pressé de le
+tester. Quelle erreur ! J’ai été déconcerté par la facilité d’utilisation, par
+son interface en ligne de commande claire et complète, et par sa
+<a href=https://restic.readthedocs.io/en/stable/010_introduction.html target=_blank rel=noopener>documentation</a> de qualité.</p><p>Pour avoir régulièrement vécu des dégâts sur des clés de mauvaise qualité avec
+ma pratique exotique sur BorgBackup, je m’étais penché sur la possibilité de
+sauvegarder vers un dossier distant avec SSH. J’ai du insisté deux bonnes heures
+à l’époque sans parvenir à quoique ce soit avec Borg.</p><p>Avec Restic, ce n’est pas moins de 13 types différents de dépôts supportés, dont
+le <a href=https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html#sftp target=_blank rel=noopener>SFTP</a>. Il ne m’en fallait pas plus pour tourner le dos à son homologue. La
+mise en place d’un dépôt est simplifiée à l’extrême :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=k>set</span> <span class=na>-x</span> <span class=nv>RESTIC_REPOSITORY</span> <span class=s2>&#34;sftp:&lt;server&gt;:&lt;directory&gt;&#34;</span>
+</span></span><span class=line><span class=cl><span class=nf>restic</span> init
+</span></span><span class=line><span class=cl><span class=nf>restic</span> backup ~ <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=na>--dry-run</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=na>--exclude-file</span> ~/.config/restic/excludes.txt
+</span></span></code></pre></div><p>Je ne suis pas en reste avec une gestion poussée des stratégies de rétention des
+instantanés. Pour l’exemple, je maintiens une sauvegarde par semaine, pendant
+trois mois.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=nf>restic</span> forget <span class=na>--prune</span> <span class=na>--keep-within-weekly</span> 3m
+</span></span></code></pre></div><p>La technique d’exploration d’un instantané est identique à Borg, avec un montage
+<a href=https://www.kernel.org/doc/html/latest/filesystems/fuse.html target=_blank rel=noopener>FUSE</a> sous Linux. Une fois encore, la <a href=https://restic.readthedocs.io/en/stable/050_restore.html#restore-using-mount target=_blank rel=noopener>documentation</a> est limpide à ce
+sujet.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=nf>sudo</span> <span class=nf>install</span> <span class=na>-o</span> <span class=nv>$USER</span> <span class=na>-g</span> <span class=nv>$USER</span> <span class=na>-d</span> /mnt/restic
+</span></span><span class=line><span class=cl><span class=nf>restic</span> mount /mnt/restic
+</span></span></code></pre></div><h2 id=planification-avec-systemctl>Planification avec systemctl</h2><p>Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
+Debian. En lieu et place de <code>cron</code>, je planifie mes sauvegardes avec un <em>timer</em>
+utilisateur pour déclencher une tâche deux fois par jour sur mes journées de
+travail.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=c># ~/.config/systemd/user/restic.timer</span>
+</span></span><span class=line><span class=cl><span class=p>[</span><span class=nx>Unit</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>Description</span><span class=p>=</span><span class=nx>Daily</span> <span class=nx>Restic</span> <span class=nx>backup</span>
+</span></span><span class=line><span class=cl><span class=nx>Documentation</span><span class=p>=</span><span class=nx>man</span><span class=err>:</span><span class=nx>restic</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>[</span><span class=nx>Timer</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>OnCalendar</span><span class=p>=</span><span class=nx>Mon</span><span class=p>..</span><span class=nx>Fri</span> <span class=mi>09</span><span class=err>:</span><span class=mi>30</span>
+</span></span><span class=line><span class=cl><span class=nx>OnCalendar</span><span class=p>=</span><span class=nx>Mon</span><span class=p>..</span><span class=nx>Fri</span> <span class=mi>16</span><span class=err>:</span><span class=mi>30</span>
+</span></span><span class=line><span class=cl><span class=nx>Persistent</span><span class=p>=</span><span class=kc>true</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>[</span><span class=nx>Install</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>WantedBy</span><span class=p>=</span><span class=nx>timers</span><span class=p>.</span><span class=nx>target</span>
+</span></span></code></pre></div><p>La tâche consiste à appeler <code>restic</code> avec mon fichier d’exclusion, suivi d’une
+purge des vieux instantanés présents sur le dépôt.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=c># ~/.config/systemd/user/restic.service</span>
+</span></span><span class=line><span class=cl><span class=p>[</span><span class=nx>Unit</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>Description</span><span class=p>=</span><span class=nx>Restic</span> <span class=nx>backup</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=p>[</span><span class=nx>Service</span><span class=p>]</span>
+</span></span><span class=line><span class=cl><span class=nx>Type</span><span class=p>=</span><span class=nx>oneshot</span>
+</span></span><span class=line><span class=cl><span class=nx>ExecStart</span><span class=p>=</span><span class=nx>restic</span> <span class=nx>backup</span> <span class=err>%</span><span class=nx>h</span> <span class=nx>--exclude-file</span> <span class=err>$</span><span class=nx>RESTIC_EXCLUDE_FILE</span>
+</span></span><span class=line><span class=cl><span class=nx>ExecStartPost</span><span class=p>=</span><span class=nx>restic</span> <span class=nx>forget</span> <span class=nx>--prune</span> <span class=nx>--keep-within-weekly</span> <span class=mi>3</span><span class=nx>m</span>
+</span></span></code></pre></div><p>Pour la configuration, je déclare les variables dans un fichier d’environnement
+pour que <code>restic</code> sache identifier et déchiffrer correctement les instantanés.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-ini data-lang=ini><span class=line><span class=cl><span class=c1># ~/.config/environment.d/restic.conf</span>
+</span></span><span class=line><span class=cl><span class=na>RESTIC_REPOSITORY</span><span class=o>=</span><span class=s>sftp:&lt;server&gt;:&lt;directory&gt;</span>
+</span></span><span class=line><span class=cl><span class=na>RESTIC_PASSWORD_FILE</span><span class=o>=</span><span class=s>$HOME/.config/restic/pass</span>
+</span></span><span class=line><span class=cl><span class=na>RESTIC_EXCLUDE_FILE</span><span class=o>=</span><span class=s>$HOME/.config/restic/excludes.txt</span>
+</span></span></code></pre></div><p>Pour armer la planification, il suffit de recharger <code>systemd</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=nf>systemctl</span> <span class=na>--user</span> daemon-reload
+</span></span></code></pre></div><p>En exportant les bonnes variables dans votre shell, la consultation des
+instantanés se fait sobrement avec la commande suivante.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=nf>restic</span> snapshots
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=go>repository 3db74709 opened (version 2, compression level auto)
+</span></span></span><span class=line><span class=cl><span class=go>ID        Time                 Host            Tags        Paths          Size
+</span></span></span><span class=line><span class=cl><span class=go>-----------------------------------------------------------------------------------
+</span></span></span><span class=line><span class=cl><span class=go>f7bb4fea  2025-09-16 11:50:18  florent-dalibo              /home/florent  4.309 GiB
+</span></span></span><span class=line><span class=cl><span class=go>5a4dbf59  2025-09-19 09:30:01  florent-dalibo              /home/florent  5.639 GiB
+</span></span></span><span class=line><span class=cl><span class=go>1012f0ab  2025-09-27 19:28:38  florent-dalibo              /home/florent  5.871 GiB
+</span></span></span><span class=line><span class=cl><span class=go>629c2687  2025-10-03 09:30:00  florent-dalibo              /home/florent  6.006 GiB
+</span></span></span><span class=line><span class=cl><span class=go>98b32adb  2025-10-08 10:00:08  florent-dalibo              /home/florent  4.677 GiB
+</span></span></span><span class=line><span class=cl><span class=go>-----------------------------------------------------------------------------------
+</span></span></span><span class=line><span class=cl><span class=go>5 snapshots
+</span></span></span></code></pre></div><h2 id=conclusion>Conclusion</h2><p>Pour ma part, tout se déroule bien depuis presque un mois. Il ne manque plus
+qu’à sécuriser le serveur distant qui fait office de dépôt avec ses propres
+sauvegardes ! Pour ce faire, j’envisage de mettre en place Restic sur la plupart
+des répertoires d’importances de mon serveur multimédia, en gardant bien en
+mémoire le principe 3-2-1 de la sauvegarde réussie.</p><p>Prenez soin de vos sauvegardes.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
+<small><time datetime=2021-08-24>24 août 2021</time></small></a></li><li><a href=https://fljd.in/2022/09/29/construire-postgresql-avec-meson/>Construire PostgreSQL avec Meson
+<small><time datetime=2022-09-29>29 sept 2022</time></small></a></li><li><a href=https://fljd.in/2024/07/30/faire-vivre-une-communaute/>Faire vivre une communauté
+<small><time datetime=2024-07-30>30 juil 2024</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

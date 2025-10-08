@@ -1,4 +1,98 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Opensource on Carnet de découvertes</title><link>https://fljd.in/tags/opensource/</link><description>Recent content in Opensource on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 30 Jul 2024 09:30:00 +0000</lastBuildDate><atom:link href="https://fljd.in/tags/opensource/index.xml" rel="self" type="application/rss+xml"/><item><title>Faire vivre une communauté</title><link>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</link><pubDate>Tue, 30 Jul 2024 09:30:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</guid><description>&lt;p>Le &lt;a href="https://pgday.fr/" target="_blank" rel="noopener">PG Day France&lt;/a> s&amp;rsquo;est tenu les 11 et 12 juin derniers à Lille, ma ville natale.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Opensource on Carnet de découvertes</title><link>https://fljd.in/tags/opensource/</link><description>Recent content in Opensource on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 08 Oct 2025 16:00:00 +0200</lastBuildDate><atom:link href="https://fljd.in/tags/opensource/index.xml" rel="self" type="application/rss+xml"/><item><title>Sauvegardes personnelles avec Restic</title><link>https://fljd.in/2025/10/08/sauvegardes-personnelles-avec-restic/</link><pubDate>Wed, 08 Oct 2025 16:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2025/10/08/sauvegardes-personnelles-avec-restic/</guid><description>&lt;p>Ces derniers temps, j’ai mis fin à une histoire d’amour avec Debian qui aura
+duré près de trois ans. Pas que je n’aime plus le système, oh non, je le préfère
+toujours à sa cousine Ubuntu. Mais voilà, j’ai un attachement particulier à
+Archlinux depuis, wouh, au moins les bancs de l’école d’ingénieur où nous
+l’installions sur des machines virtuelles et où nous nous adonnions à la
+pratique du &lt;a href="https://github.com/fosslife/awesome-ricing" target="_blank" rel="noopener">linux ricing&lt;/a> pour passer le temps.&lt;/p>
+&lt;p>Après une expérimentation de &lt;a href="https://manjaro.org/" target="_blank" rel="noopener">Manjaro i3&lt;/a> entre 2019 et 2022 sur mon poste
+professionnel, je me suis convaincu qu’il me fallait retourner à l’essentiel. Au
+début du mois de septembre, j’ai réussi le portage de ma &lt;a href="https://gitlab.com/fljdin/dotfiles/-/tree/main/sway" target="_blank" rel="noopener">config Sway&lt;/a> de
+Debian Trixie vers Archlinux. L’occasion parfaite pour requestionner mes
+pratiques en matière de sauvegarde de poste et de remplacer &lt;a href="https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/">BorgBackup&lt;/a> par
+Restic.&lt;/p>
+&lt;hr>
+&lt;h2 id="prise-en-main-éclair">Prise en main éclair&lt;/h2>
+&lt;p>J’ai lu plusieurs articles et avis au sujet de Restic. Je l’avais vite identifié
+comme un outil équivalent à BorgBackup, mais je ne m’étais pas pressé de le
+tester. Quelle erreur ! J’ai été déconcerté par la facilité d’utilisation, par
+son interface en ligne de commande claire et complète, et par sa
+&lt;a href="https://restic.readthedocs.io/en/stable/010_introduction.html" target="_blank" rel="noopener">documentation&lt;/a> de qualité.&lt;/p>
+&lt;p>Pour avoir régulièrement vécu des dégâts sur des clés de mauvaise qualité avec
+ma pratique exotique sur BorgBackup, je m’étais penché sur la possibilité de
+sauvegarder vers un dossier distant avec SSH. J’ai du insisté deux bonnes heures
+à l’époque sans parvenir à quoique ce soit avec Borg.&lt;/p>
+&lt;p>Avec Restic, ce n’est pas moins de 13 types différents de dépôts supportés, dont
+le &lt;a href="https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html#sftp" target="_blank" rel="noopener">SFTP&lt;/a>. Il ne m’en fallait pas plus pour tourner le dos à son homologue. La
+mise en place d’un dépôt est simplifiée à l’extrême :&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="k">set&lt;/span> &lt;span class="na">-x&lt;/span> &lt;span class="nv">RESTIC_REPOSITORY&lt;/span> &lt;span class="s2">&amp;#34;sftp:&amp;lt;server&amp;gt;:&amp;lt;directory&amp;gt;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> init
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> backup ~ &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &lt;span class="na">--dry-run&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &lt;span class="na">--exclude-file&lt;/span> ~/.config/restic/excludes.txt
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Je ne suis pas en reste avec une gestion poussée des stratégies de rétention des
+instantanés. Pour l’exemple, je maintiens une sauvegarde par semaine, pendant
+trois mois.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> forget &lt;span class="na">--prune&lt;/span> &lt;span class="na">--keep-within-weekly&lt;/span> 3m
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La technique d’exploration d’un instantané est identique à Borg, avec un montage
+&lt;a href="https://www.kernel.org/doc/html/latest/filesystems/fuse.html" target="_blank" rel="noopener">FUSE&lt;/a> sous Linux. Une fois encore, la &lt;a href="https://restic.readthedocs.io/en/stable/050_restore.html#restore-using-mount" target="_blank" rel="noopener">documentation&lt;/a> est limpide à ce
+sujet.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">sudo&lt;/span> &lt;span class="nf">install&lt;/span> &lt;span class="na">-o&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-g&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-d&lt;/span> /mnt/restic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> mount /mnt/restic
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="planification-avec-systemctl">Planification avec systemctl&lt;/h2>
+&lt;p>Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
+Debian. En lieu et place de &lt;code>cron&lt;/code>, je planifie mes sauvegardes avec un &lt;em>timer&lt;/em>
+utilisateur pour déclencher une tâche deux fois par jour sur mes journées de
+travail.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># ~/.config/systemd/user/restic.timer&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Unit&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Description&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Daily&lt;/span> &lt;span class="nx">Restic&lt;/span> &lt;span class="nx">backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Documentation&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">man&lt;/span>&lt;span class="err">:&lt;/span>&lt;span class="nx">restic&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Timer&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">OnCalendar&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Mon&lt;/span>&lt;span class="p">..&lt;/span>&lt;span class="nx">Fri&lt;/span> &lt;span class="mi">09&lt;/span>&lt;span class="err">:&lt;/span>&lt;span class="mi">30&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">OnCalendar&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Mon&lt;/span>&lt;span class="p">..&lt;/span>&lt;span class="nx">Fri&lt;/span> &lt;span class="mi">16&lt;/span>&lt;span class="err">:&lt;/span>&lt;span class="mi">30&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Persistent&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="kc">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Install&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">WantedBy&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">timers&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">target&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>La tâche consiste à appeler &lt;code>restic&lt;/code> avec mon fichier d’exclusion, suivi d’une
+purge des vieux instantanés présents sur le dépôt.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-toml" data-lang="toml">&lt;span class="line">&lt;span class="cl">&lt;span class="c"># ~/.config/systemd/user/restic.service&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Unit&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Description&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">Restic&lt;/span> &lt;span class="nx">backup&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="nx">Service&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">Type&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">oneshot&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ExecStart&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">restic&lt;/span> &lt;span class="nx">backup&lt;/span> &lt;span class="err">%&lt;/span>&lt;span class="nx">h&lt;/span> &lt;span class="nx">--exclude-file&lt;/span> &lt;span class="err">$&lt;/span>&lt;span class="nx">RESTIC_EXCLUDE_FILE&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">ExecStartPost&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nx">restic&lt;/span> &lt;span class="nx">forget&lt;/span> &lt;span class="nx">--prune&lt;/span> &lt;span class="nx">--keep-within-weekly&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="nx">m&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour la configuration, je déclare les variables dans un fichier d’environnement
+pour que &lt;code>restic&lt;/code> sache identifier et déchiffrer correctement les instantanés.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ini" data-lang="ini">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/environment.d/restic.conf&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">RESTIC_REPOSITORY&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">sftp:&amp;lt;server&amp;gt;:&amp;lt;directory&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">RESTIC_PASSWORD_FILE&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">$HOME/.config/restic/pass&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">RESTIC_EXCLUDE_FILE&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">$HOME/.config/restic/excludes.txt&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour armer la planification, il suffit de recharger &lt;code>systemd&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">systemctl&lt;/span> &lt;span class="na">--user&lt;/span> daemon-reload
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>En exportant les bonnes variables dans votre shell, la consultation des
+instantanés se fait sobrement avec la commande suivante.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> snapshots
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-console" data-lang="console">&lt;span class="line">&lt;span class="cl">&lt;span class="go">repository 3db74709 opened (version 2, compression level auto)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">ID Time Host Tags Paths Size
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">-----------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">f7bb4fea 2025-09-16 11:50:18 florent-dalibo /home/florent 4.309 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">5a4dbf59 2025-09-19 09:30:01 florent-dalibo /home/florent 5.639 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">1012f0ab 2025-09-27 19:28:38 florent-dalibo /home/florent 5.871 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">629c2687 2025-10-03 09:30:00 florent-dalibo /home/florent 6.006 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">98b32adb 2025-10-08 10:00:08 florent-dalibo /home/florent 4.677 GiB
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">-----------------------------------------------------------------------------------
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">5 snapshots
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Pour ma part, tout se déroule bien depuis presque un mois. Il ne manque plus
+qu’à sécuriser le serveur distant qui fait office de dépôt avec ses propres
+sauvegardes ! Pour ce faire, j’envisage de mettre en place Restic sur la plupart
+des répertoires d’importances de mon serveur multimédia, en gardant bien en
+mémoire le principe 3-2-1 de la sauvegarde réussie.&lt;/p>
+&lt;p>Prenez soin de vos sauvegardes.&lt;/p></description></item><item><title>Faire vivre une communauté</title><link>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</link><pubDate>Tue, 30 Jul 2024 09:30:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2024/07/30/faire-vivre-une-communaute/</guid><description>&lt;p>Le &lt;a href="https://pgday.fr/" target="_blank" rel="noopener">PG Day France&lt;/a> s&amp;rsquo;est tenu les 11 et 12 juin derniers à Lille, ma ville natale.
 Il s&amp;rsquo;agit de l&amp;rsquo;événement de la communauté française de PostgreSQL qui pose ses valises dans une
 ville différente chaque année. L&amp;rsquo;occasion était trop belle pour moi et j&amp;rsquo;y ai rencontré de nombreuses
 personnes venant de toute la France et de ses alentours, pour discuter de PostgreSQL au cours
@@ -632,7 +726,7 @@ compression, j&amp;rsquo;ai pu conserver ma clé USB et m&amp;rsquo;engager dans
 fichier d&amp;rsquo;exclusion peut être transmis à Borg pour ne pas les inclure dans la
 routine de sauvegarde. Le mien est relativement léger pour le moment, et
 pourrait s&amp;rsquo;enrichir avec l&amp;rsquo;expérience.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/borg/exclude.list &lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sh" data-lang="sh">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># ~/.config/borg/exclude.list&lt;/span>
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.git
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/**/.vagrant
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/home/*/.local
@@ -729,245 +823,4 @@ personnels : une sauvegarde n&amp;rsquo;est fiable que si la restauration de so
 contenu est possible. Une corruption de l&amp;rsquo;archive, une erreur dans l&amp;rsquo;exécution
 du script ou une mise à jour majeure de l&amp;rsquo;outil de sauvegarde sont autant de
 situations qui peuvent rendre vos sauvegardes irrécupérables.&lt;/p>
-&lt;p>Prenez soin de vos sauvegardes.&lt;/p></description></item><item><title>Compiler et patcher avec pgenv</title><link>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</link><pubDate>Mon, 21 Dec 2020 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2020/12/21/compiler-et-patcher-avec-pgenv/</guid><description>&lt;p>Parmi les quelques outils de mon quotidien, il y en a un très sobre et bigrement
-efficace répondant au nom de &lt;a href="https://github.com/theory/pgenv" target="_blank" rel="noopener">pgenv&lt;/a>, un gestionnaire des versions PostgreSQL.
-Ce projet est publié sous licence MIT par David E. Wheeler, auteur de l&amp;rsquo;extension
-pgTAP dont j&amp;rsquo;avais déjà vanté les mérites dans un &lt;a href="https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql">autre article&lt;/a>.&lt;/p>
-&lt;p>Cet outil concerne principalement les contributeur⋅rices au projet PostgreSQL et les
-quelques DBA féru⋅es d&amp;rsquo;expérimentations, car &lt;code>pgenv&lt;/code> permet de compiler et
-d&amp;rsquo;exécuter toutes les versions majeures et mineures du système de base de données
-open-source le plus avancé du monde.&lt;/p>
-&lt;hr>
-&lt;h2 id="à-lépreuve-de-la-compilation">À l&amp;rsquo;épreuve de la compilation&lt;/h2>
-&lt;p>PostgreSQL est particulièrement simple à compiler. Avec un poste de travail
-sous Unix, GNU/Linux ou BSD et quelques dépendances, à savoir &lt;code>gcc&lt;/code>, &lt;code>make&lt;/code>,
-&lt;code>patch&lt;/code> et &lt;code>git&lt;/code>, il est facile d&amp;rsquo;exécuter une instance dans la version cible de son
-choix.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ git clone git://git.postgresql.org/git/postgresql.git
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">cd&lt;/span> postgresql
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ git checkout REL_13_1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PREFIX&lt;/span>&lt;span class="o">=&lt;/span>/tmp/postgres/devel
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ ./configure --prefix&lt;span class="o">=&lt;/span>&lt;span class="nv">$PREFIX&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ make &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> make install
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">cd&lt;/span> contrib
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ make &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> make install
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Dès lors que les librairies et les binaires sont disponibles, il est très aisé
-de contruire sa première instance et de s&amp;rsquo;y connecter !&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PREFIX&lt;/span>/bin:&lt;span class="nv">$PATH&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">LD_LIBRARY_PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PREFIX&lt;/span>/lib:&lt;span class="nv">$LD_LIBRARY_PATH&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PGDATA&lt;/span>&lt;span class="o">=&lt;/span>/tmp/postgres/data
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ initdb --username &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span> --auth&lt;span class="o">=&lt;/span>peer --data-checksums
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pg_ctl start --log&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGDATA&lt;/span>/server.log
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ createdb &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ psql -tc &lt;span class="s2">&amp;#34;select version()&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 13.1 on x86_64-pc-linux-gnu, compiled by gcc &lt;span class="o">(&lt;/span>GCC&lt;span class="o">)&lt;/span> 10.2.0, 64-bit
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pg_ctl stop
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le faire à la main m&amp;rsquo;a amusé quelques minutes et écrire un script pour automatiser
-le déploiement des versions mineures à la demande m&amp;rsquo;a vite traversé l&amp;rsquo;esprit.
-Ne réinventons pas la roue et voyons ce que propose &lt;code>pgenv&lt;/code> !&lt;/p>
-&lt;hr>
-&lt;h2 id="un-script-pour-les-compiler-tous">Un script pour les compiler tous&lt;/h2>
-&lt;p>La &lt;a href="https://github.com/theory/pgenv" target="_blank" rel="noopener">page d&amp;rsquo;accueil&lt;/a> du projet reprend l&amp;rsquo;installation rapide du script dans votre
-sous-répertoire &lt;code>~/.pgenv&lt;/code>. Téléchargeons et compilons la version qui nous interesse.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ pgenv available
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Available PostgreSQL Versions
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">================================================
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ...
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 10
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 10.0 10.1 10.2 10.3 10.4 10.5
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 10.6 10.7 10.8 10.9 10.10 10.11
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 10.12 10.13 10.14 10.15
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 11
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 11.0 11.1 11.2 11.3 11.4 11.5
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 11.6 11.7 11.8 11.9 11.10
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 12
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 12.0 12.1 12.2 12.3 12.4 12.5
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 13
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">------------------------------------------------
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 13beta1 13beta2 13beta3 13rc1 13.0 13.1
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Comme pour mon précédent exemple, je réinstalle une version 13.1 avec &lt;code>pgenv&lt;/code>
-à l&amp;rsquo;aide de l&amp;rsquo;option &lt;code>build&lt;/code>. Le script déploie également les librairies de &lt;em>contrib&lt;/em>
-et la documentation.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PGENV_ROOT&lt;/span>&lt;span class="o">=&lt;/span>/var/lib/pgenv
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>/pgsql/bin:&lt;span class="nv">$PATH&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">LD_LIBRARY_PATH&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>/pgsql/lib:&lt;span class="nv">$LD_LIBRARY_PATH&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv build 13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL, contrib, and documentation installation complete.
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pgenv configuration written to file /var/lib/pgenv/.pgenv.13.1.conf
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 built
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>On retrouve dans l&amp;rsquo;arborescence &lt;code>$PGENV_ROOT&lt;/code>, la présence de l&amp;rsquo;archive &lt;code>.tar.bz2&lt;/code>
-du projet, requise pour l&amp;rsquo;étape de compilation. Le &lt;code>$PREFIX&lt;/code> quant à lui, est
-automatiquement positionné sur le répertoire &lt;code>$PGENV_ROOT/pgsql-13.1&lt;/code>.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">/var/lib/pgenv
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── .pgenv.13.1.conf
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql-13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── bin
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── include
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   ├── lib
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">│   └── share
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── src
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ├── postgresql-13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── postgresql-13.1.tar.bz2
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Pour être fidèle à ma première partie, je vais configurer correctement les
-paramètres de la commande &lt;code>initdb&lt;/code> dans le fichier de configuration dédié à la
-version 13.1.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ pgenv config edit 13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Path to the cluster log file (mandatory)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">PGENV_LOG&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>&lt;span class="s2">/pgsql/data/server.log&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Initdb flags&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">PGENV_INITDB_OPTS&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;--username &lt;/span>&lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>&lt;span class="s2"> --auth=peer --data-checksums&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ainsi, lors de la première utilisation de cette version 13.1, &lt;code>pgenv&lt;/code> va lancer
-la commande &lt;code>initdb&lt;/code> pour alimenter le répertoire de données avec mon compte
-comme propriétaire et démarrer le processus &lt;code>postgres&lt;/code>.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ pgenv use 13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using PGENV_ROOT /var/lib/pgenv
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Data page checksums are enabled.
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Success. You can now start the database server using:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> /var/lib/pgenv/pgsql/bin/pg_ctl -D /var/lib/pgenv/pgsql/data -l logfile start
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 started
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Logging to /var/lib/pgenv/pgsql/data/server.log
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ createdb &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ psql -tc &lt;span class="s2">&amp;#34;select version()&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PostgreSQL 13.1 on x86_64-pc-linux-gnu, compiled by gcc &lt;span class="o">(&lt;/span>GCC&lt;span class="o">)&lt;/span> 10.2.0, 64-bit
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
-&lt;h2 id="et-avec-ceci">Et avec ceci ?&lt;/h2>
-&lt;p>Comme indiqué en introduction, l&amp;rsquo;intérêt d&amp;rsquo;un tel gestionnaire réside dans sa
-capacité d&amp;rsquo;installer plusieurs versions différentes dans la même arborescence
-et de basculer de l&amp;rsquo;une à l&amp;rsquo;autre.&lt;/p>
-&lt;p>Imaginons que nous souhaitons disposer d&amp;rsquo;une version 10 de PostgreSQL avec le
-même genre de configuration que la version 13 précédente. &lt;code>pgenv&lt;/code> supporte un
-fichier d&amp;rsquo;environnement global, nommé &lt;code>.pgenv.conf&lt;/code>, que je reconstruis à
-partir de mon précédent fichier d&amp;rsquo;instance 13.1.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ cp &lt;span class="nv">$PGENV_ROOT&lt;/span>/.pgenv.13.1.conf &lt;span class="nv">$PGENV_ROOT&lt;/span>/.pgenv.conf
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv build 10.15
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv use latest &lt;span class="m">10&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ createdb &lt;span class="k">$(&lt;/span>whoami&lt;span class="k">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ psql -c &lt;span class="s2">&amp;#34;show data_checksums&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data_checksums
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ----------------
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">(&lt;/span>&lt;span class="m">1&lt;/span> row&lt;span class="o">)&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Nous nous retrouvons bien avec un instance dont les sommes de contrôle ont été
-activées, grâce à l&amp;rsquo;option &lt;code>PGENV_INITDB_OPTS&lt;/code> citée plus haut.&lt;/p>
-&lt;p>Je m&amp;rsquo;étais questionné sur la capacité de &lt;code>pgenv&lt;/code> de lancer simultanément deux
-environnements pour mettre en place de la réplication logique, par exemple.
-Conclusion, il s&amp;rsquo;agit d&amp;rsquo;une des limites de l&amp;rsquo;outil, puisque ce n&amp;rsquo;est pas
-son but premier. Et pour cause, à chaque fois que l&amp;rsquo;on appelle la commande
-&lt;code>pgenv use&lt;/code>, le script arrête l&amp;rsquo;instance courante avant de basculer sur la
-deuxième.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ pgenv use latest &lt;span class="m">10&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using PGENV_ROOT /var/lib/pgenv
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 stopped
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 10.15 started
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Logging to /var/lib/pgenv/pgsql/data/server.log
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>En complément, &lt;code>pgenv&lt;/code> met en place un lien symbolique dans la racine &lt;code>$PGENV_ROOT&lt;/code>
-à chaque changement de version courante. Ce lien a été ajouté au préalable
-dans la variable &lt;code>$PATH&lt;/code> pour garantir la bonne compatibilité des binaires avec
-les données.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">/var/lib/pgenv
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── .pgenv.13.1.conf
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── .pgenv.conf
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql -&amp;gt; pgsql-10.15
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql-10.15
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">├── pgsql-13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── src
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Ce lien symbolique nous oblige à manipuler toutes les autres instances avec des
-chemins absolus, une surcharge de leurs paramètres &lt;code>port&lt;/code> ou &lt;code>listen_addresses&lt;/code>
-et de faire appel à la bonne version de la commande &lt;code>pg_ctl&lt;/code>. Il est donc possible
-de faire de la réplication, mais oubliez &lt;code>pgenv&lt;/code> pour la gestion des processus
-d&amp;rsquo;instances.&lt;/p>
-&lt;hr>
-&lt;h2 id="dans-la-cour-des-grands">Dans la cour des grands&lt;/h2>
-&lt;p>Nous sommes en décembre 2020 à l&amp;rsquo;heure de la rédaction de cet article, et la
-communauté PostgreSQL travaille activement sur le développement de la prochaine
-version 14 du logiciel. Chaque année, les contributeur⋅rices du monde entier
-se retrouvent en ligne autour du &lt;em>&lt;a href="https://commitfest.postgresql.org/" target="_blank" rel="noopener">Commitfest&lt;/a>&lt;/em> pour étudier les nouvelles
-propositions de fonctionnalités ou de correction de bogues.&lt;/p>
-&lt;p>En août dernier, Tatsuro Yamada proposait d&amp;rsquo;&lt;a href="https://www.postgresql.org/message-id/flat/c027a541-5856-75a5-0868-341301e1624b@nttcom.co.jp_1" target="_blank" rel="noopener">enrichir&lt;/a> les méta-commandes de
-l&amp;rsquo;invite &lt;code>psql&lt;/code> afin de lister les &lt;a href="https://www.postgresql.org/docs/12/planner-stats.html#PLANNER-STATS-EXTENDED" target="_blank" rel="noopener">statistiques étendues&lt;/a> rattachées aux
-tables de la base courante. Cette fonctionnalité est donc étudiée à travers les
-échanges électroniques et suivie sur &lt;a href="https://commitfest.postgresql.org/31/2801/" target="_blank" rel="noopener">une page dédiée&lt;/a> du &lt;em>Commitfest&lt;/em>.&lt;/p>
-&lt;p>Le contributeur produit alors un fichier &lt;code>.patch&lt;/code> qu&amp;rsquo;il obtient avec la commande
-&lt;code>git diff&lt;/code> et dont le résultat est compatible avec la commande &lt;a href="https://www.man7.org/linux/man-pages/man1/patch.1.html" target="_blank" rel="noopener">patch&lt;/a>. Ainsi,
-n&amp;rsquo;importe quel relecteur peut l&amp;rsquo;intégrer dans son projet et dérouler ses tests sur
-la nouvelle instance compilée.&lt;/p>
-&lt;p>C&amp;rsquo;est là qu&amp;rsquo;intervient une chouette fonctionnalité de l&amp;rsquo;outil &lt;code>pgenv&lt;/code>. Ce dernier
-propose d&amp;rsquo;appliquer une série de patchs dans une phase préliminaire dès lors qu&amp;rsquo;on
-lui présente un fichier d&amp;rsquo;index pour la version associée, qui contiendra le chemin
-absolu des fichiers à parcourir.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">/var/lib/pgenv
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">└── patch
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    ├── 13
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> │   └── 0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">    └── index
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> └── patch.13
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Comme on le voit dans mon arborescence, j&amp;rsquo;ai téléchargé la dernière version
-communiquée par le développeur et je l&amp;rsquo;ai déclarée dans le fichier &lt;code>index.13&lt;/code>.
-Lors de la recompilation de la version concernée, on constate que le patch
-est bien pris en compte.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">export&lt;/span> &lt;span class="nv">PGENV_DEBUG&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="m">1&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv clear
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ pgenv rebuild 13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using PGENV_ROOT /var/lib/pgenv
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>DEBUG&lt;span class="o">]&lt;/span> Patch index file &lt;span class="o">[&lt;/span>/var/lib/pgenv/patch/index/patch.13&lt;span class="o">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>DEBUG&lt;span class="o">]&lt;/span> Applying patch &lt;span class="o">[&lt;/span>0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch&lt;span class="o">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> into &lt;span class="nb">source&lt;/span> tree /var/lib/pgenv/src/postgresql-13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Applied patch 0001-Add-dX-command-on-psql-rebased-on-7e5e1bba03.patch
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PostgreSQL 13.1 built
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Et la fonctionnalité devient disponible sur l&amp;rsquo;instance !&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">florent=# \dX
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> List of extended statistics
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Schema | Name | Definition | Ndistinct | Dependencies | MCV
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">--------+-------+--------------+-----------+--------------+---------
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts1 | a, b FROM t1 | | defined |
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts2 | a, b FROM t1 | defined | defined |
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts3 | a, b FROM t1 | defined | defined | defined
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public | stts4 | b, c FROM t2 | defined | defined | defined
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(4 rows)
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Le retrait des patchs n&amp;rsquo;est pas supporté par &lt;code>pgenv&lt;/code> mais l&amp;rsquo;opération reste
-triviale avec la commande &lt;code>patch&lt;/code> et son option &lt;code>--reverse&lt;/code>. Cela nous permet
-de conserver les sources sans devoir les télécharger à nouveau !&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">$ &lt;span class="nb">cd&lt;/span> &lt;span class="nv">$PGENV_ROOT&lt;/span>/src/postgresql-13.1
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="nv">index&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nv">$PGENV_ROOT&lt;/span>/patch/index/patch.13
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ &lt;span class="k">for&lt;/span> f in &lt;span class="k">$(&lt;/span>cat &lt;span class="nv">$index&lt;/span>&lt;span class="k">)&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">do&lt;/span> patch --reverse -p1 &amp;lt; &lt;span class="nv">$f&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">done&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file doc/src/sgml/ref/psql-ref.sgml
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 1903 (offset -15 lines).&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/command.c
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 929 (offset 1 line).&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/describe.c
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 4377 (offset -24 lines).&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/describe.h
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/help.c
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">patching file src/bin/psql/tab-complete.c
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#1 succeeded at 1479 (offset -21 lines).&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Hunk &lt;span class="c1">#2 succeeded at 3771 (offset -127 lines).&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
-&lt;h2 id="conclusion">Conclusion&lt;/h2>
-&lt;p>Pour tout vous dire, je ne sais plus me séparer de &lt;code>pgenv&lt;/code> sauf en de rares
-exceptions où mes tests nécessitent une distribution GNU/Linux spécifique, comme
-CentOS ou Debian. Une machine virtuelle fournie par &lt;a href="https://www.vagrantup.com/docs/boxes" target="_blank" rel="noopener">Vagrant&lt;/a> est tout aussi
-fiable, notamment lorsqu&amp;rsquo;il s&amp;rsquo;agit de déboguer un paquet d&amp;rsquo;installation ou
-une dépendance particulière.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">$ sudo vagrant box list
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">centos/7 (libvirt, 2004.01)
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">debian/buster64 (libvirt, 10.4.0)
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">debian/stretch64 (libvirt, 9.12.0)
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>
+&lt;p>Prenez soin de vos sauvegardes.&lt;/p></description></item></channel></rss>

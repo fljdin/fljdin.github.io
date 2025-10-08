@@ -3,7 +3,17 @@
 <a href=https://mastodon.tedomum.net/@fljdin rel=me><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
-&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/>Le partitionnement par UUID v7</a></h1><time datetime=2025-06-17 class=post-date>17 juin 2025</time><p>Au dernier PG Day 2025, j’ai pris la parole pour présenter une méthode de
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><div class=posts><article class=post><h1 class=post-title><a href=https://fljd.in/2025/10/08/sauvegardes-personnelles-avec-restic/>Sauvegardes personnelles avec Restic</a></h1><time datetime=2025-10-08 class=post-date>8 oct 2025</time><p>Ces derniers temps, j’ai mis fin à une histoire d’amour avec Debian qui aura
+duré près de trois ans. Pas que je n’aime plus le système, oh non, je le préfère
+toujours à sa cousine Ubuntu. Mais voilà, j’ai un attachement particulier à
+Archlinux depuis, wouh, au moins les bancs de l’école d’ingénieur où nous
+l’installions sur des machines virtuelles et où nous nous adonnions à la
+pratique du <a href=https://github.com/fosslife/awesome-ricing target=_blank rel=noopener>linux ricing</a> pour passer le temps.</p><p>Après une expérimentation de <a href=https://manjaro.org/ target=_blank rel=noopener>Manjaro i3</a> entre 2019 et 2022 sur mon poste
+professionnel, je me suis convaincu qu’il me fallait retourner à l’essentiel. Au
+début du mois de septembre, j’ai réussi le portage de ma <a href=https://gitlab.com/fljdin/dotfiles/-/tree/main/sway target=_blank rel=noopener>config Sway</a> de
+Debian Trixie vers Archlinux. L’occasion parfaite pour requestionner mes
+pratiques en matière de sauvegarde de poste et de remplacer <a href=/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup</a> par
+Restic.</p><small>» <a href=https://fljd.in/2025/10/08/sauvegardes-personnelles-avec-restic/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/>Le partitionnement par UUID v7</a></h1><time datetime=2025-06-17 class=post-date>17 juin 2025</time><p>Au dernier PG Day 2025, j’ai pris la parole pour présenter une méthode de
 conception que je juge mature et astucieuse : le partitionnement temporel
 avec le type UUID et sa version 7.</p><p>Le support de présentation est disponible à cette <a href=/documents/pgdayfr-2025-lightning-talk-partitionnement-uuidv7.pdf>adresse</a> et je reprendrais
 dans cet article, les exemples en guise de démonstration. Je vous propose de
@@ -32,13 +42,6 @@ exemple flagrant. Si vous êtes amené à basculer vers PostgreSQL, deux solutio
 à vous.</p><p>Une première et plus simple consiste à lier chaque nœud à son parent à l&rsquo;aide d&rsquo;une nouvelle
 colonne <code>parentid</code> et d&rsquo;y appliquer une contrainte de clé étrangère. Une autre approche,
 plus complète, consiste à utiliser l&rsquo;extension <code>ltree</code>. Cet article traite de ce dernier
-cas.</p><small>» <a href=https://fljd.in/2024/09/19/les-types-hierarchiques/>Lire la suite</a></small></article><article class=post><h1 class=post-title><a href=https://fljd.in/2024/07/30/faire-vivre-une-communaute/>Faire vivre une communauté</a></h1><time datetime=2024-07-30 class=post-date>30 juil 2024</time><p>Le <a href=https://pgday.fr/ target=_blank rel=noopener>PG Day France</a> s&rsquo;est tenu les 11 et 12 juin derniers à Lille, ma ville natale.
-Il s&rsquo;agit de l&rsquo;événement de la communauté française de PostgreSQL qui pose ses valises dans une
-ville différente chaque année. L&rsquo;occasion était trop belle pour moi et j&rsquo;y ai rencontré de nombreuses
-personnes venant de toute la France et de ses alentours, pour discuter de PostgreSQL au cours
-de deux jours d&rsquo;ateliers et de conférences.</p><p>Pour cette édition, j&rsquo;ai eu le plaisir de prendre la parole et de faire un retour d&rsquo;expérience
-sur l&rsquo;animation du groupe Meetup local dont j&rsquo;ai repris les rennes il y a maintenant quatre ans.
-Dans cet article, je souhaite retranscrire les principaux points abordés lors de cette présentation,
-en attendant que la vidéo de la conférence soit mise en ligne.</p><small>» <a href=https://fljd.in/2024/07/30/faire-vivre-une-communaute/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/2/>Page précédente</a>
-<span class="pagination-item newer">Page suivante</span></div></main><footer class=footer><small>&copy; 2019-<time datetime=2025-09-22>2025</time>
+cas.</p><small>» <a href=https://fljd.in/2024/09/19/les-types-hierarchiques/>Lire la suite</a></small></article></div><div class=pagination><a class="pagination-item older" href=/page/2/>Page précédente</a>
+<span class="pagination-item newer">Page suivante</span></div></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
