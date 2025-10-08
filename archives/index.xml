@@ -87,6 +87,9 @@ instantanés se fait sobrement avec la commande suivante.&lt;/p>
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">-----------------------------------------------------------------------------------
 &lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="go">5 snapshots
 &lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>Restic est un bon outil. Tellement bon, que la communauté Gnome l’utilise à
+présent comme &lt;em>backend&lt;/em> pour l’interface Déjà Dup dans leur dernière version
+49.0 sortie le &lt;a href="https://discourse.gnome.org/t/deja-dup-49-0-released/31441" target="_blank" rel="noopener">mois dernier&lt;/a>.&lt;/p>
 &lt;p>Pour ma part, tout se déroule bien depuis presque un mois. Il ne manque plus
 qu’à sécuriser le serveur distant qui fait office de dépôt avec ses propres
 sauvegardes ! Pour ce faire, j’envisage de mettre en place Restic sur la plupart
