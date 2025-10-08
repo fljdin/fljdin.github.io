@@ -35,7 +35,7 @@ trois mois.</p><div class=highlight><pre tabindex=0 class=chroma><code class=lan
 <a href=https://www.kernel.org/doc/html/latest/filesystems/fuse.html target=_blank rel=noopener>FUSE</a> sous Linux. Une fois encore, la <a href=https://restic.readthedocs.io/en/stable/050_restore.html#restore-using-mount target=_blank rel=noopener>documentation</a> est limpide à ce
 sujet.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=nf>sudo</span> <span class=nf>install</span> <span class=na>-o</span> <span class=nv>$USER</span> <span class=na>-g</span> <span class=nv>$USER</span> <span class=na>-d</span> /mnt/restic
 </span></span><span class=line><span class=cl><span class=nf>restic</span> mount /mnt/restic
-</span></span></code></pre></div><h2 id=planification-avec-systemctl>Planification avec systemctl</h2><p>Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
+</span></span></code></pre></div><h2 id=planification-avec-systemd>Planification avec systemd</h2><p>Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
 Debian. En lieu et place de <code>cron</code>, je planifie mes sauvegardes avec un <em>timer</em>
 utilisateur pour déclencher une tâche deux fois par jour sur mes journées de
 travail.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-toml data-lang=toml><span class=line><span class=cl><span class=c># ~/.config/systemd/user/restic.timer</span>

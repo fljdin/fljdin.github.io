@@ -38,7 +38,7 @@ trois mois.&lt;/p>
 sujet.&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">sudo&lt;/span> &lt;span class="nf">install&lt;/span> &lt;span class="na">-o&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-g&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-d&lt;/span> /mnt/restic
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> mount /mnt/restic
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="planification-avec-systemctl">Planification avec systemctl&lt;/h2>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="planification-avec-systemd">Planification avec systemd&lt;/h2>
 &lt;p>Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
 Debian. En lieu et place de &lt;code>cron&lt;/code>, je planifie mes sauvegardes avec un &lt;em>timer&lt;/em>
 utilisateur pour déclencher une tâche deux fois par jour sur mes journées de

@@ -38,7 +38,7 @@ trois mois.&lt;/p>
 sujet.&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fish" data-lang="fish">&lt;span class="line">&lt;span class="cl">&lt;span class="nf">sudo&lt;/span> &lt;span class="nf">install&lt;/span> &lt;span class="na">-o&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-g&lt;/span> &lt;span class="nv">$USER&lt;/span> &lt;span class="na">-d&lt;/span> /mnt/restic
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nf">restic&lt;/span> mount /mnt/restic
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="planification-avec-systemctl">Planification avec systemctl&lt;/h2>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="planification-avec-systemd">Planification avec systemd&lt;/h2>
 &lt;p>Je me suis prêté au même jeu qu’avec BorgBackup sur ma précédente installation
 Debian. En lieu et place de &lt;code>cron&lt;/code>, je planifie mes sauvegardes avec un &lt;em>timer&lt;/em>
 utilisateur pour déclencher une tâche deux fois par jour sur mes journées de
@@ -494,7 +494,7 @@ s&amp;rsquo;effectue à l&amp;rsquo;aide du système de fichiers &lt;a href="htt
 droit administrateur.&lt;/p>
 &lt;p>Pour être utilisé à partir de Borg, le paquet &lt;code>python-llfuse&lt;/code> sera requis selon
 votre distribution.&lt;/p>
-&lt;h2 id="planification-avec-systemctl">Planification avec systemctl&lt;/h2>
+&lt;h2 id="planification-avec-systemd">Planification avec systemd&lt;/h2>
 &lt;p>Ce fut une découverte lors de mes lectures émerveillées de la &lt;a href="https://gist.github.com/fljdin/de46c7c8d18cc37e591cb8364ecf8eef" target="_blank" rel="noopener">documentation&lt;/a>
 et des &lt;a href="https://wiki.archlinux.org/title/Borg_backup_%28Fran%C3%A7ais%29" target="_blank" rel="noopener">ressources&lt;/a> de la communauté française d&amp;rsquo;Archlinux. N&amp;rsquo;étant pas
 particulièrement fan de &lt;code>cron&lt;/code> pour un usage personnel, j&amp;rsquo;ai suivi à la lettre
