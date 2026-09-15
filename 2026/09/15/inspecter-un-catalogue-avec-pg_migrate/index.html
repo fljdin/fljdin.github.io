@@ -1,0 +1,204 @@
+<!doctype html><html lang=fr><head><title>Inspecter un catalogue avec pg_migrate</title><link rel=stylesheet href=https://fljd.in/css/main.min.css><link rel=apple-touch-icon sizes=180x180 href=/ico/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/ico/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/ico/favicon-16x16.png><link rel=manifest href=/ico/site.webmanifest><meta name=fediverse:creator content="@fljdin@mastodon.tedomum.net"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8></head><body><div class="container content"><header class=homepage><h3 class=homepage-title><a href=/ title="Florent Jardin">Florent Jardin</a>
+<small><a href=/index.xml><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#rss"/></svg></a>
+<a href=https://mastodon.tedomum.net/@fljdin rel=me><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#mastodon"/></svg></a>
+<a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
+<a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
+&nbsp;&nbsp;<a href=/conferences>Conférences</a>&nbsp;&nbsp;<a href=/archives>Archives</a>&nbsp;&nbsp;<a href=/a-propos>À propos</a></small></h3></header><main><article class=post><h1 class=post-title>Inspecter un catalogue avec pg_migrate</a></h1><p class=post-date><time datetime=2026-09-15>15 sept 2026</time>
+- 8 minutes de lecture</p><p>Au cours des dernières années, je me suis engagé à identifier les atouts et
+faiblesses d’outils dédiés à la migration vers PostgreSQL. Plusieurs articles
+<a href=/tags/migration/>publiés par mes soins</a> ont pavé le chemin vers une direction ambitieuse que
+j’entreprends depuis 2024 avec mes collègues <a href=https://bersace.cae.li/ target=_blank rel=noopener>Étienne Bersac</a> et
+<a href=https://gitlab.com/pirlgon target=_blank rel=noopener>Pierre-Louis Gonon</a>.</p><p>… Et la version stable 1.0 de PostgreSQL Migrator est <a href=https://www.postgresql.org/about/news/postgresql-migrator-10-first-stable-release-3377/ target=_blank rel=noopener>sortie le 4 septembre
+dernier</a>. L’occasion de présenter des fonctionnalités que j’utilise au
+quotidien et ce qu’elles apportent par rapport aux autres outils. Dans cet
+article, je souhaite m’attarder sur l’une d’entre elles, particulièrement
+précieuse pour préparer une migration : le <strong>catalogue hors-ligne</strong>.</p><hr><h2 id=consulter-le-catalogue-oracle>Consulter le catalogue Oracle</h2><p>Le catalogue d’une base de données relationnelle renferme la structure du
+modèle, les noms et le typage des colonnes d’une table, les options de
+contraintes, la définition d’une vue ou d’une fonction, etc. Tout ce qui est
+déclaré par l’utilisateur avec du DDL (<em>Data Definition Language</em>) est maintenu
+dans un catalogue comme unique source de vérité.</p><p>Sur les systèmes comme PostgreSQL, MySQL ou MSSQL Server, la norme encourage
+l’utilisation d’un catalogue universel, l’espace <code>information_schema</code>. Par
+exemple, on peut y questionner les noms des tables avec la même requête :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=k>table_name</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>information_schema</span><span class=p>.</span><span class=n>tables</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>table_schema</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scott&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=k>table_name</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></div><p>Cependant, ce n’est pas la solution idéale pour reconstruire un modèle de
+données. Chacun des systèmes se conforment au mieux à la norme SQL mais très
+fréquemment, ils l’enrichissent avec des extensions du langage ou prennent des
+libertés sur l’implémentation d’une fonctionnalité. Il en résulte que le
+catalogue <code>information_schema</code> n’est pas la source universelle, à peine une
+collection d’alias dans un catalogue système propre à chacun.</p><p>À présent, parlons d’Oracle et d’Ora2Pg. Si nous souhaitons recréer la structure
+d’une table depuis l’écosystème Oracle, plusieurs méthodes existent et toutes
+s’appuient sur les vues du catalogue que je présente en dernier.</p><p><strong>L’instruction DESCRIBE</strong></p><p>Certainement la moins riche des solutions mais la plus rapide pour une première
+inspection. Il s’agit d’un équivalent de la méta-commande <code>\d</code> dans psql ou du
+<code>pragma table_info</code> pour SQLite.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DESCRIBE</span><span class=w> </span><span class=n>SCOTT</span><span class=p>.</span><span class=n>EMP</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- Name     Null?    Type         
+</span></span></span><span class=line><span class=cl><span class=c1>-- -------- -------- ------------ 
+</span></span></span><span class=line><span class=cl><span class=c1>-- EMPNO    NOT NULL NUMBER(4)    
+</span></span></span><span class=line><span class=cl><span class=c1>-- ENAME             VARCHAR2(10) 
+</span></span></span><span class=line><span class=cl><span class=c1>-- JOB               VARCHAR2(9)  
+</span></span></span><span class=line><span class=cl><span class=c1>-- MGR               NUMBER(4)    
+</span></span></span><span class=line><span class=cl><span class=c1>-- HIREDATE          DATE         
+</span></span></span><span class=line><span class=cl><span class=c1>-- SAL               NUMBER(7,2)  
+</span></span></span><span class=line><span class=cl><span class=c1>-- COMM              NUMBER(7,2)  
+</span></span></span><span class=line><span class=cl><span class=c1>-- DEPTNO            NUMBER(2)    
+</span></span></span></code></pre></div><p><strong>L’API METADATA</strong></p><p>Il est possible d’employer un package Oracle très utile pour générer la
+structure d’une table au format texte SQL. Les équivalents des autres systèmes
+seraient l’instruction <code>SHOW CREATE TABLE</code> de MySQL ou encore <code>.schema</code> de
+SQLite.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>pagesize</span><span class=w> </span><span class=mi>0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>long</span><span class=w> </span><span class=mi>20000</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>dbms_metadata</span><span class=p>.</span><span class=n>get_ddl</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=n>object_type</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s1>&#39;TABLE&#39;</span><span class=p>,</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=k>schema</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s1>&#39;SCOTT&#39;</span><span class=p>,</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=n>name</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s1>&#39;EMP&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>--  CREATE TABLE &#34;SCOTT&#34;.&#34;EMP&#34;
+</span></span></span><span class=line><span class=cl><span class=c1>--   (	&#34;EMPNO&#34; NUMBER(4,0),
+</span></span></span><span class=line><span class=cl><span class=c1>--	&#34;ENAME&#34; VARCHAR2(10),
+</span></span></span><span class=line><span class=cl><span class=c1>--	&#34;JOB&#34; VARCHAR2(9),
+</span></span></span><span class=line><span class=cl><span class=c1>--	&#34;MGR&#34; NUMBER(4,0),
+</span></span></span><span class=line><span class=cl><span class=c1>--	&#34;HIREDATE&#34; DATE,
+</span></span></span><span class=line><span class=cl><span class=c1>--	&#34;SAL&#34; NUMBER(7,2),
+</span></span></span><span class=line><span class=cl><span class=c1>--	&#34;COMM&#34; NUMBER(7,2),
+</span></span></span><span class=line><span class=cl><span class=c1>--	&#34;DEPTNO&#34; NUMBER(2,0),
+</span></span></span><span class=line><span class=cl><span class=c1>--	 CONSTRAINT &#34;PK_EMP&#34; PRIMARY KEY (&#34;EMPNO&#34;)
+</span></span></span><span class=line><span class=cl><span class=c1>--  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255
+</span></span></span><span class=line><span class=cl><span class=c1>--  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+</span></span></span><span class=line><span class=cl><span class=c1>--  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+</span></span></span><span class=line><span class=cl><span class=c1>--  TABLESPACE &#34;SYSTEM&#34;  ENABLE,
+</span></span></span><span class=line><span class=cl><span class=c1>--	 CONSTRAINT &#34;FK_DEPTNO&#34; FOREIGN KEY (&#34;DEPTNO&#34;)
+</span></span></span><span class=line><span class=cl><span class=c1>--	  REFERENCES &#34;SCOTT&#34;.&#34;DEPT&#34; (&#34;DEPTNO&#34;) ENABLE
+</span></span></span><span class=line><span class=cl><span class=c1>--   ) PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+</span></span></span><span class=line><span class=cl><span class=c1>--  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+</span></span></span><span class=line><span class=cl><span class=c1>--  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+</span></span></span><span class=line><span class=cl><span class=c1>--  TABLESPACE &#34;SYSTEM&#34;
+</span></span></span></code></pre></div><p><strong>Les vues du catalogue</strong></p><p>Les résultats précédents sont compilés depuis plusieurs vues systèmes. Sans
+surprise, les explorateurs classiques comme SQL Developer ou DBeaver, ainsi
+qu’Ora2Pg et PostgreSQL Migrator, consultent directement les données des
+différentes vues pour obtenir le DDL complet.</p><p>Ora2Pg obtient la liste des tables depuis la vue <code>ALL_OBJECTS</code> et le stocke en
+mémoire dans un tableau associatif <code>$self->{tables}</code>. Puis, il itère sur
+<code>ALL_TAB_COLUMNS</code> pour collecter le détail de chaque table et les rattacher avec
+une nouvelle profondeur de ce même tableau global
+<code>$self->{tables}{$table}{column_info}{$column}</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>OWNER</span><span class=p>,</span><span class=n>A</span><span class=p>.</span><span class=n>OBJECT_NAME</span><span class=p>,</span><span class=n>A</span><span class=p>.</span><span class=n>OBJECT_TYPE</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>ALL_OBJECTS</span><span class=w> </span><span class=n>A</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=n>OBJECT_TYPE</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;TABLE&#39;</span><span class=p>,</span><span class=s1>&#39;VIEW&#39;</span><span class=p>)</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>OWNER</span><span class=o>=</span><span class=s1>&#39;SCOTT&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>COLUMN_NAME</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=n>DATA_TYPE</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=n>DATA_LENGTH</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>NULLABLE</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=n>DATA_DEFAULT</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>       </span><span class=n>A</span><span class=p>.</span><span class=n>DATA_PRECISION</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=n>DATA_SCALE</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>CHAR_LENGTH</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>TABLE_NAME</span><span class=p>,</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>OWNER</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>ALL_TAB_COLUMNS</span><span class=w> </span><span class=n>A</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>TABLE_NAME</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>LIKE</span><span class=w> </span><span class=s1>&#39;BIN$%&#39;</span><span class=w> </span><span class=k>AND</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=k>TABLE_NAME</span><span class=o>=</span><span class=s1>&#39;EMP&#39;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>A</span><span class=p>.</span><span class=n>COLUMN_ID</span><span class=w>
+</span></span></span></code></pre></div><p>La structure en mémoire <code>$self</code> que maintient Ora2Pg ne persiste pas entre deux
+exécutions. <strong>La lecture du catalogue source est nécessaire à chaque fois</strong>. En
+opposition, j’ai eu l’occasion de découvrir une alternative nommée
+<a href=https://github.com/cybertec-postgresql/db_migrator target=_blank rel=noopener>db_migrator</a>, basée sur les <em>Foreign Data Wrapper</em>. Avec cette solution,
+le catalogue est stockée dans une base de données PostgreSQL.</p><p>Il était alors simple de lancer une inspection avec la méthode
+<code>db_migrate_refresh()</code> pour créer un instantané du catalogue distant et de
+pouvoir le questionner hors-ligne, sans se reconnecter à l’instance Oracle. De
+cette découverte émergera les premiers tâtonnements du catalogue au format JSON
+de PostgreSQL Migrator.</p><hr><h2 id=questionner-du-json>Questionner du JSON</h2><p>Le stockage du catalogue requiert un format structuré, stable et non
+contraignant. <em>De facto</em>, le choix de conserver les données dans des tables
+PostgreSQL nous est apparu inadapté, bien qu’élégant pour des yeux de DBA.
+L’outil PostgreSQL Migrator se vante d’être portable et nous ne souhaitions pas
+encombrer l’instance PostgreSQL finale d’un schéma transitoire.</p><p>Comme Ora2Pg, une structure mémoire <code>Catalog</code> (<code>internal/catalog/catalog.go</code>)
+est initialisée au début de l’inspection. Ce catalogue peut être étendu en
+fonction que la source soit une base Oracle ou MySQL/MariaDB, pour collecter les
+objets spécifiques du moteur, comme les <em>packages</em> ou les synonymes. Dès lors
+que la lecture du catalogue distant est réalisée, il suffit de sérialiser la
+structure dans un fichier JSON. Actuellement, la version 1.0 s’appuit sur le
+module <a href=https://github.com/bytedance/sonic target=_blank rel=noopener>sonic</a>.</p><p>L’inspection est la première étape pour démarrer un projet avec <code>pg_migrate</code>, le
+petit nom de l’interface en ligne de commande (<em>CLI</em>) de PostgreSQL Migrator.
+Après avoir initialisé un dossier vide et valider l’accès à la base distante
+Oracle, les traces nous invitent à exécuter la commande <code>pg_migrate inspect</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> ora-scott <span class=o>&amp;&amp;</span> <span class=nb>cd</span> ora-scott
+</span></span><span class=line><span class=cl><span class=gp>$</span> pg_migrate init --source <span class=s2>&#34;oracle://system:manager@localhost:1521/freepdb1&#34;</span>
+</span></span><span class=line><span class=cl><span class=go>14:55:28 INFO   Databases connections closed.    source=1 target=0
+</span></span></span><span class=line><span class=cl><span class=go>14:55:28 INFO   Initialized migration project.   source=&#34;Oracle Database 23ai Free&#34;
+</span></span></span><span class=line><span class=cl><span class=go>14:55:28 INFO   Inspect source catalog using pg_migrate inspect.
+</span></span></span><span class=line><span class=cl><span class=gp>$</span> pg_migrate --verbose inspect
+</span></span><span class=line><span class=cl><span class=go>14:56:03 DEBUG  Cache miss.                      name=Source
+</span></span></span><span class=line><span class=cl><span class=go>14:56:03 INFO   Inspecting source database.      driver=oracle
+</span></span></span><span class=line><span class=cl><span class=go>14:56:03 INFO   This may take some time.
+</span></span></span><span class=line><span class=cl><span class=go>14:56:04 DEBUG  Inspected schemas.               count=1 duration=84.735201ms
+</span></span></span><span class=line><span class=cl><span class=go>14:56:05 DEBUG  Inspected roles.                 count=6 duration=465.814794ms
+</span></span></span><span class=line><span class=cl><span class=go>14:56:06 DEBUG  Inspected sequences.             count=0 duration=1.050025889s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:07 DEBUG  Inspected routines.              count=0 duration=2.794483231s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:07 DEBUG  Inspected views.                 count=0 duration=2.63147026s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:21 DEBUG  Inspected tables.                count=4 duration=15.720365706s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:31 DEBUG  Inspected columns.               count=18 duration=10.735219841s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:41 DEBUG  Inspected keys.                  count=2 duration=19.945416304s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:44 DEBUG  Inspected tables-indexes.        count=0 duration=23.287211484s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:48 DEBUG  Inspected foreign-keys.          count=1 duration=6.525976802s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:58 DEBUG  Inspected checks.                count=0 duration=10.622190194s
+</span></span></span><span class=line><span class=cl><span class=go>14:56:58 INFO   Inspected schema.                name=SCOTT
+</span></span></span><span class=line><span class=cl><span class=go>14:56:58 DEBUG  Inspection completed.            duration=54.968668546s
+</span></span></span><span class=line><span class=cl><span class=go>...
+</span></span></span><span class=line><span class=cl><span class=go>14:57:12 INFO   Inspection terminated.           errs=0 online=true
+</span></span></span><span class=line><span class=cl><span class=go>14:57:12 INFO   Execute pg_migrate ui to browse project.
+</span></span></span><span class=line><span class=cl><span class=go>14:57:12 INFO   Execute pg_migrate dump to migrate for PostgreSQL.
+</span></span></span></code></pre></div><p>Lors d’une première exécution, le catalogue local est inexistant (<code>Cache miss. name=Source</code>), ce qui provoque une connexion à la base distante pour le créer de
+toute pièce. Les fichiers de cache sont écrits dans le dossier caché
+<code>.pg_migrate</code>. Le catalogue de la source se nomme sobrement <code>Source.json</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> tree .pg_migrate/
+</span></span><span class=line><span class=cl><span class=go>.pg_migrate
+</span></span></span><span class=line><span class=cl><span class=go>├── Info.json
+</span></span></span><span class=line><span class=cl><span class=go>├── Map.json
+</span></span></span><span class=line><span class=cl><span class=go>├── Source.json
+</span></span></span><span class=line><span class=cl><span class=go>├── Stats.json
+</span></span></span><span class=line><span class=cl><span class=go>└── Target.json
+</span></span></span></code></pre></div><p>Il a alors fallu me faire violence pour mettre de côté mes précieuses
+connaissances en SQL pour apprendre le langage <code>jq</code> afin de questionner les
+fichiers JSON d’un projet <code>pg_migrate</code>. Par exemple, le filtre suivant liste
+toutes les colonnes et leurs types de la table <code>SCOTT.EMP</code> :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> <span class=nb>set</span> filter <span class=s1>&#39;.Tables[] | select (.Name == &#34;EMP&#34;) | .Columns[] | .objectDefinition&#39;</span>
+</span></span><span class=line><span class=cl><span class=gp>$</span> jq -r <span class=nv>$filter</span> &lt; .pg_migrate/Source.json
+</span></span><span class=line><span class=cl><span class=go>EMPNO NUMBER(4, 0) NOT NULL
+</span></span></span><span class=line><span class=cl><span class=go>ENAME VARCHAR2(10)
+</span></span></span><span class=line><span class=cl><span class=go>JOB VARCHAR2(9)
+</span></span></span><span class=line><span class=cl><span class=go>MGR NUMBER(4, 0)
+</span></span></span><span class=line><span class=cl><span class=go>HIREDATE DATE
+</span></span></span><span class=line><span class=cl><span class=go>SAL NUMBER(7, 2)
+</span></span></span><span class=line><span class=cl><span class=go>COMM NUMBER(7, 2)
+</span></span></span><span class=line><span class=cl><span class=go>DEPTNO NUMBER(2, 0)
+</span></span></span></code></pre></div><p>Bien évidemment, l’outil a fait un très long chemin depuis 2024 et cette
+architecture de catalogue hors-ligne est devenue la colonne vertébrale du
+produit. Ces fichiers ont permis d’explorer des possibilités jusqu’ici
+inatteignables avec Ora2Pg, en plus du mode hors-ligne.</p><ul><li>La conversion passe d’un fichier <code>Source.json</code> à un fichier <code>Target.json</code> en
+lui appliquant des règles de conversion génériques et spécifiques ;</li><li>Une phase d’audit parcourt tous les nœuds pour appliquer un score, voire des
+annotations sur les difficultés de conversion ;</li><li>Une interface Web de type SPA (<em>single page app</em>) permet d’explorer les deux
+modèles (source et cible) pour se passer des filtres <code>jq</code>.</li></ul><p>L’outil vient avec une commande <code>dump</code>, que l’on peut détourner pour récupérer
+la forme DDL d’un objet stocké dans le <code>Target.json</code>. Pour le moment, la
+commande complète est la suivante :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-console data-lang=console><span class=line><span class=cl><span class=gp>$</span> pg_migrate dump --force --section<span class=o>=</span>pre-data Tables/scott.emp 2&gt;/dev/null <span class=p>|</span> cat
+</span></span><span class=line><span class=cl><span class=go>--
+</span></span></span><span class=line><span class=cl><span class=go>-- Name: emp; Type: TABLE; Schema: scott; Owner: scott
+</span></span></span><span class=line><span class=cl><span class=go>--
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=go>CREATE TABLE &#34;scott&#34;.&#34;emp&#34; (
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;empno&#34; smallint NOT NULL,
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;ename&#34; varchar(10),
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;job&#34; varchar(9),
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;mgr&#34; smallint,
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;hiredate&#34; timestamp,
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;sal&#34; numeric(7, 2),
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;comm&#34; numeric(7, 2),
+</span></span></span><span class=line><span class=cl><span class=go>  &#34;deptno&#34; smallint
+</span></span></span><span class=line><span class=cl><span class=go>);
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=go>ALTER TABLE &#34;scott&#34;.&#34;emp&#34; OWNER TO &#34;scott&#34;;
+</span></span></span></code></pre></div><hr><h2 id=conclusion>Conclusion</h2><p>Je suis profondément fier du travail accompli avec cette première version
+stable. Nous concluons une aventure palpitante avec mes collègues chez Dalibo,
+celle de plus de deux ans de développement d’un outil libre et gratuit et qui a
+vocation à dépasser son illustre prédécesseur Ora2Pg. La <a href=https://postgresql-migrator.readthedocs.io/en/latest/references/features/ target=_blank rel=noopener>feuille de route</a>
+est claire. Nous avons un retard métier conséquent sur la référence open-source
+de la migration, mais nous ne rougissont pas. Les fondations sont solides, le
+langage Go permet de répondre à de véritables besoins de simplification et de
+modernité.</p><p>À l’heure où les empires du numérique se gavent de nos données métiers, qu’ils
+siphonnent la valeur travail de nos entreprises, il est urgent de réagir et de
+croire qu’un autre numérique est possible. Les projets de migration deviennent
+complexes, exigeants, avec des profils très variés, nous tentons d’apporter une
+réponse qui ne repose pas exclusivement sur des agents LLM ou des services
+américains.</p><p>La voie du logiciel libre est devant nous depuis des décennies, il ne manque que
+les passerelles qui permettent de tourner le dos à ces technologies privatives
+de liberté, d’innovation et de moyens. À mon échelle de DBA et de <em>Product
+Owner</em>, engagé dans la coopérative Dalibo, j’œuvre pour cette urgence
+collective.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/>Substituer une variable dans un script SQL
+<small><time datetime=2024-11-25>25 nov 2024</time></small></a></li><li><a href=https://fljd.in/2024/05/28/un-assistant-pour-copier-les-donnees-distantes/>Un assistant pour copier les données distantes
+<small><time datetime=2024-05-28>28 mai 2024</time></small></a></li><li><a href=https://fljd.in/2023/10/11/les-modes-de-transfert-dans-une-migration/>Les modes de transfert dans une migration
+<small><time datetime=2023-10-11>11 oct 2023</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
+— <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
