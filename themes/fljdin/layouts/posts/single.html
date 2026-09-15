@@ -3,7 +3,7 @@
   <h1 class="post-title">{{ .Title }}</a></h1>
 
   <p class="post-date">
-    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ i18n "abrDate" . }}</time>
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ partial "date.html" . }}</time>
     - {{ i18n "readingTime" .ReadingTime }}
   </p>
 
@@ -27,7 +27,7 @@
     {{ range . }}
       <li>
         <a href="{{ .Permalink }}">{{ .Title }}
-          <small><time datetime="{{ .Date.Format "2006-01-02" }}">{{ i18n "abrDate" . }}</time></small>
+          <small><time datetime="{{ .Date.Format "2006-01-02" }}">{{ partial "date.html" . }}</time></small>
         </a>
       </li>
     {{ end }}

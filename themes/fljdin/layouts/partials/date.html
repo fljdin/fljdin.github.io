@@ -1,0 +1,1 @@
+{{ .Date.Day }} {{ index (index hugo.Data.months site.Language.Lang) (printf `%d` .Date.Month) }} {{ .Date.Year }}

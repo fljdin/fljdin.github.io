@@ -4,7 +4,7 @@
   <div class="posts">
     <ul>
       {{ range .Pages -}}
-      <li>{{ i18n "abrDate" . }} » <a href="{{ .Permalink }}">{{ .Title }}</a>
+      <li>{{ partial "date.html" . }} » <a href="{{ .Permalink }}">{{ .Title }}</a>
       </li>
       {{ end }}
     </ul>

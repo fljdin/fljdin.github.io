@@ -1,6 +1,6 @@
 {{ define "main" }}
-{{ $current := (where ($.Site.Data.talks) "lang" "eq" $.Site.Language.Lang) }}
-{{ $others := (where ($.Site.Data.talks) "lang" "ne" $.Site.Language.Lang) }}
+{{ $current := (where (hugo.Data.talks) "lang" "eq" $.Site.Language.Lang) }}
+{{ $others := (where (hugo.Data.talks) "lang" "ne" $.Site.Language.Lang) }}
 
 <article class="page">
   <h1 class="page-title">{{ .Title }}</h1>

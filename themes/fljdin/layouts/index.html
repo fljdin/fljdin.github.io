@@ -1,7 +1,7 @@
 {{ define "main" }}
 
 <div class="posts">
-{{ range .Paginator.Pages }}
+{{ range (.Paginate (where site.RegularPages "Section" "posts")).Pages }}
   {{ .Render "summary" }}
 {{ end }}
 </div>
