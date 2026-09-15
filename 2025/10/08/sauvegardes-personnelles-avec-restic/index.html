@@ -26,8 +26,8 @@ le <a href=https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html
 mise en place d’un dépôt est simplifiée à l’extrême :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=k>set</span> <span class=na>-x</span> <span class=nv>RESTIC_REPOSITORY</span> <span class=s2>&#34;sftp:&lt;server&gt;:&lt;directory&gt;&#34;</span>
 </span></span><span class=line><span class=cl><span class=nf>restic</span> init
 </span></span><span class=line><span class=cl><span class=nf>restic</span> backup ~ <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=na>--dry-run</span> <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>  <span class=na>--exclude-file</span> ~/.config/restic/excludes.txt
+</span></span></span><span class=line><span class=cl>  <span class=na>--dry-run</span> <span class=se>\
+</span></span></span><span class=line><span class=cl>  <span class=na>--exclude-file</span> ~/.config/restic/excludes.txt
 </span></span></code></pre></div><p>Je ne suis pas en reste avec une gestion poussée des stratégies de rétention des
 instantanés. Pour l’exemple, je maintiens une sauvegarde par semaine, pendant
 trois mois.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-fish data-lang=fish><span class=line><span class=cl><span class=nf>restic</span> forget <span class=na>--prune</span> <span class=na>--keep-within-weekly</span> 3m
@@ -86,5 +86,5 @@ des répertoires d’importances de mon serveur multimédia, en gardant bien en
 mémoire le principe 3-2-1 de la sauvegarde réussie.</p><p>Prenez soin de vos sauvegardes.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
 <small><time datetime=2021-08-24>24 août 2021</time></small></a></li><li><a href=https://fljd.in/2022/09/29/construire-postgresql-avec-meson/>Construire PostgreSQL avec Meson
 <small><time datetime=2022-09-29>29 sept 2022</time></small></a></li><li><a href=https://fljd.in/2024/07/30/faire-vivre-une-communaute/>Faire vivre une communauté
-<small><time datetime=2024-07-30>30 juil 2024</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+<small><time datetime=2024-07-30>30 juil 2024</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

@@ -1,153 +1,153 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Migration on Discovery notebook</title><link>https://fljd.in/en/categories/migration/</link><description>Recent content in Migration on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 28 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/en/categories/migration/index.xml" rel="self" type="application/rss+xml"/><item><title>On the road to freedom with db_migrator</title><link>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</guid><description>&lt;p>Over the past months, I have spent several weeks contributing to the
-&lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a> extension. Written solely in PL/pgSQL, it enables the migration of
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Migration on Discovery notebook</title><link>https://fljd.in/en/categories/migration/</link><description>Recent content in Migration on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Fri, 28 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://fljd.in/en/categories/migration/index.xml" rel="self" type="application/rss+xml"/><item><title>On the road to freedom with db_migrator</title><link>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</link><pubDate>Fri, 28 Jul 2023 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/</guid><description>&lt;p&gt;Over the past months, I have spent several weeks contributing to the
+&lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener"&gt;db_migrator&lt;/a&gt; extension. Written solely in PL/pgSQL, it enables the migration of
 schemas and data from a database system to PostgreSQL using the external data I
-had presented &lt;a href="https://fljd-in.translate.goog/2021/07/16/parlons-un-peu-des-donnees-externes/?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">few years ago&lt;/a>.&lt;/p>
-&lt;p>In this post, I present the functionality of the tool, its philosophy, and
+had presented &lt;a href="https://fljd-in.translate.goog/2021/07/16/parlons-un-peu-des-donnees-externes/?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener"&gt;few years ago&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;In this post, I present the functionality of the tool, its philosophy, and
 the reason I found for its existence, even though it joins the ecosystem of
 well-established open-source projects in the migration landscape. How does it
-compare to &lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener">Ora2Pg&lt;/a> or &lt;a href="https://pgloader.io/" target="_blank" rel="noopener">pgloader&lt;/a> in terms of value and capabilities?&lt;/p>
-&lt;hr>
-&lt;h2 id="db_migrator-enters-the-arena">db_migrator enters the arena&lt;/h2>
-&lt;p>My interest in this project dates back to last December when a &lt;a href="https://blog-dalibo-com.translate.goog/2022/12/21/depart_philippe.html?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">colleague from
-Dalibo&lt;/a> left us a &lt;a href="https://github.com/dalibo/data2pg" target="_blank" rel="noopener">similar tool&lt;/a>, which allowed copying data from Oracle
+compare to &lt;a href="https://ora2pg.darold.net/" target="_blank" rel="noopener"&gt;Ora2Pg&lt;/a&gt; or &lt;a href="https://pgloader.io/" target="_blank" rel="noopener"&gt;pgloader&lt;/a&gt; in terms of value and capabilities?&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="db_migrator-enters-the-arena"&gt;db_migrator enters the arena&lt;/h2&gt;
+&lt;p&gt;My interest in this project dates back to last December when a &lt;a href="https://blog-dalibo-com.translate.goog/2022/12/21/depart_philippe.html?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener"&gt;colleague from
+Dalibo&lt;/a&gt; left us a &lt;a href="https://github.com/dalibo/data2pg" target="_blank" rel="noopener"&gt;similar tool&lt;/a&gt;, which allowed copying data from Oracle
 or Sybase instances using Foreign Data Wrappers (FDW) technology. Although this
-tool remained in alpha, many good ideas were experimented with internally.&lt;/p>
-&lt;p>The promise of FDWs lies in adhering to the SQL/MED standard, allowing a
+tool remained in alpha, many good ideas were experimented with internally.&lt;/p&gt;
+&lt;p&gt;The promise of FDWs lies in adhering to the SQL/MED standard, allowing a
 PostgreSQL instance to interface with another storage system and manipulate its
 data through external tables using simple SQL queries. Therefore, provided that
 a community has developed the wrapper, it becomes possible to query a remote
 catalog, replicate the structure of tables, their relationships, and
-constraints, and &lt;a href="https://fljd-in.translate.goog/2021/12/06/migrer-vers-postgresql/?_x_tr_sl=en&amp;amp;_x_tr_tl=fr&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">retrieve data&lt;/a> into PostgreSQL.&lt;/p>
-&lt;p>And &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener">db_migrator&lt;/a> enters the arena.&lt;/p>
-&lt;p>Made public in November 2019 by Laurenz Albe, well-known for his active
-contributions to PostgreSQL for decades and also for developing &lt;a href="https://github.com/laurenz/oracle_fdw" target="_blank" rel="noopener">oracle_fdw&lt;/a>,
-the extension presents itself as a generic tool where one must use &lt;em>plugins&lt;/em> for
+constraints, and &lt;a href="https://fljd-in.translate.goog/2021/12/06/migrer-vers-postgresql/?_x_tr_sl=en&amp;amp;_x_tr_tl=fr&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener"&gt;retrieve data&lt;/a&gt; into PostgreSQL.&lt;/p&gt;
+&lt;p&gt;And &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener"&gt;db_migrator&lt;/a&gt; enters the arena.&lt;/p&gt;
+&lt;p&gt;Made public in November 2019 by Laurenz Albe, well-known for his active
+contributions to PostgreSQL for decades and also for developing &lt;a href="https://github.com/laurenz/oracle_fdw" target="_blank" rel="noopener"&gt;oracle_fdw&lt;/a&gt;,
+the extension presents itself as a generic tool where one must use &lt;em&gt;plugins&lt;/em&gt; for
 FDW support. It is easy to create new plugins, as I discovered with the
-&lt;a href="https://github.com/fljdin/mysql_migrator" target="_blank" rel="noopener">mysql_migrator&lt;/a> plugin, written in just a few days, thanks to the comprehensive
-documentation of the &lt;a href="https://github.com/cybertec-postgresql/db_migrator#plugin-api" target="_blank" rel="noopener">API for plugins&lt;/a>.&lt;/p>
-&lt;p>After installing the extensions with &lt;code>make install&lt;/code> and the appropriate FDW for
+&lt;a href="https://github.com/fljdin/mysql_migrator" target="_blank" rel="noopener"&gt;mysql_migrator&lt;/a&gt; plugin, written in just a few days, thanks to the comprehensive
+documentation of the &lt;a href="https://github.com/cybertec-postgresql/db_migrator#plugin-api" target="_blank" rel="noopener"&gt;API for plugins&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;After installing the extensions with &lt;code&gt;make install&lt;/code&gt; and the appropriate FDW for
 the system, it is necessary to create the objects in the database that will hold
-the future schemas and their data.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">EXTENSION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql_fdw&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">EXTENSION&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql_migrator&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">CASCADE&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">SERVER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOREIGN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">DATA&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">WRAPPER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql_fdw&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPTIONS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">host&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_db&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">fetch_size&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;1000&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">CREATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">USER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">MAPPING&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FOR&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">PUBLIC&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">SERVER&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">mysql&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">OPTIONS&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">username&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;root&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">password&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;password&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The migration process can be performed in a single command for the simplest
-cases (no stored procedures or exotic column types) using the &lt;code>db_migrate()&lt;/code>
+the future schemas and their data.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;EXTENSION&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql_fdw&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;EXTENSION&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql_migrator&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;CASCADE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;SERVER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FOREIGN&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;DATA&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;WRAPPER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql_fdw&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;OPTIONS&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;host&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_db&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;fetch_size&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;1000&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;USER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;MAPPING&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FOR&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;PUBLIC&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;SERVER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;OPTIONS&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;username&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;root&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;password&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The migration process can be performed in a single command for the simplest
+cases (no stored procedures or exotic column types) using the &lt;code&gt;db_migrate()&lt;/code&gt;
 method. Otherwise, for more complex scenarios requiring adjustments such as
 changing column types or removing a table in the target schema, the migration
-may involve multiple steps.&lt;/p>
-&lt;p>During the development of the &lt;code>mysql_migration&lt;/code> extension, I started with the
-sample database &lt;a href="https://dev.mysql.com/doc/sakila/en/" target="_blank" rel="noopener">Sakila&lt;/a> provided by MySQL to have comprehensive complexity.
+may involve multiple steps.&lt;/p&gt;
+&lt;p&gt;During the development of the &lt;code&gt;mysql_migration&lt;/code&gt; extension, I started with the
+sample database &lt;a href="https://dev.mysql.com/doc/sakila/en/" target="_blank" rel="noopener"&gt;Sakila&lt;/a&gt; provided by MySQL to have comprehensive complexity.
 The first step involves creating two internal schemas, one with external tables
 provided by the plugin and the other with catalog tables that can be edited
-before the extension continues the migration.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_prepare&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">only_schemas&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;{sakila}&amp;#39;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>This part can be relatively lengthy, as it involves retrieving the data model,
+before the extension continues the migration.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_prepare&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;only_schemas&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{sakila}&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This part can be relatively lengthy, as it involves retrieving the data model,
 which I refer to as the catalog, in the form of several tables that describe the
 structure of tables, column names, and associated constraints. The extension
 also imports the sources of all stored procedures, functions, and views but does
-not perform their conversion to PL/pgSQL (you cannot imagine the &lt;a href="https://blog-dalibo-com.translate.goog/2020/12/21/migration_oracle_vers_postgresql.html?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener">amount of work
-involved&lt;/a>).&lt;/p>
-&lt;p>For the migration of the Sakila database, several modifications to the catalog
+not perform their conversion to PL/pgSQL (you cannot imagine the &lt;a href="https://blog-dalibo-com.translate.goog/2020/12/21/migration_oracle_vers_postgresql.html?_x_tr_sl=fr&amp;amp;_x_tr_tl=en&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener"&gt;amount of work
+involved&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;For the migration of the Sakila database, several modifications to the catalog
 are necessary. Like the rest of this extension, all the preparation is done in
-SQL, making it easy to automate with a single script serving as configuration.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="cm">/* exclude bytea columns from migration */&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">DELETE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgsql_stage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">columns&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">type_name&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;bytea&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="cm">/* quote character expression */&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgsql_stage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">columns&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">quote_literal&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">NOT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">regexp_like&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;^\-?[0-9]+$&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="k">AND&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">default_value&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">&amp;lt;&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;CURRENT_TIMESTAMP&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="cm">/* disable view migration */&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">UPDATE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">pgsql_stage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">views&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SET&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">migrate&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">false&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Of course, we could go further, such as reinjecting the definition of rewritten
-views into the &lt;code>pgsql_stage.views&lt;/code> table or enabling the migration of procedures
-by changing the &lt;code>migrate&lt;/code> column of the &lt;code>pgsql_stage.functions&lt;/code> table. However,
-let&amp;rsquo;s proceed with the next step.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_mkforeign&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">server&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql&amp;#39;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_tables&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The first method, &lt;code>db_migrate_mkforeign()&lt;/code>, is responsible for creating schemas
+SQL, making it easy to automate with a single script serving as configuration.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="cm"&gt;/* exclude bytea columns from migration */&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;DELETE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;pgsql_stage&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;type_name&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;bytea&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="cm"&gt;/* quote character expression */&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;pgsql_stage&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;columns&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;SET&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;default_value&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;quote_literal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;default_value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;regexp_like&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;default_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;^\-?[0-9]+$&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;AND&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;default_value&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;CURRENT_TIMESTAMP&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="cm"&gt;/* disable view migration */&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;pgsql_stage&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;views&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;SET&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;migrate&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Of course, we could go further, such as reinjecting the definition of rewritten
+views into the &lt;code&gt;pgsql_stage.views&lt;/code&gt; table or enabling the migration of procedures
+by changing the &lt;code&gt;migrate&lt;/code&gt; column of the &lt;code&gt;pgsql_stage.functions&lt;/code&gt; table. However,
+let&amp;rsquo;s proceed with the next step.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_mkforeign&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_tables&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The first method, &lt;code&gt;db_migrate_mkforeign()&lt;/code&gt;, is responsible for creating schemas
 and sequences, followed by foreign tables with columns based on the previous
 adjustments. Next comes the most crucial step, where we execute the function
-&lt;code>db_migrate_tables()&lt;/code>: blank tables are created with their partitions if
-necessary, and for each of them, the data copying begins using the &lt;code>INSERT INTO SELECT *&lt;/code> statement.&lt;/p>
-&lt;p>Other objects, such as indexes or constraints, have their own methods. It is
+&lt;code&gt;db_migrate_tables()&lt;/code&gt;: blank tables are created with their partitions if
+necessary, and for each of them, the data copying begins using the &lt;code&gt;INSERT INTO SELECT *&lt;/code&gt; statement.&lt;/p&gt;
+&lt;p&gt;Other objects, such as indexes or constraints, have their own methods. It is
 necessary to create the functions before these objects if you encounter
-functional indexes or other similar cases.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_functions&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_triggers&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_views&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_indexes&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_constraints&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">plugin&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&amp;gt;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s1">&amp;#39;mysql_migrator&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="message">It is possible that this mechanism may change in the future, especially if I
-manage to realize this &lt;a href="https://github.com/cybertec-postgresql/db_migrator/issues/26" target="_blank" rel="noopener">issue&lt;/a>, which would allow breaking down the
-&lt;code>db_migrate_*()&lt;/code> methods into smaller steps.&lt;/div>
-&lt;p>The end of the migration process involves deleting the temporary schemas that
-contained the catalog tables.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">db_migrate_finish&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
-&lt;h2 id="one-more-migration-tool">One more migration tool&lt;/h2>
-&lt;p>As I mentioned in the introduction, it is quite surprising to see a new
-migration tool emerge in 2023 (the version 1.0.0 was &lt;a href="https://github.com/cybertec-postgresql/db_migrator/blob/master/CHANGELOG.md" target="_blank" rel="noopener">released in January&lt;/a>
+functional indexes or other similar cases.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_functions&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_triggers&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_views&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_indexes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_constraints&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;plugin&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql_migrator&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="message"&gt;It is possible that this mechanism may change in the future, especially if I
+manage to realize this &lt;a href="https://github.com/cybertec-postgresql/db_migrator/issues/26" target="_blank" rel="noopener"&gt;issue&lt;/a&gt;, which would allow breaking down the
+&lt;code&gt;db_migrate_*()&lt;/code&gt; methods into smaller steps.&lt;/div&gt;
+&lt;p&gt;The end of the migration process involves deleting the temporary schemas that
+contained the catalog tables.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;db_migrate_finish&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
+&lt;h2 id="one-more-migration-tool"&gt;One more migration tool&lt;/h2&gt;
+&lt;p&gt;As I mentioned in the introduction, it is quite surprising to see a new
+migration tool emerge in 2023 (the version 1.0.0 was &lt;a href="https://github.com/cybertec-postgresql/db_migrator/blob/master/CHANGELOG.md" target="_blank" rel="noopener"&gt;released in January&lt;/a&gt;
 with my patch on partitioning). In the open-source landscape, we can mention
-&lt;strong>Ora2Pg&lt;/strong>, which released its &lt;a href="https://github.com/darold/ora2pg/releases/tag/v24.0" target="_blank" rel="noopener">version 24.0&lt;/a> in July with SQL Server
-support, and &lt;strong>pgloader&lt;/strong>, which has an excellent reputation.&lt;/p>
-&lt;p>A vast number of projects are listed on the &lt;a href="https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL" target="_blank" rel="noopener">community wiki&lt;/a>. Some are
+&lt;strong&gt;Ora2Pg&lt;/strong&gt;, which released its &lt;a href="https://github.com/darold/ora2pg/releases/tag/v24.0" target="_blank" rel="noopener"&gt;version 24.0&lt;/a&gt; in July with SQL Server
+support, and &lt;strong&gt;pgloader&lt;/strong&gt;, which has an excellent reputation.&lt;/p&gt;
+&lt;p&gt;A vast number of projects are listed on the &lt;a href="https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL" target="_blank" rel="noopener"&gt;community wiki&lt;/a&gt;. Some are
 specialized for a single system, while others support migration for multiple
 systems. The majority of these projects are either proprietary or lack recent
 contributions. Many of them are black boxes, and their documentation may appear
-cryptic or almost non-existent.&lt;/p>
-&lt;p>The ecosystem is rich, and I do not claim to know all of its aspects, but I have
+cryptic or almost non-existent.&lt;/p&gt;
+&lt;p&gt;The ecosystem is rich, and I do not claim to know all of its aspects, but I have
 had an intuition that I have been forming over the past few years. The global
 economy is in a state of turmoil. Some companies are doing well, while others
 are making budget cuts. The transition to a free and non-commercially licensed
 system like PostgreSQL remains relevant, perhaps even more urgent today compared
-to the past decade.&lt;/p>
-&lt;p>And yet, with my DBA perspective, I am not fully satisfied with the existing
+to the past decade.&lt;/p&gt;
+&lt;p&gt;And yet, with my DBA perspective, I am not fully satisfied with the existing
 tools. I wish for a new alternative, something universal and accessible to
-everyone. If I turn to &lt;strong>db_migrator&lt;/strong> today, it would be for the following main
-advantages:&lt;/p>
-&lt;ul>
-&lt;li>
-&lt;p>A low-level implementation close to the instance: using PL/pgSQL as the
+everyone. If I turn to &lt;strong&gt;db_migrator&lt;/strong&gt; today, it would be for the following main
+advantages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;A low-level implementation close to the instance: using PL/pgSQL as the
 exclusive language. This would not have been possible without the prolific
-development of &lt;a href="https://wiki.postgresql.org/wiki/Foreign_data_wrappers" target="_blank" rel="noopener">Foreign Data Wrappers&lt;/a> for a wide range of systems;&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>A high level of configuration flexibility: adjustments are made with &lt;code>UPDATE&lt;/code>
-or &lt;code>DELETE&lt;/code> queries on the catalog. Once one is familiar with the model of the
+development of &lt;a href="https://wiki.postgresql.org/wiki/Foreign_data_wrappers" target="_blank" rel="noopener"&gt;Foreign Data Wrappers&lt;/a&gt; for a wide range of systems;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;A high level of configuration flexibility: adjustments are made with &lt;code&gt;UPDATE&lt;/code&gt;
+or &lt;code&gt;DELETE&lt;/code&gt; queries on the catalog. Once one is familiar with the model of the
 catalog, it becomes easy to change behavior without consulting technical
-documentation on the available options;&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>Freedom in orchestration: currently, executions are triggered sequentially for
+documentation on the available options;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Freedom in orchestration: currently, executions are triggered sequentially for
 indexes and constraints, but the tool&amp;rsquo;s architecture could allow external
-tools to consume the extension&amp;rsquo;s results and trigger operations in parallel;&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>Plugins have the freedom to enrich migration: if an operation is not generic,
+tools to consume the extension&amp;rsquo;s results and trigger operations in parallel;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Plugins have the freedom to enrich migration: if an operation is not generic,
 it is entirely possible to provide an additional method through the plugin.
-For example, the incremental copy (and its &lt;a href="https://github.com/cybertec-postgresql/ora_migrator#replication-functions" target="_blank" rel="noopener">replication functions&lt;/a>) in the
-&lt;strong>ora_migrator&lt;/strong> plugin or the conversion of auto-increments to identity
-columns with the &lt;strong>mysql_migrator&lt;/strong> plugin.&lt;/p>
-&lt;/li>
-&lt;/ul>
-&lt;p>The road to freedom still seems long to achieve half of what Ora2Pg already
+For example, the incremental copy (and its &lt;a href="https://github.com/cybertec-postgresql/ora_migrator#replication-functions" target="_blank" rel="noopener"&gt;replication functions&lt;/a&gt;) in the
+&lt;strong&gt;ora_migrator&lt;/strong&gt; plugin or the conversion of auto-increments to identity
+columns with the &lt;strong&gt;mysql_migrator&lt;/strong&gt; plugin.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The road to freedom still seems long to achieve half of what Ora2Pg already
 offers, especially when it comes to automatic conversion, which is not on the
-agenda at all. But with small, regular, and thoughtful advancements, who knows?&lt;/p></description></item></channel></rss>
+agenda at all. But with small, regular, and thoughtful advancements, who knows?&lt;/p&gt;</description></item></channel></rss>

@@ -49,12 +49,12 @@ will not discuss here.</p><hr><h2 id=rebuilding-an-abstract-tree>Rebuilding an a
 This feature is quite common, it involves putting several pieces of expressions
 together to write a SQL query whose parts (columns, tables, conditions) may vary.
 Here is former prototype of the code:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DO</span><span class=w> </span><span class=err>$</span><span class=n>prototype$</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>DECLARE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>DECLARE</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>r</span><span class=w> </span><span class=n>record</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_columns</span><span class=w> </span><span class=nb>text</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_tabname</span><span class=w> </span><span class=nb>text</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_values</span><span class=w> </span><span class=nb>text</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=err>$$</span><span class=w> </span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;test&#39;</span><span class=w> </span><span class=err>$$</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>value</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>v_tabname</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>FROM</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;table_name&#39;</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
@@ -65,8 +65,8 @@ Here is former prototype of the code:</p><div class=highlight><pre tabindex=0 cl
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=s1>&#39;INSERT INTO %s (%s) VALUES (%s);&#39;</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>v_tabname</span><span class=p>,</span><span class=w> </span><span class=n>v_columns</span><span class=p>,</span><span class=w> </span><span class=n>v_values</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$</span><span class=n>prototype$</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=err>$</span><span class=n>prototype$</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Content of the <code>config</code> table is under the logic and could be critical when
 constructing a syntactically correct <code>INSERT</code> statement. In addition, in the more
 than likely event that my needs are getting finer, this procedural code will
@@ -80,14 +80,14 @@ a pure PL/pgSQL extension called <a href=https://github.com/pyramation/postgres-
 building abstract trees and deparsing back into SQL statements! After a few
 discussions with its author Dan Lynch, I used a series of AST functions to
 improve my procedural code.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DO</span><span class=w> </span><span class=err>$</span><span class=n>prototype$</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>DECLARE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>DECLARE</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_relation</span><span class=w> </span><span class=n>jsonb</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_columns</span><span class=w> </span><span class=n>jsonb</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>v_values</span><span class=w> </span><span class=n>jsonb</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>to_jsonb</span><span class=p>(</span><span class=nb>ARRAY</span><span class=p>[</span><span class=nb>ARRAY</span><span class=p>[</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ast</span><span class=p>.</span><span class=n>a_const</span><span class=p>(</span><span class=n>v_val</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>ast</span><span class=p>.</span><span class=nb>integer</span><span class=p>(</span><span class=mi>1</span><span class=p>)),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>ast</span><span class=p>.</span><span class=n>a_const</span><span class=p>(</span><span class=n>v_val</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>ast</span><span class=p>.</span><span class=n>string</span><span class=p>(</span><span class=s1>&#39;test&#39;</span><span class=p>))</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>]]);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>SELECT</span><span class=w> </span><span class=n>ast_helpers</span><span class=p>.</span><span class=n>range_var</span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_schemaname</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=s1>&#39;public&#39;</span><span class=p>,</span><span class=w> 
 </span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_relname</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>value</span><span class=p>)</span><span class=w> </span><span class=k>INTO</span><span class=w> </span><span class=n>v_relation</span><span class=w>
@@ -105,8 +105,8 @@ improve my procedural code.</p><div class=highlight><pre tabindex=0 class=chroma
 </span></span></span><span class=line><span class=cl><span class=w>      </span><span class=n>v_op</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=s1>&#39;SETOP_NONE&#39;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>))</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>config</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>name</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;table_name&#39;</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$</span><span class=n>prototype$</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=err>$</span><span class=n>prototype$</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>The extension offers a bunch of methods in the <code>ast</code> and <code>ast_helpers</code> schemas
 to create tree nodes as JSONB structures. Nesting several calls let us have a
 entire tree with the upper node <code>InsertStmt</code>, as defined by PostgreSQL
@@ -117,5 +117,5 @@ which use the internal parser outside of PostgreSQL!</p><p>Use cases may be nume
 query newlines or serializing a statement to easily drop or modify internal
 nodes, etc. Another parsing project wrote in Python, called <code>pglast</code>, suggests
 you in its <a href=https://pglast.readthedocs.io/en/v3/usage.html target=_blank rel=noopener>documentation</a> more examples, if by chance, this article has
-aroused your curiosity.</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+aroused your curiosity.</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

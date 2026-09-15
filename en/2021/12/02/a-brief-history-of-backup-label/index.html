@@ -85,7 +85,7 @@ creativity of development team in the years that followed. The backup label
 evolved to gain modularity and stability.</p><p>At this time, <code>pg_backbackup</code> was not yet available, and only an explicit call
 to the function <a href=https://pgpedia.info/p/pg_start_backup.html target=_blank rel=noopener>pg_start_backup()</a> allowed you to generate the <code>backup_label</code>
 file in which were the <a href=https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411 target=_blank rel=noopener>following</a> four entries to support hot backup:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=cp># backend/access/transam/xlog.c
-</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nf>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;START WAL LOCATION: %X/%X (file %s)</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
+</span></span></span><span class=line><span class=cl><span class=nf>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;START WAL LOCATION: %X/%X (file %s)</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
 </span></span><span class=line><span class=cl>        <span class=n>startpoint</span><span class=p>.</span><span class=n>xlogid</span><span class=p>,</span> <span class=n>startpoint</span><span class=p>.</span><span class=n>xrecoff</span><span class=p>,</span> <span class=n>xlogfilename</span><span class=p>);</span>
 </span></span><span class=line><span class=cl><span class=nf>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;CHECKPOINT LOCATION: %X/%X</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
 </span></span><span class=line><span class=cl>        <span class=n>checkpointloc</span><span class=p>.</span><span class=n>xlogid</span><span class=p>,</span> <span class=n>checkpointloc</span><span class=p>.</span><span class=n>xrecoff</span><span class=p>);</span>
@@ -106,7 +106,7 @@ by recovery process;</p></li></ul><p>As you may understand, during an amount of 
 backup leaded on two distinct ways: <code>pg_start_backup()</code> and <code>pg_basebackup</code>. The
 first and historical one was deeply impacted by regular commentaries about an
 unwanted behavior with it &ldquo;exclusive&rdquo; mode.</p><p>Let us look at an example with PostgreSQL 13:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_start_backup 
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_start_backup 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -----------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  0/1D000028
 </span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ kill -ABRT $(head -1 data/postmaster.pid)
@@ -155,12 +155,12 @@ written in data directory on <code>pg_start_backup()</code> call. Instead, admin
 backup script must keep session opened until <code>pg_stop_backup()</code> call in order to
 collect backup&rsquo;s metadata and rebuild backup label file needed by restoration
 process.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=n>label</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>,</span><span class=w> </span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>,</span><span class=w> </span><span class=n>fast</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>true</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_start_backup 
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_start_backup 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -----------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  0/42000028
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--                            labelfile                            
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>--                            labelfile                            
 </span></span></span><span class=line><span class=cl><span class=c1>-- ----------------------------------------------------------------
 </span></span></span><span class=line><span class=cl><span class=c1>-- START WAL LOCATION: 0/42000028 (file 000000010000000000000042)+
 </span></span></span><span class=line><span class=cl><span class=c1>-- CHECKPOINT LOCATION: 0/42000060                               +
@@ -201,5 +201,5 @@ In a <a href=https://www.postgresql.org/message-id/d4da3456-06a0-b790-fb07-036d0
 suggested that backup label content could be stored in memory to fix its main
 wickness:</p><blockquote><p>It might be easier/better to just keep the one exclusive slot in shared
 memory and store the backup label in it. We only allow one exclusive
-backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>To be continued!</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>To be continued!</p></article></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

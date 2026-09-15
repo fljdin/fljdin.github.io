@@ -4,7 +4,7 @@
 <a href=https://github.com/fljdin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#github"/></svg></a>
 <a href=https://www.linkedin.com/in/florent-jardin><svg class="svg-icon"><use xlink:href="https://fljd.in/img/social-icons.svg#linkedin"/></svg></a>
 &nbsp;&nbsp;<a href=/en/talks>Talks</a>&nbsp;&nbsp;<a href=/en/archives>Archives</a>&nbsp;&nbsp;<a href=/en/about>About me</a></small></h3></header><main><article class=post><h1 class=post-title>Index explained</a></h1><p class=post-date><time datetime=2023-07-27>27 jul 2023</time>
-- 8 minutes to read</p><div class="message translation">Cet article est disponible en Français : <a href=https://fljd.in/2019/09/27/index-decomplexe/>Index décomplexé</a>
+- 9 minutes to read</p><div class="message translation">Cet article est disponible en Français : <a href=https://fljd.in/2019/09/27/index-decomplexe/>Index décomplexé</a>
 <small>(2019-09-27)</small></div><blockquote><p><u>Back-of-the-book index</u>: includes names of people, places,
 events, and concepts selected by the indexer as being relevant and of interest
 to a possible reader of the book. (<a href=https://en.wikipedia.org/wiki/Index_%28publishing%29 target=_blank rel=noopener>Wikipedia</a>)</p><p><u>Database index</u>: data structure that improves the speed of
@@ -98,9 +98,9 @@ by the executor phase.</p><div class=highlight><pre tabindex=0 class=chroma><cod
 </span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>FROM</span><span class=w> </span><span class=n>generate_series</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>          </span><span class=n>pg_relpages</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>)::</span><span class=nb>integer</span><span class=o>-</span><span class=mi>1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>)</span><span class=w> </span><span class=n>blkno</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>LATERAL</span><span class=w> </span><span class=n>bt_page_stats</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>,</span><span class=w> </span><span class=n>blkno</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>LATERAL</span><span class=w> </span><span class=n>bt_page_stats</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>,</span><span class=w> </span><span class=n>blkno</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  blkno | type | live_items 
+</span></span></span><span class=line><span class=cl><span class=c1>--  blkno | type | live_items 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -------+------+------------
 </span></span></span><span class=line><span class=cl><span class=c1>--      1 | l    |        317
 </span></span></span><span class=line><span class=cl><span class=c1>--      2 | l    |        319
@@ -116,7 +116,7 @@ perform successive comparisons until reaching the values of its search.</p><div 
 </span></span></span><span class=line><span class=cl><span class=w>       </span><span class=s1>&#39;hex&#39;</span><span class=p>),</span><span class=w> </span><span class=s1>&#39;utf8&#39;</span><span class=p>)</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=nb>text</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>bt_page_items</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--   ctid   |                      data                       |     text     
+</span></span></span><span class=line><span class=cl><span class=c1>--   ctid   |                      data                       |     text     
 </span></span></span><span class=line><span class=cl><span class=c1>-- ---------+-------------------------------------------------+--------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  (1,0)   |                                                 | 
 </span></span></span><span class=line><span class=cl><span class=c1>--  (2,38)  | 0f 4b 6c 65 65 6e 65 00                         | Kleene
@@ -144,7 +144,7 @@ of each leaf block with the following query:</p><div class=highlight><pre tabind
 </span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>WHERE</span><span class=w> </span><span class=k>length</span><span class=p>(</span><span class=k>data</span><span class=p>)</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=mi>0</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>blkno</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>blkno</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  blkno |     min      |     max      
+</span></span></span><span class=line><span class=cl><span class=c1>--  blkno |     min      |     max      
 </span></span></span><span class=line><span class=cl><span class=c1>-- -------+--------------+--------------
 </span></span></span><span class=line><span class=cl><span class=c1>--      1 | Abbt         | Kleene
 </span></span></span><span class=line><span class=cl><span class=c1>--      2 | Kleene       | Zarankiewicz
@@ -162,7 +162,7 @@ blocks of the <code>mathematicians</code> table.</p><div class=highlight><pre ta
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=nb>text</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;Gauss&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;Cartan&#39;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--   ctid   |          data           |  text  
+</span></span></span><span class=line><span class=cl><span class=c1>--   ctid   |          data           |  text  
 </span></span></span><span class=line><span class=cl><span class=c1>-- ---------+-------------------------+--------
 </span></span></span><span class=line><span class=cl><span class=c1>--  (3,8)   | 0f 43 61 72 74 61 6e 00 | Cartan
 </span></span></span><span class=line><span class=cl><span class=c1>--  (4,8)   | 0f 43 61 72 74 61 6e 00 | Cartan
@@ -189,5 +189,5 @@ storage requirements!</p><div class=message>If anyone is interested in exploring
 <a href=https://github.com/fljdin/database-samples/blob/master/fr-mathematians.sql target=_blank rel=noopener>Github</a>
 and is sourced from the french page &ldquo;<a href=https://fr.wikipedia.org/wiki/Projet:Math%C3%A9matiques/Liste_des_math%C3%A9maticiens target=_blank rel=noopener>Liste des
 mathématiciens</a>&rdquo;
-on Wikipedia.</div></article></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+on Wikipedia.</div></article></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

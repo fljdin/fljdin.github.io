@@ -102,7 +102,7 @@ fichier <code>backup_label</code> évolua pour gagner en modularité et en stabi
 à la méthode <a href=https://pgpedia.info/p/pg_start_backup.html target=_blank rel=noopener>pg_start_backup()</a> permettait de générer le fichier dans lequel
 se trouvaient les quatres informations <a href=https://github.com/postgres/postgres/blob/REL8_0_STABLE/src/backend/access/transam/xlog.c#L5411 target=_blank rel=noopener>suivantes</a> pour accompagner la
 sauvegarde à chaud :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=cp># backend/access/transam/xlog.c
-</span></span></span><span class=line><span class=cl><span class=cp></span><span class=nf>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;START WAL LOCATION: %X/%X (file %s)</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
+</span></span></span><span class=line><span class=cl><span class=nf>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;START WAL LOCATION: %X/%X (file %s)</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
 </span></span><span class=line><span class=cl>        <span class=n>startpoint</span><span class=p>.</span><span class=n>xlogid</span><span class=p>,</span> <span class=n>startpoint</span><span class=p>.</span><span class=n>xrecoff</span><span class=p>,</span> <span class=n>xlogfilename</span><span class=p>);</span>
 </span></span><span class=line><span class=cl><span class=nf>fprintf</span><span class=p>(</span><span class=n>fp</span><span class=p>,</span> <span class=s>&#34;CHECKPOINT LOCATION: %X/%X</span><span class=se>\n</span><span class=s>&#34;</span><span class=p>,</span>
 </span></span><span class=line><span class=cl>        <span class=n>checkpointloc</span><span class=p>.</span><span class=n>xlogid</span><span class=p>,</span> <span class=n>checkpointloc</span><span class=p>.</span><span class=n>xrecoff</span><span class=p>);</span>
@@ -124,7 +124,7 @@ sauvegarde dite consistante, reposait sur les deux méthodes vues précédemment
 La fonction historique <code>pg_start_backup()</code> fut particulièrement touchée
 par d&rsquo;incessantes critiques au sujet d&rsquo;un comportement non souhaité, notamment
 son mode « exclusif ».</p><p>Voyons cela ensemble sur une instance récente en version 13 :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=s1>&#39;demo&#39;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_start_backup 
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_start_backup 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -----------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  0/1D000028
 </span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ kill -ABRT $(head -1 data/postmaster.pid)
@@ -176,12 +176,12 @@ le disque et n&rsquo;est plus écrit dans le répertoire de l&rsquo;instance par
 doit être en capacité d&rsquo;exécuter la commande <code>pg_stop_backup()</code> dans la même
 connexion à l&rsquo;instance pour y récupérer les éléments et reconstruire le fichier
 au moment de la restauration.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=n>label</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=s1>&#39;demo&#39;</span><span class=p>,</span><span class=w> </span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>,</span><span class=w> </span><span class=n>fast</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>true</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_start_backup 
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_start_backup 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -----------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  0/42000028
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--                            labelfile                            
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>exclusive</span><span class=w> </span><span class=o>=&gt;</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>--                            labelfile                            
 </span></span></span><span class=line><span class=cl><span class=c1>-- ----------------------------------------------------------------
 </span></span></span><span class=line><span class=cl><span class=c1>-- START WAL LOCATION: 0/42000028 (file 000000010000000000000042)+
 </span></span></span><span class=line><span class=cl><span class=c1>-- CHECKPOINT LOCATION: 0/42000060                               +
@@ -231,5 +231,5 @@ memory and store the backup label in it. We only allow one exclusive
 backup now so it wouldn&rsquo;t be a loss in functionality.</p></blockquote><p>La suite au prochain épisode !</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Construire une instance standby avec pgBackRest
 <small><time datetime=2019-11-07>7 nov 2019</time></small></a></li><li><a href=https://fljd.in/2021/08/24/borg-ou-la-sauvegarde-facile/>BorgBackup ou la sauvegarde facile
 <small><time datetime=2021-08-24>24 août 2021</time></small></a></li><li><a href=https://fljd.in/2025/10/08/sauvegardes-personnelles-avec-restic/>Sauvegardes personnelles avec Restic
-<small><time datetime=2025-10-08>8 oct 2025</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+<small><time datetime=2025-10-08>8 oct 2025</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

@@ -138,15 +138,15 @@ présente lorsque l&rsquo;on souhaite déplacer la table dans un autre <em>table
 quand il faut la défragmenter avec <code>VACUUM FULL</code>, ou lors de la restauration
 d&rsquo;un <em>dump</em>. Ces opérations réalisent toute une reconstruction de la table, avec
 le déplacement des lignes dans un nouveau fichier.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_relation_filepath 
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_relation_filepath 
 </span></span></span><span class=line><span class=cl><span class=c1>-- ----------------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  base/16402/16391
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>VACUUM</span><span class=w> </span><span class=k>FULL</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CHECKPOINT</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_relation_filepath 
+</span></span></span><span class=line><span class=cl><span class=k>VACUUM</span><span class=w> </span><span class=k>FULL</span><span class=w> </span><span class=n>pgbench_accounts</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>CHECKPOINT</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_relation_filepath</span><span class=p>(</span><span class=s1>&#39;pgbench_accounts&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_relation_filepath 
 </span></span></span><span class=line><span class=cl><span class=c1>-- ----------------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  base/16402/16435
 </span></span></span></code></pre></div><p>Ici, la défragmentation reconstruit la table dans un nouveau fichier <code>16435</code>.
@@ -184,5 +184,5 @@ documentation précise que la copie des fichiers est <em>pratiquement instantan�
 n&rsquo;affecte pas l&rsquo;ancienne instance.</p><p>Peut-être l&rsquo;occasion de creuser le sujet dans un prochain article ?</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/07/01/les-statistiques-au-service-du-plan-d-execution/>Les statistiques au service du plan d'exécution
 <small><time datetime=2020-07-01>1 juil 2020</time></small></a></li><li><a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
 <small><time datetime=2021-04-23>23 avr 2021</time></small></a></li><li><a href=https://fljd.in/2020/01/17/gestion-des-signaux-internes/>Gestion des signaux internes
-<small><time datetime=2020-01-17>17 janv 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+<small><time datetime=2020-01-17>17 janv 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

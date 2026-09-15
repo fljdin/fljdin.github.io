@@ -34,7 +34,7 @@ versions PostgreSQL : <code>pg_basebackup</code>. L&rsquo;unique prérequis est
 compte de réplication sur l&rsquo;instance à répliquer et que le serveur distant puisse
 réaliser une authentification valide (fichier <code>pg_hba.conf</code>).</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=nb>cd</span> /opt
 </span></span><span class=line><span class=cl>pg_basebackup --host<span class=o>=</span>batman --user<span class=o>=</span>streamer <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>  --pgdata<span class=o>=</span>robin --wal-method<span class=o>=</span>stream --checkpoint<span class=o>=</span>fast
+</span></span></span><span class=line><span class=cl>  --pgdata<span class=o>=</span>robin --wal-method<span class=o>=</span>stream --checkpoint<span class=o>=</span>fast
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>touch robin/standby.signal
 </span></span><span class=line><span class=cl>pg_ctl start -D robin
@@ -93,7 +93,7 @@ réside dans le duo gagnant <code>pg_start/stop_backup()</code> et <code>rsync</
 la main une sauvegarde physique différentielle.</p><h3 id=première-méthode>Première méthode</h3><p>Puisque la sauvegarde exclusive est annoncée obsolète depuis la version 9.6,
 nous déclarerons le début d&rsquo;une sauvegarde concurrente sur l&rsquo;instance primaire
 <code>robin</code> à l&rsquo;aide de la commande suivante et nous maintiendrons la connexion :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_start_backup</span><span class=p>(</span><span class=s1>&#39;rsync the batman&#39;</span><span class=p>,</span><span class=w> </span><span class=k>true</span><span class=p>,</span><span class=w> </span><span class=k>false</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  pg_start_backup 
+</span></span></span><span class=line><span class=cl><span class=c1>--  pg_start_backup 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -----------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  0/15000028
 </span></span></span></code></pre></div><p>Sur le nœud <code>batman</code>, on peut alors transférer les données avec l&rsquo;option
@@ -104,7 +104,7 @@ fichiers de données :</p><div class=highlight><pre tabindex=0 class=chroma><co
 </span></span></code></pre></div><p>À l&rsquo;issue de cette copie victorieuse, n&rsquo;oubliez pas de lancer la commande
 <code>pg_stop_backup()</code> sur l&rsquo;instance primaire pour finaliser la sauvegarde et la
 rendre valide.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>labelfile</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_stop_backup</span><span class=p>(</span><span class=k>false</span><span class=p>)</span><span class=w> </span><span class=err>\</span><span class=n>gx</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- -[ RECORD 1 ]-------------------------------------------------------------
+</span></span></span><span class=line><span class=cl><span class=c1>-- -[ RECORD 1 ]-------------------------------------------------------------
 </span></span></span><span class=line><span class=cl><span class=c1>-- labelfile | START WAL LOCATION: 0/15000028 (file 000000020000000000000015)+
 </span></span></span><span class=line><span class=cl><span class=c1>--           | CHECKPOINT LOCATION: 0/15000060                               +
 </span></span></span><span class=line><span class=cl><span class=c1>--           | BACKUP METHOD: streamed                                       +
@@ -119,12 +119,12 @@ réplication, dont <code>primary_conninfo</code> et les fichiers <code>standby.s
 <code>backup_label</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>sed -i -e <span class=s1>&#39;s/batman/robin/g&#39;</span> batman/postgresql.auto.conf
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>rsync robin:/opt/robin/pg_wal/ batman/pg_wal <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>  --archive --checksum --whole-file
+</span></span></span><span class=line><span class=cl>  --archive --checksum --whole-file
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=c1># récupération des instructions backup_label présentes dans </span>
 </span></span><span class=line><span class=cl><span class=c1># le fichier .backup généré par la commande pg_stop_backup()</span>
 </span></span><span class=line><span class=cl>grep -iv ^stop batman/pg_wal/000000020000000000000015.00000028.backup <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>  &gt; batman/backup_label
+</span></span></span><span class=line><span class=cl>  &gt; batman/backup_label
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>rm batman/postmaster.pid
 </span></span><span class=line><span class=cl>touch batman/standby.signal
@@ -150,13 +150,13 @@ les modifications réalisées depuis sa promotion.</p><p>Comme suggéré dans la
 doit disposer des droits d&rsquo;exécution sur certaines fontions internes pour
 utiliser l&rsquo;outil <code>pg_rewind</code> correctement :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=err>\</span><span class=k>connect</span><span class=w> </span><span class=n>postgres</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_ls_dir</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_stat_file</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_read_binary_file</span><span class=p>(</span><span class=nb>text</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=k>GRANT</span><span class=w> </span><span class=k>EXECUTE</span><span class=w> </span><span class=k>ON</span><span class=w> 
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>function</span><span class=w> </span><span class=n>pg_read_binary_file</span><span class=p>(</span><span class=nb>text</span><span class=p>,</span><span class=w> </span><span class=nb>bigint</span><span class=p>,</span><span class=w> </span><span class=nb>bigint</span><span class=p>,</span><span class=w> </span><span class=nb>boolean</span><span class=p>)</span><span class=w> </span><span class=k>TO</span><span class=w> </span><span class=n>streamer</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Sur le serveur <code>batman</code>, l&rsquo;instance doit être arrêtée avant de lancer la
 synchronisation et le contenu de la zone d&rsquo;archivage <code>batcave</code> doit être copié
@@ -164,10 +164,10 @@ manuellement vers le répertoire de récupération <code>pg_wal</code> ; il s&r
 l&rsquo;instruction <code>restore_command</code> que ne peut pas exécuter l&rsquo;instance lorsqu&rsquo;elle
 est éteinte.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl>pg_ctl stop -D batman
 </span></span><span class=line><span class=cl>rsync robin:/opt/batcave/ batman/pg_wal <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>   --archive --checksum --whole-file
+</span></span></span><span class=line><span class=cl>   --archive --checksum --whole-file
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl>pg_rewind -D batman <span class=se>\
-</span></span></span><span class=line><span class=cl><span class=se></span>  --source-server<span class=o>=</span><span class=s2>&#34;host=robin user=streamer dbname=postgres&#34;</span>
+</span></span></span><span class=line><span class=cl>  --source-server<span class=o>=</span><span class=s2>&#34;host=robin user=streamer dbname=postgres&#34;</span>
 </span></span><span class=line><span class=cl><span class=c1># pg_rewind: servers diverged at WAL location 0/8000060 on timeline 1</span>
 </span></span><span class=line><span class=cl><span class=c1># pg_rewind: rewinding from last common checkpoint at 0/7000060 on timeline 1</span>
 </span></span><span class=line><span class=cl><span class=c1># pg_rewind: Done!</span>
@@ -237,5 +237,5 @@ cas de bascule :</p><p><img src=/img/fr/2019-12-19-architecture-complete.png al
 lorsque l&rsquo;on exprime un besoin de haute-disponibilité. Durant l&rsquo;année 2019, une
 série d&rsquo;outils tiers ont assis leur réputation avec notamment <a href=https://patroni.readthedocs.io/en/latest/ target=_blank rel=noopener>patroni</a> de
 Zalando qui propose intelligemment l&rsquo;usage de <code>pg_rewind</code> dans son fonctionnement.</p></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2019/11/07/construire-une-instance-standby-avec-pgbackrest/>Construire une instance standby avec pgBackRest
-<small><time datetime=2019-11-07>7 nov 2019</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+<small><time datetime=2019-11-07>7 nov 2019</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

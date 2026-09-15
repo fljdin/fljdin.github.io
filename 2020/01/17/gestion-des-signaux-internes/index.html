@@ -67,7 +67,7 @@ les événements entre un processus père et ses enfants, plutôt que de complex
 les échanges avec une <em>queue</em> en mémoire ou sur fichier.</p><p>Si l&rsquo;on prend l&rsquo;exemple du processus <code>archiver</code> de PostgreSQL, la définition des
 signaux est la première étape au moment de sa création par le processus <code>postmaster</code>,
 juste avant l&rsquo;entrée dans sa boucle principale.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=c1>// src/backend/postmaster/pgarch.c
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>/*
 </span></span></span><span class=line><span class=cl><span class=cm> * PgArchiverMain
 </span></span></span><span class=line><span class=cl><span class=cm> *
 </span></span></span><span class=line><span class=cl><span class=cm> *  The argc/argv parameters are valid only in EXEC_BACKEND case.  However,
@@ -107,7 +107,7 @@ certains paramètres d&rsquo;instance sont dynamiques et doivent être réactual
 interrompre le processus, c&rsquo;est notamment le cas pour le processus <code>archiver</code>
 et son paramètre <code>archive_command</code> qui définit la méthode d&rsquo;archivage lorsqu&rsquo;un
 journal de transaction doit être archivé.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=c1>// src/backend/postmaster/interrupt.c
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>/*
 </span></span></span><span class=line><span class=cl><span class=cm> * Simple signal handler for triggering a configuration reload.
 </span></span></span><span class=line><span class=cl><span class=cm> *
 </span></span></span><span class=line><span class=cl><span class=cm> * Normally, this handler would be used for SIGHUP. The idea is that code
@@ -128,7 +128,7 @@ journal de transaction doit être archivé.</p><div class=highlight><pre tabinde
 <em>flag</em> <code>ConfigReloadPending</code> qui sera traité au sein de la boucle principale
 <code>pgarch_MainLoop()</code> et déclenchera la relecture du fichier de configuration avec
 la function <code>ProcessConfigFile()</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=c1>// src/backend/postmaster/pgarch.c
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=cm>/*
+</span></span></span><span class=line><span class=cl><span class=cm>/*
 </span></span></span><span class=line><span class=cl><span class=cm> * pgarch_MainLoop
 </span></span></span><span class=line><span class=cl><span class=cm> *
 </span></span></span><span class=line><span class=cl><span class=cm> * Main loop for archiver
@@ -165,5 +165,5 @@ pris plaisir comme moi à parcourir quelques fichiers du code source du projet
 libre PostgreSQL !</div></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2020/05/14/ecrire-ses-tests-unitaires-en-sql/>Écrire ses tests unitaires en SQL
 <small><time datetime=2020-05-14>14 mai 2020</time></small></a></li><li><a href=https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/>Le partitionnement par UUID v7
 <small><time datetime=2025-06-17>17 juin 2025</time></small></a></li><li><a href=https://fljd.in/2024/11/25/substituer-une-variable-dans-un-script-sql/>Substituer une variable dans un script SQL
-<small><time datetime=2024-11-25>25 nov 2024</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+<small><time datetime=2024-11-25>25 nov 2024</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

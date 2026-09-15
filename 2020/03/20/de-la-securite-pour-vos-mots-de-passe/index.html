@@ -13,7 +13,7 @@ encodée sur 32 caractères héxadécimaux est le résultat du hachage du mot de
 en clair avec le nom de l&rsquo;utilisateur.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>u</span><span class=p>,</span><span class=w> </span><span class=n>md5</span><span class=p>(</span><span class=s1>&#39;secret&#39;</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>u</span><span class=p>)</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>hash</span><span class=w> 
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=s1>&#39;tom&#39;</span><span class=p>,</span><span class=s1>&#39;jerry&#39;</span><span class=p>])</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=n>u</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>   
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--    u   |               hash               
+</span></span></span><span class=line><span class=cl><span class=c1>--    u   |               hash               
 </span></span></span><span class=line><span class=cl><span class=c1>-- -------+----------------------------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  tom   | c85e6c670e521155c2823ddaa761c1be
 </span></span></span><span class=line><span class=cl><span class=c1>--  jerry | df96e7fb3e9b25fda78387096d19aca6
@@ -21,7 +21,7 @@ en clair avec le nom de l&rsquo;utilisateur.</p><div class=highlight><pre tabind
 le <em>hash</em> avec la requête suivante :</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>rolname</span><span class=p>,</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  rolname |             rolpassword             
+</span></span></span><span class=line><span class=cl><span class=c1>--  rolname |             rolpassword             
 </span></span></span><span class=line><span class=cl><span class=c1>-- ---------+-------------------------------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  tom     | md5c85e6c670e521155c2823ddaa761c1be
 </span></span></span><span class=line><span class=cl><span class=c1>--  jerry   | md5df96e7fb3e9b25fda78387096d19aca6
@@ -44,20 +44,20 @@ mais sous un format plus robuste, rendant le risque de la captation de la chaîn
 bien moins élevé que précédemment. La transformation de cette chaîne nécessite
 de modifier le paramètre <code>password_encryption</code> et de resaisir le mot de passe
 d&rsquo;un utilisateur.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- Surchage de la méthode pour la session en cours
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Surcharge de la méthode les prochaines connexions de l&#39;utilisateur
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>jerry</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- Surcharge de la méthode les prochaines connexions de l&#39;utilisateur
+</span></span></span><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>USER</span><span class=w> </span><span class=n>jerry</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Surcharge de la méthode pour toute l&#39;instance après rechargement
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>pg_reload_conf</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- Surcharge de la méthode pour toute l&#39;instance après rechargement
+</span></span></span><span class=line><span class=cl><span class=k>ALTER</span><span class=w> </span><span class=k>SYSTEM</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>password_encryption</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=s1>&#39;scram-sha-256&#39;</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>pg_reload_conf</span><span class=p>();</span><span class=w>
 </span></span></span></code></pre></div><p>Avec l&rsquo;outil <code>psql</code>, il est recommandé de saisir un mot de passe <em>via</em> la commande
 <code>\password</code> qui se chargera de hacher la saisie avec l&rsquo;algorithme défini
 précédemment et ainsi limiter le transport du mot de passe en clair sur le réseau
 et dans les traces associées à l&rsquo;activité de l&rsquo;instance.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>SET</span><span class=w> </span><span class=n>log_min_duration_statement</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>0</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>\</span><span class=n>password</span><span class=w> </span><span class=n>jerry</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Enter new password: secret
+</span></span></span><span class=line><span class=cl><span class=err>\</span><span class=n>password</span><span class=w> </span><span class=n>jerry</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- Enter new password: secret
 </span></span></span><span class=line><span class=cl><span class=c1>-- Enter it again: secret
 </span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-r data-lang=r><span class=line><span class=cl><span class=c1># Extrain du journal postgresql.log</span>
 </span></span><span class=line><span class=cl><span class=m>2020-03-20</span> <span class=m>10</span><span class=o>:</span><span class=m>26</span><span class=o>:</span><span class=m>25.286</span> <span class=n>CET</span> <span class=n>[13500]</span> <span class=n>LOG</span><span class=o>:</span>
@@ -78,7 +78,7 @@ l&rsquo;adoption de la nouvelle méthode pour l&rsquo;ensemble des utilisateurs 
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>pg_authid</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>rolpassword</span><span class=w> </span><span class=k>IS</span><span class=w> </span><span class=k>NOT</span><span class=w> </span><span class=k>NULL</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=k>method</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=k>method</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--     method     | count | roles 
+</span></span></span><span class=line><span class=cl><span class=c1>--     method     | count | roles 
 </span></span></span><span class=line><span class=cl><span class=c1>-- ---------------+-------+-------
 </span></span></span><span class=line><span class=cl><span class=c1>--  md5           |     1 | tom
 </span></span></span><span class=line><span class=cl><span class=c1>--  scram-sha-256 |     1 | jerry
@@ -99,5 +99,5 @@ aider à définir des exceptions pour les mauvais élèves.</p><div class=highli
 </span></span><span class=line><span class=cl><span class=c1># IPv4 local connections:</span>
 </span></span><span class=line><span class=cl><span class=na>host    all        tom         192.168.1.0/24      md5</span>
 </span></span><span class=line><span class=cl><span class=na>host    all        all         192.168.1.0/24      scram-sha-256</span>
-</span></span></code></pre></div></article></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+</span></span></code></pre></div></article></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

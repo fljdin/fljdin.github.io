@@ -1,18 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pages on Carnet de découvertes</title><link>https://fljd.in/pages/</link><description>Recent content in Pages on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><atom:link href="https://fljd.in/pages/index.xml" rel="self" type="application/rss+xml"/><item><title>À propos</title><link>https://fljd.in/a-propos/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/a-propos/</guid><description>&lt;blockquote>
-&lt;p>Carnet de découvertes d&amp;rsquo;un DBA libre et passionné par l&amp;rsquo;open-source.&lt;/p>&lt;/blockquote>
-&lt;img class="profile-avatar" src="https://fljd.in/img/avatar.jpg" alt="Florent Jardin" }} />
-&lt;p>Je suis consultant en bases de données orientées relationnelles (Oracle Database,
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pages on Carnet de découvertes</title><link>https://fljd.in/pages/</link><description>Recent content in Pages on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><atom:link href="https://fljd.in/pages/index.xml" rel="self" type="application/rss+xml"/><item><title>À propos</title><link>https://fljd.in/a-propos/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/a-propos/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;Carnet de découvertes d&amp;rsquo;un DBA libre et passionné par l&amp;rsquo;open-source.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;img class="profile-avatar" src="https://fljd.in/img/avatar.jpg" alt="Florent Jardin" }} /&gt;
+&lt;p&gt;Je suis consultant en bases de données orientées relationnelles (Oracle Database,
 PostgreSQL) avec pour ambition de promouvoir l&amp;rsquo;open-source à travers une série
 d&amp;rsquo;articles sur ce monde alternatif sans limite. Dans ce carnet de découvertes,
 je souhaite partager mes recherches autours des fonctionnalités de PostgreSQL en
-tâchant de les rendre simples d&amp;rsquo;accès pour les administrateur⋅rices de tout horizon.&lt;/p>
-&lt;p>Vous pouvez me contacter et me suivre par l&amp;rsquo;un des réseaux suivants.&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="https://mastodon.tedomum.net/@fljdin" target="_blank" rel="noopener">https://mastodon.tedomum.net/@fljdin&lt;/a>
-(anciennement &lt;a href="https://fosstodon.org/@fljdin" target="_blank" rel="noopener">https://fosstodon.org/@fljdin&lt;/a>)&lt;/li>
-&lt;li>&lt;a href="https://github.com/fljdin" target="_blank" rel="noopener">https://github.com/fljdin&lt;/a>&lt;/li>
-&lt;li>&lt;a href="https://www.linkedin.com/in/florent-jardin" target="_blank" rel="noopener">https://www.linkedin.com/in/florent-jardin&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;hr>
-&lt;p>Ce site est propulsé par &lt;a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo&lt;/a> et n&amp;rsquo;utilise aucun
-traceur ou service d&amp;rsquo;analyse de trafic.&lt;/p></description></item><item><title>Conférences</title><link>https://fljd.in/conferences/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/conferences/</guid><description/></item><item><title>Lectures personnelles</title><link>https://fljd.in/lectures/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/lectures/</guid><description/></item></channel></rss>
+tâchant de les rendre simples d&amp;rsquo;accès pour les administrateur⋅rices de tout horizon.&lt;/p&gt;
+&lt;p&gt;Vous pouvez me contacter et me suivre par l&amp;rsquo;un des réseaux suivants.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://mastodon.tedomum.net/@fljdin" target="_blank" rel="noopener"&gt;https://mastodon.tedomum.net/@fljdin&lt;/a&gt;
+(anciennement &lt;a href="https://fosstodon.org/@fljdin" target="_blank" rel="noopener"&gt;https://fosstodon.org/@fljdin&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/fljdin" target="_blank" rel="noopener"&gt;https://github.com/fljdin&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.linkedin.com/in/florent-jardin" target="_blank" rel="noopener"&gt;https://www.linkedin.com/in/florent-jardin&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;Ce site est propulsé par &lt;a href="https://gohugo.io/" target="_blank" rel="noopener"&gt;Hugo&lt;/a&gt; et n&amp;rsquo;utilise aucun
+traceur ou service d&amp;rsquo;analyse de trafic.&lt;/p&gt;</description></item><item><title>Conférences</title><link>https://fljd.in/conferences/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/conferences/</guid><description/></item><item><title>Lectures personnelles</title><link>https://fljd.in/lectures/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/lectures/</guid><description/></item></channel></rss>

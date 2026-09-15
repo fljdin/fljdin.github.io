@@ -105,9 +105,9 @@ d&rsquo;index que réalise le moteur à chaque exécution.</p><div class=highlig
 </span></span></span><span class=line><span class=cl><span class=w>   </span><span class=k>FROM</span><span class=w> </span><span class=n>generate_series</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>          </span><span class=n>pg_relpages</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>)::</span><span class=nb>integer</span><span class=o>-</span><span class=mi>1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>)</span><span class=w> </span><span class=n>blkno</span><span class=p>,</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>LATERAL</span><span class=w> </span><span class=n>bt_page_stats</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>,</span><span class=w> </span><span class=n>blkno</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>LATERAL</span><span class=w> </span><span class=n>bt_page_stats</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>,</span><span class=w> </span><span class=n>blkno</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  blkno | type | live_items 
+</span></span></span><span class=line><span class=cl><span class=c1>--  blkno | type | live_items 
 </span></span></span><span class=line><span class=cl><span class=c1>-- -------+------+------------
 </span></span></span><span class=line><span class=cl><span class=c1>--      1 | l    |        317
 </span></span></span><span class=line><span class=cl><span class=c1>--      2 | l    |        319
@@ -124,7 +124,7 @@ recherche.</p><div class=highlight><pre tabindex=0 class=chroma><code class=lang
 </span></span></span><span class=line><span class=cl><span class=w>       </span><span class=s1>&#39;hex&#39;</span><span class=p>),</span><span class=w> </span><span class=s1>&#39;utf8&#39;</span><span class=p>)</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=nb>text</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FROM</span><span class=w> </span><span class=n>bt_page_items</span><span class=p>(</span><span class=s1>&#39;mathematicians_lastname_idx&#39;</span><span class=p>,</span><span class=w> </span><span class=mi>3</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--   ctid   |                      data                       |     text     
+</span></span></span><span class=line><span class=cl><span class=c1>--   ctid   |                      data                       |     text     
 </span></span></span><span class=line><span class=cl><span class=c1>-- ---------+-------------------------------------------------+--------------
 </span></span></span><span class=line><span class=cl><span class=c1>--  (1,0)   |                                                 | 
 </span></span></span><span class=line><span class=cl><span class=c1>--  (2,38)  | 0f 4b 6c 65 65 6e 65 00                         | Kleene
@@ -152,7 +152,7 @@ avec la requête suivante :</p><div class=highlight><pre tabindex=0 class=chrom
 </span></span></span><span class=line><span class=cl><span class=w>     </span><span class=k>WHERE</span><span class=w> </span><span class=k>length</span><span class=p>(</span><span class=k>data</span><span class=p>)</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=mi>0</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w> </span><span class=k>GROUP</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>blkno</span><span class=w> </span><span class=k>ORDER</span><span class=w> </span><span class=k>BY</span><span class=w> </span><span class=n>blkno</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--  blkno |     min      |     max      
+</span></span></span><span class=line><span class=cl><span class=c1>--  blkno |     min      |     max      
 </span></span></span><span class=line><span class=cl><span class=c1>-- -------+--------------+--------------
 </span></span></span><span class=line><span class=cl><span class=c1>--      1 | Abbt         | Kleene
 </span></span></span><span class=line><span class=cl><span class=c1>--      2 | Kleene       | Zarankiewicz
@@ -170,7 +170,7 @@ la table <code>mathematicians</code>.</p><div class=highlight><pre tabindex=0 cl
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>)</span><span class=w> </span><span class=n>t</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=nb>text</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=p>(</span><span class=s1>&#39;Gauss&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;Cartan&#39;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--   ctid   |          data           |  text  
+</span></span></span><span class=line><span class=cl><span class=c1>--   ctid   |          data           |  text  
 </span></span></span><span class=line><span class=cl><span class=c1>-- ---------+-------------------------+--------
 </span></span></span><span class=line><span class=cl><span class=c1>--  (3,8)   | 0f 43 61 72 74 61 6e 00 | Cartan
 </span></span></span><span class=line><span class=cl><span class=c1>--  (4,8)   | 0f 43 61 72 74 61 6e 00 | Cartan
@@ -199,5 +199,5 @@ et provient de la page
 disponible sur Wikipédia.</div></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2021/04/23/le-partitionnement-par-hachage/>Le partitionnement par hachage
 <small><time datetime=2021-04-23>23 avr 2021</time></small></a></li><li><a href=https://fljd.in/2021/03/30/comprendre-les-requetes-preparees/>Comprendre les requêtes préparées
 <small><time datetime=2021-03-30>30 mars 2021</time></small></a></li><li><a href=https://fljd.in/2020/08/21/tour-d-horizon-de-pgbouncer/>Tour d'horizon de PgBouncer
-<small><time datetime=2020-08-21>21 août 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+<small><time datetime=2020-08-21>21 août 2020</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>

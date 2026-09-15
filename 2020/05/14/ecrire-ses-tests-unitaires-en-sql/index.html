@@ -25,19 +25,19 @@ sur les quelques règles suivantes :</p><ul><li>Écrire un test qui échoue</li
 <code>test.sql</code> mon premier test unitaire. Il s&rsquo;agit là d&rsquo;utiliser la méthode
 <code>has_function()</code> fournie par pgTAP pour m&rsquo;assurer qu&rsquo;une fonction est présente
 dans la base de données.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- Nous démarrons une transaction pour l&#39;annuler en fin de test
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>BEGIN</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>plan</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>plan</span><span class=p>(</span><span class=mi>1</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- premier tests
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>SELECT</span><span class=w> </span><span class=n>has_function</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- premier tests
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>has_function</span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;is_public_holiday&#39;</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nb>array</span><span class=p>[</span><span class=w> </span><span class=s1>&#39;date&#39;</span><span class=w> </span><span class=p>],</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;Function is_public_holiday(date) should exist&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- On affiche la synthèse de l&#39;exécution des tests et on annule la transaction 
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>finish</span><span class=p>();</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>ROLLBACK</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- On affiche la synthèse de l&#39;exécution des tests et on annule la transaction 
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>finish</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>ROLLBACK</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>À travers mon conteneur, je lance la commande <code>pg_prove</code> nécessaire pour
 l&rsquo;extension et l&rsquo;exécution des tests renseignés dans le fichier <code>test.sql</code>. Je
 constate bel et bien un test en erreur : la fonction <code>is_public_holiday</code> n&rsquo;existe
@@ -58,11 +58,11 @@ pas encore dans mon cycle de développement.</p><div class=highlight><pre tabind
 fichier <code>is_public_holiday.sql</code>. La méthode TDD implique qu&rsquo;un effort minimal
 soit fourni pour passer le test.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=k>day</span><span class=w> </span><span class=nb>date</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURNS</span><span class=w> </span><span class=nb>boolean</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=n>plpgsql</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=k>false</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w> 
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$$</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w> 
+</span></span></span><span class=line><span class=cl><span class=err>$$</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
 </span></span><span class=line><span class=cl>CREATE FUNCTION
 </span></span><span class=line><span class=cl>
@@ -76,18 +76,18 @@ soit fourni pour passer le test.</p><div class=highlight><pre tabindex=0 class=c
 que notre fonction retourne parfaitement la valeur <code>true</code> ou <code>false</code> selon le jour
 qu&rsquo;on lui passerait en paramètre ? Écrivons un test pour la date du
 1<sup>er</sup> mai 2020 et un autre pour celle du 12 mai 2020.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- [...]
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>SELECT</span><span class=w> </span><span class=k>is</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=k>is</span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=s1>&#39;2020-05-01&#39;</span><span class=p>::</span><span class=nb>date</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>true</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;2020-05-01 is a public holiday&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=k>is</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=k>is</span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=s1>&#39;2020-05-12&#39;</span><span class=p>::</span><span class=nb>date</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>false</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;2020-05-12 is not a public holiday&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>--- [...]
+</span></span></span><span class=line><span class=cl><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>--- [...]
 </span></span></span></code></pre></div><p>Lançons à présent les tests.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ docker exec -it pgdemo pg_prove -U postgres test.sql
 </span></span><span class=line><span class=cl>test.sql .. 1/3 
 </span></span><span class=line><span class=cl># Failed test 2: &#34;2020-05-01 is a public holiday&#34;
@@ -114,7 +114,7 @@ luxe d&rsquo;un <code>IF</code> au sein du code.</p><div class=highlight><pre ta
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>END</span><span class=w> </span><span class=k>IF</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=k>false</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>C&rsquo;est simple, efficace… et subjectivement très mauvais. Le résultat escompté est
 atteint avec 100% des tests réussis. Mais je commence à entrevoir des problèmes
 de maintenance de code. Poussons les tests plus loin.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql
@@ -131,7 +131,7 @@ poursuis avec un nouveau test pour le 1<sup>er</sup> janvier.</p><div class=high
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=s1>&#39;2020-01-01&#39;</span><span class=p>::</span><span class=nb>date</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>true</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;2020-01-01 is a public holiday&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>);</span><span class=w>
 </span></span></span></code></pre></div><p>Et j&rsquo;ajoute au code de ma fonction <code>is_public_holiday</code>, une nouvelle condition
 <code>IF</code>. Je me retrouve avec cette immondice, qui me rappelle certaines règles
 logiques issues de (trop) longues procédures stockées PL/SQL, que j&rsquo;eus croisées
@@ -149,29 +149,29 @@ dans une précédente vie.</p><div class=highlight><pre tabindex=0 class=chroma>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>END</span><span class=w> </span><span class=k>IF</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=k>false</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Mes tests passent correctement mais il est aproprié de s&rsquo;arrêter sur l&rsquo;un des
 principes du développement TDD : le <em>refactoring</em>, ou l&rsquo;art de simplifier le
 code pour le rendre plus lisible et maintenable. L&rsquo;idée est donc de proposer une
 réécriture de notre fonction <code>is_public_holiday</code> sans altérer l&rsquo;état des tests.
 C&rsquo;est parti !</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- Type month_day
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>DROP</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=k>IF</span><span class=w> </span><span class=k>EXISTS</span><span class=w> </span><span class=n>month_day</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>CREATE</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=n>month_day</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=p>(</span><span class=k>month</span><span class=w> </span><span class=nb>int</span><span class=p>,</span><span class=w> </span><span class=k>day</span><span class=w> </span><span class=nb>int</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>DROP</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=k>IF</span><span class=w> </span><span class=k>EXISTS</span><span class=w> </span><span class=n>month_day</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TYPE</span><span class=w> </span><span class=n>month_day</span><span class=w> </span><span class=k>AS</span><span class=w> </span><span class=p>(</span><span class=k>month</span><span class=w> </span><span class=nb>int</span><span class=p>,</span><span class=w> </span><span class=k>day</span><span class=w> </span><span class=nb>int</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Function is_public_holiday(date)
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=k>day</span><span class=w> </span><span class=nb>date</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- Function is_public_holiday(date)
+</span></span></span><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=k>day</span><span class=w> </span><span class=nb>date</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURNS</span><span class=w> </span><span class=nb>boolean</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=n>plpgsql</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>DECLARE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>DECLARE</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>m</span><span class=w> </span><span class=nb>int</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=k>extract</span><span class=p>(</span><span class=k>month</span><span class=w> </span><span class=k>from</span><span class=w> </span><span class=k>day</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>d</span><span class=w> </span><span class=nb>int</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=k>extract</span><span class=p>(</span><span class=k>day</span><span class=w> </span><span class=k>from</span><span class=w> </span><span class=k>day</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>holidays</span><span class=w> </span><span class=n>month_day</span><span class=p>[]</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=nb>array</span><span class=p>[</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>5</span><span class=p>,</span><span class=mi>1</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>];</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=p>(</span><span class=n>m</span><span class=p>,</span><span class=n>d</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>ANY</span><span class=w> </span><span class=p>(</span><span class=n>holidays</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$$</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=err>$$</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Dans cette version améliorée, je prends la décision de créer le type <code>month_day</code>
 qui représente le couple mois/jour afin de réaliser des comparaisons ensemblistes
 avec le mot clé <code>ANY</code> fourni par le standard SQL. La variable <code>holidays</code> devient
@@ -193,11 +193,11 @@ testés, je peux proposer un nouveau test qui les englobe. Par exemple, pour l&r
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=n>x</span><span class=p>::</span><span class=nb>date</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>true</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>format</span><span class=p>(</span><span class=s1>&#39;%s is as public holiday&#39;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;2020-05-08&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-07-14&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-08-15&#39;</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;2020-11-01&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-11-11&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-12-25&#39;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>--, &#39;2020-12-26&#39; -- si vous vivez en Alsace-Moselle
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Sans trop de difficulté, et parce que nous avions réalisé avec succès la phase de
 réusinage du code, je peux ajouter l&rsquo;implémentation des nouveaux jours fériés
 dans ma fonction et passer les tests avec succès.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>DECLARE</span><span class=w>
@@ -207,10 +207,10 @@ dans ma fonction et passer les tests avec succès.</p><div class=highlight><pre 
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>5</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>5</span><span class=p>,</span><span class=mi>8</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>7</span><span class=p>,</span><span class=mi>14</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=mi>8</span><span class=p>,</span><span class=mi>15</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>11</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>11</span><span class=p>,</span><span class=mi>11</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>12</span><span class=p>,</span><span class=mi>25</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>--, (12,26) -- si vous vivez en Alsace-Moselle
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=w>  </span><span class=p>];</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>];</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=p>(</span><span class=n>m</span><span class=p>,</span><span class=n>d</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>ANY</span><span class=w> </span><span class=p>(</span><span class=n>holidays</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><h2 id=les-jours-incroyables-de-la-mort-du-christ>Les jours incroyables de la mort du Christ</h2><p>Si vous avez bien suivi, il ne manque plus que l&rsquo;implémentation des fameux jours
 du <a href=https://fr.wikipedia.org/wiki/Lundi_de_P%C3%A2ques target=_blank rel=noopener>lundi de Pâques</a>, du <a href=https://fr.wikipedia.org/wiki/Ascension_%28f%C3%AAte%29 target=_blank rel=noopener>jeudi de l&rsquo;Ascension</a> et du <a href=https://fr.wikipedia.org/wiki/Pentec%C3%B4te target=_blank rel=noopener>lundi de Pentecôte</a>,
 voire du <a href=https://fr.wikipedia.org/wiki/Vendredi_saint target=_blank rel=noopener>Vendredi Saint</a> pour mes lecteurs assidus du Grand Est. Ces jours
@@ -223,10 +223,10 @@ jours fériés par ma fonction.</p><div class=highlight><pre tabindex=0 class=ch
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=n>x</span><span class=p>::</span><span class=nb>date</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>true</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>format</span><span class=p>(</span><span class=s1>&#39;%s is an easter monday&#39;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;1931-04-06&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;1945-04-02&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;1968-04-15&#39;</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;1989-03-27&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2000-04-24&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-04-13&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Je ne vous le cache pas, j&rsquo;ai découvert le calcul du jour de Pâques il y a
 plusieurs années, alors même que je devais écrire une fonction en PL/pgSQL selon
 la <a href=https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques_selon_la_m%C3%A9thode_de_Gauss target=_blank rel=noopener>méthode de Gauss</a> pour un système de planification embarqué dans une base
@@ -235,8 +235,8 @@ l&rsquo;occasion d&rsquo;être mise en lumière. J&rsquo;ajoute à mon code init
 cette nouvelle fonction qui prendra une année en paramètre, requise pour
 déterminer « le <a href=https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%C3%A2ques target=_blank rel=noopener>dimanche</a> qui suit la première pleine lune du printemps ».</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>OR</span><span class=w> </span><span class=k>REPLACE</span><span class=w> </span><span class=k>FUNCTION</span><span class=w> </span><span class=n>easter_date</span><span class=p>(</span><span class=k>year</span><span class=w> </span><span class=nb>int</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURNS</span><span class=w> </span><span class=nb>date</span><span class=w> </span><span class=k>LANGUAGE</span><span class=w> </span><span class=n>plpgsql</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>DECLARE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>AS</span><span class=w> </span><span class=err>$$</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>DECLARE</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>g</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=k>year</span><span class=w> </span><span class=o>%</span><span class=w> </span><span class=mi>19</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>c</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=k>year</span><span class=w> </span><span class=o>/</span><span class=w> </span><span class=mi>100</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>h</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=p>(</span><span class=k>c</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=k>c</span><span class=o>/</span><span class=mi>4</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=p>(</span><span class=mi>8</span><span class=o>*</span><span class=k>c</span><span class=o>+</span><span class=mi>13</span><span class=p>)</span><span class=o>/</span><span class=mi>25</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>19</span><span class=o>*</span><span class=k>g</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>15</span><span class=p>)</span><span class=w> </span><span class=o>%</span><span class=w> </span><span class=mi>30</span><span class=p>;</span><span class=w>
@@ -245,10 +245,10 @@ déterminer « le <a href=https://fr.wikipedia.org/wiki/Calcul_de_la_date_de_P%
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>l</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>i</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=n>j</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>m</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=mi>3</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=p>(</span><span class=n>l</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>40</span><span class=p>)</span><span class=o>/</span><span class=mi>44</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>d</span><span class=w> </span><span class=nb>integer</span><span class=w> </span><span class=p>:</span><span class=o>=</span><span class=w> </span><span class=n>l</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>28</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=mi>31</span><span class=w> </span><span class=o>*</span><span class=w> </span><span class=p>(</span><span class=n>m</span><span class=o>/</span><span class=mi>4</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=n>format</span><span class=p>(</span><span class=s1>&#39;%s-%s-%s&#39;</span><span class=p>,</span><span class=w> </span><span class=k>year</span><span class=p>,</span><span class=w> </span><span class=n>m</span><span class=p>,</span><span class=w> </span><span class=n>d</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=err>$$</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=err>$$</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Il s&rsquo;agit à présent d&rsquo;intégrer ce calcul dans notre fonction <code>is_public_holiday</code>
 et satisfaire la comparaison avec nos dates de tests. Nous souhaitons connaître
 la date du lundi de Pâques, et non celle du dimanche fournie par l&rsquo;algorithme
@@ -262,7 +262,7 @@ précédent.</p><div class=highlight><pre tabindex=0 class=chroma><code class=la
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>5</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>5</span><span class=p>,</span><span class=mi>8</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>7</span><span class=p>,</span><span class=mi>14</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=mi>8</span><span class=p>,</span><span class=mi>15</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>11</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>11</span><span class=p>,</span><span class=mi>11</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>12</span><span class=p>,</span><span class=mi>25</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>];</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>IF</span><span class=w> </span><span class=p>(</span><span class=n>m</span><span class=p>,</span><span class=n>d</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>extract</span><span class=p>(</span><span class=k>month</span><span class=w> </span><span class=k>from</span><span class=w> </span><span class=n>easter</span><span class=o>+</span><span class=mi>1</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>extract</span><span class=p>(</span><span class=k>day</span><span class=w> </span><span class=k>from</span><span class=w> </span><span class=n>easter</span><span class=o>+</span><span class=mi>1</span><span class=p>)</span><span class=w>
@@ -272,7 +272,7 @@ précédent.</p><div class=highlight><pre tabindex=0 class=chroma><code class=la
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>END</span><span class=w> </span><span class=k>IF</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=p>(</span><span class=n>m</span><span class=p>,</span><span class=n>d</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>ANY</span><span class=w> </span><span class=p>(</span><span class=n>holidays</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Encore une fois, j&rsquo;implémente cette nouvelle règle de comparaison avec le minimum
 d&rsquo;efforts et un bloc <code>IF</code> comme la fois passée. Les tests se réalisent sans accroc
 pour la sélection préalable des lundis de Pâques.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sh data-lang=sh><span class=line><span class=cl><span class=c1># docker exec -it pgdemo psql -U postgres -f is_public_holiday.sql</span>
@@ -292,19 +292,19 @@ séries de tests pour les dates de l&rsquo;Ascension et de la Pentecôte.</p><di
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=n>x</span><span class=p>::</span><span class=nb>date</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>true</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>format</span><span class=p>(</span><span class=s1>&#39;%s is as ascension day&#39;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;1921-05-05&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;1940-05-02&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;1960-05-26&#39;</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;1998-05-21&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2011-06-02&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-05-21&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=k>is</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=k>is</span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=n>x</span><span class=p>::</span><span class=nb>date</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>true</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>format</span><span class=p>(</span><span class=s1>&#39;%s is pentecost&#39;</span><span class=p>,</span><span class=w> </span><span class=n>x</span><span class=p>)</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=k>unnest</span><span class=p>(</span><span class=nb>array</span><span class=p>[</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;1910-05-16&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;1928-05-28&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;1955-05-30&#39;</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=s1>&#39;1984-06-11&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2003-06-09&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-06-01&#39;</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>])</span><span class=w> </span><span class=n>x</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Plutôt que d&rsquo;employer une succession de <code>IF</code> pour valider ces nouvelles règles,
 je réécris la fonction <code>is_public_holiday</code> pour enrichir mon tableau de références
 <code>holidays</code> avec trois nouvelles dates, déterminées à partir du jour de Pâques.
@@ -321,7 +321,7 @@ exotiques, le Vendredi Saint aura lieu 2 jours avant Pâques.)</em></p><div clas
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>5</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>5</span><span class=p>,</span><span class=mi>8</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>7</span><span class=p>,</span><span class=mi>14</span><span class=p>),</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>(</span><span class=mi>8</span><span class=p>,</span><span class=mi>15</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>11</span><span class=p>,</span><span class=mi>1</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>11</span><span class=p>,</span><span class=mi>11</span><span class=p>),</span><span class=w> </span><span class=p>(</span><span class=mi>12</span><span class=p>,</span><span class=mi>25</span><span class=p>)</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=p>];</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>BEGIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>BEGIN</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>FOR</span><span class=w> </span><span class=n>h</span><span class=w> </span><span class=k>IN</span><span class=w> </span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>SELECT</span><span class=w> </span><span class=k>extract</span><span class=p>(</span><span class=k>month</span><span class=w> </span><span class=k>from</span><span class=w> </span><span class=n>easter</span><span class=o>+</span><span class=n>i</span><span class=p>)</span><span class=w> </span><span class=s2>&#34;month&#34;</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>           </span><span class=k>extract</span><span class=p>(</span><span class=k>day</span><span class=w> </span><span class=k>from</span><span class=w> </span><span class=n>easter</span><span class=o>+</span><span class=n>i</span><span class=p>)</span><span class=w> </span><span class=s2>&#34;day&#34;</span><span class=w>
@@ -331,7 +331,7 @@ exotiques, le Vendredi Saint aura lieu 2 jours avant Pâques.)</em></p><div clas
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>END</span><span class=w> </span><span class=n>LOOP</span><span class=p>;</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=k>RETURN</span><span class=w> </span><span class=p>(</span><span class=n>m</span><span class=p>,</span><span class=n>d</span><span class=p>)</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>ANY</span><span class=w> </span><span class=p>(</span><span class=n>holidays</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>END</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>END</span><span class=p>;</span><span class=w>
 </span></span></span></code></pre></div><p>Et cette fois-ci, nous sommes assurés par nos tests que l&rsquo;ensemble des jours
 fériés seront correctement identifiés par la fonction.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>$ docker exec -it pgdemo pg_prove -U postgres test.sql
 </span></span><span class=line><span class=cl>test.sql .. ok     
@@ -343,22 +343,22 @@ fériés seront correctement identifiés par la fonction.</p><div class=highligh
 être employé pour réaliser des tests de non régression au niveau du modèle de
 données. C&rsquo;est même sa fonction première avec une série de méthodes permettant
 de questionner le catalogue système de la base.</p><p>Voyons quelques unes d&rsquo;entre-elles avec les exemples suivants.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=c1>-- Contrôler la présence et bonne définition d&#39;un type
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>SELECT</span><span class=w> </span><span class=n>has_type</span><span class=p>(</span><span class=s1>&#39;month_day&#39;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>col_type_is</span><span class=p>(</span><span class=s1>&#39;month_day&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;month&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;integer&#39;</span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>col_type_is</span><span class=p>(</span><span class=s1>&#39;month_day&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;day&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;integer&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>has_type</span><span class=p>(</span><span class=s1>&#39;month_day&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>col_type_is</span><span class=p>(</span><span class=s1>&#39;month_day&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;month&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;integer&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>col_type_is</span><span class=p>(</span><span class=s1>&#39;month_day&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;day&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;integer&#39;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Contrôler qu&#39;une contrainte est bien définie sur une table
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- Contrôler qu&#39;une contrainte est bien définie sur une table
+</span></span></span><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>t</span><span class=w> </span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>id</span><span class=w> </span><span class=nb>int</span><span class=p>,</span><span class=w> </span><span class=n>task</span><span class=w> </span><span class=nb>varchar</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=n>planned</span><span class=w> </span><span class=nb>date</span><span class=w> </span><span class=k>check</span><span class=w> </span><span class=p>(</span><span class=k>not</span><span class=w> </span><span class=n>is_public_holiday</span><span class=p>(</span><span class=n>planned</span><span class=p>))</span><span class=w> 
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=p>);</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=k>SELECT</span><span class=w> </span><span class=n>col_has_check</span><span class=p>(</span><span class=s1>&#39;t&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;planned&#39;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>col_has_check</span><span class=p>(</span><span class=s1>&#39;t&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;planned&#39;</span><span class=p>);</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w></span><span class=c1>-- Contrôler qu&#39;une erreur d&#39;intégrité est bien levée
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=k>SELECT</span><span class=w> </span><span class=n>throws_ok</span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=c1>-- Contrôler qu&#39;une erreur d&#39;intégrité est bien levée
+</span></span></span><span class=line><span class=cl><span class=k>SELECT</span><span class=w> </span><span class=n>throws_ok</span><span class=p>(</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=err>$$</span><span class=k>insert</span><span class=w> </span><span class=k>into</span><span class=w> </span><span class=n>t</span><span class=w> </span><span class=k>values</span><span class=w> </span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;travailler&#39;</span><span class=p>,</span><span class=w> </span><span class=s1>&#39;2020-05-21&#39;</span><span class=p>)</span><span class=err>$$</span><span class=p>,</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=mi>23514</span><span class=w> </span><span class=c1>-- code d&#39;erreur check_violation
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>);</span><span class=w>
 </span></span></span></code></pre></div><hr><p>Le <em>framework</em> existe depuis 2008 et continue son bonhomme de chemin auprès de
 la communauté. Ce n&rsquo;est clairement pas un outil pour un environnement de production,
 mais peut s&rsquo;avérer un bel atout pour les chaînes de développement continu afin
@@ -369,5 +369,5 @@ souhaitez parcourir les fichiers de ma démonstration, ils sont en accès libre 
 <a href=https://gist.github.com/fljdin/4e4e5257667b3dca7278b05a31751fc3 target=_blank rel=noopener>gist.github.com/fljdin</a>.</div></article><aside class=related><h3>Suggestion d'articles</h3><ul class=related-posts><li><a href=https://fljd.in/2022/04/21/halte-aux-regressions/>Halte aux régressions
 <small><time datetime=2022-04-21>21 avr 2022</time></small></a></li><li><a href=https://fljd.in/2020/01/17/gestion-des-signaux-internes/>Gestion des signaux internes
 <small><time datetime=2020-01-17>17 janv 2020</time></small></a></li><li><a href=https://fljd.in/2025/06/17/le-partitionnement-par-uuid-v7/>Le partitionnement par UUID v7
-<small><time datetime=2025-06-17>17 juin 2025</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2025-10-08>2025</time>
+<small><time datetime=2025-06-17>17 juin 2025</time></small></a></li></ul></aside></main><footer class=footer><small>&copy; 2019-<time datetime=2026-09-15>2026</time>
 — <a href=https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr>Creative Commons License BY-NC-ND 4.0</a></small></footer></div></body></html>
