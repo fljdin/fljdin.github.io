@@ -1,15 +1,15 @@
-{{ $pag := $.Paginator }}
-{{ if gt $pag.TotalPages 1 -}}
+{{ $paginator := $.Paginator }}
+{{ if gt $paginator.TotalPages 1 -}}
 <div class="pagination">
-  {{ if $pag.HasNext }}
-    <a class="pagination-item older" href="{{ $pag.Next.URL }}">{{ i18n "previousPage" }}</a>
+  {{ if $paginator.HasPrev }}
+    <a class="pagination-item newer" href="{{ $paginator.Prev.URL }}">{{ i18n "recentPosts" }}</a>
   {{ else }}
-    <span class="pagination-item older">{{ i18n "previousPage" }}</span>
+    <span class="pagination-item newer">{{ i18n "recentPosts" }}</span>
   {{ end }}
-  {{ if $pag.HasPrev }}
-    <a class="pagination-item newer" href="{{ $pag.Prev.URL }}">{{ i18n "nextPage" }}</a>
+  {{ if $paginator.HasNext }}
+    <a class="pagination-item older" href="{{ $paginator.Next.URL }}">{{ i18n "olderPosts" }}</a>
   {{ else }}
-    <span class="pagination-item newer">{{ i18n "nextPage" }}</span>
+    <span class="pagination-item older">{{ i18n "olderPosts" }}</span>
   {{ end }}
 </div>
 {{ end }}

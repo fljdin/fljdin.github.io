@@ -1,7 +1,7 @@
 ---
 
-- { id: previousPage, other: "Page précédente" }
-- { id: nextPage, other: "Page suivante" }
+- { id: olderPosts, other: "Articles anciens" }
+- { id: recentPosts, other: "Articles récents" }
 - { id: readingTime, one: "1 minute de lecture", other: "{{ .Count }} minutes de lecture" }
 - { id: suggestedPosts, other: "Suggestion d'articles" }
 - { id: readMore, other: "Lire la suite" }
