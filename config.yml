@@ -5,7 +5,9 @@ params:
   author: Florent Jardin
   fediverse: "@fljdin@mastodon.tedomum.net"
 
-rssLimit: 5
+services:
+  rss:
+    limit: 5
 pagination:
   pagerSize: 5
 
@@ -31,17 +33,21 @@ related:
       weight: 10
 
 removePathAccents: true
-pygmentsUseClasses: true
+markup:
+  highlight:
+    codeFences: true
+    noClasses: false
+    style: pygments
 
 # i18n
-languageCode: fr
+locale: fr
 defaultContentLanguage: fr
 
 languages:
   fr:
     title: "Carnet de découvertes"
-    languageCode: fr
-    languageName: Français
+    locale: fr
+    label: Français
     contentDir: content/fr
     weight: 1
     menu:
@@ -60,8 +66,8 @@ languages:
           weight: 3
   en:
     title: "Discovery notebook"
-    languageCode: en
-    languageName: English
+    locale: en
+    label: English
     contentDir: content/en
     weight: 2
     menu:

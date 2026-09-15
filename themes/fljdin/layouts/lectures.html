@@ -2,7 +2,7 @@
 <article class="page">
   <h1 class="page-title">{{ .Title }}</h1>
   <div class="readings">
-    {{- range $.Site.Data.readings }}
+    {{- range hugo.Data.readings }}
       <div class="reading{{ if not .current }} done{{ end -}}">
         {{- if isset . "isbn" -}}
           <img src="http://images.amazon.com/images/P/{{ .isbn }}" alt="{{ .title }} - {{ .author }}" />

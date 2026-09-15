@@ -1,13 +1,12 @@
 ---
 
-- { id: previousPage, other: "Previous page" }
-- { id: nextPage, other: "Next page" }
+- { id: olderPosts, other: "Older posts" }
+- { id: recentPosts, other: "Newer posts" }
 - { id: readingTime, one: "1 minute to read", other: "{{ .Count }} minutes to read" }
 - { id: suggestedPosts, other: "Suggested posts" }
 - { id: readMore, other: "Read more" }
 - { id: noPage, other: "Sorry, the page you're looking for doesn't exist." }
 - { id: goHome, other: "Return to home page." }
-- { id: abrDate, other: "{{ .Date.Day }} {{ index $.Site.Data.months.en (printf `%d` .Date.Month) }} {{ .Date.Year }}" }
 - { id: transRedirect, other: "Cet article est disponible en Français :" }
 - { id: transTalks, other: "Others talks are available in French."}
 - { id: video, other: "video"}
