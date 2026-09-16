@@ -1,12 +1,13 @@
 ---
 title: "Inspecter un catalogue avec pg_migrate"
-categories: [postgresql, pg_migrate]
+categories: [postgresql]
 tags: [migration]
 date: "2026-09-15 16:00:00 +0200"
+translationKey: "inspecting-a-catalog-with-pg-migrate"
 ---
 
 Au cours des dernières années, je me suis engagé à identifier les atouts et
-faiblesses d’outils dédiés à la migration vers PostgreSQL. Plusieurs articles
+faiblesses des outils dédiés à la migration vers PostgreSQL. Plusieurs articles
 [publiés par mes soins][1] ont pavé le chemin vers une direction ambitieuse que
 j’entreprends depuis 2024 avec mes collègues [Étienne Bersac][bersace] et
 [Pierre-Louis Gonon][pirlgon].
@@ -15,9 +16,9 @@ j’entreprends depuis 2024 avec mes collègues [Étienne Bersac][bersace] et
 [bersace]: https://bersace.cae.li/
 [pirlgon]: https://gitlab.com/pirlgon
 
-… Et la version stable 1.0 de PostgreSQL Migrator est [sortie le 4 septembre
-dernier][2]. L’occasion de présenter des fonctionnalités que j’utilise au
-quotidien et ce qu’elles apportent par rapport aux autres outils. Dans cet
+… Et la première version stable de PostgreSQL Migrator est [sortie le 4
+septembre dernier][2]. L’occasion de présenter des fonctionnalités que j’utilise
+au quotidien et ce qu’elles apportent par rapport aux autres outils. Dans cet
 article, je souhaite m’attarder sur l’une d’entre elles, particulièrement
 précieuse pour préparer une migration : le **catalogue hors-ligne**.
 
@@ -56,7 +57,7 @@ collection d’alias dans un catalogue système propre à chacun.
 d’une table depuis l’écosystème Oracle, plusieurs méthodes existent et toutes
 s’appuient sur les vues du catalogue que je présente en dernier.
 
-**L’instruction DESCRIBE**
+**La commande DESCRIBE**
 
 Certainement la moins riche des solutions mais la plus rapide pour une première
 inspection. Il s’agit d’un équivalent de la méta-commande `\d` dans psql ou du
@@ -77,7 +78,7 @@ DESCRIBE SCOTT.EMP;
 -- DEPTNO            NUMBER(2)    
 ```
 
-**L’API METADATA**
+**Le package DBMS_METADATA**
 
 Il est possible d’employer un package Oracle très utile pour générer la
 structure d’une table au format texte SQL. Les équivalents des autres systèmes
@@ -146,7 +147,7 @@ le catalogue est stockée dans une base de données PostgreSQL.
 
 [3]: https://github.com/cybertec-postgresql/db_migrator
 
-Il était alors simple de lancer une inspection avec la méthode
+Il était alors simple de lancer une inspection avec la fonction
 `db_migrate_refresh()` pour créer un instantané du catalogue distant et de
 pouvoir le questionner hors-ligne, sans se reconnecter à l’instance Oracle. De
 cette découverte émergera les premiers tâtonnements du catalogue au format JSON
@@ -167,8 +168,8 @@ est initialisée au début de l’inspection. Ce catalogue peut être étendu en
 fonction que la source soit une base Oracle ou MySQL/MariaDB, pour collecter les
 objets spécifiques du moteur, comme les _packages_ ou les synonymes. Dès lors
 que la lecture du catalogue distant est réalisée, il suffit de sérialiser la
-structure dans un fichier JSON. Actuellement, la version 1.0 s’appuit sur le
-module [sonic](https://github.com/bytedance/sonic).
+structure dans un fichier JSON. Actuellement, la version 1.0 s’appuit sur la
+bibliothèque [sonic](https://github.com/bytedance/sonic).
 
 L’inspection est la première étape pour démarrer un projet avec `pg_migrate`, le
 petit nom de l’interface en ligne de commande (_CLI_) de PostgreSQL Migrator.
@@ -281,10 +282,9 @@ Je suis profondément fier du travail accompli avec cette première version
 stable. Nous concluons une aventure palpitante avec mes collègues chez Dalibo,
 celle de plus de deux ans de développement d’un outil libre et gratuit et qui a
 vocation à dépasser son illustre prédécesseur Ora2Pg. La [feuille de route][4]
-est claire. Nous avons un retard métier conséquent sur la référence open-source
-de la migration, mais nous ne rougissont pas. Les fondations sont solides, le
-langage Go permet de répondre à de véritables besoins de simplification et de
-modernité. 
+est claire et nous attaquons dès cette rentrée le chapitre sur la conversion de
+code procédural. Les fondations sont solides, le langage Go permet de répondre à
+de véritables besoins de simplification et de modernité. 
 
 [4]: https://postgresql-migrator.readthedocs.io/en/latest/references/features/
 
