@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Migration on Carnet de découvertes</title><link>https://fljd.in/tags/migration/</link><description>Recent content in Migration on Carnet de découvertes</description><generator>Hugo -- gohugo.io</generator><language>fr</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 15 Sep 2026 16:00:00 +0200</lastBuildDate><atom:link href="https://fljd.in/tags/migration/index.xml" rel="self" type="application/rss+xml"/><item><title>Inspecter un catalogue avec pg_migrate</title><link>https://fljd.in/2026/09/15/inspecter-un-catalogue-avec-pg_migrate/</link><pubDate>Tue, 15 Sep 2026 16:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/2026/09/15/inspecter-un-catalogue-avec-pg_migrate/</guid><description>&lt;p&gt;Au cours des dernières années, je me suis engagé à identifier les atouts et
-faiblesses d’outils dédiés à la migration vers PostgreSQL. Plusieurs articles
+faiblesses des outils dédiés à la migration vers PostgreSQL. Plusieurs articles
 &lt;a href="https://fljd.in/tags/migration/"&gt;publiés par mes soins&lt;/a&gt; ont pavé le chemin vers une direction ambitieuse que
 j’entreprends depuis 2024 avec mes collègues &lt;a href="https://bersace.cae.li/" target="_blank" rel="noopener"&gt;Étienne Bersac&lt;/a&gt; et
 &lt;a href="https://gitlab.com/pirlgon" target="_blank" rel="noopener"&gt;Pierre-Louis Gonon&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;… Et la version stable 1.0 de PostgreSQL Migrator est &lt;a href="https://www.postgresql.org/about/news/postgresql-migrator-10-first-stable-release-3377/" target="_blank" rel="noopener"&gt;sortie le 4 septembre
-dernier&lt;/a&gt;. L’occasion de présenter des fonctionnalités que j’utilise au
-quotidien et ce qu’elles apportent par rapport aux autres outils. Dans cet
+&lt;p&gt;… Et la première version stable de PostgreSQL Migrator est &lt;a href="https://www.postgresql.org/about/news/postgresql-migrator-10-first-stable-release-3377/" target="_blank" rel="noopener"&gt;sortie le 4
+septembre dernier&lt;/a&gt;. L’occasion de présenter des fonctionnalités que j’utilise
+au quotidien et ce qu’elles apportent par rapport aux autres outils. Dans cet
 article, je souhaite m’attarder sur l’une d’entre elles, particulièrement
 précieuse pour préparer une migration : le &lt;strong&gt;catalogue hors-ligne&lt;/strong&gt;.&lt;/p&gt;
 &lt;hr&gt;
@@ -30,7 +30,7 @@ collection d’alias dans un catalogue système propre à chacun.&lt;/p&gt;
 &lt;p&gt;À présent, parlons d’Oracle et d’Ora2Pg. Si nous souhaitons recréer la structure
 d’une table depuis l’écosystème Oracle, plusieurs méthodes existent et toutes
 s’appuient sur les vues du catalogue que je présente en dernier.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;L’instruction DESCRIBE&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;La commande DESCRIBE&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Certainement la moins riche des solutions mais la plus rapide pour une première
 inspection. Il s’agit d’un équivalent de la méta-commande &lt;code&gt;\d&lt;/code&gt; dans psql ou du
 &lt;code&gt;pragma table_info&lt;/code&gt; pour SQLite.&lt;/p&gt;
@@ -46,7 +46,7 @@ inspection. Il s’agit d’un équivalent de la méta-commande &lt;code&gt;\d&l
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- SAL NUMBER(7,2)
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- COMM NUMBER(7,2)
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- DEPTNO NUMBER(2)
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;L’API METADATA&lt;/strong&gt;&lt;/p&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Le package DBMS_METADATA&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Il est possible d’employer un package Oracle très utile pour générer la
 structure d’une table au format texte SQL. Les équivalents des autres systèmes
 seraient l’instruction &lt;code&gt;SHOW CREATE TABLE&lt;/code&gt; de MySQL ou encore &lt;code&gt;.schema&lt;/code&gt; de
@@ -101,7 +101,7 @@ exécutions. &lt;strong&gt;La lecture du catalogue source est nécessaire à cha
 opposition, j’ai eu l’occasion de découvrir une alternative nommée
 &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener"&gt;db_migrator&lt;/a&gt;, basée sur les &lt;em&gt;Foreign Data Wrapper&lt;/em&gt;. Avec cette solution,
 le catalogue est stockée dans une base de données PostgreSQL.&lt;/p&gt;
-&lt;p&gt;Il était alors simple de lancer une inspection avec la méthode
+&lt;p&gt;Il était alors simple de lancer une inspection avec la fonction
 &lt;code&gt;db_migrate_refresh()&lt;/code&gt; pour créer un instantané du catalogue distant et de
 pouvoir le questionner hors-ligne, sans se reconnecter à l’instance Oracle. De
 cette découverte émergera les premiers tâtonnements du catalogue au format JSON
@@ -118,8 +118,8 @@ est initialisée au début de l’inspection. Ce catalogue peut être étendu en
 fonction que la source soit une base Oracle ou MySQL/MariaDB, pour collecter les
 objets spécifiques du moteur, comme les &lt;em&gt;packages&lt;/em&gt; ou les synonymes. Dès lors
 que la lecture du catalogue distant est réalisée, il suffit de sérialiser la
-structure dans un fichier JSON. Actuellement, la version 1.0 s’appuit sur le
-module &lt;a href="https://github.com/bytedance/sonic" target="_blank" rel="noopener"&gt;sonic&lt;/a&gt;.&lt;/p&gt;
+structure dans un fichier JSON. Actuellement, la version 1.0 s’appuit sur la
+bibliothèque &lt;a href="https://github.com/bytedance/sonic" target="_blank" rel="noopener"&gt;sonic&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;L’inspection est la première étape pour démarrer un projet avec &lt;code&gt;pg_migrate&lt;/code&gt;, le
 petit nom de l’interface en ligne de commande (&lt;em&gt;CLI&lt;/em&gt;) de PostgreSQL Migrator.
 Après avoir initialisé un dossier vide et valider l’accès à la base distante
@@ -212,10 +212,9 @@ commande complète est la suivante :&lt;/p&gt;
 stable. Nous concluons une aventure palpitante avec mes collègues chez Dalibo,
 celle de plus de deux ans de développement d’un outil libre et gratuit et qui a
 vocation à dépasser son illustre prédécesseur Ora2Pg. La &lt;a href="https://postgresql-migrator.readthedocs.io/en/latest/references/features/" target="_blank" rel="noopener"&gt;feuille de route&lt;/a&gt;
-est claire. Nous avons un retard métier conséquent sur la référence open-source
-de la migration, mais nous ne rougissont pas. Les fondations sont solides, le
-langage Go permet de répondre à de véritables besoins de simplification et de
-modernité.&lt;/p&gt;
+est claire et nous attaquons dès cette rentrée le chapitre sur la conversion de
+code procédural. Les fondations sont solides, le langage Go permet de répondre à
+de véritables besoins de simplification et de modernité.&lt;/p&gt;
 &lt;p&gt;À l’heure où les empires du numérique se gavent de nos données métiers, qu’ils
 siphonnent la valeur travail de nos entreprises, il est urgent de réagir et de
 croire qu’un autre numérique est possible. Les projets de migration deviennent

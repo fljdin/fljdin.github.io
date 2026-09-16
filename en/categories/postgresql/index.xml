@@ -1,4 +1,218 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Discovery notebook</title><link>https://fljd.in/en/categories/postgresql/</link><description>Recent content in Postgresql on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Tue, 17 Dec 2024 14:00:00 +0200</lastBuildDate><atom:link href="https://fljd.in/en/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Window functions to the rescue</title><link>https://fljd.in/en/2024/12/17/window-functions-to-the-rescue/</link><pubDate>Tue, 17 Dec 2024 14:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/12/17/window-functions-to-the-rescue/</guid><description>&lt;p&gt;PostgreSQL comes with a variety of functions that allow you to group rows into a
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Postgresql on Discovery notebook</title><link>https://fljd.in/en/categories/postgresql/</link><description>Recent content in Postgresql on Discovery notebook</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>Florent Jardin</managingEditor><lastBuildDate>Wed, 16 Sep 2026 09:00:00 +0200</lastBuildDate><atom:link href="https://fljd.in/en/categories/postgresql/index.xml" rel="self" type="application/rss+xml"/><item><title>Inspecting a catalog with pg_migrate</title><link>https://fljd.in/en/2026/09/16/inspecting-a-catalog-with-pg_migrate/</link><pubDate>Wed, 16 Sep 2026 09:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2026/09/16/inspecting-a-catalog-with-pg_migrate/</guid><description>&lt;p&gt;Over the past few years, I have been working on assessing the strengths and
+weaknesses of PostgreSQL migration tools. Several articles &lt;a href="https://fljd.in/en/tags/migration/"&gt;published by yours
+truly&lt;/a&gt; led to the ambitious project I have been pursuing since 2024 with my
+colleagues &lt;a href="https://bersace.cae.li/" target="_blank" rel="noopener"&gt;Étienne Bersac&lt;/a&gt; and &lt;a href="https://gitlab.com/pirlgon" target="_blank" rel="noopener"&gt;Pierre-Louis Gonon&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;… And the fisrt stable version of PostgreSQL Migrator &lt;a href="https://www.postgresql.org/about/news/postgresql-migrator-10-first-stable-release-3377/" target="_blank" rel="noopener"&gt;was released on September
+4th&lt;/a&gt;. This is an opportunity to showcase features I use daily and what
+advantages they offer over other tools. In this article, I want to focus on one
+of them, particularly valuable when preparing a migration: the &lt;strong&gt;offline
+catalog&lt;/strong&gt;.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="inspecting-the-oracle-catalog"&gt;Inspecting the Oracle catalog&lt;/h2&gt;
+&lt;p&gt;The catalog of a relational database contains the structure of the data model,
+table column names and data types, constraint definitions, the definition of a
+view or a function, and so on. Everything declared by the user with DDL (&lt;em&gt;Data
+Definition Language&lt;/em&gt;) is stored in the catalog as the single source of truth.&lt;/p&gt;
+&lt;p&gt;In systems like PostgreSQL, MySQL or MSSQL Server, the standard provides a
+universal catalog, the &lt;code&gt;information_schema&lt;/code&gt; schema. For example, table names can
+be retrieved there with the same query:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;table_name&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;information_schema&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tables&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;table_schema&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;scott&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;ORDER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;BY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;table_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;However, this is not the ideal solution to reconstruct a data model. Each of these
+systems conforms to the SQL standard as best it can but very often enriches it
+with language extensions or takes liberties with the implementation of a
+feature. As a result, the &lt;code&gt;information_schema&lt;/code&gt; catalog is not the universal
+source, little more than a set of views on top of each system&amp;rsquo;s proprietary
+system catalog.&lt;/p&gt;
+&lt;p&gt;Turning to Oracle and Ora2Pg. If we want to recreate the structure of a table in
+the Oracle ecosystem, several methods exist and they all rely on the catalog
+views which I cover last.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;The DESCRIBE command&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;By far the least informative of the solutions but the fastest for a first
+inspection. It is analogous to the &lt;code&gt;\d&lt;/code&gt; meta-command in psql or the &lt;code&gt;pragma table_info&lt;/code&gt; in SQLite.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;DESCRIBE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;SCOTT&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;EMP&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- Name Null? Type
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- -------- -------- ------------
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- EMPNO NOT NULL NUMBER(4)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- ENAME VARCHAR2(10)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- JOB VARCHAR2(9)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- MGR NUMBER(4)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- HIREDATE DATE
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- SAL NUMBER(7,2)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- COMM NUMBER(7,2)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- DEPTNO NUMBER(2)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;The DBMS_METADATA package&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;You can use a very handy Oracle package to extract the DDL of a table as SQL
+text. The equivalents in other systems are the &lt;code&gt;SHOW CREATE TABLE&lt;/code&gt; statement in
+MySQL or &lt;code&gt;.schema&lt;/code&gt; in SQLite.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SET&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;pagesize&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SET&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;long&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;20000&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dbms_metadata&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_ddl&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;object_type&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;TABLE&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;schema&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SCOTT&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;EMP&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- CREATE TABLE &amp;#34;SCOTT&amp;#34;.&amp;#34;EMP&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- ( &amp;#34;EMPNO&amp;#34; NUMBER(4,0),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- &amp;#34;ENAME&amp;#34; VARCHAR2(10),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- &amp;#34;JOB&amp;#34; VARCHAR2(9),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- &amp;#34;MGR&amp;#34; NUMBER(4,0),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- &amp;#34;HIREDATE&amp;#34; DATE,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- &amp;#34;SAL&amp;#34; NUMBER(7,2),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- &amp;#34;COMM&amp;#34; NUMBER(7,2),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- &amp;#34;DEPTNO&amp;#34; NUMBER(2,0),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- CONSTRAINT &amp;#34;PK_EMP&amp;#34; PRIMARY KEY (&amp;#34;EMPNO&amp;#34;)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- TABLESPACE &amp;#34;SYSTEM&amp;#34; ENABLE,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- CONSTRAINT &amp;#34;FK_DEPTNO&amp;#34; FOREIGN KEY (&amp;#34;DEPTNO&amp;#34;)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- REFERENCES &amp;#34;SCOTT&amp;#34;.&amp;#34;DEPT&amp;#34; (&amp;#34;DEPTNO&amp;#34;) ENABLE
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- ) PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- TABLESPACE &amp;#34;SYSTEM&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Catalog views&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The previous results are derived from several system views. Unsurprisingly,
+classic GUI tools like SQL Developer or DBeaver, as well as Ora2Pg and
+PostgreSQL Migrator, query these views directly to get the full DDL.&lt;/p&gt;
+&lt;p&gt;Ora2Pg fetches the table list from the &lt;code&gt;ALL_OBJECTS&lt;/code&gt; view and stores it in
+memory in a hash &lt;code&gt;$self-&amp;gt;{tables}&lt;/code&gt;. Then, it iterates over &lt;code&gt;ALL_TAB_COLUMNS&lt;/code&gt; to
+collect the details of each table and attach them as a nested level of that same
+global hash &lt;code&gt;$self-&amp;gt;{tables}{$table}{column_info}{$column}&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;OWNER&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;OBJECT_NAME&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;OBJECT_TYPE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;ALL_OBJECTS&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;OBJECT_TYPE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;IN&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;TABLE&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;VIEW&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;AND&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;OWNER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;SCOTT&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;COLUMN_NAME&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DATA_TYPE&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DATA_LENGTH&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;NULLABLE&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DATA_DEFAULT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DATA_PRECISION&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DATA_SCALE&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;CHAR_LENGTH&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;TABLE_NAME&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;OWNER&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;ALL_TAB_COLUMNS&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;TABLE_NAME&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;LIKE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;BIN$%&amp;#39;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;AND&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;TABLE_NAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;EMP&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;ORDER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;BY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;COLUMN_ID&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The in-memory &lt;code&gt;$self&lt;/code&gt; structure maintained by Ora2Pg does not persist across
+runs. &lt;strong&gt;The source catalog must be re-read on every run&lt;/strong&gt;. By contrast, I came
+across an alternative named &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener"&gt;db_migrator&lt;/a&gt;, based on Foreign Data Wrapper
+(FDW). With db_migrator, the catalog is stored in a PostgreSQL database.&lt;/p&gt;
+&lt;p&gt;It was then easy to snapshot the remote catalog with the &lt;code&gt;db_migrate_refresh()&lt;/code&gt;
+function and to query it offline, without reconnecting to the Oracle instance.
+This discovery led to the first prototypes of the JSON catalog of PostgreSQL
+Migrator.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id="querying-the-json-catalog"&gt;Querying the JSON catalog&lt;/h2&gt;
+&lt;p&gt;Storing the catalog requires a structured, stable and flexible format.
+In practice, storing the data in PostgreSQL tables seemed elegant to DBA eyes
+but proved unsuitable. The PostgreSQL Migrator tool is designed to be portable
+and we did not want to pollute the final PostgreSQL instance with a temporary
+schema.&lt;/p&gt;
+&lt;p&gt;Like Ora2Pg, pg_migrate initializes a &lt;code&gt;Catalog&lt;/code&gt; in-memory structure
+(&lt;code&gt;internal/catalog/catalog.go&lt;/code&gt;) at the start of the inspection. This catalog can
+be extended to support Oracle or MySQL/MariaDB sources, to collect
+engine-specific objects such as packages or synonyms. Once the remote catalog
+has been read, it is then serialized to a JSON file. Currently, version 1.0 uses
+the &lt;a href="https://github.com/bytedance/sonic" target="_blank" rel="noopener"&gt;sonic&lt;/a&gt; library.&lt;/p&gt;
+&lt;p&gt;Inspection is the first step to kick off a project with &lt;code&gt;pg_migrate&lt;/code&gt;, the
+nickname for the command-line interface (&lt;em&gt;CLI&lt;/em&gt;) of PostgreSQL Migrator. After
+initializing an empty directory and checking access to the remote Oracle
+database, the logs prompt us to run the &lt;code&gt;pg_migrate inspect&lt;/code&gt; command.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; ora-scott &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;cd&lt;/span&gt; ora-scott
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pg_migrate init --source &lt;span class="s2"&gt;&amp;#34;oracle://system:manager@localhost:1521/freepdb1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:55:28 INFO Databases connections closed. source=1 target=0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:55:28 INFO Initialized migration project. source=&amp;#34;Oracle Database 23ai Free&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:55:28 INFO Inspect source catalog using pg_migrate inspect.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pg_migrate --verbose inspect
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:03 DEBUG Cache miss. name=Source
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:03 INFO Inspecting source database. driver=oracle
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:03 INFO This may take some time.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:04 DEBUG Inspected schemas. count=1 duration=84.735201ms
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:05 DEBUG Inspected roles. count=6 duration=465.814794ms
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:06 DEBUG Inspected sequences. count=0 duration=1.050025889s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:07 DEBUG Inspected routines. count=0 duration=2.794483231s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:07 DEBUG Inspected views. count=0 duration=2.63147026s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:21 DEBUG Inspected tables. count=4 duration=15.720365706s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:31 DEBUG Inspected columns. count=18 duration=10.735219841s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:41 DEBUG Inspected keys. count=2 duration=19.945416304s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:44 DEBUG Inspected tables-indexes. count=0 duration=23.287211484s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:48 DEBUG Inspected foreign-keys. count=1 duration=6.525976802s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:58 DEBUG Inspected checks. count=0 duration=10.622190194s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:58 INFO Inspected schema. name=SCOTT
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:56:58 DEBUG Inspection completed. duration=54.968668546s
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:57:12 INFO Inspection terminated. errs=0 online=true
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:57:12 INFO Execute pg_migrate ui to browse project.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;14:57:12 INFO Execute pg_migrate dump to migrate for PostgreSQL.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;On first run, the local catalog does not exist (&lt;code&gt;Cache miss. name=Source&lt;/code&gt;),
+which connects to the remote database to build it from scratch. Cache files are
+written to the hidden &lt;code&gt;.pg_migrate&lt;/code&gt; directory. The source catalog is simply
+named &lt;code&gt;Source.json&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; tree .pg_migrate/
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;.pg_migrate
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;├── Info.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;├── Map.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;├── Source.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;├── Stats.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;└── Target.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I then had to set aside my beloved SQL to learn the &lt;code&gt;jq&lt;/code&gt; language in order to
+query the JSON files in a &lt;code&gt;pg_migrate&lt;/code&gt; project. For example, the following
+filter lists all columns and their types for the &lt;code&gt;SCOTT.EMP&lt;/code&gt; table:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; &lt;span class="nb"&gt;set&lt;/span&gt; filter &lt;span class="s1"&gt;&amp;#39;.Tables[] | select (.Name == &amp;#34;EMP&amp;#34;) | .Columns[] | .objectDefinition&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; jq -r &lt;span class="nv"&gt;$filter&lt;/span&gt; &amp;lt; .pg_migrate/Source.json
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;EMPNO NUMBER(4, 0) NOT NULL
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;ENAME VARCHAR2(10)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;JOB VARCHAR2(9)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;MGR NUMBER(4, 0)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;HIREDATE DATE
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;SAL NUMBER(7, 2)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;COMM NUMBER(7, 2)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;DEPTNO NUMBER(2, 0)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Of course, the tool has come a very long way since 2024 and this offline catalog
+architecture has become the backbone of the product. These files opened up use
+cases previously out of reach with Ora2Pg, in addition to the offline mode.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Conversion transforms a &lt;code&gt;Source.json&lt;/code&gt; file into a &lt;code&gt;Target.json&lt;/code&gt; file by
+applying generic and specific conversion rules;&lt;/li&gt;
+&lt;li&gt;An audit phase traverses every node to assign a score, plus annotations about
+conversion pitfalls;&lt;/li&gt;
+&lt;li&gt;A single-page (SPA) web interface lets you browse both models (source and
+target) without writing &lt;code&gt;jq&lt;/code&gt; filters.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The tool ships with a &lt;code&gt;dump&lt;/code&gt; command, which can also be used to display the DDL
+for an object stored in &lt;code&gt;Target.json&lt;/code&gt;. Currently, the full command is as
+follows:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; pg_migrate dump --force --section&lt;span class="o"&gt;=&lt;/span&gt;pre-data Tables/scott.emp 2&amp;gt;/dev/null &lt;span class="p"&gt;|&lt;/span&gt; cat
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;--
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;-- Name: emp; Type: TABLE; Schema: scott; Owner: scott
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;--
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="err"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;CREATE TABLE &amp;#34;scott&amp;#34;.&amp;#34;emp&amp;#34; (
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;empno&amp;#34; smallint NOT NULL,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;ename&amp;#34; varchar(10),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;job&amp;#34; varchar(9),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;mgr&amp;#34; smallint,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;hiredate&amp;#34; timestamp,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;sal&amp;#34; numeric(7, 2),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;comm&amp;#34; numeric(7, 2),
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt; &amp;#34;deptno&amp;#34; smallint
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="err"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;ALTER TABLE &amp;#34;scott&amp;#34;.&amp;#34;emp&amp;#34; OWNER TO &amp;#34;scott&amp;#34;;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
+&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;I am deeply proud of the work accomplished with this first stable release. With
+my colleagues at Dalibo, we are wrapping up a thrilling adventure, more than two
+years spent developing a free, libre and open-source tool meant to surpass its
+illustrious predecessor Ora2Pg. The &lt;a href="https://postgresql-migrator.readthedocs.io/en/latest/references/features/" target="_blank" rel="noopener"&gt;roadmap&lt;/a&gt; is clear. Starting this fall,
+we begin the next phase: procedural code conversion. The foundations are solid,
+the Go language lets us address real needs for simplification and modernity.&lt;/p&gt;
+&lt;p&gt;At a time when digital empires harvest our operational data, capturing the value
+of our companies&amp;rsquo; work, it is urgent to react and to believe that another
+digital world is possible. Migration projects are becoming complex and
+demanding, involving very diverse roles and skills, and we aim to provide an
+alternative that does not rely exclusively on LLM agents or American services.&lt;/p&gt;
+&lt;p&gt;Free software has shown the way for decades; what we lack is the bridges to move
+away from these technologies that deprive us of freedom, innovation and means.
+At my level as a DBA and Product Owner, committed to the Dalibo cooperative, I
+contribute to this collective effort.&lt;/p&gt;</description></item><item><title>Window functions to the rescue</title><link>https://fljd.in/en/2024/12/17/window-functions-to-the-rescue/</link><pubDate>Tue, 17 Dec 2024 14:00:00 +0200</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/12/17/window-functions-to-the-rescue/</guid><description>&lt;p&gt;PostgreSQL comes with a variety of functions that allow you to group rows into a
 &amp;ldquo;window&amp;rdquo; and perform calculations on that window. By using these functions, you
 can create more advanced and efficient queries for analyzing your database.&lt;/p&gt;
 &lt;p&gt;In early 2023, I contributed to a project that converts data models to
@@ -885,295 +1099,4 @@ expertise during the PostgreSQL Lille Meetups. A big thank you to them for livin
 &lt;p&gt;After the conference, I felt that feedback had a positive impact on the audience, with a few people coming to
 me to congratulate me on the work done and inform me of their intention to organize a Meetup in their own city.
 It was a nice reward for me, and it made me want to continue my commitment and set an example for the promotion
-of PostgreSQL in France.&lt;/p&gt;</description></item><item><title>An assistant to copy data from a remote server</title><link>https://fljd.in/en/2024/05/28/an-assistant-to-copy-data-from-a-remote-server/</link><pubDate>Tue, 28 May 2024 00:00:00 +0000</pubDate><author>Florent Jardin</author><guid>https://fljd.in/en/2024/05/28/an-assistant-to-copy-data-from-a-remote-server/</guid><description>&lt;p&gt;During the last PGSession organized by Dalibo, I wrote and led a &lt;a href="https://dali.bo/wsfdw_html" target="_blank" rel="noopener"&gt;workshop&lt;/a&gt;
-(french) on the migration to PostgreSQL using Foreign Data Wrappers, or FDW.
-This was an opportunity to present to the general public the &lt;a href="https://github.com/cybertec-postgresql/db_migrator" target="_blank" rel="noopener"&gt;&lt;code&gt;db_migrator&lt;/code&gt;&lt;/a&gt;
-extension for which I wrote an &lt;a href="https://fljd.in/en/2023/07/28/on-the-road-to-freedom-with-db_migrator/"&gt;article&lt;/a&gt; on this blog.&lt;/p&gt;
-&lt;p&gt;While working on this workshop, we noticed that copying data with the
-&lt;code&gt;db_migrator&lt;/code&gt; extension is not perfectly supported. Indeed, although there is a
-low-level function to distribute the transfer table by table over several
-processes, many situations will require writing a large number of SQL queries to
-get out of trouble. Over the following months, I worked on the design of an
-&lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener"&gt;assistant&lt;/a&gt; written in PL/pgSQL whose purpose is to simplify the generation
-of these queries.&lt;/p&gt;
-&lt;hr&gt;
-&lt;h2 id="data-transfer-without-an-assistant"&gt;Data transfer without an assistant&lt;/h2&gt;
-&lt;p&gt;There is no magic in the operation of copying data through a Foreign Data
-Wrapper. Everything boils down to a series of &lt;code&gt;INSERT&lt;/code&gt; queries that must be
-executed in a predefined order. Let&amp;rsquo;s take the 16 tables of the well-known
-&amp;ldquo;Sakila&amp;rdquo; data model (available at this &lt;a href="https://github.com/ivanceras/sakila/raw/master/mysql-sakila-db" target="_blank" rel="noopener"&gt;address&lt;/a&gt;) to illustrate the need for
-generating transfer queries.&lt;/p&gt;
-&lt;p&gt;&lt;img src="https://fljd.in/img/fr/2024-05-28-sakila-erp.jpg" alt="ERD Base Sakila"&gt;&lt;/p&gt;
-&lt;p&gt;For the purpose of this article, I have a PostgreSQL database with the two
-following schemas that I will use in my demonstrations:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;mysql&lt;/code&gt;: the source schema containing the definition of the external tables
-via the &lt;code&gt;mysql_fdw&lt;/code&gt; extension;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;public&lt;/code&gt;: the target schema where the data will be copied.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Each external table is subject to a quick study to obtain the correct column
-type match, and their definition is kept in an SQL file for the project teams.
-For example, the &lt;code&gt;rental&lt;/code&gt; foreign tables is defined as follows:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FOREIGN&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;TABLE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;rental&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;rental_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;integer&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;rental_date&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;timestamp&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;without&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;zone&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;inventory_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;integer&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;customer_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;smallint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;return_date&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;timestamp&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;without&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;zone&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;staff_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;smallint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;last_update&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;timestamp&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;without&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;zone&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;SERVER&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;sakila_mysql&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;OPTIONS&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dbname&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;sakila&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;table_name&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;rental&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When creating the &lt;code&gt;public.rental&lt;/code&gt; table that will host the data, it is
-opportune to decide whether we want to set up partitioning, something that
-&lt;code&gt;db_migrator&lt;/code&gt; is able to identify and set up. For the example, I take back the
-strict structure using the &lt;code&gt;CREATE TABLE LIKE&lt;/code&gt; syntax to create all my target
-tables.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;TABLE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;actor&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;LIKE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;actor&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;TABLE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;LIKE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;address&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Even before setting up an &lt;code&gt;INSERT&lt;/code&gt; query generator, it is easy to see the look
-of these queries. Each line of the external table will be read through a global
-&lt;code&gt;SELECT&lt;/code&gt;, then inserted into the target table. The migration script contains 16
-instructions, one for each table.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;-- insert.sql
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;INSERT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;INTO&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;actor&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;actor&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;INSERT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;INTO&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;address&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;INSERT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;INTO&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;store&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;store&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;To benefit from several processes, I appreciate the &lt;code&gt;xargs&lt;/code&gt; tool which allows
-distributing each line of the &lt;code&gt;insert.sql&lt;/code&gt; file on a new &lt;code&gt;psql&lt;/code&gt; session. This
-technique was presented in the February workshop, especially to parallelize the
-construction of indexes and primary keys, defined in an SQL file.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; xargs -P &lt;span class="m"&gt;4&lt;/span&gt; -a insert.sql -d &lt;span class="s1"&gt;&amp;#39;\n&amp;#39;&lt;/span&gt; -I % sh -c &lt;span class="s1"&gt;&amp;#39;psql -c &amp;#34;%&amp;#34;&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;INSERT 0 16
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;INSERT 0 603
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;...
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="go"&gt;INSERT 0 16044
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This method is not perfect, it lacks verbosity, the SQL queries are static.
-Anyway, let&amp;rsquo;s see the next part to discover what my assistant can bring.&lt;/p&gt;
-&lt;hr&gt;
-&lt;h2 id="demonstration-of-the-assistant"&gt;Demonstration of the assistant&lt;/h2&gt;
-&lt;p&gt;Unlike my other PL/pgSQL projects, this &lt;a href="https://github.com/fljdin/fdw-assistant" target="_blank" rel="noopener"&gt;assistant&lt;/a&gt; is not an extension and
-must be installed as a simple script. Once downloaded, it is sufficient to
-invoke it on the database of your choice with the following command:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-console" data-lang="console"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="gp"&gt;$&lt;/span&gt; psql -d sakila -f fdw-assistant.sql
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The default schema is named &lt;code&gt;assistant&lt;/code&gt; and contains a &lt;strong&gt;configuration&lt;/strong&gt; table
-simply called &lt;code&gt;config&lt;/code&gt;. For each table to be migrated, one must insert a single
-line that will serve as the starting point for generating data migration
-queries. In the current version, we find the following parameters:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;source&lt;/code&gt;: the external table containing the data to be copied;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;target&lt;/code&gt;: the target table where the data will be copied;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;pkey&lt;/code&gt;: the primary key column of the target table;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;priority&lt;/code&gt;: the lowest values define the tables to be processed first;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;parts&lt;/code&gt;: the number of processes to launch for copying the data;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;trunc&lt;/code&gt;: an option to empty the target table before copying the data;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;condition&lt;/code&gt;: a &lt;code&gt;WHERE&lt;/code&gt; clause to filter the data to be copied;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;batchsize&lt;/code&gt;: the number of rows to copy before performing an intermediate
-&lt;code&gt;COMMIT&lt;/code&gt;.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;To initialize this table in the first instance, it is necessary to know at least
-the primary key columns of each remote table. By reporting the information from
-the relational diagram of the Sakila database, we can fill the &lt;code&gt;config&lt;/code&gt; table as
-follows:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;INSERT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;INTO&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;source&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;pkey&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;VALUES&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql.actor&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.actor&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;actor_id&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql.address&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.address&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;address_id&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;mysql.store&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.store&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;store_id&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;For each transfer, we indicate the source and target table, as well as the
-primary key column. The latter is required to sort the rows, split the transfer
-into several batches, and restart the transfer in case of interruption.&lt;/p&gt;
-&lt;p&gt;With this configuration, we can move on to the &lt;strong&gt;planning&lt;/strong&gt; step. The &lt;code&gt;stage&lt;/code&gt;
-and &lt;code&gt;job&lt;/code&gt; tables are fed with new elements that will be used to drive and track
-the different transfers to be done.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plan&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; target | invocation
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;---------------+--------------------------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; customer | CALL assistant.copy(1);
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; address | CALL assistant.copy(2);
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;(16 rows)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A view named &lt;code&gt;report&lt;/code&gt; allows you to follow the progress of the different steps
-by joining the &lt;code&gt;stage&lt;/code&gt; and &lt;code&gt;job&lt;/code&gt; tables. It provides very useful elements to
-monitor the progress and throughput of the transfers.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;state&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;rows&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;report&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;stage_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; target | state | rows
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;---------------+---------+------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; rental | pending | 0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; actor | pending | 0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;(16 rows)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Rows returned by the &lt;code&gt;plan()&lt;/code&gt; command can then be &lt;strong&gt;invoked&lt;/strong&gt; one after the
-other with the &lt;code&gt;\gexec&lt;/code&gt; meta-command of &lt;code&gt;psql&lt;/code&gt;, or by using the file technique
-and distributing the queries with &lt;code&gt;xargs&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;Calling the &lt;code&gt;copy()&lt;/code&gt; method is responsible for building the &lt;code&gt;INSERT&lt;/code&gt; statement
-for copying data from a remote table to a local table. For example, for the
-&lt;code&gt;customer&lt;/code&gt; table, the result of the call will be as follows:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CALL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;copy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: TRUNCATE public.customer
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: SELECT count(customer_id) FROM mysql.customer
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; WHERE customer_id &amp;gt; 0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: INSERT INTO public.customer
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; SELECT customer_id, store_id, first_name, last_name, email,
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; address_id, active, create_date, last_update
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; FROM mysql.customer
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; WHERE customer_id &amp;gt; 0 ORDER BY customer_id
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CALL
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;At the end of the transfer, the &lt;code&gt;report&lt;/code&gt; view provides a summary of the operation.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;report&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;stage_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;AND&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.customer&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;regclass&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;-[ RECORD 1 ]-------------------------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;stage_id | 1
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;target | public.customer
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;job_start | 2024-05-28 10:19:18.334917
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;state | completed
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rows | 599
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;total | 599
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;elapsed | 00:00:00.081273
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rate | 7370.22
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;progress | 1.00
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;eti | 00:00:00
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;eta | 2024-05-28 10:19:18.334917
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
-&lt;h2 id="distribution-over-several-processes"&gt;Distribution over several processes&lt;/h2&gt;
-&lt;p&gt;As the assistant was designed, I felt the need to enrich the underlying queries
-to respond to other recurring use cases in the data migration domain. Among
-these, we find the ability to distribute the rows of the same table over several
-sessions, each with a &lt;code&gt;WHERE&lt;/code&gt; clause based on the result of the Euclidean
-division (&lt;em&gt;modulo&lt;/em&gt;) of the primary key.&lt;/p&gt;
-&lt;p&gt;To activate this feature, simply fill in the &lt;code&gt;parts&lt;/code&gt; parameter in the &lt;code&gt;config&lt;/code&gt;
-table. For example, for the &lt;code&gt;film&lt;/code&gt; table, we can define:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;SET&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;parts&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.film&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;regclass&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This configuration takes effect during the next planning. The call to the
-&lt;code&gt;plan()&lt;/code&gt; method then inserts four lines into the &lt;code&gt;job&lt;/code&gt; table for the &lt;code&gt;film&lt;/code&gt;
-table, each attached to a value between 0 and 3. The &lt;code&gt;condition&lt;/code&gt; column is then
-enriched for the rows of the &lt;code&gt;task&lt;/code&gt; table in view of the next step.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;invocation&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plan&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{public.film}&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; invocation
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;--------------------------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; CALL assistant.copy(17);
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; CALL assistant.copy(18);
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; CALL assistant.copy(19);
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; CALL assistant.copy(20);
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;(4 rows)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;job_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;job&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;state&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;part&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;condition&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;job&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;JOIN&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;task&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;USING&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;job_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;stage_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; job_id | target | state | part | condition
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;--------+--------+---------+------+-----------------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 17 | film | pending | 0 | film_id % 4 = 0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 18 | film | pending | 1 | film_id % 4 = 1
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 19 | film | pending | 2 | film_id % 4 = 2
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 20 | film | pending | 3 | film_id % 4 = 3
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When calling the &lt;code&gt;copy()&lt;/code&gt; method, the assistant builds the &lt;code&gt;INSERT&lt;/code&gt; queries
-based on the conditions previously defined. For example, for the first part of
-the &lt;code&gt;film&lt;/code&gt; table, the trace indicates the &lt;code&gt;INSERT&lt;/code&gt; queries that were generated.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CALL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;copy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: TRUNCATE public.film
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: SELECT count(film_id) FROM mysql.film
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; WHERE film_id &amp;gt; 0 AND film_id % 4 = 0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: INSERT INTO public.film
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; SELECT film_id, title, description, release_year,
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; language_id, original_language_id, rental_duration,
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; rental_rate, length, replacement_cost, rating,
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; special_features, last_update
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; FROM mysql.film WHERE film_id &amp;gt; 0 AND film_id % 4 = 0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ORDER BY film_id
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CALL
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;TRUNCATE&lt;/code&gt; operation only occurs for the session whose value of &lt;code&gt;part&lt;/code&gt; is
-equal to 0. In the nominal case, this session is launched before all the others
-to respect the expected behavior in the configuration with the &lt;code&gt;trunc&lt;/code&gt; column
-(&lt;code&gt;true&lt;/code&gt; by default).&lt;/p&gt;
-&lt;p&gt;The obvious interest of this method is to obtain the best insertion rate for a
-given table, relying on the extraction power of the remote server and the
-writing capacity of the local server. The rate can be consulted with the
-&lt;code&gt;report&lt;/code&gt; view, especially to compare two loads for the same table, like the
-example of the &lt;code&gt;film&lt;/code&gt; table. The &lt;code&gt;rate&lt;/code&gt; column is expressed in number of rows
-per second.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;stage_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;state&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;rate&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;report&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.film&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;regclass&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; stage_id | target | state | rate
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;----------+-------------+-----------+----------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 1 | public.film | completed | 19162.59
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 2 | public.film | completed | 51389.37
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
-&lt;h2 id="restart-after-interruption"&gt;Restart after interruption&lt;/h2&gt;
-&lt;p&gt;The ability to restart a copy in batch mode in case of interruption is one of
-the reasons why the primary key must be filled in the configuration. The
-assistant relies on the last extracted primary key value (using a &lt;code&gt;RETURNING&lt;/code&gt;
-clause) to know the next restart point. In designing this feature, I had to
-arbitrate the limitations imposed by this mechanism.&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Composite primary keys are not allowed, as the &lt;code&gt;RETURNING&lt;/code&gt; clause can only
-return a single value;&lt;/li&gt;
-&lt;li&gt;Tables with composite primary keys cannot benefit from batch processing, and
-therefore cannot be restarted after interruption;&lt;/li&gt;
-&lt;li&gt;Data is systematically sorted during extraction, even if batch processing is
-not enabled;&lt;/li&gt;
-&lt;li&gt;The primary key column must be of numeric type.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;The activation of a batch processing consists of updating the &lt;code&gt;batchsize&lt;/code&gt; column
-of the configuration table. Let&amp;rsquo;s take the example of the &lt;code&gt;rental&lt;/code&gt; table:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;SET&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;batchsize&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.rental&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;regclass&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;invocation&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plan&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{public.rental}&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; invocation
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;--------------------------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; CALL assistant.copy(21);
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;(1 row)
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The data transfer from the &lt;code&gt;rental&lt;/code&gt; table is then divided into batches of 1000
-rows. It is of course possible to combine this technique with parallelization,
-the &lt;code&gt;WHERE&lt;/code&gt; clause will do most of the work of repartition to prevent the same
-line from being exported twice.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CALL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;copy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;21&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;TRUNCATE public.rental
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;SELECT count(rental_id) FROM mysql.rental WHERE rental_id &amp;gt; 0
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;INSERT INTO public.rental SELECT rental_id, ...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; FROM mysql.rental WHERE rental_id &amp;gt; 0 ORDER BY rental_id LIMIT 1000
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;INSERT INTO public.rental SELECT rental_id, ...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; FROM mysql.rental WHERE rental_id &amp;gt; 16005 ORDER BY rental_id LIMIT 1000
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;INSERT INTO public.rental SELECT rental_id, ...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; FROM mysql.rental WHERE rental_id &amp;gt; 16049 ORDER BY rental_id LIMIT 1000
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CALL
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As soon as a query no longer returns any rows, the assistant considers that the
-transfer is complete. The &lt;code&gt;job&lt;/code&gt; table is updated at each iteration to follow the
-last value of the primary key sequence.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;lastseq&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;job&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;stage_id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;AND&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;target&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;public.rental&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;::&lt;/span&gt;&lt;span class="n"&gt;regclass&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; target | lastseq
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;---------------+---------
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; public.rental | 16049
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In case of interruption, it is possible to restart the transfer by calling the
-&lt;code&gt;copy()&lt;/code&gt; method with the same task identifier. The assistant takes care of
-resuming the transfer from the last known primary key value.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sql" data-lang="sql"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;CALL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;assistant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;copy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;21&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: SELECT count(rental_id) FROM mysql.rental
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; WHERE rental_id &amp;gt; 16049
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;NOTICE: Executing: INSERT INTO public.rental SELECT rental_id, ...
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; FROM mysql.rental WHERE rental_id &amp;gt; 16049
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ORDER BY rental_id LIMIT 1000
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;CALL
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
-&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;The design of such a tool was a small personal challenge in line with my
-&lt;a href="https://fljd-in.translate.goog/2021/12/06/migrer-vers-postgresql/?_x_tr_sl=en&amp;amp;_x_tr_tl=fr&amp;amp;_x_tr_hl=fr&amp;amp;_x_tr_pto=wapp" target="_blank" rel="noopener"&gt;research&lt;/a&gt; on migration to PostgreSQL with the exclusive help of Foreign Data
-Wrappers. My main source of inspiration remains the &lt;a href="https://github.com/fljdin/dispatch" target="_blank" rel="noopener"&gt;Ora2Pg&lt;/a&gt; project, one of
-the most advanced open-source tools to date in the field of migration.&lt;/p&gt;
-&lt;p&gt;I am aware of the technical limitations of this assistant, and the tinkering
-that remains to be done to make life easier for a consultant like me. In another
-article, I would like to present another tool called &lt;a href="https://github.com/fljdin/dispatch" target="_blank" rel="noopener"&gt;dispatch&lt;/a&gt; that I have
-been maintaining for some time and with which I answer questions about
-orchestration and traceability of migration steps.&lt;/p&gt;
-&lt;p&gt;By taking a step back, the basic concepts are there, any other tool in other
-languages could perfectly emerge and enrich the open-source ecosystem in the
-quest for migration to PostgreSQL.&lt;/p&gt;</description></item></channel></rss>
+of PostgreSQL in France.&lt;/p&gt;</description></item></channel></rss>
