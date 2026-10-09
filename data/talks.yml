@@ -39,3 +39,8 @@
   lang: fr
   date: 2025-06-04
   url: /documents/pgdayfr-2025-lightning-talk-partitionnement-uuidv7.pdf
+  video: https://youtu.be/YrBu-jWvjLw?si=KP4bqXfiLfgXgL8r&t=751
+- title: "Conversion avancée avec PostgreSQL Migrator"
+  lang: fr
+  date: 2026-10-08
+  url: /documents/pgm-config-avancee.slides.pdf
